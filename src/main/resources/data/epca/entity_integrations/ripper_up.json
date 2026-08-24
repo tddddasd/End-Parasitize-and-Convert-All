@@ -1,0 +1,18 @@
+[
+  {
+    "entities": [
+      {
+        "entity": "epca:ripper",
+        "requiredKillCount": 15
+      }
+    ],
+    "range": 1.0,
+    "time": 1,
+    "results": [
+      {
+        "entity": "epca:light_carrier",
+        "count": 1
+      }
+    ]
+  }
+]

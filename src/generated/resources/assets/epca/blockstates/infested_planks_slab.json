@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "epca:block/infested_planks_slab"
+    },
+    "type=double": {
+      "model": "epca:block/infested_planks"
+    },
+    "type=top": {
+      "model": "epca:block/infested_planks_slab_top"
+    }
+  }
+}

@@ -1,0 +1,174 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.mozzie",
+				"texture_width": 48,
+				"texture_height": 48,
+				"visible_bounds_width": 3,
+				"visible_bounds_height": 2.5,
+				"visible_bounds_offset": [0, 0.75, 0]
+			},
+			"bones": [
+				{
+					"name": "all",
+					"pivot": [0, 4, 2]
+				},
+				{
+					"name": "Mozzie",
+					"parent": "all",
+					"pivot": [0, 4, 2]
+				},
+				{
+					"name": "body",
+					"parent": "Mozzie",
+					"pivot": [0, 5, 2.5],
+					"cubes": [
+						{
+							"origin": [-1.5, 2.5, 0.5],
+							"size": [3, 3, 3],
+							"uv": {
+								"north": {"uv": [22, 12], "uv_size": [3, 3]},
+								"east": {"uv": [23, 0], "uv_size": [3, 3]},
+								"south": {"uv": [23, 4], "uv_size": [3, 3]},
+								"west": {"uv": [12, 24], "uv_size": [3, 3]},
+								"up": {"uv": [16, 24], "uv_size": [3, 3]},
+								"down": {"uv": [25, 19], "uv_size": [3, -3]}
+							}
+						},
+						{
+							"origin": [0, 0.5, -0.5],
+							"size": [0, 7, 6],
+							"uv": {
+								"west": {"uv": [11, 0], "uv_size": [6, 7]}
+							}
+						}
+					]
+				},
+				{
+					"name": "straw",
+					"parent": "body",
+					"pivot": [0, 3.5, 0.5],
+					"cubes": [
+						{
+							"origin": [-0.5, 3, -10.5],
+							"size": [1, 1, 12],
+							"uv": {
+								"north": {"uv": [23, 8], "uv_size": [1, 1]},
+								"east": {"uv": [18, 10], "uv_size": [12, 1]},
+								"south": {"uv": [20, 24], "uv_size": [1, 1]},
+								"west": {"uv": [10, 22], "uv_size": [12, 1]},
+								"up": {"uv": [23, 22], "uv_size": [1, 12]},
+								"down": {"uv": [10, 36], "uv_size": [1, -12]}
+							}
+						}
+					]
+				},
+				{
+					"name": "gasbag",
+					"parent": "Mozzie",
+					"pivot": [0, 4, 4]
+				},
+				{
+					"name": "leftbag",
+					"parent": "gasbag",
+					"pivot": [0, 5, 3],
+					"cubes": [
+						{
+							"origin": [0, 3, 3],
+							"size": [4, 4, 4],
+							"uv": {
+								"north": {"uv": [7, 12], "uv_size": [4, 4]},
+								"east": {"uv": [12, 12], "uv_size": [4, 4]},
+								"south": {"uv": [0, 16], "uv_size": [4, 4]},
+								"west": {"uv": [5, 17], "uv_size": [4, 4]},
+								"up": {"uv": [10, 17], "uv_size": [4, 4]},
+								"down": {"uv": [17, 16], "uv_size": [4, -4]}
+							}
+						}
+					]
+				},
+				{
+					"name": "rightbag",
+					"parent": "gasbag",
+					"pivot": [0, 5, 3],
+					"cubes": [
+						{
+							"origin": [-4, 3, 3],
+							"size": [4, 4, 4],
+							"uv": {
+								"north": {"uv": [15, 17], "uv_size": [4, 4]},
+								"east": {"uv": [18, 0], "uv_size": [4, 4]},
+								"south": {"uv": [18, 5], "uv_size": [4, 4]},
+								"west": {"uv": [20, 17], "uv_size": [4, 4]},
+								"up": {"uv": [0, 21], "uv_size": [4, 4]},
+								"down": {"uv": [5, 26], "uv_size": [4, -4]}
+							}
+						}
+					]
+				},
+				{
+					"name": "leftwing_f",
+					"parent": "Mozzie",
+					"pivot": [1.5, 4, 1.5],
+					"rotation": [0, 12.5, 0],
+					"cubes": [
+						{
+							"origin": [0.5, 4, -1],
+							"size": [10, 0, 5],
+							"uv": {
+								"up": {"uv": [0, 0], "uv_size": [10, 5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "rightwing_f",
+					"parent": "Mozzie",
+					"pivot": [-1.5, 4, 1.5],
+					"rotation": [0, -12.5, 0],
+					"cubes": [
+						{
+							"origin": [-10.5, 4, -1],
+							"size": [10, 0, 5],
+							"uv": {
+								"up": {"uv": [0, 6], "uv_size": [10, 5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "leftwing_b",
+					"parent": "Mozzie",
+					"pivot": [1.5, 3.5, 2.5],
+					"rotation": [0, -12.5, 0],
+					"cubes": [
+						{
+							"origin": [0.5, 3.5, 1],
+							"size": [6, 0, 3],
+							"uv": {
+								"up": {"uv": [11, 8], "uv_size": [6, 3]}
+							}
+						}
+					]
+				},
+				{
+					"name": "rightwing_b",
+					"parent": "Mozzie",
+					"pivot": [-1.5, 3.5, 2.5],
+					"rotation": [0, 12.5, 0],
+					"cubes": [
+						{
+							"origin": [-6.5, 3.5, 1],
+							"size": [6, 0, 3],
+							"uv": {
+								"up": {"uv": [0, 12], "uv_size": [6, 3]}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,10 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": ["minecraft:desert","minecraft:badlands","minecraft:eroded_badlands","minecraft:wooded_badlands"],
+  "spawners": {
+    "type": "epca:infested_husk",
+    "weight": 9,
+    "minCount": 3,
+    "maxCount": 5
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "values": [
+    "epca:infested_dirt",
+    "epca:infested_sand",
+    "epca:infested_sandstone",
+    "epca:infested_sandstone_slab",
+    "epca:infested_sandstone_stairs",
+    "epca:infested_sandstone_wall",
+    "epca:infested_chiseled_red_sandstone",
+    "epca:infested_chiseled_sandstone",
+    "epca:infested_smooth_sandstone",
+    "epca:infested_smooth_sandstone_slab",
+    "epca:infested_smooth_sandstone_stairs",
+    "epca:infested_cut_sandstone",
+    "epca:infested_cut_sandstone_slab",
+    "epca:infested_snow",
+    "epca:infested_snow_block",
+    "epca:infested_residue",
+    "epca:infested_dustlike"
+  ]
+}

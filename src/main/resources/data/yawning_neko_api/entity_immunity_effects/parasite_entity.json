@@ -1,0 +1,161 @@
+{
+  "epca:curbug": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:ripper": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:fins": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:mozzie": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:flying_carrier": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:small_incomplete_form": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:medium_incomplete_form": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:large_incomplete_form": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:biomass_small": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:biomass_medium": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:living_flesh_size0": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:living_flesh_size1": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:living_flesh_size2": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:living_flesh_size3": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:living_flesh_size4": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_zombie": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_zombie_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_husk": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_husk_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_drowned": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_drowned_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_pillager": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_pillager_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_vindicator": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_vindicator_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_villager": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_villager_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_zombie_villager": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_zombie_villager_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_pig": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_pig_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_sheep": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_sheep_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_cow": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_cow_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_wolf": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_wolf_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_chicken": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_chicken_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_slime_size0": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_slime_size1": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_slime_size3": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_silverfish": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:reshape_longarms": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:stage_i_beckon": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:stage_ii_beckon": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:light_carrier": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_skeleton": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_skeleton_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_fox": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:reshape_yelloweye": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_fox_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_pumpkin_head": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  }
+}

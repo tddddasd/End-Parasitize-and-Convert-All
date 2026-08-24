@@ -1,0 +1,10 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": ["minecraft:swamp","minecraft:mangrove_swamp"],
+  "spawners": {
+    "type": "epca:infested_slime_size1",
+    "weight": 4,
+    "minCount": 1,
+    "maxCount": 2
+  }
+}

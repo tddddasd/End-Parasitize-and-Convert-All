@@ -1,0 +1,10 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#minecraft:fox_spawns",
+  "spawners": {
+    "type": "epca:infested_fox",
+    "weight": 2,
+    "minCount": 1,
+    "maxCount": 3
+  }
+}

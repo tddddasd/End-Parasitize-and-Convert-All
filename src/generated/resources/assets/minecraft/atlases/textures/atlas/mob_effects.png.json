@@ -1,0 +1,60 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/bleeding"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/viral"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/fear"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/coth"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/contempt_inorganic"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/corrosive"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/rage"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/needler"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/deep_sneak"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/solidify"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/ender_erosion"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/camouflage"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/spirit"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/soul_protection"
+    }
+  ]
+}

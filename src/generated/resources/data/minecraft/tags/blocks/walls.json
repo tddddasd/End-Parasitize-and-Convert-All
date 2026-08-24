@@ -1,0 +1,11 @@
+{
+  "values": [
+    "epca:infested_stone_wall",
+    "epca:infested_cobblestone_wall",
+    "epca:infested_stone_bricks_wall",
+    "epca:infested_sandstone_wall",
+    "epca:infested_heavy_cobblestone_wall",
+    "epca:infested_polished_heavy_stone_wall",
+    "epca:infested_heavy_bricks_wall"
+  ]
+}

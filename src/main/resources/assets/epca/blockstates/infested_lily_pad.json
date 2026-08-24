@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "epca:block/infested_lily_pad"
+      },
+      {
+        "model": "epca:block/infested_lily_pad",
+        "y": 90
+      },
+      {
+        "model": "epca:block/infested_lily_pad",
+        "y": 180
+      },
+      {
+        "model": "epca:block/infested_lily_pad",
+        "y": 270
+      }
+    ]
+  }
+}

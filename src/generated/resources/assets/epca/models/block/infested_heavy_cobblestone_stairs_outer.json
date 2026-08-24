@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "epca:block/infested_heavy_cobblestone",
+    "side": "epca:block/infested_heavy_cobblestone",
+    "top": "epca:block/infested_heavy_cobblestone"
+  }
+}

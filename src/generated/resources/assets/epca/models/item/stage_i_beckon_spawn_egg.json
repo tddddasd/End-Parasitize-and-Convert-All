@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "epca:item/stage_i_beckon_spawn_egg"
+  }
+}

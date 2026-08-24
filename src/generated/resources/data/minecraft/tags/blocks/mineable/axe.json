@@ -1,0 +1,16 @@
+{
+  "values": [
+    "epca:infested_log",
+    "epca:infested_wood",
+    "epca:infested_stripped_log",
+    "epca:infested_stripped_wood",
+    "epca:infested_planks",
+    "epca:infested_planks_slab",
+    "epca:infested_planks_fence",
+    "epca:infested_planks_stairs",
+    "epca:infested_plankslike",
+    "epca:infested_carved_pumpkin",
+    "epca:infested_pumpkin",
+    "epca:infested_cactus"
+  ]
+}

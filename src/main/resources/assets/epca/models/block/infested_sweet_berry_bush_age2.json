@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "render_type": "cutout",
+  "textures": {
+    "cross": "epca:block/infested_sweet_berry_bush_growed"
+  }
+}

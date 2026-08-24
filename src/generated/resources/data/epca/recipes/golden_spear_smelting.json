@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "group": "smelting_golden_spear",
+  "ingredient": {
+    "item": "epca:golden_spear"
+  },
+  "result": "minecraft:gold_nugget"
+}

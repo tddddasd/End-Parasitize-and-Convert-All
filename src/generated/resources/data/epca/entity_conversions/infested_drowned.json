@@ -1,0 +1,8 @@
+{
+  "fins_to": "epca:walking_drowned_head",
+  "from": "epca:infested_drowned",
+  "mozzie_to": "epca:walking_drowned_head",
+  "priority": 0,
+  "small_entity_priority": true,
+  "to": "epca:walking_drowned_head"
+}

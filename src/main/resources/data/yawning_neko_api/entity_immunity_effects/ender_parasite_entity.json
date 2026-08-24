@@ -1,0 +1,11 @@
+{
+  "epca:infested_enderman": {
+    "immunities": ["epca:coth","epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "epca:ender_erosion", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:walking_enderman_head": {
+    "immunities": ["epca:coth","epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "epca:ender_erosion", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_endermite": {
+    "immunities": ["epca:coth","epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "epca:ender_erosion", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  }
+}

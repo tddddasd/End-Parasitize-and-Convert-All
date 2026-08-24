@@ -1,0 +1,16 @@
+{
+  "parent_tabs": [
+    {
+      "id": "test3",
+      "name": "第二列父选项卡",
+      "required_advancement": "minecraft:story/mine_diamond",
+      "child_tabs": [
+        {
+          "id": "a",
+          "name": "测试子选项卡",
+          "content": "lang:epca.content.test3"
+        }
+      ]
+    }
+  ]
+}

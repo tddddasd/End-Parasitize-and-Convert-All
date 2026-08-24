@@ -1,0 +1,323 @@
+{
+  "epca:infested_cow": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_drowned": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_husk": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_pig": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_pillager": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_sheep": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_slime_size0": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7
+    }
+  },
+  "epca:infested_slime_size1": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7
+    }
+  },
+  "epca:infested_slime_size3": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7
+    }
+  },
+  "epca:infested_villager": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_vindicator": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_zombie": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_zombie_villager": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:fins": {
+    "min_level": 0,
+    "max_level": 7,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 1.0
+    }
+  },
+  "epca:mozzie": {
+    "min_level": 0,
+    "max_level": 7,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:viral": 0.5
+    }
+  },
+  "epca:ripper": {
+    "min_level": 0,
+    "max_level": 7,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 1.0
+    }
+  },
+  "epca:walking_cow_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_drowned_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_husk_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_pig_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_pillager_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_sheep_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_villager_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_vindicator_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_zombie_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_zombie_villager_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_wolf": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_wolf_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:infested_enderman": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7
+    }
+  },
+  "epca:walking_enderman_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7
+    }
+  },
+  "epca:reshape_longarms": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.6
+    }
+  },
+  "epca:infested_fox": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  },
+  "epca:walking_fox_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7,
+      "epca:bleeding": 0.05
+    }
+  }
+}

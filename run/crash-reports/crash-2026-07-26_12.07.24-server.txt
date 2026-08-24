@@ -1,0 +1,122 @@
+---- Minecraft Crash Report ----
+// Shall we play a game?
+
+Time: 2026-07-26 12:07:24
+Description: Exception in server tick loop
+
+java.lang.NoClassDefFoundError: org/tdddd/epca/impl/util/ShieldProtectionHelper
+	at net.minecraft.world.entity.LivingEntity.handler$zzd000$onSetHealth(LivingEntity.java:3683) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:common.LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.setHealth(LivingEntity.java) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:common.LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.actuallyHurt(LivingEntity.java:1635) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:common.LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.hurt(LivingEntity.java:1112) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:common.LivingEntityMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon.hurt(StageIBeckon.java:248) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.world.entity.player.Player.attack(Player.java:1139) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerPlayer.attack(ServerPlayer.java:1400) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:ldlib-common.mixins.json:accessor.ServerPlayerAccessor,pl:mixin:A}
+	at net.minecraft.server.network.ServerGamePacketListenerImpl$1.onAttack(ServerGamePacketListenerImpl.java:1489) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.network.protocol.game.ServerboundInteractPacket$1.dispatch(ServerboundInteractPacket.java:166) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.network.protocol.game.ServerboundInteractPacket.dispatch(ServerboundInteractPacket.java:66) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.network.ServerGamePacketListenerImpl.handleInteract(ServerGamePacketListenerImpl.java:1457) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.network.protocol.game.ServerboundInteractPacket.handle(ServerboundInteractPacket.java:53) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.network.protocol.game.ServerboundInteractPacket.handle(ServerboundInteractPacket.java:13) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.network.protocol.PacketUtils.lambda$ensureRunningOnSameThread$0(PacketUtils.java:22) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.TickTask.run(TickTask.java:18) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.util.thread.BlockableEventLoop.doRunTask(BlockableEventLoop.java:156) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B}
+	at net.minecraft.util.thread.ReentrantBlockableEventLoop.doRunTask(ReentrantBlockableEventLoop.java:23) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:computing_frames,re:classloading}
+	at net.minecraft.server.MinecraftServer.doRunTask(MinecraftServer.java:770) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.doRunTask(MinecraftServer.java:161) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.util.thread.BlockableEventLoop.pollTask(BlockableEventLoop.java:130) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.pollTaskInternal(MinecraftServer.java:753) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.pollTask(MinecraftServer.java:747) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.util.thread.BlockableEventLoop.managedBlock(BlockableEventLoop.java:139) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:computing_frames,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.waitUntilNextTick(MinecraftServer.java:733) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:665) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:840) ~[?:?] {}
+Caused by: java.lang.ClassNotFoundException: org.tdddd.epca.impl.utils.ShieldProtectionHelper
+	... 27 more
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- System Details --
+Details:
+	Minecraft Version: 1.20.1
+	Minecraft Version ID: 1.20.1
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 17.0.19, Microsoft
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Microsoft
+	Memory: 633525048 bytes (604 MiB) / 1675624448 bytes (1598 MiB) up to 4198498304 bytes (4004 MiB)
+	CPUs: 24
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Core(TM) i7-14650HX
+	Identifier: Intel64 Family 6 Model 183 Stepping 1
+	Microarchitecture: unknown
+	Frequency (GHz): 2.42
+	Number of physical packages: 1
+	Number of physical CPUs: 16
+	Number of logical CPUs: 24
+	Graphics card #0 name: GameViewer Virtual Display Adapter
+	Graphics card #0 vendor: GameViewer
+	Graphics card #0 VRAM (MB): 0.00
+	Graphics card #0 deviceId: unknown
+	Graphics card #0 versionInfo: DriverVersion=15.6.5.199
+	Graphics card #1 name: NVIDIA GeForce RTX 5060 Laptop GPU
+	Graphics card #1 vendor: NVIDIA (0x10de)
+	Graphics card #1 VRAM (MB): 4095.00
+	Graphics card #1 deviceId: 0x2d59
+	Graphics card #1 versionInfo: DriverVersion=32.0.15.9219
+	Graphics card #2 name: Intel(R) UHD Graphics
+	Graphics card #2 vendor: Intel Corporation (0x8086)
+	Graphics card #2 VRAM (MB): 2048.00
+	Graphics card #2 deviceId: 0xa78b
+	Graphics card #2 versionInfo: DriverVersion=32.0.101.7077
+	Memory slot #0 capacity (MB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 5.60
+	Memory slot #0 type: Unknown
+	Virtual memory max (MB): 33421.07
+	Virtual memory used (MB): 24516.84
+	Swap memory total (MB): 17408.00
+	Swap memory used (MB): 1436.99
+	JVM Flags: 1 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump
+	Server Running: true
+	Player Count: 1 / 8; [ServerPlayer['Dev'/20, l='ServerLevel[新的世界]', x=80.36, y=-63.00, z=-0.55]]
+	Data Packs: vanilla, mod:forge, mod:epca, mod:jade (incompatible), mod:patchouli (incompatible), mod:yawning_neko_api, mod:geckolib, mod:awcapi (incompatible), mod:mixinextras (incompatible), mod:ldlib (incompatible), mod:photon (incompatible)
+	Enabled Feature Flags: minecraft:vanilla
+	World Generation: Stable
+	Type: Integrated Server (map_client.txt)
+	Is Modded: Definitely; Client brand changed to 'forge'; Server brand changed to 'forge'
+	Launched Version: MOD_DEV
+	ModLauncher: 10.0.9+10.0.9+main.dcd20f30
+	ModLauncher launch target: forgeclientuserdev
+	ModLauncher naming: mcp
+	ModLauncher services: 
+		mixin-0.8.5.jar mixin PLUGINSERVICE 
+		eventbus-6.0.5.jar eventbus PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar slf4jfixer PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar object_holder_definalize PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar runtime_enum_extender PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar capability_token_subclass PLUGINSERVICE 
+		accesstransformers-8.0.4.jar accesstransformer PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar runtimedistcleaner PLUGINSERVICE 
+		modlauncher-10.0.9.jar mixin TRANSFORMATIONSERVICE 
+		modlauncher-10.0.9.jar fml TRANSFORMATIONSERVICE 
+	FML Language Providers: 
+		minecraft@1.0
+		lowcodefml@null
+		javafml@null
+	Mod List: 
+		forge-1.20.1-47.2.0_mapped_official_1.20.1.jar    |Minecraft                     |minecraft                     |1.20.1              |DONE      |Manifest: a1:d4:5e:04:4f:d3:d6:e0:7b:37:97:cf:77:b0:de:ad:4a:47:ce:8c:96:49:5f:0a:cf:8c:ae:b2:6d:4b:8a:3f
+		mixinextras-forge-0.3.5.jar                       |MixinExtras                   |mixinextras                   |0.3.5               |DONE      |Manifest: NOSIGNATURE
+		main                                              |End-Parasitize and Convert All|epca                          |0.3.5               |DONE      |Manifest: NOSIGNATURE
+		jade-324717-6855440_mapped_official_1.20.1.jar    |Jade                          |jade                          |11.13.2+forge       |DONE      |Manifest: NOSIGNATURE
+		geckolib-forge-1.20.1-4.7.1_mapped_official_1.20.1|GeckoLib 4                    |geckolib                      |4.7.1               |DONE      |Manifest: NOSIGNATURE
+		ldlib-626676-6417175_mapped_official_1.20.1.jar   |LowDragLib                    |ldlib                         |1.0.39              |DONE      |Manifest: NOSIGNATURE
+		awcapi-1.0.2_mapped_official_1.20.1.jar           |Advanced Wall Climber API     |awcapi                        |1.0.2               |DONE      |Manifest: NOSIGNATURE
+		photon-871522-6878530_mapped_official_1.20.1.jar  |Photon                        |photon                        |1.1.14              |DONE      |Manifest: NOSIGNATURE
+		yawningapi-1.0.0_mapped_official_1.20.1.jar       |Yawning Neko API              |yawning_neko_api              |1.0.0               |DONE      |Manifest: NOSIGNATURE
+		                                                  |Forge                         |forge                         |47.2.0              |DONE      |Manifest: NOSIGNATURE
+		patchouli-306770-7731017_mapped_official_1.20.1.ja|Patchouli                     |patchouli                     |1.20.1-85-FORGE     |DONE      |Manifest: NOSIGNATURE
+	Crash Report UUID: 43c5ffc6-1c9c-4f0f-89d3-5f2680768099
+	FML: 47.2
+	Forge: net.minecraftforge:47.2.0

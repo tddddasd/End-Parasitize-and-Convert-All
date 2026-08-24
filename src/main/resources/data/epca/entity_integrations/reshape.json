@@ -1,0 +1,156 @@
+[
+  {
+    "entities": [
+      {
+        "entity": "epca:large_incomplete_form",
+        "requiredKillCount": 20
+      }
+    ],
+    "range": 1.0,
+    "time": 1,
+    "randomResult": true,
+    "minResultCount": 1,
+    "maxResultCount": 1,
+    "allowDuplicateResults": false,
+    "resultProbabilities": {
+      "epca:reshape_longarms": 0.5,
+      "epca:reshape_yelloweye": 0.5
+    },
+    "results": [
+      {
+        "entity": "epca:reshape_longarms",
+        "count": 1
+      },
+      {
+        "entity": "epca:reshape_yelloweye",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:living_flesh_size4"
+      }
+    ],
+    "range": 2.5,
+    "time": 20,
+    "randomResult": true,
+    "minResultCount": 1,
+    "maxResultCount": 1,
+    "allowDuplicateResults": false,
+    "resultProbabilities": {
+      "epca:reshape_longarms": 0.5,
+      "epca:reshape_yelloweye": 0.5
+    },
+    "results": [
+      {
+        "entity": "epca:reshape_longarms",
+        "count": 1
+      },
+      {
+        "entity": "epca:reshape_yelloweye",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:large_incomplete_form"
+      },
+      {
+        "entity": "epca:living_flesh_size0"
+      }
+    ],
+    "range": 5.0,
+    "time": 1,
+    "randomResult": true,
+    "minResultCount": 1,
+    "maxResultCount": 1,
+    "allowDuplicateResults": false,
+    "resultProbabilities": {
+      "epca:reshape_longarms": 0.5,
+      "epca:reshape_yelloweye": 0.5
+    },
+    "results": [
+      {
+        "entity": "epca:reshape_longarms",
+        "count": 1
+      },
+      {
+        "entity": "epca:reshape_yelloweye",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      { "entity": "epca:large_incomplete_form" },
+      { "entity": "epca:living_flesh_size1" }
+    ],
+    "range": 5.0,
+    "time": 1,
+    "randomResult": true,
+    "minResultCount": 1,
+    "maxResultCount": 1,
+    "allowDuplicateResults": false,
+    "resultProbabilities": {
+      "epca:reshape_longarms": 0.5,
+      "epca:reshape_yelloweye": 0.5
+    },
+    "fixedResults": [
+      { "entity": "epca:living_flesh_size0", "count": 1 }
+    ],
+    "results": [
+      { "entity": "epca:reshape_longarms", "count": 1 },
+      { "entity": "epca:reshape_yelloweye", "count": 1 }
+    ]
+  },
+  {
+    "entities": [
+      { "entity": "epca:large_incomplete_form" },
+      { "entity": "epca:living_flesh_size2" }
+    ],
+    "range": 5.0,
+    "time": 1,
+    "randomResult": true,
+    "minResultCount": 1,
+    "maxResultCount": 1,
+    "allowDuplicateResults": false,
+    "resultProbabilities": {
+      "epca:reshape_longarms": 0.5,
+      "epca:reshape_yelloweye": 0.5
+    },
+    "fixedResults": [
+      { "entity": "epca:living_flesh_size1", "count": 1 }
+    ],
+    "results": [
+      { "entity": "epca:reshape_longarms", "count": 1 },
+      { "entity": "epca:reshape_yelloweye", "count": 1 }
+    ]
+  },
+  {
+    "entities": [
+      { "entity": "epca:large_incomplete_form" },
+      { "entity": "epca:living_flesh_size3" }
+    ],
+    "range": 5.0,
+    "time": 1,
+    "randomResult": true,
+    "minResultCount": 1,
+    "maxResultCount": 1,
+    "allowDuplicateResults": false,
+    "resultProbabilities": {
+      "epca:reshape_longarms": 0.5,
+      "epca:reshape_yelloweye": 0.5
+    },
+    "fixedResults": [
+      { "entity": "epca:living_flesh_size2", "count": 1 }
+    ],
+    "results": [
+      { "entity": "epca:reshape_longarms", "count": 1 },
+      { "entity": "epca:reshape_yelloweye", "count": 1 }
+    ]
+  }
+]

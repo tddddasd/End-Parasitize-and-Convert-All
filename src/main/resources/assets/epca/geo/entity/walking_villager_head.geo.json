@@ -1,0 +1,230 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.walking_villager_head",
+				"texture_width": 64,
+				"texture_height": 64,
+				"visible_bounds_width": 3,
+				"visible_bounds_height": 2.5,
+				"visible_bounds_offset": [0, 0.75, 0]
+			},
+			"bones": [
+				{
+					"name": "all",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "Walking_Villager_Head",
+					"parent": "all",
+					"pivot": [0, 5, 0],
+					"cubes": [
+						{
+							"origin": [-4, 2, -4],
+							"size": [8, 8, 8],
+							"uv": {
+								"north": {"uv": [18, 22], "uv_size": [8, 8]},
+								"east": {"uv": [26, 0], "uv_size": [8, 8]},
+								"south": {"uv": [27, 9], "uv_size": [8, 8]},
+								"west": {"uv": [27, 18], "uv_size": [8, 8]},
+								"up": {"uv": [27, 27], "uv_size": [8, 8]},
+								"down": {"uv": [0, 36], "uv_size": [8, -8]}
+							}
+						},
+						{
+							"origin": [-4, 0, 0],
+							"size": [8, 2, 4],
+							"inflate": 0.01,
+							"uv": {
+								"north": {"uv": [42, 33], "uv_size": [8, 2]},
+								"east": {"uv": [46, 8], "uv_size": [4, 2]},
+								"south": {"uv": [0, 45], "uv_size": [8, 2]},
+								"west": {"uv": [46, 11], "uv_size": [4, 2]},
+								"up": {"uv": [42, 28], "uv_size": [8, 4]},
+								"down": {"uv": [24, 48], "uv_size": [8, -4]}
+							}
+						},
+						{
+							"origin": [-4, 0, -4],
+							"size": [8, 10, 8],
+							"inflate": 0.5,
+							"uv": {
+								"north": {"uv": [0, 17], "uv_size": [8, 10]},
+								"east": {"uv": [17, 0], "uv_size": [8, 10]},
+								"south": {"uv": [9, 17], "uv_size": [8, 10]},
+								"west": {"uv": [18, 11], "uv_size": [8, 10]},
+								"up": {"uv": [9, 28], "uv_size": [8, 8]},
+								"down": {"uv": [18, 39], "uv_size": [8, -8]}
+							}
+						},
+						{
+							"origin": [-8, 5, -8],
+							"size": [16, 1, 16],
+							"inflate": 0.1,
+							"uv": {
+								"up": {"uv": [0, 0], "uv_size": [16, 16]}
+							}
+						}
+					]
+				},
+				{
+					"name": "mouth",
+					"parent": "Walking_Villager_Head",
+					"pivot": [0, 2, 0],
+					"cubes": [
+						{
+							"origin": [-3, 0, -4],
+							"size": [6, 1, 4],
+							"uv": {
+								"north": {"uv": [46, 24], "uv_size": [6, 1]},
+								"east": {"uv": [3, 48], "uv_size": [4, 1]},
+								"south": {"uv": [46, 26], "uv_size": [6, 1]},
+								"west": {"uv": [49, 0], "uv_size": [4, 1]},
+								"up": {"uv": [33, 44], "uv_size": [6, 4]},
+								"down": {"uv": [40, 48], "uv_size": [6, -4]}
+							}
+						},
+						{
+							"origin": [-3, 1, -4],
+							"size": [6, 1, 4],
+							"uv": {
+								"north": {"uv": [17, 48], "uv_size": [6, 1]},
+								"east": {"uv": [49, 2], "uv_size": [4, 1]},
+								"west": {"uv": [8, 49], "uv_size": [4, 1]}
+							}
+						}
+					]
+				},
+				{
+					"name": "nose",
+					"parent": "Walking_Villager_Head",
+					"pivot": [0, 3, -4],
+					"cubes": [
+						{
+							"origin": [-1, -1, -6],
+							"size": [2, 4, 2],
+							"uv": {
+								"north": {"uv": [46, 14], "uv_size": [2, 4]},
+								"east": {"uv": [46, 19], "uv_size": [2, 4]},
+								"south": {"uv": [47, 44], "uv_size": [2, 4]},
+								"west": {"uv": [0, 48], "uv_size": [2, 4]},
+								"up": {"uv": [24, 40], "uv_size": [2, 2]},
+								"down": {"uv": [13, 51], "uv_size": [2, -2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "pustule",
+					"parent": "Walking_Villager_Head",
+					"pivot": [0, 0, 1],
+					"cubes": [
+						{
+							"origin": [-1.5, -2.5, -0.5],
+							"size": [3, 3, 3],
+							"uv": {
+								"north": {"uv": [45, 0], "uv_size": [3, 3]},
+								"east": {"uv": [9, 45], "uv_size": [3, 3]},
+								"south": {"uv": [13, 45], "uv_size": [3, 3]},
+								"west": {"uv": [45, 36], "uv_size": [3, 3]},
+								"up": {"uv": [45, 40], "uv_size": [3, 3]},
+								"down": {"uv": [46, 7], "uv_size": [3, -3]}
+							}
+						}
+					]
+				},
+				{
+					"name": "front_left_leg",
+					"parent": "Walking_Villager_Head",
+					"pivot": [-4, 8.5, 0.5],
+					"cubes": [
+						{
+							"origin": [-8, 8.5, 0],
+							"size": [5, 0, 7],
+							"uv": {
+								"up": {"uv": [33, 36], "uv_size": [5, 7]},
+								"down": {"uv": [0, 44], "uv_size": [5, -7]}
+							}
+						}
+					]
+				},
+				{
+					"name": "front_right_leg",
+					"parent": "Walking_Villager_Head",
+					"pivot": [4, 8.5, 0.5],
+					"cubes": [
+						{
+							"origin": [3, 8.5, 0],
+							"size": [5, 0, 7],
+							"uv": {
+								"up": {"uv": [27, 36], "uv_size": [5, 7]},
+								"down": {"uv": [36, 35], "uv_size": [5, -7]}
+							}
+						}
+					]
+				},
+				{
+					"name": "medi_left_leg",
+					"parent": "Walking_Villager_Head",
+					"pivot": [-4, 4.5, 1.5],
+					"cubes": [
+						{
+							"origin": [-8, 4.5, 1],
+							"size": [5, 0, 7],
+							"uv": {
+								"up": {"uv": [6, 37], "uv_size": [5, 7]},
+								"down": {"uv": [12, 44], "uv_size": [5, -7]}
+							}
+						}
+					]
+				},
+				{
+					"name": "medi_right_leg",
+					"parent": "Walking_Villager_Head",
+					"pivot": [4, 4.5, 1.5],
+					"cubes": [
+						{
+							"origin": [3, 4.5, 1],
+							"size": [5, 0, 7],
+							"uv": {
+								"up": {"uv": [39, 36], "uv_size": [5, 7]},
+								"down": {"uv": [18, 47], "uv_size": [5, -7]}
+							}
+						}
+					]
+				},
+				{
+					"name": "back_left_leg",
+					"parent": "Walking_Villager_Head",
+					"pivot": [-1.5, 0, 1.5],
+					"cubes": [
+						{
+							"origin": [-1.5, -5, 1],
+							"size": [0, 6, 9],
+							"uv": {
+								"east": {"uv": [35, 0], "uv_size": [9, 6]},
+								"west": {"uv": [36, 7], "uv_size": [9, 6]}
+							}
+						}
+					]
+				},
+				{
+					"name": "back_right_leg",
+					"parent": "Walking_Villager_Head",
+					"pivot": [1.5, 0, 1.5],
+					"cubes": [
+						{
+							"origin": [1.5, -5, 1],
+							"size": [0, 6, 9],
+							"uv": {
+								"east": {"uv": [36, 14], "uv_size": [9, 6]},
+								"west": {"uv": [36, 21], "uv_size": [9, 6]}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

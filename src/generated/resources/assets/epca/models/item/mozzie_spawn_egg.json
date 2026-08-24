@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "epca:item/mozzie_spawn_egg"
+  }
+}

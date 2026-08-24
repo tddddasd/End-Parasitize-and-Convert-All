@@ -1,0 +1,40 @@
+{
+  "land_spawns": [
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:ripper",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 100
+    }
+  ],
+  "water_spawns": [
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:fins",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 100
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "variants": {
+    "axis=x,natural_spawn=false": [
+      { "model": "epca:block/infested_log_clean", "x": 90, "y": 90 },
+      { "model": "epca:block/infested_log_clean_1", "x": 90, "y": 90 },
+      { "model": "epca:block/infested_log_clean_2", "x": 90, "y": 90 },
+      { "model": "epca:block/infested_log_clean_3", "x": 90, "y": 90 }
+    ],
+    "axis=x,natural_spawn=true": [
+      { "model": "epca:block/infested_log_clean", "x": 90, "y": 90 },
+      { "model": "epca:block/infested_log_clean_1", "x": 90, "y": 90 },
+      { "model": "epca:block/infested_log_clean_2", "x": 90, "y": 90 },
+      { "model": "epca:block/infested_log_clean_3", "x": 90, "y": 90 }
+    ],
+    "axis=y,natural_spawn=false": [
+      { "model": "epca:block/infested_log_clean" },
+      { "model": "epca:block/infested_log_clean_1" },
+      { "model": "epca:block/infested_log_clean_2" },
+      { "model": "epca:block/infested_log_clean_3" }
+    ],
+    "axis=y,natural_spawn=true": {
+      "model": "epca:block/infested_log_dirty"
+    },
+    "axis=z,natural_spawn=false": [
+      { "model": "epca:block/infested_log_clean", "x": 90 },
+      { "model": "epca:block/infested_log_clean_1", "x": 90 },
+      { "model": "epca:block/infested_log_clean_2", "x": 90 },
+      { "model": "epca:block/infested_log_clean_3", "x": 90 }
+    ],
+    "axis=z,natural_spawn=true": [
+      { "model": "epca:block/infested_log_clean", "x": 90 },
+      { "model": "epca:block/infested_log_clean_1", "x": 90 },
+      { "model": "epca:block/infested_log_clean_2", "x": 90 },
+      { "model": "epca:block/infested_log_clean_3", "x": 90 }
+    ]
+  }
+}

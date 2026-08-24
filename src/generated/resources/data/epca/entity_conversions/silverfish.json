@@ -1,0 +1,8 @@
+{
+  "fins_to": "epca:infested_silverfish",
+  "from": "minecraft:silverfish",
+  "mozzie_to": "epca:infested_silverfish",
+  "priority": 1,
+  "small_entity_priority": true,
+  "to": "epca:infested_silverfish"
+}

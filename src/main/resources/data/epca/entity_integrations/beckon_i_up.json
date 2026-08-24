@@ -1,0 +1,17 @@
+[
+  {
+    "entities": [
+      {
+        "entity": "epca:stage_i_beckon"
+      }
+    ],
+    "range": 1.0,
+    "time": 16200,
+    "results": [
+      {
+      "entity": "epca:stage_ii_beckon",
+      "count": 1
+      }
+    ]
+  }
+]

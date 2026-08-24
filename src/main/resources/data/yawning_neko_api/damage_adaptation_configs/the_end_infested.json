@@ -1,0 +1,19 @@
+{
+  "damage": {
+    "#minecraft:is_fire": 3.0,
+    "minecraft:generic_kill": 1.0,
+    "minecraft:out_of_world": 1.0,
+    "lob_mod:black": 3.0,
+    "lob_mod:pale": 0.5
+  },
+  "damage_adaptability": {
+    "damage_adaptability_probability": 0.4,
+    "damage_adaptability_times": 5,
+    "adaptation_percentage_per_injury": 0.08,
+    "minimum_kill_duration": 0,
+    "minimum_attack_interval": 0,
+    "minimum_kill_count": 0,
+    "max_adaptable_damage_types": 3,
+    "broken_adaptation_duration": 5
+  }
+}

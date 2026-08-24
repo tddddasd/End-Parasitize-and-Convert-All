@@ -1,0 +1,8 @@
+{
+  "fins_to": "epca:infested_drowned",
+  "from": "minecraft:drowned",
+  "mozzie_to": "epca:infested_drowned",
+  "priority": 0,
+  "small_entity_priority": true,
+  "to": "epca:infested_drowned"
+}

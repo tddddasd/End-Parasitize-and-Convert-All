@@ -1,0 +1,272 @@
+[
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_zombie_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_zombie",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_drowned_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_drowned",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_husk_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_husk",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_pillager_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_pillager",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_vindicator_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_vindicator",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_villager_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_villager",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_zombie_villager_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_zombie_villager",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_pig_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_pig",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_sheep_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_sheep",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_cow_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_cow",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_wolf_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_wolf",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:small_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_chicken_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_chicken",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_enderman_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_enderman",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_skeleton_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_skeleton",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form"
+      },
+      {
+        "entity": "epca:walking_fox_head"
+      }
+    ],
+    "range": 1.0,
+    "time": 0,
+    "results": [
+      {
+        "entity": "epca:infested_fox",
+        "count": 1
+      }
+    ]
+  }
+]

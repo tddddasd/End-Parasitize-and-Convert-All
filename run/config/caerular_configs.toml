@@ -1,0 +1,101 @@
+
+[foods]
+	#可用于恢复灯火的食物及其恢复量，“注册名, 最小恢复量/最大恢复量”，逗号后有1空格。
+	lights_revovery = ["minecraft:glow_berries, 2/3", "minecraft:golden_carrot, 1/2", "minecraft:golden_apple, 2/3", "minecraft:enchanted_golden_apple, 3/5"]
+
+[relics]
+	#其它能使收藏品扼喉之手生效的物品。最好是弩。用 * 号代表该命名空间下的所有物品，如 tacz:*, caerula_arbor:oceanized_* 等，下同
+	hand_strangle_recognizable = ["CrossbowMod2:item.woodenCrossbow"]
+	#其它能使收藏品烟花之手生效的物品。最好是弓。
+	hand_firework_recognizable = ["twilightforest:triple_bow"]
+	#已弃用
+	hand_engrave_recognizable = ["iceandfire:tide_trident"]
+	#其它能使收藏品绯红盟约生效的生物。最好来自下界。
+	crimson_treaty_recognizable = ["cataclysm:ignis", "cataclysm:netherite_monstrosity"]
+
+[blocks]
+	#其它能加热热水壶的方块。最好带点火。
+	water_boil_block = ["create:blaze_burner", "cataclysm:altar_of_fire"]
+
+[gameplay]
+	#进化点数系数，实际进化所需点数=(下一阶段代数^3)*系数。！请使用浮点数，下同！
+	evolution_point_coefficient = 200.0
+	#开启后，模组生物的行为将受游戏规则：生物破坏的影响。
+	enbale_break = true
+	#允许进化进入新阶段后播放音效提醒（不影响用命令调整进化时的音效）。
+	enable_evolution_sound = true
+	#全局增殖上限。游戏规则增殖上限的最大有效值。
+	global_clone_number_limit = 48.0
+	#损伤爆发基础伤害。对非玩家生物的伤害上限为该值的 6 倍。
+	sanity_break_damage_base = 12.0
+	#海嗣化基础生命值界限。用于确定计划外海嗣化时转变为精英单位的生命值分界线。
+	oceanize_health_base = 9.0
+	#禁用高级收藏品。无法持有且无法激活。
+	ban_advanced_relics = false
+	#溟痕能够侵蚀来自真菌感染：孢子和法耶病的有机方块。
+	external_errosion = true
+	#全局目标生命上限。
+	life_point_global_limit = 32767.0
+	#全局护盾值上限。
+	player_shield_global_limit = 99999.0
+	#波涛迭起应用于非海嗣生物。可填入：off（默认）, monster_only, animal_only, exclude_animal, exclude_monster和 on
+	extended_surging_waves = "off"
+	#仅使用本模组物品召唤联动领袖。
+	independent_crossover = false
+	#是否海嗣化Boss生物。
+	boss_oceanization = false
+	#在日志输出调试信息。
+	show_debug_info = false
+	#初始目标生命。
+	initial_life_point = 6.0
+	#因生物消耗目标生命或护盾时，依据生物地位消耗更多。
+	reinforced_lp_consume = true
+
+[attribute]
+	#海嗣最大生命乘数。1为原值，小于 0.1 的值无效，不建议使用过大的值。
+	health_multiplier = 1.0
+	#海嗣攻击伤害乘数。1为原值。
+	attack_multiplier = 1.0
+	#海嗣盔甲乘数。1为原值。
+	armor_multiplier = 1.0
+	#波涛迭起检测的玩家进度，其顺序推荐从前往后。仅前四个有效。
+	surging_waves_entry = ["empty"]
+	#阿戈尔重锤迫击炮的生命值。
+	mortar_health = 500.0
+	#阿戈尔重锤迫击炮的基础伤害。
+	mortar_attack = 32.0
+
+[overlay]
+	#神经损伤显示采用条状，若关闭则为明日方舟中的圆环。
+	sanity_bar_style = true
+	#灯火显示采用简约风格，true代表开启。
+	lights_neat_style = false
+	#造成额外神经损伤时显示粒子效果。
+	sanity_particle = true
+	#神经损伤条渲染x轴偏移。正数值为向右偏移
+	sanity_x_offset = 0.0
+	#神经损伤条渲染y轴偏移。正数值为向下偏移
+	sanity_y_offset = 0.0
+	#灯火渲染x轴偏移。正数值为向右偏移
+	lights_x_offset = 0.0
+	#灯火渲染y轴偏移。正数值为向下偏移
+	lights_y_offset = 0.0
+	#目标生命值渲染x轴偏移。正数值为向右偏移
+	life_point_x_offset = 0.0
+	#目标生命值渲染y轴偏移。正数值为向下偏移
+	life_point_y_offset = 0.0
+	#护盾值渲染x轴偏移，注意为相对目标生命UI的偏移
+	shield_x_offset = 0.0
+	#护盾值渲染y轴偏移，注意为相对目标生命UI的偏移
+	shield_y_offset = 0.0
+	#模组属性渲染x轴偏移。正数值为向右偏移
+	attr_x_offset = 0.0
+	#模组属性渲染y轴偏移。正数值为向下偏移
+	attr_y_offset = 0.0
+	#渲染自定义Boss血条。
+	custom_boss_bar = true
+	#大群的呼唤渲染x轴偏移。正数值为向右偏移
+	echo_x_offset = 0.0
+	#大群的呼唤渲染y轴偏移。正数值为向下偏移
+	echo_y_offset = 0.0
+

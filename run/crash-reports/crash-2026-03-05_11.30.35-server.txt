@@ -1,0 +1,258 @@
+---- Minecraft Crash Report ----
+// My bad.
+
+Time: 2026-03-05 11:30:35
+Description: Colliding entity with block
+
+java.lang.UnsupportedOperationException: Attempted to call Event#setCanceled() on a non-cancelable event of type: net.minecraftforge.event.entity.living.MobEffectEvent.Added
+	at net.minecraftforge.eventbus.api.Event.setCanceled(Event.java:92) ~[eventbus-6.0.5.jar%23115!/:?] {}
+	at org.tdddd.epca.impl.events.EffectImmunityHandler.onEffectAdded(EffectImmunityHandler.java:28) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at org.tdddd.epca.impl.events.__EffectImmunityHandler_onEffectAdded_Added.invoke(.dynamic) ~[%23196!/:5.14.1+1.20.1] {re:classloading,pl:eventbus:B}
+	at net.minecraftforge.eventbus.ASMEventHandler.invoke(ASMEventHandler.java:73) ~[eventbus-6.0.5.jar%23115!/:?] {}
+	at net.minecraftforge.eventbus.EventBus.post(EventBus.java:315) ~[eventbus-6.0.5.jar%23115!/:?] {}
+	at net.minecraftforge.eventbus.EventBus.post(EventBus.java:296) ~[eventbus-6.0.5.jar%23115!/:?] {}
+	at net.minecraft.world.entity.LivingEntity.addEffect(LivingEntity.java:929) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.addEffect(LivingEntity.java:921) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.blocks.block.InfestedRemainsLarge.entityInside(InfestedRemainsLarge.java:48) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.entityInside(BlockBehaviour.java:766) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,re:mixin}
+	at net.minecraft.world.entity.Entity.checkInsideBlocks(Entity.java:998) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.Entity.tryCheckInsideBlocks(Entity.java:773) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.Entity.move(Entity.java:718) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.LivingEntity.handleRelativeFrictionAndCalculateMovement(LivingEntity.java:2195) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.travel(LivingEntity.java:2132) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.entity.entity.SmallIncompleteForm.travel(SmallIncompleteForm.java:285) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.world.entity.LivingEntity.aiStep(LivingEntity.java:2605) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.Mob.aiStep(Mob.java:536) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:epca.mixins.json:MobMixin,pl:mixin:A}
+	at net.minecraft.world.entity.monster.Monster.aiStep(Monster.java:42) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.LivingEntity.tick(LivingEntity.java:2298) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.Mob.tick(Mob.java:337) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:epca.mixins.json:MobMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.entity.entity.SmallIncompleteForm.tick(SmallIncompleteForm.java:88) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tickNonPassenger(ServerLevel.java:693) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.Level.guardEntityTick(Level.java:479) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerLevel.lambda$tick$6(ServerLevel.java:343) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:54) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:323) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:89) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:runtimedistcleaner:A}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:661) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:833) ~[?:?] {}
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Server thread
+Stacktrace:
+	at net.minecraftforge.eventbus.api.Event.setCanceled(Event.java:92) ~[eventbus-6.0.5.jar%23115!/:?] {}
+	at org.tdddd.epca.impl.events.EffectImmunityHandler.onEffectAdded(EffectImmunityHandler.java:28) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at org.tdddd.epca.impl.events.__EffectImmunityHandler_onEffectAdded_Added.invoke(.dynamic) ~[%23196!/:5.14.1+1.20.1] {re:classloading,pl:eventbus:B}
+	at net.minecraftforge.eventbus.ASMEventHandler.invoke(ASMEventHandler.java:73) ~[eventbus-6.0.5.jar%23115!/:?] {}
+	at net.minecraftforge.eventbus.EventBus.post(EventBus.java:315) ~[eventbus-6.0.5.jar%23115!/:?] {}
+	at net.minecraftforge.eventbus.EventBus.post(EventBus.java:296) ~[eventbus-6.0.5.jar%23115!/:?] {}
+	at net.minecraft.world.entity.LivingEntity.addEffect(LivingEntity.java:929) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.addEffect(LivingEntity.java:921) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.blocks.block.InfestedRemainsLarge.entityInside(InfestedRemainsLarge.java:48) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.entityInside(BlockBehaviour.java:766) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,re:mixin}
+	at net.minecraft.world.entity.Entity.checkInsideBlocks(Entity.java:998) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.Entity.tryCheckInsideBlocks(Entity.java:773) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.Entity.move(Entity.java:718) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.LivingEntity.handleRelativeFrictionAndCalculateMovement(LivingEntity.java:2195) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.travel(LivingEntity.java:2132) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.entity.entity.SmallIncompleteForm.travel(SmallIncompleteForm.java:285) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.world.entity.LivingEntity.aiStep(LivingEntity.java:2605) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.Mob.aiStep(Mob.java:536) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:epca.mixins.json:MobMixin,pl:mixin:A}
+	at net.minecraft.world.entity.monster.Monster.aiStep(Monster.java:42) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.LivingEntity.tick(LivingEntity.java:2298) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.Mob.tick(Mob.java:337) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:epca.mixins.json:MobMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.entity.entity.SmallIncompleteForm.tick(SmallIncompleteForm.java:88) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tickNonPassenger(ServerLevel.java:693) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.Level.guardEntityTick(Level.java:479) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerLevel.lambda$tick$6(ServerLevel.java:343) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:54) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:323) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+-- Block being collided with --
+Details:
+	Block: Block{epca:infested_remains_large}
+	Block location: World: (86,-63,-96), Section: (at 6,1,0 in 5,-4,-6; chunk contains blocks 80,-64,-96 to 95,319,-81), Region: (0,-1; contains chunks 0,-32 to 31,-1, blocks 0,-64,-512 to 511,319,-1)
+Stacktrace:
+	at net.minecraft.world.entity.Entity.checkInsideBlocks(Entity.java:998) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.Entity.tryCheckInsideBlocks(Entity.java:773) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.Entity.move(Entity.java:718) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.LivingEntity.handleRelativeFrictionAndCalculateMovement(LivingEntity.java:2195) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.travel(LivingEntity.java:2132) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.entity.entity.SmallIncompleteForm.travel(SmallIncompleteForm.java:285) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.world.entity.LivingEntity.aiStep(LivingEntity.java:2605) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.Mob.aiStep(Mob.java:536) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:epca.mixins.json:MobMixin,pl:mixin:A}
+	at net.minecraft.world.entity.monster.Monster.aiStep(Monster.java:42) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.LivingEntity.tick(LivingEntity.java:2298) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.Mob.tick(Mob.java:337) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:epca.mixins.json:MobMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.entity.entity.SmallIncompleteForm.tick(SmallIncompleteForm.java:88) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tickNonPassenger(ServerLevel.java:693) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.Level.guardEntityTick(Level.java:479) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerLevel.lambda$tick$6(ServerLevel.java:343) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:54) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:323) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:89) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:runtimedistcleaner:A}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:661) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:833) ~[?:?] {}
+
+
+-- Entity being checked for collision --
+Details:
+	Entity Type: epca:small_incomplete_form (org.tdddd.epca.impl.entity.entity.SmallIncompleteForm)
+	Entity ID: 94
+	Entity Name: 小块未成形寄生体
+	Entity's Exact location: 86.50, -62.08, -95.50
+	Entity's Block location: World: (86,-63,-96), Section: (at 6,1,0 in 5,-4,-6; chunk contains blocks 80,-64,-96 to 95,319,-81), Region: (0,-1; contains chunks 0,-32 to 31,-1, blocks 0,-64,-512 to 511,319,-1)
+	Entity's Momentum: 0.00, -0.08, 0.00
+	Entity's Passengers: []
+	Entity's Vehicle: null
+Stacktrace:
+	at net.minecraft.world.entity.Entity.tryCheckInsideBlocks(Entity.java:773) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.Entity.move(Entity.java:718) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.world.entity.LivingEntity.handleRelativeFrictionAndCalculateMovement(LivingEntity.java:2195) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.LivingEntity.travel(LivingEntity.java:2132) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.entity.entity.SmallIncompleteForm.travel(SmallIncompleteForm.java:285) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.world.entity.LivingEntity.aiStep(LivingEntity.java:2605) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.Mob.aiStep(Mob.java:536) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:epca.mixins.json:MobMixin,pl:mixin:A}
+	at net.minecraft.world.entity.monster.Monster.aiStep(Monster.java:42) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.LivingEntity.tick(LivingEntity.java:2298) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,re:classloading,pl:mixin:APP:epca.mixins.json:LivingEntityMixin,pl:mixin:A}
+	at net.minecraft.world.entity.Mob.tick(Mob.java:337) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:mixin,pl:accesstransformer:B,re:classloading,pl:accesstransformer:B,pl:mixin:APP:epca.mixins.json:MobMixin,pl:mixin:A}
+	at org.tdddd.epca.impl.entity.entity.SmallIncompleteForm.tick(SmallIncompleteForm.java:88) ~[%23196!/:5.14.1+1.20.1] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tickNonPassenger(ServerLevel.java:693) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.Level.guardEntityTick(Level.java:479) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerLevel.lambda$tick$6(ServerLevel.java:343) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:54) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:323) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:89) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:runtimedistcleaner:A}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:661) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:833) ~[?:?] {}
+
+
+-- Entity being ticked --
+Details:
+	Entity Type: epca:small_incomplete_form (org.tdddd.epca.impl.entity.entity.SmallIncompleteForm)
+	Entity ID: 94
+	Entity Name: 小块未成形寄生体
+	Entity's Exact location: 86.50, -62.08, -95.50
+	Entity's Block location: World: (86,-63,-96), Section: (at 6,1,0 in 5,-4,-6; chunk contains blocks 80,-64,-96 to 95,319,-81), Region: (0,-1; contains chunks 0,-32 to 31,-1, blocks 0,-64,-512 to 511,319,-1)
+	Entity's Momentum: 0.00, -0.08, 0.00
+	Entity's Passengers: []
+	Entity's Vehicle: null
+Stacktrace:
+	at net.minecraft.world.level.Level.guardEntityTick(Level.java:479) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B,re:mixin,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerLevel.lambda$tick$6(ServerLevel.java:343) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:54) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:323) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:89) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:runtimedistcleaner:A}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:661) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:833) ~[?:?] {}
+
+
+-- Affected level --
+Details:
+	All players: 1 total; [ServerPlayer['Dev'/45, l='ServerLevel[新的世界]', x=86.28, y=-63.00, z=-97.26]]
+	Chunk stats: 3083
+	Level dimension: minecraft:overworld
+	Level spawn location: World: (0,-63,0), Section: (at 0,1,0 in 0,-4,0; chunk contains blocks 0,-64,0 to 15,319,15), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,-64,0 to 511,319,511)
+	Level time: 578946 game time, 14156 day time
+	Level name: 新的世界
+	Level game mode: Game mode: creative (ID 1). Hardcore: false. Cheats: true
+	Level weather: Rain time: 66804 (now: false), thunder time: 13985 (now: false)
+	Known server brands: forge
+	Removed feature flags: 
+	Level was modded: true
+	Level storage version: 0x04ABD - Anvil
+Stacktrace:
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.client.server.IntegratedServer.tickServer(IntegratedServer.java:89) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:runtimedistcleaner:A}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:661) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:833) ~[?:?] {}
+
+
+-- System Details --
+Details:
+	Minecraft Version: 1.20.1
+	Minecraft Version ID: 1.20.1
+	Operating System: Windows 10 (amd64) version 10.0
+	Java Version: 17.0.8.1, Microsoft
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Microsoft
+	Memory: 1567621120 bytes (1495 MiB) / 2155872256 bytes (2056 MiB) up to 4276092928 bytes (4078 MiB)
+	CPUs: 8
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Xeon(R) CPU E3-1230 v3 @ 3.30GHz
+	Identifier: Intel64 Family 6 Model 60 Stepping 3
+	Microarchitecture: Haswell (Client)
+	Frequency (GHz): 3.29
+	Number of physical packages: 1
+	Number of physical CPUs: 4
+	Number of logical CPUs: 8
+	Graphics card #0 name: GameViewer Virtual Display Adapter
+	Graphics card #0 vendor: GameViewer
+	Graphics card #0 VRAM (MB): 0.00
+	Graphics card #0 deviceId: unknown
+	Graphics card #0 versionInfo: DriverVersion=17.13.25.697
+	Graphics card #1 name: NVIDIA GeForce GTX 960
+	Graphics card #1 vendor: NVIDIA (0x10de)
+	Graphics card #1 VRAM (MB): 4095.00
+	Graphics card #1 deviceId: 0x1401
+	Graphics card #1 versionInfo: DriverVersion=32.0.15.6094
+	Memory slot #0 capacity (MB): 8192.00
+	Memory slot #0 clockSpeed (GHz): 1.60
+	Memory slot #0 type: DDR3
+	Memory slot #1 capacity (MB): 8192.00
+	Memory slot #1 clockSpeed (GHz): 1.60
+	Memory slot #1 type: DDR3
+	Virtual memory max (MB): 19635.82
+	Virtual memory used (MB): 12919.74
+	Swap memory total (MB): 3328.00
+	Swap memory used (MB): 568.87
+	JVM Flags: 1 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump
+	Server Running: true
+	Player Count: 1 / 8; [ServerPlayer['Dev'/45, l='ServerLevel[新的世界]', x=86.28, y=-63.00, z=-97.26]]
+	Data Packs: vanilla, mod:forge, mod:epca, mod:jade (incompatible)
+	Enabled Feature Flags: minecraft:vanilla
+	World Generation: Stable
+	Type: Integrated Server (map_client.txt)
+	Is Modded: Definitely; Client brand changed to 'forge'; Server brand changed to 'forge'
+	Launched Version: MOD_DEV
+	ModLauncher: 10.0.9+10.0.9+main.dcd20f30
+	ModLauncher launch target: forgeclientuserdev
+	ModLauncher naming: mcp
+	ModLauncher services: 
+		mixin-0.8.5.jar mixin PLUGINSERVICE 
+		eventbus-6.0.5.jar eventbus PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar slf4jfixer PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar object_holder_definalize PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar runtime_enum_extender PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar capability_token_subclass PLUGINSERVICE 
+		accesstransformers-8.0.4.jar accesstransformer PLUGINSERVICE 
+		fmlloader-1.20.1-47.2.0.jar runtimedistcleaner PLUGINSERVICE 
+		modlauncher-10.0.9.jar mixin TRANSFORMATIONSERVICE 
+		modlauncher-10.0.9.jar fml TRANSFORMATIONSERVICE 
+	FML Language Providers: 
+		minecraft@1.0
+		lowcodefml@null
+		javafml@null
+	Mod List: 
+		forge-1.20.1-47.2.0_mapped_official_1.20.1.jar    |Minecraft                     |minecraft                     |1.20.1              |DONE      |Manifest: a1:d4:5e:04:4f:d3:d6:e0:7b:37:97:cf:77:b0:de:ad:4a:47:ce:8c:96:49:5f:0a:cf:8c:ae:b2:6d:4b:8a:3f
+		                                                  |Forge                         |forge                         |47.2.0              |DONE      |Manifest: NOSIGNATURE
+		main                                              |End-Parasitize and Convert All|epca                          |0.3.0               |DONE      |Manifest: NOSIGNATURE
+		jade-324717-6855440_mapped_official_1.20.1.jar    |Jade                          |jade                          |11.13.2+forge       |DONE      |Manifest: NOSIGNATURE
+	Crash Report UUID: 31d62d4f-1dea-44b2-8b5d-64ba125fb71a
+	FML: 47.2
+	Forge: net.minecraftforge:47.2.0

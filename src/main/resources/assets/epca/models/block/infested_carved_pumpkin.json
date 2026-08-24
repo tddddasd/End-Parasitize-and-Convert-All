@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "epca:block/infested_pumpkin_top",
+    "front": "epca:block/infested_carved_pumpkin",
+    "side": "epca:block/infested_pumpkin_side"
+  }
+}

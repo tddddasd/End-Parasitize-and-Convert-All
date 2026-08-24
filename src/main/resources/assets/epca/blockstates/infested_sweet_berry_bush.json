@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "age=1": {
+      "model": "epca:block/infested_sweet_berry_bush_age1"
+    },
+    "age=2": {
+      "model": "epca:block/infested_sweet_berry_bush_age1"
+    },
+    "age=3": {
+      "model": "epca:block/infested_sweet_berry_bush_age2"
+    },
+    "age=0": {
+      "model": "epca:block/infested_sweet_berry_bush_age1"
+    }
+  }
+}

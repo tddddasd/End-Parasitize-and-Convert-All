@@ -1,0 +1,18 @@
+{
+  "format_version": "1.9.0",
+  "credit": "Made with Blockbench",
+  "render_type": "cutout",
+  "textures": {
+    "2": "epca:block/infested_nethersea_brand_grown",
+    "particle": "epca:block/infested_nethersea_brand_grown"
+  },
+  "elements": [
+    {
+      "from": [0, 1, 0],
+      "to": [16, 1, 16],
+      "faces": {
+        "up": {"uv": [16, 16, 0, 0], "texture": "#2"}
+      }
+    }
+  ]
+}

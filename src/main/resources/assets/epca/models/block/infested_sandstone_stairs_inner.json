@@ -1,0 +1,8 @@
+{
+  "parent": "block/inner_stairs",
+  "textures": {
+    "bottom": "epca:block/infested_sandstone_bottom",
+    "top": "epca:block/infested_sandstone_top",
+    "side": "epca:block/infested_sandstone"
+  }
+}

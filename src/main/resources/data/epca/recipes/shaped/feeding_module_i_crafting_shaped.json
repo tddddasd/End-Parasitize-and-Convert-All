@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "epca:beckon_membrane"
+    },
+    "C": {
+      "item": "minecraft:suspicious_stew"
+    }
+  },
+  "pattern": [
+    "   ",
+    "CBC",
+    "   "
+  ],
+  "result": {
+    "item": "epca:feeding_module_i",
+    "count": 1
+  }
+}

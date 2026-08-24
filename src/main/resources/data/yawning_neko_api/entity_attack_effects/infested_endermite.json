@@ -1,0 +1,33 @@
+{
+  "epca:infested_endermite": {
+    "base_effects": [
+      {
+        "effect": "epca:coth",
+        "duration": 2400,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 0.7
+      },
+      {
+        "effect": "epca:ender_erosion",
+        "duration": 20,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 0.5
+      },
+      {
+        "effect": "epca:fear",
+        "duration": 400,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 1.0
+      }
+    ]
+  }
+}

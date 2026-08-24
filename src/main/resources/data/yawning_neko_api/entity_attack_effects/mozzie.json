@@ -1,0 +1,68 @@
+{
+  "epca:mozzie": {
+    "base_effects": [
+      {
+        "effect": "epca:contempt_inorganic",
+        "duration": 1200,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 1.0
+      },
+      {
+        "effect": "epca:viral",
+        "duration": 100,
+        "amplifier": 2,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 1.0
+      }
+    ],
+    "upgrades": [
+      {
+        "level": 1,
+        "effect_filter": "epca:viral",
+        "level_adjust": 1,
+        "max_level": 7
+      },
+      {
+        "level": 2,
+        "effect_filter": "epca:viral",
+        "level_adjust": 1,
+        "max_level": 7
+      },
+      {
+        "level": 3,
+        "effect_filter": "epca:viral",
+        "level_adjust": 1,
+        "max_level": 7
+      },
+      {
+        "level": 4,
+        "effect_filter": "epca:viral",
+        "level_adjust": 1,
+        "max_level": 7
+      },
+      {
+        "level": 5,
+        "effect_filter": "epca:viral",
+        "level_adjust": 1,
+        "max_level": 7
+      },
+      {
+        "level": 6,
+        "effect_filter": "epca:viral",
+        "level_adjust": 1,
+        "max_level": 7
+      },
+      {
+        "level": 7,
+        "effect_filter": "epca:viral",
+        "level_adjust": 1,
+        "max_level": 7
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "block/cube_bottom_top",
+  "textures": {
+    "top": "epca:block/infested_log_top",
+    "side": "epca:block/infested_log_dirtyside",
+    "bottom": "epca:block/infested_log_dirtybottom"
+  }
+}

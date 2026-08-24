@@ -1,0 +1,8 @@
+{
+  "fins_to": "epca:infested_zombie",
+  "from": "minecraft:zombie",
+  "mozzie_to": "epca:infested_zombie",
+  "priority": 0,
+  "small_entity_priority": true,
+  "to": "epca:infested_zombie"
+}

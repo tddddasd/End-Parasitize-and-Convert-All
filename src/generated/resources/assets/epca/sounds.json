@@ -1,0 +1,657 @@
+{
+  "beckon_stage1": {
+    "sounds": [
+      "epca:mob/link/beckon/beckon_stage1"
+    ],
+    "subtitle": "subtitles.epca.beckon_stage1"
+  },
+  "beckon_stage2": {
+    "sounds": [
+      "epca:mob/link/beckon/beckon_stage2"
+    ],
+    "subtitle": "subtitles.epca.beckon_stage2"
+  },
+  "big_explosion": {
+    "sounds": [
+      "epca:random/big_explosion1",
+      "epca:random/big_explosion2"
+    ],
+    "subtitle": "subtitles.epca.big_explosion"
+  },
+  "curbug_evolve": {
+    "sounds": [
+      "epca:mob/onesent/curbug/curbug_evolve"
+    ],
+    "subtitle": "subtitles.epca.curbug_evolve"
+  },
+  "curbug_say": {
+    "sounds": [
+      "epca:mob/onesent/curbug/curbug_say1",
+      "epca:mob/onesent/curbug/curbug_say2",
+      "epca:mob/onesent/curbug/curbug_say3"
+    ],
+    "subtitle": "subtitles.epca.curbug_say"
+  },
+  "full_adaptation": {
+    "sounds": [
+      "epca:damage/adaptation/full_adaptation"
+    ],
+    "subtitle": "subtitles.epca.full_adaptation"
+  },
+  "incomplete_form_death": {
+    "sounds": [
+      "epca:mob/poverty/incomplete_form/incomplete_form_death"
+    ],
+    "subtitle": "subtitles.epca.incomplete_form_death"
+  },
+  "incomplete_form_hurt": {
+    "sounds": [
+      "epca:mob/poverty/incomplete_form/incomplete_form_hurt1",
+      "epca:mob/poverty/incomplete_form/incomplete_form_hurt2",
+      "epca:mob/poverty/incomplete_form/incomplete_form_hurt3",
+      "epca:mob/poverty/incomplete_form/incomplete_form_hurt4"
+    ],
+    "subtitle": "subtitles.epca.incomplete_form_hurt"
+  },
+  "incomplete_form_idle": {
+    "sounds": [
+      "epca:mob/poverty/incomplete_form/incomplete_form_idle1",
+      "epca:mob/poverty/incomplete_form/incomplete_form_idle2",
+      "epca:mob/poverty/incomplete_form/incomplete_form_idle3",
+      "epca:mob/poverty/incomplete_form/incomplete_form_idle4"
+    ],
+    "subtitle": "subtitles.epca.incomplete_form_idle"
+  },
+  "infested_cow_death": {
+    "sounds": [
+      "epca:mob/infested/infested_cow/infested_cow_death"
+    ],
+    "subtitle": "subtitles.epca.infested_cow_death"
+  },
+  "infested_cow_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_cow/infested_cow_hurt1",
+      "epca:mob/infested/infested_cow/infested_cow_hurt2",
+      "epca:mob/infested/infested_cow/infested_cow_hurt3"
+    ],
+    "subtitle": "subtitles.epca.infested_cow_hurt"
+  },
+  "infested_cow_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_cow/infested_cow_idle1",
+      "epca:mob/infested/infested_cow/infested_cow_idle2",
+      "epca:mob/infested/infested_cow/infested_cow_idle3",
+      "epca:mob/infested/infested_cow/infested_cow_idle4"
+    ],
+    "subtitle": "subtitles.epca.infested_cow_idle"
+  },
+  "infested_cow_step": {
+    "sounds": [
+      "epca:mob/infested/infested_cow/infested_cow_step1",
+      "epca:mob/infested/infested_cow/infested_cow_step2",
+      "epca:mob/infested/infested_cow/infested_cow_step3",
+      "epca:mob/infested/infested_cow/infested_cow_step4"
+    ],
+    "subtitle": "subtitles.epca.infested_cow_step"
+  },
+  "infested_enderman_death": {
+    "sounds": [
+      "epca:mob/infested/infested_enderman/infested_enderman_death"
+    ],
+    "subtitle": "subtitles.epca.infested_enderman_death"
+  },
+  "infested_enderman_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_enderman/infested_enderman_hurt1",
+      "epca:mob/infested/infested_enderman/infested_enderman_hurt2",
+      "epca:mob/infested/infested_enderman/infested_enderman_hurt3",
+      "epca:mob/infested/infested_enderman/infested_enderman_hurt4"
+    ],
+    "subtitle": "subtitles.epca.infested_enderman_hurt"
+  },
+  "infested_enderman_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_enderman/infested_enderman_idle1",
+      "epca:mob/infested/infested_enderman/infested_enderman_idle2",
+      "epca:mob/infested/infested_enderman/infested_enderman_idle3",
+      "epca:mob/infested/infested_enderman/infested_enderman_idle4",
+      "epca:mob/infested/infested_enderman/infested_enderman_idle5"
+    ],
+    "subtitle": "subtitles.epca.infested_enderman_idle"
+  },
+  "infested_enderman_portal": {
+    "sounds": [
+      "epca:mob/infested/infested_enderman/infested_enderman_portal1",
+      "epca:mob/infested/infested_enderman/infested_enderman_portal2"
+    ],
+    "subtitle": "subtitles.epca.infested_enderman_portal"
+  },
+  "infested_enderman_scream": {
+    "sounds": [
+      "epca:mob/infested/infested_enderman/infested_enderman_scream1",
+      "epca:mob/infested/infested_enderman/infested_enderman_scream2",
+      "epca:mob/infested/infested_enderman/infested_enderman_scream3",
+      "epca:mob/infested/infested_enderman/infested_enderman_scream4"
+    ],
+    "subtitle": "subtitles.epca.infested_enderman_scream"
+  },
+  "infested_enderman_targeting": {
+    "sounds": [
+      "epca:mob/infested/infested_enderman/infested_enderman_targeting"
+    ],
+    "subtitle": "subtitles.epca.infested_enderman_targeting"
+  },
+  "infested_fox_aggro": {
+    "sounds": [
+      "epca:mob/infested/infested_fox/infested_fox_aggro1",
+      "epca:mob/infested/infested_fox/infested_fox_aggro2",
+      "epca:mob/infested/infested_fox/infested_fox_aggro3",
+      "epca:mob/infested/infested_fox/infested_fox_aggro4",
+      "epca:mob/infested/infested_fox/infested_fox_aggro5",
+      "epca:mob/infested/infested_fox/infested_fox_aggro6",
+      "epca:mob/infested/infested_fox/infested_fox_aggro7"
+    ],
+    "subtitle": "subtitles.epca.infested_fox_aggro"
+  },
+  "infested_fox_bite": {
+    "sounds": [
+      "epca:mob/infested/infested_fox/infested_fox_bite1",
+      "epca:mob/infested/infested_fox/infested_fox_bite2",
+      "epca:mob/infested/infested_fox/infested_fox_bite3"
+    ],
+    "subtitle": "subtitles.epca.infested_fox_bite"
+  },
+  "infested_fox_death": {
+    "sounds": [
+      "epca:mob/infested/infested_fox/infested_fox_death1",
+      "epca:mob/infested/infested_fox/infested_fox_death2"
+    ],
+    "subtitle": "subtitles.epca.infested_fox_death"
+  },
+  "infested_fox_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_fox/infested_fox_hurt1",
+      "epca:mob/infested/infested_fox/infested_fox_hurt2",
+      "epca:mob/infested/infested_fox/infested_fox_hurt3",
+      "epca:mob/infested/infested_fox/infested_fox_hurt4"
+    ],
+    "subtitle": "subtitles.epca.infested_fox_hurt"
+  },
+  "infested_fox_screech": {
+    "sounds": [
+      "epca:mob/infested/infested_fox/infested_fox_screech1",
+      "epca:mob/infested/infested_fox/infested_fox_screech2",
+      "epca:mob/infested/infested_fox/infested_fox_screech3",
+      "epca:mob/infested/infested_fox/infested_fox_screech4"
+    ],
+    "subtitle": "subtitles.epca.infested_fox_screech"
+  },
+  "infested_husk_death": {
+    "sounds": [
+      "epca:mob/infested/infested_husk/infested_husk_death1",
+      "epca:mob/infested/infested_husk/infested_husk_death2"
+    ],
+    "subtitle": "subtitles.epca.infested_husk_death"
+  },
+  "infested_husk_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_husk/infested_husk_hurt1",
+      "epca:mob/infested/infested_husk/infested_husk_hurt2"
+    ],
+    "subtitle": "subtitles.epca.infested_husk_hurt"
+  },
+  "infested_husk_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_husk/infested_husk_idle1",
+      "epca:mob/infested/infested_husk/infested_husk_idle2",
+      "epca:mob/infested/infested_husk/infested_husk_idle3"
+    ],
+    "subtitle": "subtitles.epca.infested_husk_idle"
+  },
+  "infested_pig_death": {
+    "sounds": [
+      "epca:mob/infested/infested_pig/infested_pig_death"
+    ],
+    "subtitle": "subtitles.epca.infested_pig_death"
+  },
+  "infested_pig_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_pig/infested_pig_hurt1",
+      "epca:mob/infested/infested_pig/infested_pig_hurt2",
+      "epca:mob/infested/infested_pig/infested_pig_hurt3"
+    ],
+    "subtitle": "subtitles.epca.infested_pig_hurt"
+  },
+  "infested_pig_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_pig/infested_pig_idle1",
+      "epca:mob/infested/infested_pig/infested_pig_idle2",
+      "epca:mob/infested/infested_pig/infested_pig_idle3",
+      "epca:mob/infested/infested_pig/infested_pig_idle4"
+    ],
+    "subtitle": "subtitles.epca.infested_pig_idle"
+  },
+  "infested_pig_step": {
+    "sounds": [
+      "epca:mob/infested/infested_pig/infested_pig_step1",
+      "epca:mob/infested/infested_pig/infested_pig_step2",
+      "epca:mob/infested/infested_pig/infested_pig_step3",
+      "epca:mob/infested/infested_pig/infested_pig_step4",
+      "epca:mob/infested/infested_pig/infested_pig_step5"
+    ],
+    "subtitle": "subtitles.epca.infested_pig_step"
+  },
+  "infested_sheep_death": {
+    "sounds": [
+      "epca:mob/infested/infested_sheep/infested_sheep_death1",
+      "epca:mob/infested/infested_sheep/infested_sheep_death2"
+    ],
+    "subtitle": "subtitles.epca.infested_sheep_death"
+  },
+  "infested_sheep_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_sheep/infested_sheep_hurt1",
+      "epca:mob/infested/infested_sheep/infested_sheep_hurt2",
+      "epca:mob/infested/infested_sheep/infested_sheep_hurt3"
+    ],
+    "subtitle": "subtitles.epca.infested_sheep_hurt"
+  },
+  "infested_sheep_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_sheep/infested_sheep_idle1",
+      "epca:mob/infested/infested_sheep/infested_sheep_idle2",
+      "epca:mob/infested/infested_sheep/infested_sheep_idle3"
+    ],
+    "subtitle": "subtitles.epca.infested_sheep_idle"
+  },
+  "infested_sheep_step": {
+    "sounds": [
+      "epca:mob/infested/infested_sheep/infested_sheep_step1",
+      "epca:mob/infested/infested_sheep/infested_sheep_step2",
+      "epca:mob/infested/infested_sheep/infested_sheep_step3",
+      "epca:mob/infested/infested_sheep/infested_sheep_step4",
+      "epca:mob/infested/infested_sheep/infested_sheep_step5"
+    ],
+    "subtitle": "subtitles.epca.infested_sheep_step"
+  },
+  "infested_skeleton_death": {
+    "sounds": [
+      "epca:mob/infested/infested_skeleton/infested_skeleton_death"
+    ],
+    "subtitle": "subtitles.epca.infested_skeleton_death"
+  },
+  "infested_skeleton_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_skeleton/infested_skeleton_hurt1",
+      "epca:mob/infested/infested_skeleton/infested_skeleton_hurt2",
+      "epca:mob/infested/infested_skeleton/infested_skeleton_hurt3",
+      "epca:mob/infested/infested_skeleton/infested_skeleton_hurt4"
+    ],
+    "subtitle": "subtitles.epca.infested_skeleton_hurt"
+  },
+  "infested_skeleton_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_skeleton/infested_skeleton_idle1",
+      "epca:mob/infested/infested_skeleton/infested_skeleton_idle2",
+      "epca:mob/infested/infested_skeleton/infested_skeleton_idle3"
+    ],
+    "subtitle": "subtitles.epca.infested_skeleton_idle"
+  },
+  "infested_skeleton_step": {
+    "sounds": [
+      "epca:mob/infested/infested_skeleton/infested_skeleton_step1",
+      "epca:mob/infested/infested_skeleton/infested_skeleton_step2",
+      "epca:mob/infested/infested_skeleton/infested_skeleton_step3",
+      "epca:mob/infested/infested_skeleton/infested_skeleton_step4"
+    ],
+    "subtitle": "subtitles.epca.infested_skeleton_step"
+  },
+  "infested_villager_death": {
+    "sounds": [
+      "epca:mob/infested/infested_villager/infested_villager_death"
+    ],
+    "subtitle": "subtitles.epca.infested_villager_death"
+  },
+  "infested_villager_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_villager/infested_villager_hurt1",
+      "epca:mob/infested/infested_villager/infested_villager_hurt2",
+      "epca:mob/infested/infested_villager/infested_villager_hurt3",
+      "epca:mob/infested/infested_villager/infested_villager_hurt4"
+    ],
+    "subtitle": "subtitles.epca.infested_villager_hurt"
+  },
+  "infested_villager_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_villager/infested_villager_idle1",
+      "epca:mob/infested/infested_villager/infested_villager_idle2",
+      "epca:mob/infested/infested_villager/infested_villager_idle3"
+    ],
+    "subtitle": "subtitles.epca.infested_villager_idle"
+  },
+  "infested_vindicator_death": {
+    "sounds": [
+      "epca:mob/infested/infested_vindicator/infested_vindicator_death1",
+      "epca:mob/infested/infested_vindicator/infested_vindicator_death2"
+    ],
+    "subtitle": "subtitles.epca.infested_vindicator_death"
+  },
+  "infested_vindicator_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_vindicator/infested_vindicator_hurt1",
+      "epca:mob/infested/infested_vindicator/infested_vindicator_hurt2",
+      "epca:mob/infested/infested_vindicator/infested_vindicator_hurt3"
+    ],
+    "subtitle": "subtitles.epca.infested_vindicator_hurt"
+  },
+  "infested_vindicator_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_vindicator/infested_vindicator_idle1",
+      "epca:mob/infested/infested_vindicator/infested_vindicator_idle2",
+      "epca:mob/infested/infested_vindicator/infested_vindicator_idle3",
+      "epca:mob/infested/infested_vindicator/infested_vindicator_idle4",
+      "epca:mob/infested/infested_vindicator/infested_vindicator_idle5"
+    ],
+    "subtitle": "subtitles.epca.infested_vindicator_idle"
+  },
+  "infested_vindicator_targeting": {
+    "sounds": [
+      "epca:mob/infested/infested_vindicator/infested_vindicator_targeting"
+    ],
+    "subtitle": "subtitles.epca.infested_vindicator_targeting"
+  },
+  "infested_wolf_death": {
+    "sounds": [
+      "epca:mob/infested/infested_wolf/infested_wolf_death"
+    ],
+    "subtitle": "subtitles.epca.infested_wolf_death"
+  },
+  "infested_wolf_growl": {
+    "sounds": [
+      "epca:mob/infested/infested_wolf/infested_wolf_growl1",
+      "epca:mob/infested/infested_wolf/infested_wolf_growl2",
+      "epca:mob/infested/infested_wolf/infested_wolf_growl3"
+    ],
+    "subtitle": "subtitles.epca.infested_wolf_growl"
+  },
+  "infested_wolf_howl": {
+    "sounds": [
+      "epca:mob/infested/infested_wolf/infested_wolf_howl1",
+      "epca:mob/infested/infested_wolf/infested_wolf_howl2",
+      "epca:mob/infested/infested_wolf/infested_wolf_howl3"
+    ],
+    "subtitle": "subtitles.epca.infested_wolf_howl"
+  },
+  "infested_wolf_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_wolf/infested_wolf_hurt1",
+      "epca:mob/infested/infested_wolf/infested_wolf_hurt2",
+      "epca:mob/infested/infested_wolf/infested_wolf_hurt3"
+    ],
+    "subtitle": "subtitles.epca.infested_wolf_hurt"
+  },
+  "infested_wolf_whine": {
+    "sounds": [
+      "epca:mob/infested/infested_wolf/infested_wolf_whine"
+    ],
+    "subtitle": "subtitles.epca.infested_wolf_whine"
+  },
+  "infested_zombie_death": {
+    "sounds": [
+      "epca:mob/infested/infested_zombie/infested_zombie_death"
+    ],
+    "subtitle": "subtitles.epca.infested_zombie_death"
+  },
+  "infested_zombie_hurt": {
+    "sounds": [
+      "epca:mob/infested/infested_zombie/infested_zombie_hurt1",
+      "epca:mob/infested/infested_zombie/infested_zombie_hurt2"
+    ],
+    "subtitle": "subtitles.epca.infested_zombie_hurt"
+  },
+  "infested_zombie_idle": {
+    "sounds": [
+      "epca:mob/infested/infested_zombie/infested_zombie_idle1",
+      "epca:mob/infested/infested_zombie/infested_zombie_idle2",
+      "epca:mob/infested/infested_zombie/infested_zombie_idle3"
+    ],
+    "subtitle": "subtitles.epca.infested_zombie_idle"
+  },
+  "mozzie_death": {
+    "sounds": [
+      "epca:mob/onesent/mozzie/mozzie_death"
+    ],
+    "subtitle": "subtitles.epca.mozzie_death"
+  },
+  "mozzie_hurt": {
+    "sounds": [
+      "epca:mob/onesent/mozzie/mozzie_hurt1",
+      "epca:mob/onesent/mozzie/mozzie_hurt2"
+    ],
+    "subtitle": "subtitles.epca.mozzie_hurt"
+  },
+  "mozzie_idle": {
+    "sounds": [
+      "epca:mob/onesent/mozzie/mozzie_idle"
+    ],
+    "subtitle": "subtitles.epca.mozzie_idle"
+  },
+  "nullthing_attack0": {
+    "sounds": [
+      "epca:nullthing_attack0"
+    ],
+    "subtitle": "subtitles.epca.nullthing_attack0"
+  },
+  "nullthing_run": {
+    "sounds": [
+      "epca:nullthing_run"
+    ],
+    "subtitle": "subtitles.epca.nullthing_run"
+  },
+  "nullthing_stand1": {
+    "sounds": [
+      "epca:nullthing_stand1"
+    ],
+    "subtitle": "subtitles.epca.nullthing_stand1"
+  },
+  "nullthing_stand2": {
+    "sounds": [
+      "epca:nullthing_stand2"
+    ],
+    "subtitle": "subtitles.epca.nullthing_stand2"
+  },
+  "parcial_adaptation": {
+    "sounds": [
+      "epca:damage/adaptation/parcial_adaptation"
+    ],
+    "subtitle": "subtitles.epca.parcial_adaptation"
+  },
+  "phase0": {
+    "sounds": [
+      "epca:event/phase0"
+    ],
+    "subtitle": "subtitles.epca.phase0"
+  },
+  "phase1": {
+    "sounds": [
+      "epca:event/phase1"
+    ],
+    "subtitle": "subtitles.epca.phase1"
+  },
+  "phase10": {
+    "sounds": [
+      "epca:event/phase10"
+    ],
+    "subtitle": "subtitles.epca.phase10"
+  },
+  "phase2": {
+    "sounds": [
+      "epca:event/phase2"
+    ],
+    "subtitle": "subtitles.epca.phase2"
+  },
+  "phase3": {
+    "sounds": [
+      "epca:event/phase3"
+    ],
+    "subtitle": "subtitles.epca.phase3"
+  },
+  "phase4": {
+    "sounds": [
+      "epca:event/phase4"
+    ],
+    "subtitle": "subtitles.epca.phase4"
+  },
+  "phase5": {
+    "sounds": [
+      "epca:event/phase5"
+    ],
+    "subtitle": "subtitles.epca.phase5"
+  },
+  "phase6": {
+    "sounds": [
+      "epca:event/phase6"
+    ],
+    "subtitle": "subtitles.epca.phase6"
+  },
+  "phase7": {
+    "sounds": [
+      "epca:event/phase7"
+    ],
+    "subtitle": "subtitles.epca.phase7"
+  },
+  "phase8": {
+    "sounds": [
+      "epca:event/phase8"
+    ],
+    "subtitle": "subtitles.epca.phase8"
+  },
+  "phase9": {
+    "sounds": [
+      "epca:event/phase9"
+    ],
+    "subtitle": "subtitles.epca.phase9"
+  },
+  "reshape_longarms_death": {
+    "sounds": [
+      "epca:mob/reshape/longarms/reshape_longarms_death1",
+      "epca:mob/reshape/longarms/reshape_longarms_death2"
+    ],
+    "subtitle": "subtitles.epca.reshape_longarms_death"
+  },
+  "reshape_longarms_hurt": {
+    "sounds": [
+      "epca:mob/reshape/longarms/reshape_longarms_hurt1",
+      "epca:mob/reshape/longarms/reshape_longarms_hurt2",
+      "epca:mob/reshape/longarms/reshape_longarms_hurt3",
+      "epca:mob/reshape/longarms/reshape_longarms_hurt4"
+    ],
+    "subtitle": "subtitles.epca.reshape_longarms_hurt"
+  },
+  "reshape_longarms_idle": {
+    "sounds": [
+      "epca:mob/reshape/longarms/reshape_longarms_idle1",
+      "epca:mob/reshape/longarms/reshape_longarms_idle2",
+      "epca:mob/reshape/longarms/reshape_longarms_idle3",
+      "epca:mob/reshape/longarms/reshape_longarms_idle4",
+      "epca:mob/reshape/longarms/reshape_longarms_idle5"
+    ],
+    "subtitle": "subtitles.epca.reshape_longarms_idle"
+  },
+  "reshape_step": {
+    "sounds": [
+      "epca:mob/reshape/reshape_step1",
+      "epca:mob/reshape/reshape_step2",
+      "epca:mob/reshape/reshape_step3"
+    ],
+    "subtitle": "subtitles.epca.reshape_step"
+  },
+  "reshape_yelloweye_attack": {
+    "sounds": [
+      "epca:mob/reshape/yelloweye/reshape_yelloweye_attack"
+    ],
+    "subtitle": "subtitles.epca.reshape_yelloweye_attack"
+  },
+  "reshape_yelloweye_gassing": {
+    "sounds": [
+      "epca:mob/reshape/yelloweye/reshape_yelloweye_gassing"
+    ],
+    "subtitle": "subtitles.epca.reshape_yelloweye_gassing"
+  },
+  "reshape_yelloweye_hurt": {
+    "sounds": [
+      "epca:mob/reshape/yelloweye/reshape_yelloweye_hurt1",
+      "epca:mob/reshape/yelloweye/reshape_yelloweye_hurt2",
+      "epca:mob/reshape/yelloweye/reshape_yelloweye_hurt3"
+    ],
+    "subtitle": "subtitles.epca.reshape_yelloweye_hurt"
+  },
+  "reshape_yelloweye_idle": {
+    "sounds": [
+      "epca:mob/reshape/yelloweye/reshape_yelloweye_idle1",
+      "epca:mob/reshape/yelloweye/reshape_yelloweye_idle2"
+    ],
+    "subtitle": "subtitles.epca.reshape_yelloweye_idle"
+  },
+  "ripper_death": {
+    "sounds": [
+      "epca:mob/onesent/ripper/ripper_death"
+    ],
+    "subtitle": "subtitles.epca.ripper_death"
+  },
+  "ripper_hurt": {
+    "sounds": [
+      "epca:mob/onesent/ripper/ripper_hurt1",
+      "epca:mob/onesent/ripper/ripper_hurt2"
+    ],
+    "subtitle": "subtitles.epca.ripper_hurt"
+  },
+  "ripper_idle": {
+    "sounds": [
+      "epca:mob/onesent/ripper/ripper_idle1",
+      "epca:mob/onesent/ripper/ripper_idle2",
+      "epca:mob/onesent/ripper/ripper_idle3"
+    ],
+    "subtitle": "subtitles.epca.ripper_idle"
+  },
+  "ripper_step": {
+    "sounds": [
+      "epca:mob/onesent/ripper/ripper_step1",
+      "epca:mob/onesent/ripper/ripper_step2",
+      "epca:mob/onesent/ripper/ripper_step3",
+      "epca:mob/onesent/ripper/ripper_step4"
+    ],
+    "subtitle": "subtitles.epca.ripper_step"
+  },
+  "slam": {
+    "sounds": [
+      "epca:random/slam1",
+      "epca:random/slam2",
+      "epca:random/slam3",
+      "epca:random/slam4"
+    ],
+    "subtitle": "subtitles.epca.slam"
+  },
+  "small_explosion": {
+    "sounds": [
+      "epca:random/small_explosion1",
+      "epca:random/small_explosion2",
+      "epca:random/small_explosion3"
+    ],
+    "subtitle": "subtitles.epca.small_explosion"
+  },
+  "walking_head_death": {
+    "sounds": [
+      "epca:mob/infested/walking_head/walking_head_death"
+    ],
+    "subtitle": "subtitles.epca.walking_head_death"
+  },
+  "walking_head_say": {
+    "sounds": [
+      "epca:mob/infested/walking_head/walking_head_say1",
+      "epca:mob/infested/walking_head/walking_head_say2",
+      "epca:mob/infested/walking_head/walking_head_say3"
+    ],
+    "subtitle": "subtitles.epca.walking_head_say"
+  }
+}

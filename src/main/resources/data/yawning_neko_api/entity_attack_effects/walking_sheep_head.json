@@ -1,0 +1,77 @@
+{
+  "epca:walking_sheep_head": {
+    "base_effects": [
+      {
+        "effect": "epca:coth",
+        "duration": 2400,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 0.7
+      },
+      {
+        "effect": "epca:bleeding",
+        "duration": 100,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 0.05
+      },
+      {
+        "effect": "epca:fear",
+        "duration": 400,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 1.0
+      }
+    ],
+    "upgrades": [
+      {
+        "level": 1,
+        "effect_filter": "epca:coth",
+        "level_adjust": 1,
+        "max_level": 2
+      },
+      {
+        "level": 2,
+        "effect_filter": "epca:coth",
+        "level_adjust": 1,
+        "max_level": 2
+      },
+      {
+        "level": 1,
+        "effect_filter": "epca:bleeding",
+        "level_adjust": 1,
+        "max_level": 5
+      },
+      {
+        "level": 2,
+        "effect_filter": "epca:bleeding",
+        "level_adjust": 1,
+        "max_level": 5
+      },
+      {
+        "level": 3,
+        "effect_filter": "epca:bleeding",
+        "level_adjust": 1,
+        "max_level": 5
+      },
+      {
+        "level": 4,
+        "effect_filter": "epca:bleeding",
+        "level_adjust": 1,
+        "max_level": 5
+      },
+      {
+        "level": 5,
+        "effect_filter": "epca:bleeding",
+        "level_adjust": 1,
+        "max_level": 5
+      }
+    ]
+  }
+}

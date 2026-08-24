@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "R": {
+      "item": "epca:reshape_shell"
+    },
+    "I": {
+      "item": "epca:infested_nethersea_brand_mor"
+    },
+    "S": {
+      "item": "minecraft:snowball"
+    },
+    "U": {
+      "item": "minecraft:sugar"
+    }
+  },
+  "pattern": [
+    "RSS",
+    "UUI",
+    "III"
+  ],
+  "result": {
+    "item": "epca:infested_nethersea_icecream",
+    "count": 1
+  }
+}

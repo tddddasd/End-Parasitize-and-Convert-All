@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "epca:abandoned_cake_workshop_redsand",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 1145140,
+    "spacing": 52,
+    "separation": 46
+  }
+}

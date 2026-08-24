@@ -1,0 +1,8 @@
+{
+  "fins_to": "epca:infested_villager",
+  "from": "minecraft:villager",
+  "mozzie_to": "epca:infested_villager",
+  "priority": 1,
+  "small_entity_priority": true,
+  "to": "epca:infested_villager"
+}

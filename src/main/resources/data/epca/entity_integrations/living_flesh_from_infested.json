@@ -1,0 +1,194 @@
+[
+  {
+  "entities": [
+    {
+      "entity": "epca:infested_zombie",
+      "requiredKillCount": 6
+    }
+  ],
+  "range": 1.0,
+  "time": 10,
+  "results": [
+    {
+      "entity": "epca:living_flesh_size0",
+      "count": 1
+    }
+  ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_cow",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_drowned",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_husk",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_pig",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_pillager",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_sheep",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_villager",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_vindicator",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_wolf",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_zombie_villager",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:infested_fox",
+        "requiredKillCount": 6
+      }
+    ],
+    "range": 1.0,
+    "time": 10,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "count": 1
+      }
+    ]
+  }
+]

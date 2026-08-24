@@ -1,0 +1,15 @@
+{
+  "epca:walking_skeleton_head": {
+    "base_effects": [
+      {
+        "effect": "epca:coth",
+        "duration": 2400,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 0.7
+      }
+    ]
+  }
+}

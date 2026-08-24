@@ -1,0 +1,7 @@
+{
+  "parent": "block/cube_column",
+  "textures": {
+    "end": "epca:block/infested_log_top",
+    "side": "epca:block/infested_log_side_3"
+  }
+}

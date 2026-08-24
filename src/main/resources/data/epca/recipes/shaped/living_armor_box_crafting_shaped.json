@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "epca:reshape_shell"
+    },
+    "B": {
+      "item": "epca:beckon_membrane"
+    },
+    "C": {
+      "item": "minecraft:armor_stand"
+    }
+  },
+  "pattern": [
+    "BIB",
+    "ICI",
+    "BIB"
+  ],
+  "result": {
+    "item": "epca:living_armor_box",
+    "count": 1
+  }
+}

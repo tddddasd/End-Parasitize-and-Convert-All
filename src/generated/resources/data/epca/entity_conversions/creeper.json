@@ -1,0 +1,5 @@
+{
+  "from": "minecraft:creeper",
+  "priority": 1,
+  "small_entity_priority": true
+}

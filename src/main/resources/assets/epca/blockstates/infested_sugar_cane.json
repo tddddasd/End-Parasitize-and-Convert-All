@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "top=true": {
+      "model": "epca:block/infested_sugar_cane_top"
+    },
+    "top=false": {
+      "model": "epca:block/infested_sugar_cane"
+    }
+  }
+}

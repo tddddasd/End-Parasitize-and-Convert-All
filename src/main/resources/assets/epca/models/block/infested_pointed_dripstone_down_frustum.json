@@ -1,0 +1,7 @@
+{
+  "parent": "block/pointed_dripstone",
+  "textures": {
+    "cross": "epca:block/infested_pointed_dripstone_down_frustum"
+  },
+  "render_type": "cutout"
+}

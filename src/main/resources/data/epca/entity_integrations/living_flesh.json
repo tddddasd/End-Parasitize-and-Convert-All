@@ -1,0 +1,106 @@
+[
+  {
+    "entities": [
+      {
+        "entity": "epca:living_flesh_size0",
+        "minCount": 2
+      }
+    ],
+    "range": 2.0,
+    "time": 1,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size1",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:living_flesh_size0"
+      },
+      {
+        "entity": "epca:living_flesh_size1"
+      }
+    ],
+    "range": 2.0,
+    "time": 1,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size2",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:living_flesh_size0"
+      },
+      {
+        "entity": "epca:living_flesh_size2"
+      }
+    ],
+    "range": 2.0,
+    "time": 1,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size3",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:living_flesh_size1",
+        "minCount": 2
+      }
+    ],
+    "range": 2.0,
+    "time": 1,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size3",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:living_flesh_size0"
+      },
+      {
+        "entity": "epca:living_flesh_size3"
+      }
+    ],
+    "range": 2.0,
+    "time": 1,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size4",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "entities": [
+      {
+        "entity": "epca:living_flesh_size2"
+      },
+      {
+        "entity": "epca:living_flesh_size1"
+      }
+    ],
+    "range": 2.0,
+    "time": 1,
+    "results": [
+      {
+        "entity": "epca:living_flesh_size4",
+        "count": 1
+      }
+    ]
+  }
+]

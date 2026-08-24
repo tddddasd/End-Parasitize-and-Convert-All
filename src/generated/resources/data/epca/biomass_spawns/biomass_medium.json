@@ -1,0 +1,380 @@
+{
+  "land_spawns": [
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_zombie",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_husk",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_villager",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_zombie_villager",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_pillager",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_vindicator",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 6
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_pig",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 6
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_cow",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 6
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_sheep",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 6
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_wolf",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 6
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_silverfish",
+      "life_time": 1200,
+      "max_count": 3,
+      "min_count": 2,
+      "weight": 6
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_slime_size1",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 4
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_slime_size3",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 4
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_chicken",
+      "life_time": 1200,
+      "max_count": 2,
+      "min_count": 2,
+      "weight": 6
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:ripper",
+      "life_time": 1200,
+      "max_count": 2,
+      "min_count": 1,
+      "weight": 6
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_skeleton",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:flying_carrier",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:light_carrier",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 2
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_enderman",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 2
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_fox",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
+    }
+  ],
+  "water_spawns": [
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_drowned",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 80
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:fins",
+      "life_time": 1200,
+      "max_count": 2,
+      "min_count": 1,
+      "weight": 20
+    }
+  ]
+}

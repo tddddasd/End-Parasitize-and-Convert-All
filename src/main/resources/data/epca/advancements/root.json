@@ -1,0 +1,28 @@
+{
+  "display": {
+    "icon": {
+      "item": "epca:epca_icon"
+    },
+    "title": {
+      "translate": "advancements.epca.root.title"
+    },
+    "description": {
+      "translate": "advancements.epca.root.description"
+    },
+    "frame": "task",
+    "background": "epca:textures/block/infested_stone.png",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "entered_world": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "requirements": [
+    [
+      "entered_world"
+    ]
+  ]
+}

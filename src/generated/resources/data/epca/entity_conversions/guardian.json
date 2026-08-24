@@ -1,0 +1,5 @@
+{
+  "from": "minecraft:guardian",
+  "priority": 1,
+  "small_entity_priority": true
+}

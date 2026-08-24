@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 100,
+  "experience": 0.1,
+  "group": "smelting_iron_spear",
+  "ingredient": {
+    "item": "epca:iron_spear"
+  },
+  "result": "minecraft:iron_nugget"
+}

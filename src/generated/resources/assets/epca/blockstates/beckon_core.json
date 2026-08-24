@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "epca:block/beckon_core"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "item": "epca:cluster"
+    },
+    "title": {
+      "translate": "advancements.epca.sense_of_crisis.title"
+    },
+    "description": {
+      "translate": "advancements.epca.sense_of_crisis.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "epca:root",
+  "criteria": {
+    "unlock": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
