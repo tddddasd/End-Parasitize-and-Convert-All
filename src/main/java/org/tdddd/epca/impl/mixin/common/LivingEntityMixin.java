@@ -1,8 +1,6 @@
 package org.tdddd.epca.impl.mixin.common;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,24 +10,17 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
-import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
-import org.tdddd.epca.impl.overworld.registry.ModDamageTypes;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.effects.buff.SoulProtectionEffect;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.*;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.items.item.KillStick;
 import org.tdddd.epca.impl.utils.ShieldProtectionHelper;
-import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
@@ -134,44 +125,6 @@ public abstract class LivingEntityMixin {
         }
     }
 
-    @Inject(method = "hurt", at = @At("HEAD"), cancellable = true)
-    private void onHurt(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        LivingEntity self = (LivingEntity)(Object)this;
-        if (DamageAdaptation.isInvulnerable(self)) {
-            cir.setReturnValue(false);
-            cir.cancel();
-        }
-        
-        if (source.is(ModDamageTypes.MINIMUM)) {
-            LivingEntity entity = (LivingEntity) (Object) this;
-
-            
-            if (entity.isDeadOrDying()) {
-                cir.setReturnValue(false);
-                return;
-            }
-
-            
-            float newHealth = entity.getHealth() - amount;
-            entity.setHealth(newHealth);
-
-            
-            if (newHealth <= 0.0F) {
-                entity.die(source);
-            }
-
-            
-            cir.setReturnValue(true);
-        }
-    }
-
-    @Shadow
-    public abstract float getHealth();
-    @Shadow public abstract void setHealth(float health);
-
-    @Shadow public abstract void remove(Entity.RemovalReason p_276115_);
-
-    
     private static final ThreadLocal<Boolean> processingSetHealth = ThreadLocal.withInitial(() -> false);
 
     @Inject(method = "setHealth", at = @At("HEAD"), cancellable = true)

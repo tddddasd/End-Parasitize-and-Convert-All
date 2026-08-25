@@ -14,8 +14,8 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import org.tdddd.epca.impl.overworld.registry.ModDamageTypes;
 import org.tdddd.epca.impl.overworld.registry.effects.RemovableEffect;
+import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -19,11 +19,11 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.network.PacketDistributor;
-import org.tdddd.epca.impl.overworld.registry.ModDamageTypes;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.AcidWaterColorPacket;
+import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -9,8 +9,8 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import org.tdddd.epca.impl.overworld.registry.ModDamageTypes;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
+import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
 import java.util.*;
 

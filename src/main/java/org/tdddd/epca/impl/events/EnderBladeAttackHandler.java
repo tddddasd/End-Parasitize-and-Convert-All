@@ -20,7 +20,7 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.epca;
-import org.tdddd.epca.impl.overworld.registry.ModDamageTypes;
+import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
 import java.util.Collection;
 

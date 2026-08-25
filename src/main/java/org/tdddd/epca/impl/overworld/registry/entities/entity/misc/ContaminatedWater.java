@@ -17,9 +17,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.tdddd.epca.impl.client.WaterColorEffectsManager;
-import org.tdddd.epca.impl.overworld.registry.ModDamageTypes;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
 import java.util.List;
 import java.util.UUID;
