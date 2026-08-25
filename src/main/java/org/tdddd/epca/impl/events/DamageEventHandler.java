@@ -2,7 +2,7 @@ package org.tdddd.epca.impl.events;
 
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -12,7 +12,7 @@ import org.tdddd.epca.impl.epca;
 @Mod.EventBusSubscriber(modid = epca.MODID)
 public class DamageEventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingDamageEvent event) { // Hurt event fires BEFORE any damage reduction, so this is pointless, use Damage event since this fires AFTER reductions
         DamageSource source = event.getSource();
 
         
