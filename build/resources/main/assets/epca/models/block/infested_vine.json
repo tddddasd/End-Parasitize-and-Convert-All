@@ -1,0 +1,47 @@
+{
+  "format_version": "1.9.0",
+  "credit": "Made with Blockbench",
+  "textures": {
+    "particle": "epca:item/infested_vine_item",
+    "base": "epca:block/infested_vine",
+    "leaves": "epca:block/infested_vine_leaves"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0.8],
+      "to": [16, 16, 0.8],
+      "rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 0.8]},
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#base"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#base"}
+      }
+    },
+    {
+      "from": [0, 8, 0.8],
+      "to": [16, 16, 0.8],
+      "rotation": {"angle": -22.5, "axis": "x", "origin": [0, 16, 0.8]},
+      "faces": {
+        "north": {"uv": [0, 0, 16, 8], "texture": "#leaves"},
+        "south": {"uv": [0, 0, 16, 8], "texture": "#leaves"}
+      }
+    },
+    {
+      "from": [0, 0, 0.8],
+      "to": [16, 8, 0.8],
+      "rotation": {"angle": -22.5, "axis": "x", "origin": [0, 8, 0.8]},
+      "faces": {
+        "north": {"uv": [0, 8, 16, 16], "texture": "#leaves"},
+        "south": {"uv": [0, 8, 16, 16], "texture": "#leaves"}
+      }
+    }
+  ],
+  "groups": [
+    {
+      "name": "epca:block/infested_vine",
+      "origin": [8, 8, 8],
+      "color": 0,
+      "children": [0, 1, 2]
+    }
+  ],
+  "render_type": "cutout"
+}

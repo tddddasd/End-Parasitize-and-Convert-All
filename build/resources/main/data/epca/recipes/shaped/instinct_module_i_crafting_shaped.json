@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "epca:beckon_membrane"
+    },
+    "C": {
+      "item": "minecraft:blaze_powder"
+    }
+  },
+  "pattern": [
+    " C ",
+    "CBC",
+    " C "
+  ],
+  "result": {
+    "item": "epca:instinct_module_i",
+    "count": 1
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "parent_tabs": [
+    {
+      "child_tabs": [
+        {
+          "content": "lang:epca.content.onesent",
+          "id": "onesent",
+          "name": "lang:epca.tab.child.onesent"
+        },
+        {
+          "content": "B",
+          "id": "b",
+          "name": "虫染种"
+        },
+        {
+          "content": "C",
+          "id": "c",
+          "name": "粗制种"
+        },
+        {
+          "content": "D",
+          "id": "d",
+          "name": "重塑种"
+        },
+        {
+          "content": "E",
+          "id": "e",
+          "name": "狂躁种"
+        },
+        {
+          "content": "F",
+          "id": "f",
+          "name": "劫持种"
+        },
+        {
+          "content": "G",
+          "id": "g",
+          "name": "成型种"
+        },
+        {
+          "content": "H",
+          "id": "h",
+          "name": "载驭种"
+        },
+        {
+          "content": "T",
+          "id": "t",
+          "name": "揉缀种"
+        }
+      ],
+      "id": "main_tab",
+      "name": "lang:epca.tab.parent.main_tab"
+    }
+  ]
+}

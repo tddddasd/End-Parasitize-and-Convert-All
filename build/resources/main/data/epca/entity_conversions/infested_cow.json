@@ -1,0 +1,8 @@
+{
+  "fins_to": "epca:walking_cow_head",
+  "from": "epca:infested_cow",
+  "mozzie_to": "epca:walking_cow_head",
+  "priority": 0,
+  "small_entity_priority": true,
+  "to": "epca:walking_cow_head"
+}

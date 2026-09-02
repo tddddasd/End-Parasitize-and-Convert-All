@@ -1,0 +1,8 @@
+{
+  "fins_to": "epca:infested_endermite",
+  "from": "minecraft:endermite",
+  "mozzie_to": "epca:infested_endermite",
+  "priority": 1,
+  "small_entity_priority": true,
+  "to": "epca:infested_endermite"
+}

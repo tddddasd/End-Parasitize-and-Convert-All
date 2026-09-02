@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "epca:block/infested_polished_stone_slab"
+    },
+    "type=double": {
+      "model": "epca:block/infested_polished_stone"
+    },
+    "type=top": {
+      "model": "epca:block/infested_polished_stone_slab_top"
+    }
+  }
+}

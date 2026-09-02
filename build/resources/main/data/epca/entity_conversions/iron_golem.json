@@ -1,0 +1,5 @@
+{
+  "from": "minecraft:iron_golem",
+  "priority": 1,
+  "small_entity_priority": true
+}

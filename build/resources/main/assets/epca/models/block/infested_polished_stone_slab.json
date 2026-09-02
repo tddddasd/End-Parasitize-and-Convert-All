@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "epca:block/infested_polished_stone",
+    "side": "epca:block/infested_polished_stone",
+    "top": "epca:block/infested_polished_stone"
+  }
+}

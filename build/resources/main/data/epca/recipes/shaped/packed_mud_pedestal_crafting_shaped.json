@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "P": {
+      "item": "minecraft:packed_mud"
+    }
+  },
+  "pattern": [
+    "PPP",
+    " P ",
+    "PPP"
+  ],
+  "result": {
+    "item": "epca:packed_mud_pedestal",
+    "count": 1
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "epca:infested_flesh"
+        }
+      ],
+      "rolls": 0.075
+    }
+  ],
+  "random_sequence": "epca:blocks/infested_remains_large"
+}

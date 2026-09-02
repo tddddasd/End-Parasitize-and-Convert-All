@@ -19,7 +19,6 @@ import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 @Mod.EventBusSubscriber
 public class CothEffectEvents {
-
     @SubscribeEvent
     public static void onEffectApplicable(MobEffectEvent.Applicable event) {
         

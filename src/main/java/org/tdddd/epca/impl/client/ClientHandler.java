@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.client;
 
+import net.minecraft.client.renderer.entity.FallingBlockRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -70,8 +71,7 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.BIOMASS_EGG.get(), BiomassEggRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_PUMPKIN_HEAD.get(), InfestedPumpkinHeadRenderer::new);
 
-        event.registerBlockEntityRenderer(ModBlockEntities.SWALLOW_CYST.get(),
-                ctx -> new GeoBlockRenderer<>(new SwallowCystModel()));
+        event.registerBlockEntityRenderer(ModBlockEntities.SWALLOW_CYST.get(), ctx -> new GeoBlockRenderer<>(new SwallowCystModel()));
     }
 
     @SubscribeEvent

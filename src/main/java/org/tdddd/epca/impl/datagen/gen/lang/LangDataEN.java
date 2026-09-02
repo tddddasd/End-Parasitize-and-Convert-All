@@ -396,6 +396,7 @@ public class LangDataEN extends LanguageProvider {
         add("block.epca.infested_tall_fern", "Infested Tall Fern");
         add("block.epca.infested_cactus", "Infested Cactus");
         add("block.epca.infested_sugar_cane", "Infested Sugar Cane");
+        add("block.epca.infested_spider_web", "Infested Spider Web");
         add("block.epca.acid_solution", "Acid");
         add("fluid_type.epca.acid_solution", "Acid");
 

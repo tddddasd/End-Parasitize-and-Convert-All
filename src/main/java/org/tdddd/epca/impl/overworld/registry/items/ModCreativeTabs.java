@@ -226,6 +226,7 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_HEAVY_EMERALD_ORE));
                 builder.add(i(ModItems.INFESTED_HEAVY_DIAMOND_ORE));
                 builder.add(i(ModItems.SWALLOW_CYST));
+                builder.add(i(ModItems.INFESTED_SPIDER_WEB));
                 builder.add(i(ModItems.INFESTED_NETHERSEA_BRAND_GROWN));
                 builder.add(i(ModItems.INFESTED_NETHERSEA_BRAND_SOLID));
                 builder.add(i(ModItems.INFESTED_DUSTLIKE));

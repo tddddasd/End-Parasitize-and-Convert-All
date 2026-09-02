@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:entity",
+  "random_sequence": "epca:entities/stage_ii_beckon",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "epca:beckon_membrane",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 1,
+                "max": 7,
+                "type": "minecraft:uniform"
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "condition": "minecraft:entity_properties",
+              "entity": "this",
+              "predicate": {
+                "type": "epca:stage_ii_beckon"
+              }
+            },
+            {
+              "condition": "minecraft:random_chance",
+              "chance": 1.0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

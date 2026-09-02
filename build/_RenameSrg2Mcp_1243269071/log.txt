@@ -1,0 +1,15 @@
+Java Launcher: C:\Program Files\Microsoft\jdk-17.0.8.101-hotspot\bin\java.exe
+Arguments: '--task, SRG_TO_MCP, --input, F:\bu\caches\modules-2\files-2.1\curse.maven\playeranimation-658587\4587214\16808f94a41d45d8e986b4e4ea6b02ba57fa058a\playeranimation-658587-4587214.jar, --output, F:\bu\caches\forge_gradle\deobf_dependencies\curse\maven\playeranimation-658587\4587214_mapped_official_1.20.1\playeranimation-658587-4587214_mapped_official_1.20.1.jar, --mcp, F:\bu\caches\forge_gradle\mcp_repo\net\minecraft\mapping\1.20.1\mapping-1.20.1-mapping.zip, --strip-signatures'
+Classpath:
+ - F:\bu\caches\forge_gradle\maven_downloader\net\minecraftforge\installertools\1.4.4\installertools-1.4.4-fatjar.jar
+Working directory: G:\epca\epca\build\_RenameSrg2Mcp_1243269071
+Main class: net.minecraftforge.installertools.ConsoleTool
+====================================
+Task: SRG_TO_MCP
+Input:  F:\bu\caches\modules-2\files-2.1\curse.maven\playeranimation-658587\4587214\16808f94a41d45d8e986b4e4ea6b02ba57fa058a\playeranimation-658587-4587214.jar
+Output: F:\bu\caches\forge_gradle\deobf_dependencies\curse\maven\playeranimation-658587\4587214_mapped_official_1.20.1\playeranimation-658587-4587214_mapped_official_1.20.1.jar
+MCP:    F:\bu\caches\forge_gradle\mcp_repo\net\minecraft\mapping\1.20.1\mapping-1.20.1-mapping.zip
+Loading MCP Data
+Processing ZIP file
+Stripped Manifest of sha digests
+Process complete

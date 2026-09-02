@@ -1,0 +1,18 @@
+[
+  {
+    "entities": [
+      {
+        "entity": "epca:medium_incomplete_form",
+        "minCount": 8
+      }
+    ],
+    "range": 4.0,
+    "time": 20,
+    "results": [
+      {
+        "entity": "epca:large_incomplete_form",
+        "count": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,105 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.infested_endermite",
+				"texture_width": 32,
+				"texture_height": 32,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 1.5,
+				"visible_bounds_offset": [0, 0.25, 0]
+			},
+			"bones": [
+				{
+					"name": "all",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "Infested_Endermite",
+					"parent": "all",
+					"pivot": [0, 0, 0],
+					"cubes": [
+						{
+							"origin": [-3, 0, -2.5],
+							"size": [6, 4, 5],
+							"uv": {
+								"north": {"uv": [7, 0], "uv_size": [6, 4]},
+								"east": {"uv": [14, 0], "uv_size": [5, 4]},
+								"south": {"uv": [7, 5], "uv_size": [6, 4]},
+								"west": {"uv": [14, 5], "uv_size": [5, 4]},
+								"up": {"uv": [0, 0], "uv_size": [6, 5]},
+								"down": {"uv": [0, 11], "uv_size": [6, -5]}
+							}
+						},
+						{
+							"origin": [0, 3, -3.5],
+							"size": [0, 3, 7],
+							"uv": {
+								"east": {"uv": [7, 10], "uv_size": [7, 3]},
+								"west": {"uv": [0, 14], "uv_size": [7, 3]}
+							}
+						}
+					]
+				},
+				{
+					"name": "head",
+					"parent": "Infested_Endermite",
+					"pivot": [0, 0, -2.5],
+					"cubes": [
+						{
+							"origin": [-2, 0, -4.5],
+							"size": [4, 3, 2],
+							"uv": {
+								"north": {"uv": [8, 14], "uv_size": [4, 3]},
+								"east": {"uv": [14, 18], "uv_size": [2, 3]},
+								"south": {"uv": [13, 14], "uv_size": [4, 3]},
+								"west": {"uv": [18, 14], "uv_size": [2, 3]},
+								"up": {"uv": [4, 18], "uv_size": [4, 2]},
+								"down": {"uv": [9, 20], "uv_size": [4, -2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "tail",
+					"parent": "Infested_Endermite",
+					"pivot": [0, 0, 2.5],
+					"cubes": [
+						{
+							"origin": [-1.5, 0, 2.5],
+							"size": [3, 3, 1],
+							"uv": {
+								"north": {"uv": [15, 10], "uv_size": [3, 3]},
+								"east": {"uv": [17, 18], "uv_size": [1, 3]},
+								"south": {"uv": [0, 18], "uv_size": [3, 3]},
+								"west": {"uv": [19, 10], "uv_size": [1, 3]},
+								"up": {"uv": [0, 12], "uv_size": [3, 1]},
+								"down": {"uv": [19, 19], "uv_size": [3, -1]}
+							}
+						}
+					]
+				},
+				{
+					"name": "tail1",
+					"parent": "tail",
+					"pivot": [0, 0, 3.5],
+					"cubes": [
+						{
+							"origin": [-0.5, 0, 3.5],
+							"size": [1, 2, 1],
+							"uv": {
+								"north": {"uv": [20, 0], "uv_size": [1, 2]},
+								"east": {"uv": [20, 3], "uv_size": [1, 2]},
+								"south": {"uv": [20, 6], "uv_size": [1, 2]},
+								"west": {"uv": [19, 20], "uv_size": [1, 2]},
+								"up": {"uv": [4, 12], "uv_size": [1, 1]},
+								"down": {"uv": [4, 22], "uv_size": [1, -1]}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

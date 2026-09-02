@@ -1,0 +1,12 @@
+{
+  "values": [
+    "epca:infested_gold_ore",
+    "epca:infested_redstone_ore",
+    "epca:infested_emerald_ore",
+    "epca:infested_diamond_ore",
+    "epca:infested_heavy_gold_ore",
+    "epca:infested_heavy_redstone_ore",
+    "epca:infested_heavy_emerald_ore",
+    "epca:infested_heavy_diamond_ore"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "rules": [
+    {
+      "priority": 0,
+      "condition": {
+        "entity_type": "epca:infested_enderman",
+        "name_pattern": "Araya"
+      },
+      "config": "yawning_neko_api:araya_enderman"
+    },
+    {
+      "priority": 10,
+      "condition": {
+        "dimension": "minecraft:the_end"
+      },
+      "mapping": "yawning_neko_api:the_end_entity_mapping"
+    },
+    {
+      "priority": 100,
+      "condition": {
+      },
+      "mapping": "yawning_neko_api:entity_mapping"
+    }
+  ]
+}

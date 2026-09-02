@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "epca:block/infested_stone_bricks_slab"
+    },
+    "type=double": {
+      "model": "epca:block/infested_stone_bricks"
+    },
+    "type=top": {
+      "model": "epca:block/infested_stone_bricks_slab_top"
+    }
+  }
+}

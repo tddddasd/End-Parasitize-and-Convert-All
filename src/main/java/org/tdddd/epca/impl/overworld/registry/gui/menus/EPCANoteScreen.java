@@ -90,6 +90,10 @@ public class EPCANoteScreen extends Screen {
     private int leftAreaX, leftAreaY, leftAreaW, leftAreaH;
     private int rightAreaX, rightAreaY, rightAreaW, rightAreaH;
 
+    private float getScaleFactor() {
+        int guiScale = (int) Minecraft.getInstance().getWindow().getGuiScale();
+        return (guiScale == 3) ? 0.65f : 1.0f;
+    }
 
     private final Object eventListener = new Object() {
         @SubscribeEvent
@@ -409,25 +413,6 @@ public class EPCANoteScreen extends Screen {
         return pages;
     }
 
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int clickedParent = getClickedParentIndex((int) mouseX, (int) mouseY);
-        if (clickedParent != -1) {
-            selectedParentIndex = clickedParent;
-            updateCurrentChildTabs();
-            rebuildPagesForCurrentChild();
-            return true;
-        }
-        int clickedChild = getClickedChildIndex((int) mouseX, (int) mouseY);
-        if (clickedChild != -1) {
-            selectedChildIndex = clickedChild;
-            rebuildPagesForCurrentChild();
-            return true;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
     private int getClickedParentIndex(int mouseX, int mouseY) {
         if (mouseX < parentListStartX || mouseX > parentListStartX + PARENT_TAB_W) return -1;
         int startY = parentListStartY;
@@ -472,6 +457,19 @@ public class EPCANoteScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        float scale = getScaleFactor();
+        var pose = guiGraphics.pose();
+        pose.pushPose();
+
+        // 计算转换后的鼠标坐标（用于可能传递给 super.render 的 tooltip 等）
+        double layoutX = convertMouseX(mouseX);
+        double layoutY = convertMouseY(mouseY);
+
+        if (scale != 1.0f) {
+            pose.translate(width / 2.0f, height / 2.0f, 0);
+            pose.scale(scale, scale, 1.0f);
+            pose.translate(-width / 2.0f, -height / 2.0f, 0);
+        }
 
         RenderSystem.setShaderTexture(0, OUTER_FRAME);
         guiGraphics.blit(OUTER_FRAME, outerX, outerY, 0, 0, OUTER_W, OUTER_H, OUTER_TEX_W, OUTER_TEX_H);
@@ -530,7 +528,66 @@ public class EPCANoteScreen extends Screen {
         int pageY = innerY + INNER_H - font.lineHeight - 2;
         guiGraphics.drawString(font, pageStr, pageX, pageY, 0xCCCCCC);
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        super.render(guiGraphics, (int) layoutX, (int) layoutY, partialTick);
+
+        pose.popPose();
+    }
+
+    private double convertMouseX(double mouseX) {
+        float scale = getScaleFactor();
+        if (scale == 1.0f) return mouseX;
+        return (mouseX - width / 2.0) / scale + width / 2.0;
+    }
+
+    private double convertMouseY(double mouseY) {
+        float scale = getScaleFactor();
+        if (scale == 1.0f) return mouseY;
+        return (mouseY - height / 2.0) / scale + height / 2.0;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        double layoutX = convertMouseX(mouseX);
+        double layoutY = convertMouseY(mouseY);
+
+        // 自己的点击检测（父标签/子标签）
+        int clickedParent = getClickedParentIndex((int) layoutX, (int) layoutY);
+        if (clickedParent != -1) {
+            selectedParentIndex = clickedParent;
+            updateCurrentChildTabs();
+            rebuildPagesForCurrentChild();
+            return true;
+        }
+        int clickedChild = getClickedChildIndex((int) layoutX, (int) layoutY);
+        if (clickedChild != -1) {
+            selectedChildIndex = clickedChild;
+            rebuildPagesForCurrentChild();
+            return true;
+        }
+
+        // 传递给父类以处理按钮等组件
+        return super.mouseClicked(layoutX, layoutY, button);
+    }
+
+    @Override
+    public void mouseMoved(double mouseX, double mouseY) {
+        double layoutX = convertMouseX(mouseX);
+        double layoutY = convertMouseY(mouseY);
+        super.mouseMoved(layoutX, layoutY);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        double layoutX = convertMouseX(mouseX);
+        double layoutY = convertMouseY(mouseY);
+        return super.mouseDragged(layoutX, layoutY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        double layoutX = convertMouseX(mouseX);
+        double layoutY = convertMouseY(mouseY);
+        return super.mouseReleased(layoutX, layoutY, button);
     }
 
     private void renderElements(GuiGraphics guiGraphics, List<RenderElement> elements, int baseX, int baseY) {

@@ -138,11 +138,11 @@ dependencies {
     // Other external mods
     implementation fg.deobf("curse.maven:jade-324717:6855440")
     implementation fg.deobf("curse.maven:jei-238222:8677648")
-    implementation fg.deobf("curse.maven:patchouli-306770:7731017")
 
     // Photon + LDLib (explicit ldlib version for Forge 47.2.0 compatibility)
     implementation fg.deobf("curse.maven:ldlib-626676:6417175")  // ldlib 1.0.39, compatible with Forge 47.2.0
     implementation fg.deobf("curse.maven:photon-871522:6878530")
+    implementation fg.deobf("curse.maven:playeranimation-658587:4587214")
     implementation fg.deobf("curse.maven:ca-1264722:8546534")
 
     // Registrate

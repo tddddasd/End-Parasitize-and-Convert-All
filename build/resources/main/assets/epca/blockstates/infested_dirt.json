@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "": [
+      { "model": "epca:block/infested_dirt" },
+      { "model": "epca:block/infested_dirt_1" },
+      { "model": "epca:block/infested_dirt_2" },
+      { "model": "epca:block/infested_dirt_3" },
+      { "model": "epca:block/infested_dirt_4" },
+      { "model": "epca:block/infested_dirt_5" }
+    ]
+  }
+}

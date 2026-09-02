@@ -18,7 +18,7 @@ public class DifficultyScreenHandler {
 
     private static final String BUTTON_KEY = "epca.difficulty.button";
     private static final String DIFFICULTY_KEY_PREFIX = "epca.difficulty.";
-    private static DifficultyLevel selectedDifficulty; 
+    private static DifficultyLevel selectedDifficulty;
     private static DifficultyLevel pendingDifficulty = null;
 
     public static DifficultyLevel getSelectedDifficulty() { return selectedDifficulty; }
@@ -40,7 +40,7 @@ public class DifficultyScreenHandler {
     @SubscribeEvent
     public static void onScreenInit(ScreenEvent.Init.Post event) {
         if (event.getScreen() instanceof CreateWorldScreen) {
-            
+
             selectedDifficulty = ModConfig.getDefaultExtraDifficulty();
             Button difficultyButton = Button.builder(
                             Component.translatable(BUTTON_KEY, getDifficultyDisplayName(selectedDifficulty)),

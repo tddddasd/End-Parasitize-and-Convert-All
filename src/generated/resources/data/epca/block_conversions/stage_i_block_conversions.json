@@ -195,6 +195,7 @@
     "minecraft:suspicious_sand": "epca:infested_sand",
     "minecraft:sweet_berry_bush": "epca:infested_sweet_berry_bush",
     "minecraft:tuff": "epca:infested_heavy_stone",
-    "minecraft:vine": "epca:infested_vine"
+    "minecraft:vine": "epca:infested_vine",
+    "minecraft:web": "epca:infested_spider_web"
   }
 }

@@ -1,0 +1,47 @@
+{
+  "epca:infested_enderman": {
+    "base_effects": [
+      {
+        "effect": "epca:coth",
+        "duration": 2400,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 0.7
+      },
+      {
+        "effect": "epca:ender_erosion",
+        "duration": 80,
+        "amplifier": 1,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 0.5
+      },
+      {
+        "effect": "epca:fear",
+        "duration": 400,
+        "amplifier": 0,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 1.0
+      }
+    ],
+    "upgrades": [
+      {
+        "level": 1,
+        "effect_filter": "epca:coth",
+        "level_adjust": 1,
+        "max_level": 2
+      },
+      {
+        "level": 2,
+        "effect_filter": "epca:coth",
+        "level_adjust": 1,
+        "max_level": 2
+      }
+    ]
+  }
+}

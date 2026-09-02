@@ -4,7 +4,6 @@ import com.google.gson.*;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -196,7 +195,7 @@ public class CustomDataProviders {
 
         @Override
         public CompletableFuture<?> run(CachedOutput cache) {
-            List<String> endermanCarry = names(ModEntities.RIPPER, ModEntities.FINS,
+            List<String> endermanCarry = names(ModEntities.RIPPER,
                     ModEntities.SMALL_INCOMPLETE_FORM, ModEntities.MEDIUM_INCOMPLETE_FORM,
                     ModEntities.INFESTED_ZOMBIE, ModEntities.WALKING_ZOMBIE_HEAD,
                     ModEntities.INFESTED_HUSK, ModEntities.WALKING_HUSK_HEAD,
@@ -212,29 +211,17 @@ public class CustomDataProviders {
                     ModEntities.INFESTED_CHICKEN, ModEntities.WALKING_CHICKEN_HEAD,
                     ModEntities.INFESTED_SKELETON, ModEntities.WALKING_SKELETON_HEAD,
                     ModEntities.INFESTED_FOX, ModEntities.WALKING_FOX_HEAD,
-                    ModEntities.CURBUG, ModEntities.MOZZIE,
-                    ModEntities.LIGHT_CARRIER, ModEntities.FLYING_CARRIER,
-                    ModEntities.NULLTHING, ModEntities.RESHAPE_LONGARMS, ModEntities.RESHAPE_YELLOWEYE);
+                    ModEntities.LIGHT_CARRIER);
 
-            List<String> endermanHeadCarry = names(ModEntities.RIPPER, ModEntities.FINS,
-                    ModEntities.SMALL_INCOMPLETE_FORM, ModEntities.MEDIUM_INCOMPLETE_FORM,
-                    ModEntities.INFESTED_ZOMBIE, ModEntities.WALKING_ZOMBIE_HEAD,
-                    ModEntities.INFESTED_HUSK, ModEntities.WALKING_HUSK_HEAD,
-                    ModEntities.INFESTED_DROWNED, ModEntities.WALKING_DROWNED_HEAD,
-                    ModEntities.INFESTED_PILLAGER, ModEntities.WALKING_PILLAGER_HEAD,
-                    ModEntities.INFESTED_VINDICATOR, ModEntities.WALKING_VINDICATOR_HEAD,
-                    ModEntities.INFESTED_VILLAGER, ModEntities.WALKING_VILLAGER_HEAD,
-                    ModEntities.INFESTED_ZOMBIE_VILLAGER, ModEntities.WALKING_ZOMBIE_VILLAGER_HEAD,
-                    ModEntities.INFESTED_PIG, ModEntities.WALKING_PIG_HEAD,
-                    ModEntities.INFESTED_SHEEP, ModEntities.WALKING_SHEEP_HEAD,
-                    ModEntities.INFESTED_COW, ModEntities.WALKING_COW_HEAD,
-                    ModEntities.INFESTED_WOLF, ModEntities.WALKING_WOLF_HEAD,
-                    ModEntities.INFESTED_CHICKEN, ModEntities.WALKING_CHICKEN_HEAD,
-                    ModEntities.INFESTED_SKELETON, ModEntities.WALKING_SKELETON_HEAD,
-                    ModEntities.INFESTED_FOX, ModEntities.WALKING_FOX_HEAD,
-                    ModEntities.CURBUG, ModEntities.MOZZIE,
-                    ModEntities.LIGHT_CARRIER, ModEntities.FLYING_CARRIER,
-                    ModEntities.NULLTHING);
+            List<String> endermanHeadCarry = names(ModEntities.RIPPER,
+                    ModEntities.SMALL_INCOMPLETE_FORM, ModEntities.WALKING_ZOMBIE_HEAD,
+                    ModEntities.WALKING_HUSK_HEAD, ModEntities.WALKING_DROWNED_HEAD,
+                    ModEntities.WALKING_PILLAGER_HEAD, ModEntities.WALKING_VINDICATOR_HEAD,
+                    ModEntities.WALKING_VILLAGER_HEAD, ModEntities.WALKING_ZOMBIE_VILLAGER_HEAD,
+                    ModEntities.WALKING_PIG_HEAD, ModEntities.WALKING_SHEEP_HEAD,
+                    ModEntities.WALKING_COW_HEAD, ModEntities.WALKING_WOLF_HEAD,
+                    ModEntities.WALKING_CHICKEN_HEAD, ModEntities.WALKING_SKELETON_HEAD,
+                    ModEntities.WALKING_FOX_HEAD);
 
             return CompletableFuture.allOf(
                     save(cache, "infested_enderman", endermanCarry),
@@ -446,6 +433,7 @@ public class CustomDataProviders {
             put(general, "minecraft:pumpkin", "epca:infested_pumpkin");
             put(general, "minecraft:cactus", "epca:infested_cactus");
             put(general, "minecraft:sugar_cane", "epca:infested_sugar_cane");
+            put(general, "minecraft:web", "epca:infested_spider_web");
 
             // beckon — 同 general
             Map<String, String> beckon = new LinkedHashMap<>(general);

@@ -570,4 +570,7 @@ public class ModBlocks {
             "infested_sugar_cane",
             () -> new InfestedSugarCane(Block.Properties.of().instabreak().randomTicks().mapColor(DyeColor.PURPLE).noOcclusion().ignitedByLava())
     );
+
+    public static final RegistryObject<InfestedSpiderWeb> INFESTED_SPIDER_WEB = BLOCKS.register("infested_spider_web",
+            () -> new InfestedSpiderWeb(BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.GREEN).noOcclusion().noCollission().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()));
 }

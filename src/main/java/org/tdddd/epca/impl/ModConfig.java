@@ -125,7 +125,7 @@ public class ModConfig {
                         entry -> entry instanceof Double && (Double) entry >= 0.0 && (Double) entry <= 10.0);
 
         DEFAULT_EXTRA_DIFFICULTY = BUILDER
-                .comment("新建世界时的默认额外难度。可选值: easy, normal, expert, master, custom",
+                .comment("新建世界时的默认额外难度。可选值: easy, normal, expert, master, legendary, custom",
                         "注：custom 难度下会使用普通难度的数值，但允许通过指令调整额外参数")
                 .define("defaultExtraDifficulty", "normal");
 
@@ -354,6 +354,7 @@ public class ModConfig {
             case "normal" -> DifficultyLevel.NORMAL;
             case "expert" -> DifficultyLevel.EXPERT;
             case "master" -> DifficultyLevel.MASTER;
+            case "legendary" -> DifficultyLevel.LEGENDARY;
             case "custom" -> DifficultyLevel.CUSTOM;
             default -> DifficultyLevel.NORMAL;
         };

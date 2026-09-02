@@ -1,0 +1,38 @@
+{
+  "epca:fins": {
+    "base_effects": [
+      {
+        "effect": "epca:coth",
+        "duration": 1200,
+        "amplifier": 1,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 1.0
+      },
+      {
+        "effect": "epca:deep_sneak",
+        "duration": 200,
+        "amplifier": 7,
+        "ambient": false,
+        "visibleParticles": true,
+        "showIcon": true,
+        "probability": 1.0
+      }
+    ],
+    "upgrades": [
+      {
+        "level": 1,
+        "effect_filter": "epca:coth",
+        "level_adjust": 1,
+        "max_level": 2
+      },
+      {
+        "level": 2,
+        "effect_filter": "epca:coth",
+        "level_adjust": 1,
+        "max_level": 2
+      }
+    ]
+  }
+}

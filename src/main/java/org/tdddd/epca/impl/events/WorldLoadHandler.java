@@ -21,25 +21,25 @@ public class WorldLoadHandler {
             WorldDifficultyData data = WorldDifficultyData.get(serverLevel);
             DifficultyLevel pending = null;
 
-            
+
             if (FMLEnvironment.dist == Dist.CLIENT) {
                 try {
-                    
+
                     Class<?> helperClass = Class.forName("org.tdddd.epca.impl.utils.ClientOnlyHelper");
                     Method getMethod = helperClass.getMethod("getPendingDifficulty");
                     pending = (DifficultyLevel) getMethod.invoke(null);
                 } catch (Exception e) {
-                    
-                    
+
+
                 }
             }
 
             if (pending != null) {
                 data.setDifficulty(pending);
                 if (pending == DifficultyLevel.CUSTOM) {
-                    
+
                     if (data.getCustomSpawnRate() == 1.0f && data.isCustomRewardEnabled()) {
-                        
+
                     }
                 }
             }

@@ -1,0 +1,28 @@
+{
+  "multipart": [
+    {
+      "apply": { "model": "epca:block/infested_vine", "x": 270, "y": 90 },
+      "when": { "up": true }
+    },
+    {
+      "apply": { "model": "epca:block/infested_vine", "x": 90, "y": 90 },
+      "when": { "down": true }
+    },
+    {
+      "apply": { "model": "epca:block/infested_vine" },
+      "when": { "north": true }
+    },
+    {
+      "apply": { "model": "epca:block/infested_vine", "y": 90 },
+      "when": { "east": true }
+    },
+    {
+      "apply": { "model": "epca:block/infested_vine", "y": 180 },
+      "when": { "south": true }
+    },
+    {
+      "apply": { "model": "epca:block/infested_vine", "y": 270 },
+      "when": { "west": true }
+    }
+  ]
+}

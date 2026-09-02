@@ -1,0 +1,20 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "epca:item/swallow_cyst"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "epca:living": 0
+      },
+      "model": "epca:item/swallow_cyst_dead"
+    },
+    {
+      "predicate": {
+        "epca:living": 1
+      },
+      "model": "epca:item/swallow_cyst_living"
+    }
+  ]
+}

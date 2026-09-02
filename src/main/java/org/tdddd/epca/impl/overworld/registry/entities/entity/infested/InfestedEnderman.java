@@ -1,5 +1,11 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.PacketDistributor;
 import org.tdddd.epca.impl.client.entity.IGlowRenderable;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
@@ -48,6 +54,7 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
+import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -61,12 +68,15 @@ import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable, IGlowRenderable {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
+    private int arayaBuffTimer = 0;
+    private int damageIncreaseTimer = 0;
+    private boolean hasTriggeredFiftyPercent = false;
+    private int lastResistanceStage = -1;
+    private final Set<UUID> chargedTargets = new HashSet<>();
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.BOOLEAN);
     private static final UUID WANDER_SPEED_ID = UUID.fromString("A2766B59-7066-4402-AD81-0E3B7B6C2B9B");
@@ -97,7 +107,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private Entity carriedEntity; 
     private static final EntityDataAccessor<Integer> DATA_CARRIED_ENTITY_ID = SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.INT);
 
-    private boolean isArayaMode = false;          
+    public boolean isArayaMode = false;
     private int summoningTicks = 0;               
     private int summonsRemaining = 0;              
     private LivingEntity summonTarget;             
@@ -293,6 +303,14 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                     }
                 }
             }
+
+            if (isArayaMode && chargeCooldown <= 0 && getTarget() != null && getTarget().isAlive()) {
+                LivingEntity target = getTarget();
+                int scar = target.getPersistentData().getInt("SwordScar");
+                if (scar >= 99 || this.getHealth() <= this.getMaxHealth() * 0.5f) {
+                    startCharge();
+                }
+            }
         }
 
         if (isArayaMinion) {
@@ -310,6 +328,46 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             return; 
         }
 
+        if (isArayaMode && !level().isClientSide) {
+            arayaBuffTimer++;
+            if (arayaBuffTimer >= 60 * 20) {
+                arayaBuffTimer = 0;
+                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 120, 1, false, false));
+                damageIncreaseTimer = 120; // 6秒
+            }
+            if (damageIncreaseTimer > 0) damageIncreaseTimer--;
+
+            float healthRatio = this.getHealth() / this.getMaxHealth();
+            int stage;
+            if (healthRatio >= 1.0f) stage = 0;
+            else if (healthRatio >= 0.75f) stage = 1;
+            else if (healthRatio >= 0.6f) stage = 2;
+            else stage = -1;
+
+            if (stage != lastResistanceStage) {
+                this.removeEffect(MobEffects.DAMAGE_RESISTANCE);
+                if (stage != -1) {
+                    int amplifier = (stage == 0) ? 3 : (stage == 1 ? 2 : 1); // IV=3, III=2, II=1
+                    this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 400, amplifier, false, false));
+                }
+                lastResistanceStage = stage;
+            }
+
+            if (!hasTriggeredFiftyPercent && healthRatio <= 0.5f) {
+                hasTriggeredFiftyPercent = true;
+                AABB aabb = this.getBoundingBox().inflate(10.0);
+                List<LivingEntity> list = this.level().getEntitiesOfClass(LivingEntity.class, aabb,
+                        e -> e != this && e.isAlive());
+                for (LivingEntity entity : list) {
+                    float entityRatio = entity.getHealth() / entity.getMaxHealth();
+                    int lostPercent = (int) ((1 - entityRatio) * 100);
+                    if (lostPercent < 1) lostPercent = 1;
+                    int currentScar = entity.getPersistentData().getInt("SwordScar");
+                    currentScar = Math.min(99, currentScar + lostPercent);
+                    entity.getPersistentData().putInt("SwordScar", currentScar);
+                }
+            }
+        }
         
         if (!this.level().isClientSide) {
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
@@ -464,6 +522,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
 
     private void startCharge() {
         if (level().isClientSide) return;
+        chargedTargets.clear();
 
         LivingEntity target = getTarget();
         if (target == null || !target.isAlive()) {
@@ -506,7 +565,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         }
         setPos(newPos.x, newPos.y, newPos.z);
         chargeDistanceCovered += step;
-
         // 原有的碰撞伤害和音效
         AABB aabb = getBoundingBox();
         List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, aabb,
@@ -514,6 +572,21 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         for (LivingEntity entity : entities) {
             entity.addEffect(new MobEffectInstance(ModEffects.ENDER_EROSION.get(), 60, 5, false, false));
             entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0, false, false));
+
+            if (!chargedTargets.contains(entity.getUUID())) {
+                Level level = entity.level();
+                chargedTargets.add(entity.getUUID());
+                int scar = entity.getPersistentData().getInt("SwordScar");
+                if (scar > 0) {
+                    entity.getPersistentData().putInt("SwordScar", 0);
+                    float maxHealth = entity.getMaxHealth();
+                    float slashDamage = maxHealth * scar / 100.0f;
+                    Registry<DamageType> registry = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
+                    Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
+                    DamageSource minimumSource = new DamageSource(holder);
+                    entity.hurt(minimumSource, slashDamage);
+                }
+            }
         }
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 ModSoundEvents.INFESTED_ENDERMAN_TARGETING.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
@@ -531,6 +604,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         chargeRemainingTicks = 0;
         chargeDirection = Vec3.ZERO;
         chargeDistanceCovered = 0;
+        chargedTargets.clear();
     }
     
     private boolean attemptTeleportAndPlace(LivingEntity target) {
@@ -602,12 +676,17 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         if (maxHealth != null) {
             maxHealth.setBaseValue(1918.0);
         }
-        this.setHealth(959.0f);
+        this.setHealth(1918.0f);
         
         releaseCarriedEntity();
         
         summoningTicks = 0;
         summonsRemaining = 0;
+        arayaBuffTimer = 0;
+        damageIncreaseTimer = 0;
+        hasTriggeredFiftyPercent = false;
+        lastResistanceStage = -1;
+        chargedTargets.clear();
     }
 
     private void exitArayaMode() {
@@ -625,19 +704,48 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         summonsRemaining = 0;
     }
 
+    private void applyRandomEffect(LivingEntity target) {
+        int choice = random.nextInt(4);
+        switch (choice) {
+            case 0 -> target.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 0));
+            case 1 -> target.addEffect(new MobEffectInstance(ModEffects.BLEEDING.get(), 120, 0));
+            case 2 -> target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 0));
+            case 3 -> target.setSecondsOnFire(6);
+        }
+    }
+
     @Override
     public boolean doHurtTarget(Entity target) {
-        if (isArayaMode) {
+
+        if (isArayaMode && target instanceof LivingEntity livingTarget) {
             if (summoningTicks > 0) return false;
-            boolean hurt = super.doHurtTarget(target);
-            if (hurt && target instanceof LivingEntity livingTarget) {
-                startSummoning(livingTarget);
+            startSummoning(livingTarget);
+            Level level = this.level();
+            int scarLevel = livingTarget.getPersistentData().getInt("SwordScar");
+            int bonus = (scarLevel / 10) * 10;
+            if (bonus > 50) bonus = 50;
+            float baseDamage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
+            float directDamage = baseDamage * (1 + bonus / 100.0f);
+
+            boolean hurt = livingTarget.hurt(livingTarget.damageSources().mobAttack(this), directDamage);
+            if (hurt) {
+                Registry<DamageType> registry = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
+                Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
+                DamageSource minimumSource = new DamageSource(holder);
+                livingTarget.hurt(minimumSource, directDamage * 0.1f);
+
+                applyRandomEffect(livingTarget);
+
+                scarLevel = Math.min(99, scarLevel + 1);
+                livingTarget.getPersistentData().putInt("SwordScar", scarLevel);
+
+                lastSuccessfulAttackTime = level().getGameTime();
+                return true;
             }
-            return hurt;
+            return false;
         } else {
             boolean hurt = super.doHurtTarget(target);
             if (hurt && !level().isClientSide) {
-                
                 lastSuccessfulAttackTime = level().getGameTime();
             }
             return hurt;
@@ -1389,7 +1497,38 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         return false;
     }
 
-    
+    public boolean isArayaMode() {
+        return isArayaMode;
+    }
+
+    public boolean isDamageIncreased() {
+        return damageIncreaseTimer > 0;
+    }
+
+    @SubscribeEvent
+    public static void onLivingHurt(LivingHurtEvent event) {
+        LivingEntity victim = event.getEntity();
+        if (victim == null) return;
+
+        // ----- 剑痕残像增伤（除 Araya 自身外） -----
+        int scar = victim.getPersistentData().getInt("SwordScar");
+        if (scar > 0) {
+            // 若受害者是 Araya 形态则跳过自身增伤（但自身增伤由另一个逻辑处理）
+            if (!(victim instanceof InfestedEnderman && ((InfestedEnderman) victim).isArayaMode())) {
+                int bonus = (scar / 10) * 10;
+                if (bonus > 50) bonus = 50;
+                event.setAmount(event.getAmount() * (1 + bonus / 100.0f));
+            }
+        }
+
+        if (victim instanceof InfestedEnderman) {
+            InfestedEnderman ender = (InfestedEnderman) victim;
+            if (ender.isArayaMode() && ender.isDamageIncreased()) {
+                event.setAmount(event.getAmount() * 1.2f);
+            }
+        }
+    }
+
     public static boolean checkInfestedEndermanSpawnRules(
             EntityType<InfestedEnderman> entityType,
             ServerLevelAccessor levelAccessor,

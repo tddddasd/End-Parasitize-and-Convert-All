@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:entity",
+  "random_sequence": "epca:entities/infested_slime_size0",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "epca:infested_slime_ball",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 0,
+                "max": 2,
+                "type": "minecraft:uniform"
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "condition": "minecraft:entity_properties",
+              "entity": "this",
+              "predicate": {
+                "type": "epca:infested_slime_size0"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

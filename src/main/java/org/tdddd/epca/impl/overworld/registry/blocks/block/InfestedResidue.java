@@ -8,6 +8,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -22,7 +23,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 
@@ -51,26 +51,34 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         int layers = state.getValue(LAYERS);
-        return Block.box(0.0D, 0.0D, 0.0D, 16.0D, layers * 2.0D - 1.9D, 16.0D);
+        return Block.box(0.0D, 0.0D, 0.0D, 16.0D, layers * 2.0D, 16.0D);
     }
 
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return getShape(state, level, pos, context);
+        int layers = state.getValue(LAYERS);
+        return Block.box(0.0D, 0.0D, 0.0D, 16.0D, layers * 2.0D - 1.9D, 16.0D);
     }
 
-    
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide) return InteractionResult.SUCCESS;
-        if (player.getItemInHand(hand).getItem() == this.asItem()) {
-            int current = state.getValue(LAYERS);
-            if (current < 8) {
-                level.setBlock(pos, state.setValue(LAYERS, current + 1), 3);
-                if (!player.isCreative()) player.getItemInHand(hand).shrink(1);
-                return InteractionResult.SUCCESS;
+
+        ItemStack held = player.getItemInHand(hand);
+        if (held.getItem() == this.asItem()) {
+            if (state.getValue(LAYERS) == 8) {
+                BlockPos abovePos = pos.above();
+                BlockState aboveState = level.getBlockState(abovePos);
+                if (aboveState.isAir() || aboveState.canBeReplaced()) {
+                    level.setBlock(abovePos, this.defaultBlockState().setValue(LAYERS, 1), Block.UPDATE_ALL);
+                    if (!player.isCreative()) {
+                        held.shrink(1);
+                    }
+                    return InteractionResult.SUCCESS;
+                }
             }
+            return InteractionResult.PASS;
         }
         return InteractionResult.PASS;
     }
@@ -92,17 +100,32 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
 
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+        if (level instanceof Level world && !world.isClientSide) {
+            BlockPos belowPos = pos.below();
+            BlockState belowState = world.getBlockState(belowPos);
+            if (belowState.getBlock() instanceof InfestedResidue) {
+                int belowLayers = belowState.getValue(LAYERS);
+                if (belowLayers < 8) {
+                    int current = state.getValue(LAYERS);
+                    int transfer = Math.min(8 - belowLayers, current);
+                    if (transfer > 0) {
+                        world.setBlock(belowPos, belowState.setValue(LAYERS, belowLayers + transfer), 3);
+                        int newLayers = current - transfer;
+                        if (newLayers == 0) {
+                            return false;
+                        } else {
+                            world.setBlock(pos, state.setValue(LAYERS, newLayers), 3);
+                        }
+                    }
+                }
+            }
+        }
+
         BlockPos belowPos = pos.below();
         BlockState belowState = level.getBlockState(belowPos);
-        
-        if (isInfestedDirt(belowState) && state.getValue(LAYERS) == 1) {
-            return false;
-        }
-        
-        if (belowState.getBlock() instanceof InfestedResidue && belowState.getValue(LAYERS) == 8) {
+        if (belowState.getBlock() instanceof InfestedResidue && state.getValue(LAYERS) == 8) {
             return true;
         }
-        
         return Block.canSupportCenter(level, belowPos, Direction.UP);
     }
 
@@ -111,46 +134,62 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
         super.onLand(level, pos, state, landedState, fallingBlockEntity);
         if (level.isClientSide) return;
 
-        
         if (landedState.getBlock() instanceof InfestedResidue) {
-            int existing = landedState.getValue(LAYERS);
-            int falling = state.getValue(LAYERS);
-            int total = existing + falling;
-
-            if (total <= 8) {
-                level.setBlock(pos, landedState.setValue(LAYERS, total), 3);
-            } else {
-                level.setBlock(pos, landedState.setValue(LAYERS, 8), 3);
-                int remaining = total - 8;
-                BlockPos above = pos.above();
-                BlockState aboveState = state.setValue(LAYERS, remaining);
-                FallingBlockEntity fallingEntity = FallingBlockEntity.fall(level, above, aboveState);
-                level.addFreshEntity(fallingEntity);
-            }
-            
-            BlockState newState = level.getBlockState(pos);
-            checkAndRemoveIfSingleOnDirt(level, pos, newState);
-            return;
-        }
-
-        
-        checkAndRemoveIfSingleOnDirt(level, pos, state);
-    }
-
-    
-    private void checkAndRemoveIfSingleOnDirt(Level level, BlockPos pos, BlockState state) {
-        if (state.getValue(LAYERS) == 1) {
-            BlockPos below = pos.below();
-            BlockState belowState = level.getBlockState(below);
-            if (isInfestedDirt(belowState)) {
-                level.destroyBlock(pos, false); 
-            }
+            int fallingLayers = state.getValue(LAYERS);
+            mergeLayers(level, pos, landedState, fallingLayers);
         }
     }
 
-    
-    private boolean isInfestedDirt(BlockState state) {
-        Block block = state.getBlock();
-        return block == ModBlocks.INFESTED_DIRT.get();
+    public static void mergeLayers(Level level, BlockPos pos, BlockState existingState, int layersToAdd) {
+        if (!(existingState.getBlock() instanceof InfestedResidue)) return;
+
+        int existing = existingState.getValue(LAYERS);
+        int total = existing + layersToAdd;
+
+        if (total <= 8) {
+            BlockState newState = existingState.setValue(LAYERS, total);
+            level.setBlock(pos, newState, Block.UPDATE_ALL);
+            level.updateNeighborsAt(pos, newState.getBlock());
+        } else {
+            BlockState fullState = existingState.setValue(LAYERS, 8);
+            level.setBlock(pos, fullState, Block.UPDATE_ALL);
+            level.updateNeighborsAt(pos, fullState.getBlock());
+
+            int remaining = total - 8;
+            BlockPos targetPos = pos.above();
+
+            while (true) {
+                BlockState targetState = level.getBlockState(targetPos);
+                if (targetState.isAir() || targetState.canBeReplaced()) {
+                    BlockState newState = existingState.getBlock().defaultBlockState().setValue(LAYERS, remaining);
+                    level.setBlock(targetPos, newState, Block.UPDATE_ALL);
+                    level.updateNeighborsAt(targetPos, newState.getBlock());
+                    break;
+                } else if (targetState.getBlock() instanceof InfestedResidue) {
+                    int targetLayers = targetState.getValue(LAYERS);
+                    int totalTarget = targetLayers + remaining;
+                    if (totalTarget <= 8) {
+                        BlockState newState = targetState.setValue(LAYERS, totalTarget);
+                        level.setBlock(targetPos, newState, Block.UPDATE_ALL);
+                        level.updateNeighborsAt(targetPos, newState.getBlock());
+                        break;
+                    } else {
+                        BlockState newFull = targetState.setValue(LAYERS, 8);
+                        level.setBlock(targetPos, newFull, Block.UPDATE_ALL);
+                        level.updateNeighborsAt(targetPos, newFull.getBlock());
+                        remaining = totalTarget - 8;
+                        targetPos = targetPos.above();
+                    }
+                } else {
+                    targetPos = targetPos.above();
+                    if (targetPos.getY() > level.getMaxBuildHeight() || targetPos.getY() < level.getMinBuildHeight()) {
+                        BlockState newState = existingState.getBlock().defaultBlockState().setValue(LAYERS, remaining);
+                        level.setBlock(targetPos, newState, Block.UPDATE_ALL);
+                        level.updateNeighborsAt(targetPos, newState.getBlock());
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,11 @@
+{
+  "fins_to": "epca:infested_slime_size0",
+  "from": "minecraft:slime",
+  "mozzie_to": "epca:infested_slime_size0",
+  "nbt_conditions": {
+    "Size": 0
+  },
+  "priority": 1,
+  "small_entity_priority": false,
+  "to": "epca:infested_slime_size0"
+}

@@ -188,7 +188,6 @@ public class ModItems {
     public static final RegistryObject<Item> WALKING_FOX_HEAD_SPAWN_EGG = spawnEgg("walking_fox_head", ModEntities.WALKING_FOX_HEAD);
     public static final RegistryObject<Item> RESHAPE_YELLOWEYE_SPAWN_EGG = spawnEgg("reshape_yelloweye", ModEntities.RESHAPE_YELLOWEYE);
     public static final RegistryObject<Item> INFESTED_FOX_SPAWN_EGG = spawnEgg("infested_fox", ModEntities.INFESTED_FOX);
-    //public static final RegistryObject<Item> INFESTED_PUMPKIN_HEAD_EGG = spawnEgg("infested_pumpkin_head", ModEntities.INFESTED_PUMPKIN_HEAD);
     public static final RegistryObject<Item> INFESTED_SLIME_SPAWN_EGG = ITEMS.register("infested_slime_spawn_egg", () -> new InfestedSlimeSpawnEgg(new Item.Properties()));
     public static final RegistryObject<Item> STAGE_I_BECKON_SPAWN_EGG = customItem("stage_i_beckon_spawn_egg", () -> new StageIBeckonSpawnEgg(new Item.Properties()));
     public static final RegistryObject<Item> STAGE_II_BECKON_SPAWN_EGG = customItem("stage_ii_beckon_spawn_egg", () -> new StageIIBeckonSpawnEgg(new Item.Properties()));
@@ -297,6 +296,7 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_SHORT_GRASS = blockItem("infested_short_grass", ModBlocks.INFESTED_SHORT_GRASS);
     public static final RegistryObject<Item> INFESTED_CACTUS = blockItem("infested_cactus", ModBlocks.INFESTED_CACTUS);
     public static final RegistryObject<Item> INFESTED_SUGAR_CANE = blockItem("infested_sugar_cane", ModBlocks.INFESTED_SUGAR_CANE);
+    public static final RegistryObject<Item> INFESTED_SPIDER_WEB = blockItem("infested_spider_web", ModBlocks.INFESTED_SPIDER_WEB);
 
     // 特殊 BlockItem 子类（使用自定义的 Item 内部类）
     public static final RegistryObject<InfestedLog.InfestedLogItem> INFESTED_LOG =

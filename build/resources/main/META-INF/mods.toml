@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "MIT License"
+
+[[mods]]
+modId = "epca"
+version = "0.4.0"
+displayName = "End-Parasitize and Convert All"
+displayURL = "https://space.bilibili.com/1446970336"
+logoFile="epca_icon.png"
+authors = "-Yawning喵喵�?-"
+description = '''An infection mod.'''
+
+[[dependencies.epca]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.epca]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20,1.21)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.epca]]
+modId = "playeranimator"
+mandatory = true
+versionRange = "[1,)"
+ordering = "NONE"
+side = "BOTH"

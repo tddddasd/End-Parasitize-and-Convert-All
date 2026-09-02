@@ -24,3 +24,10 @@ mandatory = true
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.epca]]
+modId = "playeranimator"
+mandatory = true
+versionRange = "[1,)"
+ordering = "NONE"
+side = "BOTH"

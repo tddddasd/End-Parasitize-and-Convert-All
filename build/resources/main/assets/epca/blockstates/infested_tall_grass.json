@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "half=lower": { "model": "epca:block/infested_tall_grass_bottom" },
+    "half=upper": { "model": "epca:block/infested_tall_grass_top" }
+  }
+}

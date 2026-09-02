@@ -11,8 +11,6 @@ import net.minecraft.nbt.CompoundTag;
 
 @Mod.EventBusSubscriber(modid = epca.MODID)
 public class DifficultyApplier {
-
-    
     private static final String DIFFICULTY_APPLIED_TAG = "DifficultyApplied";
 
     @SubscribeEvent

@@ -1,0 +1,14 @@
+{
+  "values": [
+    "epca:infested_zombie",
+    "epca:infested_husk",
+    "epca:infested_drowned",
+    "epca:infested_zombie_villager",
+    "epca:infested_skeleton",
+    "epca:walking_zombie_head",
+    "epca:walking_husk_head",
+    "epca:walking_drowned_head",
+    "epca:walking_zombie_villager_head",
+    "epca:walking_skeleton_head"
+  ]
+}

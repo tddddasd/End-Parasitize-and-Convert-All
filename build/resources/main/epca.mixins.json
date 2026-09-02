@@ -1,0 +1,28 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.tdddd.epca.impl.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "epca.refmap.json",
+  "mixins": [
+    "common.AbstractFurnaceBlockEntityMixin",
+    "common.AbstractVillagerMixin",
+    "common.CactusBlockMixin",
+    "common.EnchantmentMenuMixin",
+    "common.LivingEntityMixin",
+    "common.MerchantOfferMixin",
+    "common.MobMixin",
+    "common.PointedDripstoneBlockMixin",
+    "common.SugarCaneBlockMixin"
+  ],
+  "client": [
+    "client.BiomeColorsMixin",
+    "client.BlockColorsMixin",
+    "client.CreateWorldScreenMixin",
+    "client.ErosionGuiMixin",
+    "client.HumanoidModelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

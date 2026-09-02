@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "S": {
+      "item": "minecraft:stick"
+    },
+    "W": {
+      "tag": "minecraft:stone_crafting_materials"
+    }
+  },
+  "pattern": [
+    "W  ",
+    " S ",
+    "  S"
+  ],
+  "result": {
+    "item": "epca:stone_spear"
+  },
+  "show_notification": true
+}

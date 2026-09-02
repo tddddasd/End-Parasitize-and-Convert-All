@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "epca:block/infested_tall_fern_top"
+  },
+  "render_type": "cutout"
+}

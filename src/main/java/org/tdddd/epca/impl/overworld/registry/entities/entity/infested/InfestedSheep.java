@@ -366,8 +366,6 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
         return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6;
     }
 
-    
-    
     private double getGroundHeightAt(BlockPos pos) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
         
@@ -524,10 +522,6 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
     }
 
     private PlayState animationPredicate(AnimationState<InfestedSheep> event) {
-        
-        boolean isMoving = event.isMoving();
-
-        
         if (this.isFakingDeath()) {
             event.getController().setAnimation(RawAnimation.begin().thenLoop("dead"));
         } else if (this.isRunning()) {
@@ -535,10 +529,8 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
         } else if (this.isWalking()) {
             event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else {
-            
             event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
-
         return PlayState.CONTINUE;
     }
 
@@ -807,7 +799,6 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
         return true;
     }
 
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;

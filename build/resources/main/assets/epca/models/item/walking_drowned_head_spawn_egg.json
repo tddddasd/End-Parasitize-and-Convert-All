@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "epca:item/walking_drowned_head_spawn_egg"
+  }
+}

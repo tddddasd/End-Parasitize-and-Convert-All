@@ -18,7 +18,6 @@ import java.util.Map;
 
 @Mod.EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public class ItemTooltipHandler {
-
     private static final Map<RegistryObject<? extends Item>, String> TOOLTIP_MAP = new HashMap<>();
 
     static {
@@ -188,6 +187,7 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.INFESTED_SHORT_GRASS, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_CACTUS, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_SUGAR_CANE, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_SPIDER_WEB, "item.epca.category_infested");
 
         //link
         registerTooltip(ModItems.BECKON_CORE, "item.epca.category_link");

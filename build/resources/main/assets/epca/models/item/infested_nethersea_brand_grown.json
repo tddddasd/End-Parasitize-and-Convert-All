@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "epca:block/infested_nethersea_brand_grown"
+  }
+}

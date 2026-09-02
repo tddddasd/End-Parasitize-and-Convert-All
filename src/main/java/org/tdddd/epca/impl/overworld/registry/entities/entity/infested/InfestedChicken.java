@@ -546,7 +546,6 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
             }
         }
     }
-
     
     private void performMeleeAttack(LivingEntity target) {
         
@@ -618,15 +617,11 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
         }
     }
 
-    
     public void playAmbientSound() {
         if (!this.isSilent() && this.random.nextInt(3) == 0) {
-            
             this.playSound(SoundEvents.CHICKEN_AMBIENT, 0.85F, 0.7F);
         }
     }
-
-    
 
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {

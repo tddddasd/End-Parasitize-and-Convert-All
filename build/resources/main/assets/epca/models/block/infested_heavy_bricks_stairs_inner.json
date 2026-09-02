@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "epca:block/infested_heavy_bricks",
+    "side": "epca:block/infested_heavy_bricks",
+    "top": "epca:block/infested_heavy_bricks"
+  }
+}

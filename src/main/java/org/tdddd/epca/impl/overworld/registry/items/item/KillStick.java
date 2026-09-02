@@ -1,11 +1,23 @@
 package org.tdddd.epca.impl.overworld.registry.items.item;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+import dev.kosmx.playerAnim.api.layered.IAnimation;
+import dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer;
+import dev.kosmx.playerAnim.api.layered.ModifierLayer;
+import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
+import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -18,75 +30,147 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.AABB;
 import java.util.List;
 import java.util.Random;
-import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-
-import java.util.*;
+import net.minecraftforge.common.ForgeMod;
+import org.tdddd.epca.impl.epca;
 
 public class KillStick extends Item {
+    private final Multimap<Attribute, AttributeModifier> defaultModifiers;
     private static final Random RANDOM = new Random();
-
-    
-    private static final Map<ServerLevel, List<EffectData>> EFFECTS = new HashMap<>();
-
-    
-    static {
-        MinecraftForge.EVENT_BUS.addListener(KillStick::onServerTick);
-    }
+    private static final double CLEAR_RANGE = 128.0;
 
     public KillStick(Properties properties) {
         super(properties);
+        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+        builder.put(ForgeMod.ENTITY_REACH.get(), new AttributeModifier("weapon_reach", 3.0, AttributeModifier.Operation.ADDITION));
+        this.defaultModifiers = builder.build();
+    }
+
+    @Override
+    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
+        return slot == EquipmentSlot.MAINHAND ? this.defaultModifiers : super.getDefaultAttributeModifiers(slot);
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
-        if (world.isClientSide) {
-            return InteractionResultHolder.sidedSuccess(itemStack, true);
+        if (world.isClientSide && player instanceof AbstractClientPlayer clientPlayer) {
+            clearAnimation(clientPlayer);
         }
+        if (!world.isClientSide && player.getCooldowns().isOnCooldown(this)) {
+            return InteractionResultHolder.fail(itemStack);
+        }
+        player.startUsingItem(hand);
+        return InteractionResultHolder.consume(itemStack);
+    }
 
-        
-        HitResult hit = player.pick(5.0D, 1.0F, false);
-        if (hit.getType() == HitResult.Type.BLOCK) {
-            BlockHitResult blockHit = (BlockHitResult) hit;
-            BlockPos pos = blockHit.getBlockPos();
-            if (world.getBlockState(pos).getBlock() == Blocks.CRYING_OBSIDIAN) {
-                ServerLevel serverLevel = (ServerLevel) world;
+    @Override
+    public int getUseDuration(ItemStack stack) {
+        return 72000;
+    }
 
-                
-                player.getCooldowns().addCooldown(this, 900);
+    @Override
+    public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
+        if (!(livingEntity instanceof Player player)) return;
 
-                
-                String cmd = "photon fx epca:epca_magic_wedge block " + pos.getX() + " " + (pos.getY() + 1) + " " + pos.getZ();
-                serverLevel.getServer().getCommands().performPrefixedCommand(
-                        serverLevel.getServer().createCommandSourceStack()
-                                .withPosition(Vec3.atCenterOf(pos)),
-                        cmd
-                );
-
-                
-                EffectData data = new EffectData(pos, 600);
-                EFFECTS.computeIfAbsent(serverLevel, k -> new ArrayList<>()).add(data);
-
-                
-                double range = 128.0;
-                for (Player p : serverLevel.players()) {
-                    if (p.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) <= range * range) {
-                        serverLevel.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.END_PORTAL_SPAWN, SoundSource.PLAYERS, 1.0F, 1.0F);
+        int elapsed = getUseDuration(stack) - remainingUseDuration;
+        if (elapsed == 1) {
+            if (level.isClientSide && player instanceof AbstractClientPlayer clientPlayer) {
+                if (player.getCooldowns().isOnCooldown(this)) {
+                    return;
+                }
+                ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
+                        .getPlayerAssociatedData(clientPlayer)
+                        .get(new ResourceLocation(epca.MODID, "kill_stick"));
+                if (animation != null) {
+                    var keyframe = PlayerAnimationRegistry.getAnimation(
+                            new ResourceLocation(epca.MODID, "kill_stick")
+                    );
+                    if (keyframe != null) {
+                        animation.setAnimation(new KeyframeAnimationPlayer(keyframe));
                     }
                 }
-
-                return InteractionResultHolder.sidedSuccess(itemStack, false);
             }
         }
 
-        return InteractionResultHolder.sidedSuccess(itemStack, false);
+        if (elapsed == 10) {
+            if (!level.isClientSide) {
+                if (player.getCooldowns().isOnCooldown(this)) {
+                    return;
+                }
+
+                ServerLevel serverLevel = (ServerLevel) level;
+                AABB area = AABB.ofSize(player.position(), CLEAR_RANGE * 2, CLEAR_RANGE * 2, CLEAR_RANGE * 2);
+                List<Entity> entities = serverLevel.getEntitiesOfClass(Entity.class, area,
+                        e -> e != player && e.isAlive());
+                for (Entity e : entities) {
+                    e.remove(Entity.RemovalReason.KILLED);
+
+                    double x = 1000000;
+                    double y = -4800;
+                    double z = 1000000;
+
+                    e.teleportTo(x, y, z);
+                    e.setNoGravity(true);
+                    Vec3 velocity = new Vec3(0, -100, 0);
+                    e.setDeltaMovement(velocity);
+                    e.setNoGravity(false);
+
+                    if (e instanceof Mob) {
+                        Mob mob = (Mob) e;
+                        mob.setNoAi(true);
+                        mob.setTarget(null);
+                    } else if (e instanceof LivingEntity) {
+                        livingEntity.setJumping(false);
+                        livingEntity.setDeltaMovement(Vec3.ZERO);
+                    }
+                }
+                level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.WITHER_SPAWN, SoundSource.PLAYERS, 1.0F, 1.0F);
+            }
+        }
+    }
+
+    @Override
+    public void releaseUsing(ItemStack stack, Level world, LivingEntity entity, int count) {
+        if (entity instanceof Player player) {
+            if (!world.isClientSide) {
+                player.getCooldowns().addCooldown(this, 10);
+            } else if (entity instanceof AbstractClientPlayer clientPlayer) {
+                clearAnimation(clientPlayer);
+            }
+        }
+        super.releaseUsing(stack, world, entity, count);
+    }
+
+    private static void clearAnimation(AbstractClientPlayer player) {
+        ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
+                .getPlayerAssociatedData(player)
+                .get(new ResourceLocation(epca.MODID, "kill_stick"));
+        if (animation != null) {
+            animation.setAnimation(null);
+        }
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+        if (!(entity instanceof Player player)) return;
+        if (level.isClientSide && player.isUsingItem() && player.getUseItem() == stack) {
+            if (!isHoldingKillStick(player)) {
+                if (player instanceof AbstractClientPlayer clientPlayer) {
+                    clearAnimation(clientPlayer);
+                }
+                player.stopUsingItem();
+            }
+        }
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+    }
+
+    /**
+     * 检查玩家主手是否持有 KillStick
+     */
+    private static boolean isHoldingKillStick(Player player) {
+        return player.getMainHandItem().getItem() instanceof KillStick;
     }
 
     @Override
@@ -95,22 +179,22 @@ public class KillStick extends Item {
 
             boolean isNamed = isAlayavijnana(stack);
 
-            
+
             if (isNamed && player.level() instanceof ServerLevel serverLevel) {
-                
+
                 AABB box = entity.getBoundingBox();
-                int count = 15 + RANDOM.nextInt(6); 
+                int count = 15 + RANDOM.nextInt(6);
                 for (int i = 0; i < count; i++) {
                     double x = box.minX + RANDOM.nextDouble() * (box.maxX - box.minX);
                     double y = box.minY + RANDOM.nextDouble() * (box.maxY - box.minY);
                     double z = box.minZ + RANDOM.nextDouble() * (box.maxZ - box.minZ);
-                    
+
                     var particle = RANDOM.nextBoolean() ? ParticleTypes.CLOUD : ParticleTypes.END_ROD;
                     serverLevel.sendParticles(particle, x, y, z, 1, 0, 0, 0, 0.1);
                 }
             }
 
-            
+
             if (entity instanceof Player) {
                 return false;
             }
@@ -136,21 +220,21 @@ public class KillStick extends Item {
                 livingEntity.setDeltaMovement(Vec3.ZERO);
             }
 
-            
+
             if (isNamed) {
-                
+
                 double maxHealth = player.getMaxHealth();
-                
+
                 double reduction = maxHealth * 0.01;
                 double newMax = maxHealth - reduction;
-                
+
                 if (newMax < 4.0) {
                     newMax = 4.0;
                 }
-                
+
                 player.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMax);
-                
-                
+
+
                 if (player.getHealth() > newMax) {
                     player.setHealth((float) newMax);
                 }
@@ -162,9 +246,6 @@ public class KillStick extends Item {
         return false;
     }
 
-    
-
-    
     public static boolean isAlayavijnana(ItemStack stack) {
         if (stack.isEmpty() || !(stack.getItem() instanceof KillStick)) {
             return false;
@@ -175,7 +256,6 @@ public class KillStick extends Item {
         return "Alayavijnana".equals(str) || "阿赖耶识".equals(str);
     }
 
-    
     public static boolean hasAlayavijnanaItem(Player player) {
         if (player == null) return false;
         ItemStack main = player.getMainHandItem();
@@ -184,7 +264,6 @@ public class KillStick extends Item {
         return isAlayavijnana(off);
     }
 
-    
     public static LivingEntity findLowestHealthEntity(Player player, double range) {
         if (player == null) return null;
         Level level = player.level();
@@ -202,46 +281,5 @@ public class KillStick extends Item {
             }
         }
         return lowest;
-    }
-
-    
-
-    private static class EffectData {
-        final BlockPos pos;
-        int remainingTicks;
-
-        EffectData(BlockPos pos, int ticks) {
-            this.pos = pos;
-            this.remainingTicks = ticks;
-        }
-    }
-
-    
-
-    @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        for (ServerLevel level : event.getServer().getAllLevels()) {
-            List<EffectData> list = EFFECTS.get(level);
-            if (list == null || list.isEmpty()) continue;
-            Iterator<EffectData> it = list.iterator();
-            while (it.hasNext()) {
-                EffectData data = it.next();
-                data.remainingTicks--;
-                if (data.remainingTicks <= 0) {
-                    it.remove();
-                    continue;
-                }
-                
-                if (data.remainingTicks % 5 == 0) {
-                    AABB area = AABB.ofSize(Vec3.atCenterOf(data.pos), 128, 128, 128); 
-                    List<Entity> entities = level.getEntitiesOfClass(Entity.class, area,
-                            e -> !(e instanceof Player) && e.isAlive());
-                    for (Entity e : entities) {
-                        e.discard();
-                    }
-                }
-            }
-        }
     }
 }

@@ -1,0 +1,40 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.biomass_medium",
+				"texture_width": 48,
+				"texture_height": 48,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 2.5,
+				"visible_bounds_offset": [0, 0.75, 0]
+			},
+			"bones": [
+				{
+					"name": "all",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "Biomass_Medium",
+					"parent": "all",
+					"pivot": [0, 10, 0],
+					"cubes": [
+						{
+							"origin": [-8, 0, -8],
+							"size": [16, 20, 16],
+							"uv": {
+								"north": {"uv": [0, 0], "uv_size": [16, 20]},
+								"east": {"uv": [16, 0], "uv_size": [16, 20]},
+								"south": {"uv": [0, 20], "uv_size": [16, 20]},
+								"west": {"uv": [16, 20], "uv_size": [16, 20]},
+								"up": {"uv": [32, 0], "uv_size": [16, 16]},
+								"down": {"uv": [32, 32], "uv_size": [16, -16]}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

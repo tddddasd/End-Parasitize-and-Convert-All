@@ -396,6 +396,7 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.infested_tall_fern", "虫染大型蕨");
         add("block.epca.infested_cactus", "虫染仙人掌");
         add("block.epca.infested_sugar_cane", "虫染甘蔗");
+        add("block.epca.infested_spider_web", "虫染蜘蛛网");
         add("block.epca.acid_solution", "酸液");
         add("fluid_type.epca.acid_solution", "酸液");
 

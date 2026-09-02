@@ -1,0 +1,2 @@
+org/tdddd/epca/impl/mixin/common/EnchantmentMenuMixin enchantSlots f_39449_
+org/tdddd/epca/impl/mixin/common/PointedDripstoneBlockMixin isPointedDripstoneWithDirection (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z m_154207_

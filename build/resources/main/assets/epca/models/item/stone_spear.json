@@ -1,0 +1,25 @@
+{
+	"parent": "item/handheld",
+	"loader": "forge:separate_transforms",
+	"base": {
+		"parent": "epca:item/spear",
+		"textures": {
+			"layer0": "epca:item/stone_spear",
+			"particle": "epca:item/stone_spear_item"
+		}
+	},
+	"perspectives": {
+		"gui": {
+			"parent": "minecraft:item/handheld",
+			"textures": {
+				"layer0": "epca:item/stone_spear_item"
+			}
+		},
+		"fixed": {
+			"parent": "minecraft:item/handheld",
+			"textures": {
+				"layer0": "epca:item/stone_spear_item"
+			}
+		}
+	}
+}

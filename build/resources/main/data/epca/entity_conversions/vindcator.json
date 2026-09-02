@@ -1,0 +1,8 @@
+{
+  "fins_to": "epca:infested_vindicator",
+  "from": "minecraft:vindicator",
+  "mozzie_to": "epca:infested_vindicator",
+  "priority": 1,
+  "small_entity_priority": true,
+  "to": "epca:infested_vindicator"
+}

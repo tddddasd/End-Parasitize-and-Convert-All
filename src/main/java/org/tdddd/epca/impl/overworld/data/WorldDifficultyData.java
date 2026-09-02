@@ -43,7 +43,7 @@ public class WorldDifficultyData extends SavedData {
     @Override
     public CompoundTag save(CompoundTag tag) {
         tag.putInt("difficulty", difficulty.getId());
-        
+
         tag.putInt("customBaseDifficulty", customBaseDifficulty.getId());
         tag.putFloat("customSpawnRate", customSpawnRate);
         tag.putBoolean("customRewardEnabled", customRewardEnabled);
@@ -53,7 +53,7 @@ public class WorldDifficultyData extends SavedData {
     public static WorldDifficultyData load(CompoundTag tag) {
         WorldDifficultyData data = new WorldDifficultyData();
         data.difficulty = DifficultyLevel.fromId(tag.getInt("difficulty"));
-        
+
         if (tag.contains("customBaseDifficulty")) {
             data.customBaseDifficulty = DifficultyLevel.fromId(tag.getInt("customBaseDifficulty"));
         }

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "S": {
+      "item": "minecraft:stick"
+    },
+    "W": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "pattern": [
+    "W  ",
+    " S ",
+    "  S"
+  ],
+  "result": {
+    "item": "epca:golden_spear"
+  },
+  "show_notification": true
+}

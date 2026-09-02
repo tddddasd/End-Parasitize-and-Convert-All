@@ -36,6 +36,7 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.effects.RemovableEffect;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
+import org.tdddd.epca.impl.utils.ClientOnlyHelper;
 import org.tdddd.epca.impl.utils.EffectApplicationInterceptor;
 import org.tdddd.epca.impl.utils.EntityConversionUtil;
 import org.tdddd.epca.impl.utils.ParasiteHelper;
@@ -47,15 +48,11 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     private static final int SPREAD_INTERVAL = 10;
     private static final double SPREAD_RADIUS = 3.0;
     private static final double SMALL_ENTITY_THRESHOLD = 0.517; 
-    private static final double LARGE_ENTITY_THRESHOLD = 2.48; 
-
-    
+    private static final double LARGE_ENTITY_THRESHOLD = 2.48;
     private static final int PARTICLE_SPAWN_INTERVAL = 10; 
     private static final int MIN_PARTICLES = 3; 
     private static final int MAX_PARTICLES = 5; 
-    private static final double PARTICLE_AREA_SIZE = 5.0; 
-
-    
+    private static final double PARTICLE_AREA_SIZE = 5.0;
     private static final int LEVEL3_SPREAD_INTERVAL = 20;    
     private static final double LEVEL3_SPREAD_RADIUS = 2.5;  
     private static final int LEVEL3_DURATION = 600;          
@@ -65,8 +62,12 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         super(MobEffectCategory.BENEFICIAL, 0x990000);
     }
 
+    public static boolean canApplyInLevel(Level level) {
+        return !(DifficultyEffects.isLegendary(level));
+    }
     
     public static boolean applyCothEffect(LivingEntity target, int duration, int amplifier) {
+        if (!canApplyInLevel(target.level())) return false;
         MobEffectInstance effect = new MobEffectInstance(
                 ModEffects.COTH.get(),
                 duration,
@@ -77,17 +78,6 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         return EffectApplicationInterceptor.applyEffectSafely(target, effect);
     }
 
-    
-    public static void applyCothEffectForce(LivingEntity target, int duration, int amplifier) {
-        target.addEffect(new MobEffectInstance(
-                ModEffects.COTH.get(),
-                duration,
-                amplifier,
-                false, false, true
-        ));
-    }
-
-    
     public static boolean canApplyEffect(LivingEntity target, int newAmplifier) {
         MobEffectInstance existingEffect = target.getEffect(ModEffects.COTH.get());
 
@@ -117,26 +107,18 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             return;
         }
 
-        // ===== 服务端逻辑 =====
-        // 如果是玩家或寄生体，不进行强制转化，走原有逻辑（扩散/升级等）
         if (entity instanceof Player || ParasiteHelper.isParasite(entity)) {
-            // 执行原有逻辑（升级、扩散等）
             executeOriginalLogic(entity, amplifier);
             return;
         }
 
         if (DifficultyEffects.getEffectiveDifficulty(level) == DifficultyLevel.LEGENDARY) {
-            // 强制转化（forceConversion = true）
             tryConvertEntity(entity, amplifier, true);
         }
 
-        // 非大师难度：继续走原有的转化规则（等级、血量等条件）
         executeOriginalLogic(entity, amplifier);
     }
 
-    /**
-     * 提取原有的逻辑（升级、扩散、等级4触发、普通转化），供非强制转化场景使用
-     */
     private void executeOriginalLogic(LivingEntity entity, int amplifier) {
         Level level = entity.level();
         if (level.isClientSide) return;
@@ -347,6 +329,9 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                             int collarColor = wolf.getCollarColor().getId(); 
                             infestedWolf.setCollarColor(collarColor);
                         }
+                        if (wolf.getOwnerUUID() != null) {
+                            infestedWolf.setOwnerUUID(wolf.getOwnerUUID());
+                        }
                         
                     }
                     if (entity instanceof Fox fox && newEntity instanceof InfestedFox infestedFox) {
@@ -355,7 +340,6 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                         if (foxVariant == Fox.Type.SNOW) {
                             infestedFox.setVariant(InfestedFox.Variant.SNOW);
                         } else {
-                            
                             infestedFox.setVariant(InfestedFox.Variant.DEFAULT);
                         }
                     }
@@ -382,12 +366,14 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                                 InfestedSkeleton.Variant.DEFAULT);
                     }
 
-                    
+                    if (entity.hasCustomName()) {
+                        newEntity.setCustomName(entity.getCustomName());
+                        newEntity.setCustomNameVisible(entity.isCustomNameVisible());
+                    }
+
                     playConversionEffects(entity);
-                    
                     entity.remove(Entity.RemovalReason.KILLED);
                     entity.teleportTo(1000000, -4000, 1000000);
-
                     
                     serverLevel.addFreshEntity(newEntity);
                 }
@@ -450,6 +436,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     }
 
     private void applyEffectInArea(Level level, double x, double y, double z, double radius, int duration, int amplifier) {
+        if (DifficultyEffects.isLegendary(level)) return;
         if (level.isClientSide) return;
 
         AABB area = new AABB(

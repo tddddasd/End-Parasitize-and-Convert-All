@@ -1,4 +1,5 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 
 import org.tdddd.epca.impl.client.entity.IOverlayRenderable;
@@ -62,7 +63,8 @@ import java.util.UUID;
 
 public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-
+    @Nullable
+    private UUID ownerUUID;
     public int tryApplyCothEffect(Mob mob, int currentCooldown) {
         return 0;
     }
@@ -181,6 +183,29 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         }
     }
 
+    @Override
+    public void setTarget(@Nullable LivingEntity target) {
+        if (this.level().isClientSide) {
+            super.setTarget(target);
+            return;
+        }
+
+        if (target != null && isOwner(target)) {
+            if (getIdleAnimType() == IdleAnimType.SIT) {
+                super.setTarget(null);
+                return;
+            }
+
+            double reducedRange = 1.6D;
+            if (this.distanceToSqr(target) > reducedRange * reducedRange) {
+                super.setTarget(null);
+                return;
+            }
+        }
+
+        // 其他情况正常设置目标
+        super.setTarget(target);
+    }
     
     private LivingEntity findHowlTarget() {
         if (this.level().isClientSide) return null;
@@ -791,6 +816,9 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
             int collarColor = tag.getInt(COLLAR_COLOR_TAG);
             this.setCollarColor(collarColor);
         }
+        if (tag.hasUUID("OwnerUUID")) {
+            this.ownerUUID = tag.getUUID("OwnerUUID");
+        }
     }
 
     
@@ -799,6 +827,9 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         super.addAdditionalSaveData(tag);
         if (hasCollar()) {
             tag.putInt(COLLAR_COLOR_TAG, getCollarColor());
+        }
+        if (this.ownerUUID != null) {
+            tag.putUUID("OwnerUUID", this.ownerUUID);
         }
     }
 
@@ -964,5 +995,18 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         int c = getCollarColor();
         if (c < 0 || c >= COLLAR_COLORS.length) c = 0;
         return COLLAR_COLORS[c];
+    }
+
+    @Nullable
+    public UUID getOwnerUUID() {
+        return ownerUUID;
+    }
+
+    public void setOwnerUUID(@Nullable UUID ownerUUID) {
+        this.ownerUUID = ownerUUID;
+    }
+
+    public boolean isOwner(@Nullable LivingEntity entity) {
+        return this.ownerUUID != null && entity != null && entity.getUUID().equals(this.ownerUUID);
     }
 }

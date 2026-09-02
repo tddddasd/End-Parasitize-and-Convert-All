@@ -1,0 +1,106 @@
+{
+  "mappings": {
+    "org/tdddd/epca/impl/mixin/common/LivingEntityMixin": {
+      "aiStep": "Lnet/minecraft/world/entity/LivingEntity;m_8107_()V",
+      "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;)Z": "Lnet/minecraft/world/entity/LivingEntity;m_7292_(Lnet/minecraft/world/effect/MobEffectInstance;)Z",
+      "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z": "Lnet/minecraft/world/entity/LivingEntity;m_147207_(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
+      "setHealth": "Lnet/minecraft/world/entity/LivingEntity;m_21153_(F)V"
+    },
+    "org/tdddd/epca/impl/mixin/common/CactusBlockMixin": {
+      "canSurvive": "Lnet/minecraft/world/level/block/CactusBlock;m_7898_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z",
+      "randomTick": "Lnet/minecraft/world/level/block/CactusBlock;m_213898_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"
+    },
+    "org/tdddd/epca/impl/mixin/common/AbstractVillagerMixin": {
+      "notifyTrade": "Lnet/minecraft/world/entity/npc/AbstractVillager;m_6996_(Lnet/minecraft/world/item/trading/MerchantOffer;)V"
+    },
+    "org/tdddd/epca/impl/mixin/common/MobMixin": {
+      "finalizeSpawn": "Lnet/minecraft/world/entity/Mob;m_6518_(Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/DifficultyInstance;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/world/entity/SpawnGroupData;Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/world/entity/SpawnGroupData;",
+      "checkDespawn": "Lnet/minecraft/world/entity/Mob;m_6043_()V"
+    },
+    "org/tdddd/epca/impl/mixin/common/AbstractFurnaceBlockEntityMixin": {
+      "Lnet/minecraft/world/item/crafting/Recipe;assemble(Lnet/minecraft/world/Container;Lnet/minecraft/core/RegistryAccess;)Lnet/minecraft/world/item/ItemStack;": "Lnet/minecraft/world/item/crafting/Recipe;m_5874_(Lnet/minecraft/world/Container;Lnet/minecraft/core/RegistryAccess;)Lnet/minecraft/world/item/ItemStack;",
+      "burn": "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;m_266209_(Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/world/item/crafting/Recipe;Lnet/minecraft/core/NonNullList;I)Z"
+    },
+    "org/tdddd/epca/impl/mixin/client/BiomeColorsMixin": {
+      "getAverageWaterColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I": "Lnet/minecraft/client/renderer/BiomeColors;m_108811_(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I"
+    },
+    "org/tdddd/epca/impl/mixin/common/SugarCaneBlockMixin": {
+      "canSurvive": "Lnet/minecraft/world/level/block/SugarCaneBlock;m_7898_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z",
+      "randomTick": "Lnet/minecraft/world/level/block/SugarCaneBlock;m_213898_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"
+    },
+    "org/tdddd/epca/impl/mixin/client/HumanoidModelMixin": {
+      "setupAnim": "Lnet/minecraft/client/model/HumanoidModel;m_6973_(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V"
+    },
+    "org/tdddd/epca/impl/mixin/common/EnchantmentMenuMixin": {
+      "clickMenuButton": "Lnet/minecraft/world/inventory/EnchantmentMenu;m_6366_(Lnet/minecraft/world/entity/player/Player;I)Z",
+      "Lnet/minecraft/world/Container;getItem(I)Lnet/minecraft/world/item/ItemStack;": "Lnet/minecraft/world/Container;m_8020_(I)Lnet/minecraft/world/item/ItemStack;"
+    },
+    "org/tdddd/epca/impl/mixin/client/CreateWorldScreenMixin": {
+      "createNewWorld": "Lnet/minecraft/client/gui/screens/worldselection/CreateWorldScreen;m_245184_(Lnet/minecraft/world/level/storage/PrimaryLevelData$SpecialWorldProperty;Lnet/minecraft/core/LayeredRegistryAccess;Lcom/mojang/serialization/Lifecycle;)V"
+    },
+    "org/tdddd/epca/impl/mixin/common/MerchantOfferMixin": {
+      "take": "Lnet/minecraft/world/item/trading/MerchantOffer;m_45361_(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z",
+      "Lnet/minecraft/world/item/ItemStack;isSameItem(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z": "Lnet/minecraft/world/item/ItemStack;m_41656_(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z",
+      "isRequiredItem": "Lnet/minecraft/world/item/trading/MerchantOffer;m_45365_(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z"
+    },
+    "org/tdddd/epca/impl/mixin/client/ErosionGuiMixin": {
+      "renderHearts": "Lnet/minecraft/client/gui/Gui;m_168688_(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/entity/player/Player;IIIIFIIIZ)V"
+    },
+    "org/tdddd/epca/impl/mixin/client/BlockColorsMixin": {
+      "getColor(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;I)I": "Lnet/minecraft/client/color/block/BlockColors;m_92577_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;I)I"
+    }
+  },
+  "data": {
+    "searge": {
+      "org/tdddd/epca/impl/mixin/common/LivingEntityMixin": {
+        "aiStep": "Lnet/minecraft/world/entity/LivingEntity;m_8107_()V",
+        "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;)Z": "Lnet/minecraft/world/entity/LivingEntity;m_7292_(Lnet/minecraft/world/effect/MobEffectInstance;)Z",
+        "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z": "Lnet/minecraft/world/entity/LivingEntity;m_147207_(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
+        "setHealth": "Lnet/minecraft/world/entity/LivingEntity;m_21153_(F)V"
+      },
+      "org/tdddd/epca/impl/mixin/common/CactusBlockMixin": {
+        "canSurvive": "Lnet/minecraft/world/level/block/CactusBlock;m_7898_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z",
+        "randomTick": "Lnet/minecraft/world/level/block/CactusBlock;m_213898_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"
+      },
+      "org/tdddd/epca/impl/mixin/common/AbstractVillagerMixin": {
+        "notifyTrade": "Lnet/minecraft/world/entity/npc/AbstractVillager;m_6996_(Lnet/minecraft/world/item/trading/MerchantOffer;)V"
+      },
+      "org/tdddd/epca/impl/mixin/common/MobMixin": {
+        "finalizeSpawn": "Lnet/minecraft/world/entity/Mob;m_6518_(Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/DifficultyInstance;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/world/entity/SpawnGroupData;Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/world/entity/SpawnGroupData;",
+        "checkDespawn": "Lnet/minecraft/world/entity/Mob;m_6043_()V"
+      },
+      "org/tdddd/epca/impl/mixin/common/AbstractFurnaceBlockEntityMixin": {
+        "Lnet/minecraft/world/item/crafting/Recipe;assemble(Lnet/minecraft/world/Container;Lnet/minecraft/core/RegistryAccess;)Lnet/minecraft/world/item/ItemStack;": "Lnet/minecraft/world/item/crafting/Recipe;m_5874_(Lnet/minecraft/world/Container;Lnet/minecraft/core/RegistryAccess;)Lnet/minecraft/world/item/ItemStack;",
+        "burn": "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;m_266209_(Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/world/item/crafting/Recipe;Lnet/minecraft/core/NonNullList;I)Z"
+      },
+      "org/tdddd/epca/impl/mixin/client/BiomeColorsMixin": {
+        "getAverageWaterColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I": "Lnet/minecraft/client/renderer/BiomeColors;m_108811_(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I"
+      },
+      "org/tdddd/epca/impl/mixin/common/SugarCaneBlockMixin": {
+        "canSurvive": "Lnet/minecraft/world/level/block/SugarCaneBlock;m_7898_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z",
+        "randomTick": "Lnet/minecraft/world/level/block/SugarCaneBlock;m_213898_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V"
+      },
+      "org/tdddd/epca/impl/mixin/client/HumanoidModelMixin": {
+        "setupAnim": "Lnet/minecraft/client/model/HumanoidModel;m_6973_(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V"
+      },
+      "org/tdddd/epca/impl/mixin/common/EnchantmentMenuMixin": {
+        "clickMenuButton": "Lnet/minecraft/world/inventory/EnchantmentMenu;m_6366_(Lnet/minecraft/world/entity/player/Player;I)Z",
+        "Lnet/minecraft/world/Container;getItem(I)Lnet/minecraft/world/item/ItemStack;": "Lnet/minecraft/world/Container;m_8020_(I)Lnet/minecraft/world/item/ItemStack;"
+      },
+      "org/tdddd/epca/impl/mixin/client/CreateWorldScreenMixin": {
+        "createNewWorld": "Lnet/minecraft/client/gui/screens/worldselection/CreateWorldScreen;m_245184_(Lnet/minecraft/world/level/storage/PrimaryLevelData$SpecialWorldProperty;Lnet/minecraft/core/LayeredRegistryAccess;Lcom/mojang/serialization/Lifecycle;)V"
+      },
+      "org/tdddd/epca/impl/mixin/common/MerchantOfferMixin": {
+        "take": "Lnet/minecraft/world/item/trading/MerchantOffer;m_45361_(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z",
+        "Lnet/minecraft/world/item/ItemStack;isSameItem(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z": "Lnet/minecraft/world/item/ItemStack;m_41656_(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z",
+        "isRequiredItem": "Lnet/minecraft/world/item/trading/MerchantOffer;m_45365_(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z"
+      },
+      "org/tdddd/epca/impl/mixin/client/ErosionGuiMixin": {
+        "renderHearts": "Lnet/minecraft/client/gui/Gui;m_168688_(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/entity/player/Player;IIIIFIIIZ)V"
+      },
+      "org/tdddd/epca/impl/mixin/client/BlockColorsMixin": {
+        "getColor(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;I)I": "Lnet/minecraft/client/color/block/BlockColors;m_92577_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;I)I"
+      }
+    }
+  }
+}

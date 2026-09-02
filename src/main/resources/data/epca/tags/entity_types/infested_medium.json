@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "epca:infested_zombie",
+    "epca:infested_husk",
+    "epca:infested_drowned",
+    "epca:infested_pillager",
+    "epca:infested_vindicator",
+    "epca:infested_cow",
+    "epca:infested_villager",
+    "epca:infested_zombie_villager"
+  ]
+}

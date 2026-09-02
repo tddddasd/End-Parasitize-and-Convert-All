@@ -2,11 +2,13 @@ package org.tdddd.epca.impl.overworld.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -20,6 +22,7 @@ import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class EntityIntegrationManager implements ResourceManagerReloadListener {
     private static final Gson GSON = new GsonBuilder().create();
@@ -147,6 +150,18 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
                 });
     }
 
+    private static boolean isTag(String s) {
+        return s != null && s.startsWith("#");
+    }
+
+    private static List<EntityType<?>> getEntityTypesForTag(String tagName) {
+        ResourceLocation loc = ResourceLocation.tryParse(tagName);
+        if (loc == null) return Collections.emptyList();
+        TagKey<EntityType<?>> tagKey = TagKey.create(Registries.ENTITY_TYPE, loc);
+        return ForgeRegistries.ENTITY_TYPES.getValues().stream()
+                .filter(type -> type.is(tagKey))
+                .collect(Collectors.toList());
+    }
     
     private static void standardizeRule(EntityIntegrationRule rule) {
         
@@ -279,22 +294,27 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         return result;
     }
 
-    
-    public static boolean matchesEntityRequirement(Mob entity, EntityRequirement requirement) {
-        
-        ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
-        if (entityId == null || !entityId.toString().equals(requirement.entity)) {
-            return false;
-        }
 
-        
+    public static boolean matchesEntityRequirement(Mob entity, EntityRequirement requirement) {
+        ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        if (entityId == null) return false;
+
+        boolean typeMatches;
+        if (isTag(requirement.entity)) {
+            TagKey<EntityType<?>> tagKey = TagKey.create(Registries.ENTITY_TYPE,
+                    new ResourceLocation(requirement.entity.substring(1)));
+            typeMatches = entity.getType().is(tagKey);
+        } else {
+            typeMatches = entityId.toString().equals(requirement.entity);
+        }
+        if (!typeMatches) return false;
+
         if (requirement.requiredKillCount != null) {
             int currentKillCount = EntityKillCountManager.getCurrentKillCount(entity);
             if (currentKillCount < requirement.requiredKillCount) {
                 return false;
             }
         }
-
         return true;
     }
 
@@ -590,18 +610,25 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
         private void spawnEntityResult(EntityResult result) {
             try {
-                EntityType<?> entityType = EntityType.byString(result.entity).orElse(null);
-                if (entityType != null) {
-                    for (int i = 0; i < result.count; i++) {
-                        Entity newEntity = entityType.create(level);
-                        if (newEntity != null) {
-                            double offsetX = (level.random.nextDouble() - 0.5);
-                            double offsetZ = (level.random.nextDouble() - 0.5);
-                            newEntity.moveTo(spawnPos.getX() + offsetX, spawnPos.getY(), spawnPos.getZ() + offsetZ,
-                                    level.random.nextFloat() * 360.0F, 0.0F);
-                            applyInheritedVariant(newEntity);
-                            level.addFreshEntity(newEntity);
-                        }
+                List<EntityType<?>> typesToSpawn = new ArrayList<>();
+                if (isTag(result.entity)) {
+                    typesToSpawn.addAll(getEntityTypesForTag(result.entity.substring(1)));
+                } else {
+                    EntityType<?> type = EntityType.byString(result.entity).orElse(null);
+                    if (type != null) typesToSpawn.add(type);
+                }
+                if (typesToSpawn.isEmpty()) return;
+
+                for (int i = 0; i < result.count; i++) {
+                    EntityType<?> chosen = typesToSpawn.get(level.random.nextInt(typesToSpawn.size()));
+                    Entity newEntity = chosen.create(level);
+                    if (newEntity != null) {
+                        double offsetX = (level.random.nextDouble());
+                        double offsetZ = (level.random.nextDouble());
+                        newEntity.moveTo(spawnPos.getX() + offsetX, spawnPos.getY(), spawnPos.getZ() + offsetZ,
+                                level.random.nextFloat() * 360.0F, 0.0F);
+                        applyInheritedVariant(newEntity);
+                        level.addFreshEntity(newEntity);
                     }
                 }
             } catch (Exception e) {

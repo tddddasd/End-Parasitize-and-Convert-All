@@ -1,0 +1,21 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "epca:item/erosion_clock_unknow_phase"
+  },
+  "overrides": [
+    { "predicate": { "stage": 0 }, "model": "epca:item/erosion_clock_phase_unknow" },
+    { "predicate": { "stage": 1 }, "model": "epca:item/erosion_clock_phase-1" },
+    { "predicate": { "stage": 2 }, "model": "epca:item/erosion_clock_phase0" },
+    { "predicate": { "stage": 3 }, "model": "epca:item/erosion_clock_phase1" },
+    { "predicate": { "stage": 4 }, "model": "epca:item/erosion_clock_phase2" },
+    { "predicate": { "stage": 5 }, "model": "epca:item/erosion_clock_phase3" },
+    { "predicate": { "stage": 6 }, "model": "epca:item/erosion_clock_phase4" },
+    { "predicate": { "stage": 7 }, "model": "epca:item/erosion_clock_phase5" },
+    { "predicate": { "stage": 8 }, "model": "epca:item/erosion_clock_phase6" },
+    { "predicate": { "stage": 9 }, "model": "epca:item/erosion_clock_phase7" },
+    { "predicate": { "stage": 10 }, "model": "epca:item/erosion_clock_phase8" },
+    { "predicate": { "stage": 11 }, "model": "epca:item/erosion_clock_phase9" },
+    { "predicate": { "stage": 12 }, "model": "epca:item/erosion_clock_phase10" }
+  ]
+}

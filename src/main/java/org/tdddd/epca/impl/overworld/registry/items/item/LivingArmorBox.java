@@ -14,6 +14,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +27,7 @@ import org.tdddd.epca.impl.overworld.registry.ModItems;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class LivingArmorBox extends Item {
     private static final String TAG_STATE = "state";
@@ -66,6 +70,28 @@ public class LivingArmorBox extends Item {
 
     public LivingArmorBox(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public boolean isEnchantable(ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return 16;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        EnchantmentCategory category = enchantment.category;
+        // 允许所有盔甲相关类别（含通用、头、胸、腿、足）以及可穿戴诅咒类
+        return category == EnchantmentCategory.ARMOR ||
+                category == EnchantmentCategory.ARMOR_HEAD ||
+                category == EnchantmentCategory.ARMOR_CHEST ||
+                category == EnchantmentCategory.ARMOR_LEGS ||
+                category == EnchantmentCategory.ARMOR_FEET ||
+                category == EnchantmentCategory.WEARABLE;
     }
 
     @Override
@@ -351,31 +377,31 @@ public class LivingArmorBox extends Item {
         return stack.getItem() instanceof LivingArmorItem;
     }
 
-    
     private void equipLivingArmorSet(Player player, ItemStack boxStack) {
         int boxAdaptationCount = getBoxAdaptationCount(boxStack);
+        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(boxStack);
 
-        
         ItemStack helmet = new ItemStack(ModItems.LIVING_HELMET.get());
         syncAdaptationFromBox(helmet, boxAdaptationCount);
+        EnchantmentHelper.setEnchantments(enchantments, helmet);
         helmet.enchant(Enchantments.BINDING_CURSE, 1);
         player.setItemSlot(EquipmentSlot.HEAD, helmet);
 
-        
         ItemStack chestplate = new ItemStack(ModItems.LIVING_CHESTPLATE.get());
         syncAdaptationFromBox(chestplate, boxAdaptationCount);
+        EnchantmentHelper.setEnchantments(enchantments, chestplate);
         chestplate.enchant(Enchantments.BINDING_CURSE, 1);
         player.setItemSlot(EquipmentSlot.CHEST, chestplate);
 
-        
         ItemStack leggings = new ItemStack(ModItems.LIVING_LEGGINGS.get());
         syncAdaptationFromBox(leggings, boxAdaptationCount);
+        EnchantmentHelper.setEnchantments(enchantments, leggings);
         leggings.enchant(Enchantments.BINDING_CURSE, 1);
         player.setItemSlot(EquipmentSlot.LEGS, leggings);
 
-        
         ItemStack boots = new ItemStack(ModItems.LIVING_BOOTS.get());
         syncAdaptationFromBox(boots, boxAdaptationCount);
+        EnchantmentHelper.setEnchantments(enchantments, boots);
         boots.enchant(Enchantments.BINDING_CURSE, 1);
         player.setItemSlot(EquipmentSlot.FEET, boots);
     }

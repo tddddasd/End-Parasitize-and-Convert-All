@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "group": "smelting_infested_raw_gold",
+  "ingredient": {
+    "item": "epca:infested_raw_gold"
+  },
+  "result": "minecraft:gold_nugget"
+}
