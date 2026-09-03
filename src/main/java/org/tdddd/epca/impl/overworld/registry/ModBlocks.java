@@ -573,4 +573,10 @@ public class ModBlocks {
 
     public static final RegistryObject<InfestedSpiderWeb> INFESTED_SPIDER_WEB = BLOCKS.register("infested_spider_web",
             () -> new InfestedSpiderWeb(BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.GREEN).noOcclusion().noCollission().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()));
+
+    public static final RegistryObject<InfestedSpiderWebBlood> INFESTED_SPIDER_WEB_BLOOD = BLOCKS.register("infested_spider_web_blood",
+            () -> new InfestedSpiderWebBlood(BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.RED).noOcclusion().noCollission().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()));
+
+    public static final RegistryObject<InfestedCaveSpiderWeb> INFESTED_CAVE_SPIDER_WEB = BLOCKS.register("infested_cave_spider_web",
+            () -> new InfestedCaveSpiderWeb(BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.CYAN).noOcclusion().noCollission().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()));
 }

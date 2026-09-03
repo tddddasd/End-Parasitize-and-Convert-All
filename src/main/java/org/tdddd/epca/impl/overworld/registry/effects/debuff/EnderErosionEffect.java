@@ -172,15 +172,4 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
         super.removeAttributeModifiers(entity, attributeMap, amplifier);
         
     }
-
-    
-    public static float getErosionValue(UUID uuid) {
-        return erosionValues.getOrDefault(uuid, 0f);
-    }
-
-    
-    public static void clearErosionValue(UUID uuid) {
-        erosionValues.remove(uuid);
-        erosionTimers.remove(uuid);
-    }
 }

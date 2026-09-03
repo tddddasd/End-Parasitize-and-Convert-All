@@ -273,6 +273,8 @@ public class ModEntities {
             registerMobWithRender("infested_slime_size1", 1.0F, 1.0F, InfestedSlimeSize1::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize1.createAttributes().build());
     public static final RegistryObject<EntityType<InfestedSlimeSize3>> INFESTED_SLIME_SIZE3 =
             registerMobWithRender("infested_slime_size3", 2.5F, 2.5F, InfestedSlimeSize3::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize3.createAttributes().build());
+    public static final RegistryObject<EntityType<InfestedBat>> INFESTED_BAT =
+            registerMobWithRender("infested_bat", 0.5F, 0.8F, InfestedBat::new, MobCategory.MONSTER, 12, InfestedBat::setAttributes);
 
     /** Misc entity with auto-renderer but no attributes. */
     public static <T extends Entity> RegistryObject<EntityType<T>> registerMiscWithRender(
@@ -321,6 +323,12 @@ public class ModEntities {
             registerMiscWithRender("viral_bomb_ii", "viral_bomb", 0.8F, 0.8F, ViralBombII::new);
     public static final RegistryObject<EntityType<SlimeProjectile>> SLIME_PROJECTILE =
             registerMiscWithRender("slime_projectile", 0.3F, 0.3F, SlimeProjectile::new);
+    public static final RegistryObject<EntityType<InfestedSpiderWebProjectile>> INFESTED_SPIDER_WEB_PROJECTILE =
+            registerMiscWithRender("infested_spider_web_projectile", 0.3F, 0.3F, InfestedSpiderWebProjectile::new);
+    public static final RegistryObject<EntityType<InfestedSpiderWebBloodProjectile>> INFESTED_SPIDER_WEB_BLOOD_PROJECTILE =
+            registerMiscWithRender("infested_spider_web_blood_projectile", 0.3F, 0.3F, InfestedSpiderWebBloodProjectile::new);
+    public static final RegistryObject<EntityType<InfestedCaveSpiderWebProjectile>> INFESTED_CAVE_SPIDER_WEB_PROJECTILE =
+            registerMiscWithRender("infested_cave_spider_web_projectile", 0.3F, 0.3F, InfestedCaveSpiderWebProjectile::new);
     public static final RegistryObject<EntityType<AcidBullet>> ACID_BULLET =
             registerMiscWithRender("acid_bullet", 0.4F, 0.4F, AcidBullet::new);
     public static final RegistryObject<EntityType<BiomassEgg>> BIOMASS_EGG =

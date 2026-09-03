@@ -138,7 +138,15 @@ public class ModItems {
     // 流体桶
     public static final RegistryObject<Item> ACID_SOLUTION_BUCKET = ITEMS.register("acid_bucket",
             () -> new BucketItem(ModFluids.ACID_SOLUTION, new Item.Properties().stacksTo(1)));
-
+    public static final RegistryObject<Item> INFESTED_SPIDER_WEB_PROJECTILE =
+            ITEMS.register("infested_spider_web_projectile",
+                    () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> INFESTED_SPIDER_WEB_BLOOD_PROJECTILE =
+            ITEMS.register("infested_spider_web_blood_projectile",
+                    () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> INFESTED_CAVE_SPIDER_WEB_PROJECTILE =
+            ITEMS.register("infested_cave_spider_web_projectile",
+                    () -> new Item(new Item.Properties()));
     // ==================== 刷怪蛋 ====================
     public static final RegistryObject<Item> BUGLIN_SPAWN_EGG = spawnEgg("curbug", ModEntities.CURBUG);
     public static final RegistryObject<Item> YAWNING_NYA_SPAWN_EGG = spawnEgg("yawning_nya", ModEntities.YAWNING_NYA);
@@ -194,6 +202,7 @@ public class ModItems {
     public static final RegistryObject<Item> LIVING_FLESH_SPAWN_EGG =
             ITEMS.register("living_flesh_spawn_egg",
                     () -> new ForgeSpawnEggItem(() -> ModEntities.LIVING_FLESH_SIZE0.get(), -1, -1, new Item.Properties()));
+    public static final RegistryObject<Item> INFESTED_BAT_SPAWN_EGG = spawnEgg("infested_bat", ModEntities.INFESTED_BAT);
 
     // ==================== 方块物品 ====================
 
@@ -297,6 +306,8 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_CACTUS = blockItem("infested_cactus", ModBlocks.INFESTED_CACTUS);
     public static final RegistryObject<Item> INFESTED_SUGAR_CANE = blockItem("infested_sugar_cane", ModBlocks.INFESTED_SUGAR_CANE);
     public static final RegistryObject<Item> INFESTED_SPIDER_WEB = blockItem("infested_spider_web", ModBlocks.INFESTED_SPIDER_WEB);
+    public static final RegistryObject<Item> INFESTED_SPIDER_WEB_BLOOD = blockItem("infested_spider_web_blood", ModBlocks.INFESTED_SPIDER_WEB_BLOOD);
+    public static final RegistryObject<Item> INFESTED_CAVE_SPIDER_WEB = blockItem("infested_cave_spider_web", ModBlocks.INFESTED_CAVE_SPIDER_WEB);
 
     // 特殊 BlockItem 子类（使用自定义的 Item 内部类）
     public static final RegistryObject<InfestedLog.InfestedLogItem> INFESTED_LOG =

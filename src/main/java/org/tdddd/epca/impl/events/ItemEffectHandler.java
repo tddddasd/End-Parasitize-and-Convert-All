@@ -195,7 +195,8 @@ public class ItemEffectHandler {
         if (stack.is(ModItems.INFESTED_CACTUS.get())) return true;
         if (stack.is(ModItems.INFESTED_SUGAR_CANE.get())) return true;
         if (stack.is(ModItems.INFESTED_SPIDER_WEB.get())) return true;
-
+        if (stack.is(ModItems.INFESTED_SPIDER_WEB_BLOOD.get())) return true;
+        if (stack.is(ModItems.INFESTED_CAVE_SPIDER_WEB.get())) return true;
         return false;
     }
 

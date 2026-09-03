@@ -1,4 +1,4 @@
-// 1.20.1	2026-08-22T23:09:26.6864575	Item Models: epca
+// 1.20.1	2026-09-03T09:46:08.9785021	Item Models: epca
 f4132b573a5fa261240b879009374168493ad16e assets/epca/models/item/acid_bucket.json
 55e35e00b8b11144a722c026d152dc68e341a4be assets/epca/models/item/beckon_membrane.json
 a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/biomass_medium_spawn_egg.json
@@ -13,7 +13,9 @@ e213a83dd5435e2a8c830f2fac14b026ed0378d1 assets/epca/models/item/fins_fin.json
 a8cd10ff760712bd630fd419c95c9a6a4b5a19f8 assets/epca/models/item/fins_spawn_egg.json
 aa6b64ba4fb1481655f38341e0a3953cfa42b7ab assets/epca/models/item/flying_carrier_spawn_egg.json
 3ee9336d93f6ca82f858e204f79dbc91e6936a23 assets/epca/models/item/gasbag_debris.json
+307fe96f6fa86e9f69ac9543da750cbe6f234f9b assets/epca/models/item/infested_bat_spawn_egg.json
 34dc6ada5cc24da7f3235ae3e5fc41e8ce4d1e03 assets/epca/models/item/infested_bone.json
+557c330a5c337d090704fde8c077becc0f07291d assets/epca/models/item/infested_cave_spider_web_projectile.json
 532b23dc6908c7d898aa6eca1a1ec742d65d0cf6 assets/epca/models/item/infested_chicken_spawn_egg.json
 a5af2ac4a29884a5404c817cae95c98fc6de3590 assets/epca/models/item/infested_coal.json
 3dc1aa8a00b5ae3b839c7cdb9e88724637b9896e assets/epca/models/item/infested_cow_spawn_egg.json
@@ -42,6 +44,8 @@ b59ead4f34fb8eceaadbc4976e123ba52df2bbc5 assets/epca/models/item/infested_silver
 0c0f0fcca802f1a19415a9e44503e891744bc347 assets/epca/models/item/infested_skeleton_spawn_egg.json
 da4fbe0d5ee7577fdc952d58e81ae81b0eb90364 assets/epca/models/item/infested_slime_ball.json
 6350933aceed8308174ce27ac4c009a1e629ee44 assets/epca/models/item/infested_slime_spawn_egg.json
+f88c31a184335214ad1a8f5a4d5b4e3b8d0b7c11 assets/epca/models/item/infested_spider_web_blood_projectile.json
+29dbdf2ed89dfebde29985b33bea5ddfb135ed60 assets/epca/models/item/infested_spider_web_projectile.json
 d3e0b990991f269503a11799a462e59b584acd46 assets/epca/models/item/infested_stick.json
 3f32418a9975c49daa4725283fa2f2db7dc2eadf assets/epca/models/item/infested_sweet_berries.json
 7ecd9ac0c4d50378130be06d3e02f071978e4262 assets/epca/models/item/infested_villager_spawn_egg.json

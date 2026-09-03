@@ -1,8 +1,0 @@
-{
-  "fins_to": "epca:walking_fox_head",
-  "from": "epca:infested_fox",
-  "mozzie_to": "epca:walking_fox_head",
-  "priority": 0,
-  "small_entity_priority": true,
-  "to": "epca:walking_fox_head"
-}

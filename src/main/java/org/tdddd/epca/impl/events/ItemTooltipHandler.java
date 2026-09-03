@@ -69,11 +69,10 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.INFESTED_SLIME_SPAWN_EGG , "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_FOX_SPAWN_EGG , "item.epca.category_infested");
         registerTooltip(ModItems.WALKING_FOX_HEAD_SPAWN_EGG , "item.epca.category_infested");
-
+        registerTooltip(ModItems.INFESTED_BAT_SPAWN_EGG , "item.epca.category_infested");
         
         registerTooltip(ModItems.RESHAPE_LONGARMS_SPAWN_EGG, "item.epca.category_reshape");
         registerTooltip(ModItems.RESHAPE_YELLOWEYE_SPAWN_EGG, "item.epca.category_reshape");
-
         
         registerTooltip(ModItems.STAGE_I_BECKON_SPAWN_EGG, "item.epca.category_link");
         registerTooltip(ModItems.STAGE_II_BECKON_SPAWN_EGG, "item.epca.category_link");
@@ -188,6 +187,8 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.INFESTED_CACTUS, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_SUGAR_CANE, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_SPIDER_WEB, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_SPIDER_WEB_BLOOD, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_CAVE_SPIDER_WEB, "item.epca.category_infested");
 
         //link
         registerTooltip(ModItems.BECKON_CORE, "item.epca.category_link");

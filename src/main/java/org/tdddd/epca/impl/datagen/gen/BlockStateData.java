@@ -30,7 +30,7 @@ public class BlockStateData extends BlockStateProvider {
      */
     private static final Set<String> MANUAL_BLOCKS = Set.of(
             "infested_dirt", "infested_log", "infested_stone", "infested_heavy_stone","infested_wood", "infested_stripped_wood",
-            "infested_snow", "infested_spider_web",
+            "infested_snow", "infested_spider_web", "infested_spider_web_blood", "infested_cave_spider_web",
             "infested_vine", "infested_sweet_berry_bush", "infested_cactus", "infested_sugar_cane",
             "infested_pointed_dripstone",
             "swallow_cyst",

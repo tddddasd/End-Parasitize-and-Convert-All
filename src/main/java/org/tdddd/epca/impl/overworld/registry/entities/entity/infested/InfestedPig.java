@@ -68,7 +68,6 @@ public class InfestedPig extends PathfinderMob implements GeoEntity, IParasite, 
     private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20; 
     private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20; 
 
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedPig.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 30;
     private BlockPos deathPosition; 
@@ -453,7 +452,6 @@ public class InfestedPig extends PathfinderMob implements GeoEntity, IParasite, 
         
         return groundState.is(Blocks.GRASS_BLOCK);
     }
-
     
     private double baseSpeed = 0.34D; 
     private double chaseSpeed = 0.38D; 
@@ -553,32 +551,17 @@ public class InfestedPig extends PathfinderMob implements GeoEntity, IParasite, 
     public void setInvulnerable(boolean invulnerable) {
         this.entityData.set(DATA_IS_INVULNERABLE, invulnerable);
     }
-
-
-
     
     private void triggerFakeDeath(DamageSource source) {
-        
         setFakingDeath(true);
         setInvulnerable(true);
         fakeDeathTimer = 30; 
-        deathPosition = this.blockPosition(); 
-
-        
+        deathPosition = this.blockPosition();
         this.setHealth(0.02F);
-
-        
         this.setNoAi(true);
-
-        
         this.setInvulnerable(true);
-
-        
         this.setTarget(null);
-
-        this.setPose(Pose.DYING); 
-
-        
+        this.setPose(Pose.DYING);
         this.entityData.set(DATA_IS_FAKING_DEATH, true);
     }
 

@@ -66,6 +66,8 @@
     "epca:infested_heavy_bricks_stairs",
     "epca:infested_heavy_bricks_slab",
     "epca:infested_heavy_bricks_wall",
-    "epca:infested_spider_web"
+    "epca:infested_spider_web",
+    "epca:infested_spider_web_blood",
+    "epca:infested_cave_spider_web"
   ]
 }

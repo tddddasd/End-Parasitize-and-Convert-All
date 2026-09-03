@@ -1,8 +1,0 @@
-{
-  "fins_to": "epca:walking_skeleton_head",
-  "from": "epca:infested_skeleton",
-  "mozzie_to": "epca:walking_skeleton_head",
-  "priority": 0,
-  "small_entity_priority": true,
-  "to": "epca:walking_skeleton_head"
-}

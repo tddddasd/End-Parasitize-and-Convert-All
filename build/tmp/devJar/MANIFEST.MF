@@ -3,8 +3,8 @@ Specification-Title: epca
 Specification-Vendor: tdddd
 Specification-Version: 1
 Implementation-Title: epca
-Implementation-Version: 0.4.0-1.20.1
+Implementation-Version: 0.146-1.20.1
 Implementation-Vendor: tdddd
-Implementation-Timestamp: 2026-09-02T07:56:52+0800
+Implementation-Timestamp: 2026-09-03T15:12:29+0800
 MixinConfigs: epca.mixins.json
 

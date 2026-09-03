@@ -72,7 +72,8 @@ public class CustomDataProviders {
             conv(cache, tasks, "vindcator",EntityType.VINDICATOR,ModEntities.INFESTED_VINDICATOR,     true,  1);
             conv(cache, tasks, "endermite",EntityType.ENDERMITE, ModEntities.INFESTED_ENDERMITE,      true,  1);
             conv(cache, tasks, "silverfish",EntityType.SILVERFISH,ModEntities.INFESTED_SILVERFISH,    true,  1);
-            conv(cache, tasks, "player",   EntityType.PLAYER,    ModEntities.INFESTED_PLAYER,          true,  1);
+            conv(cache, tasks, "bat",EntityType.BAT ,ModEntities.INFESTED_BAT,    true,  1);
+
             // slime — nbt_conditions 区分 Size
             convNbt(cache, tasks, "slime_size0", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE0, false, 1, Map.of("Size", 0));
             convNbt(cache, tasks, "slime_size1", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE1, true,  1, Map.of("Size", 1));
@@ -90,35 +91,18 @@ public class CustomDataProviders {
             conv(cache, tasks, "drowned_baby",  EntityType.DROWNED,  ModEntities.INFESTED_DROWNED,  true,  0);
 
             // 特殊/boss 原版实体 (to=null, 免疫转换, 仅预留)
-            convBoss(cache, tasks, "creeper",           EntityType.CREEPER,         true, 1);
-            convBoss(cache, tasks, "iron_golem",        EntityType.IRON_GOLEM,      true, 1);
-            convBoss(cache, tasks, "guardian",          EntityType.GUARDIAN,        true, 1);
-            convBoss(cache, tasks, "elder_guardian",    EntityType.ELDER_GUARDIAN,  true, 1);
             convBoss(cache, tasks, "ender_dragon",      EntityType.ENDER_DRAGON,    true, 1);
-            convBoss(cache, tasks, "warden",            EntityType.WARDEN,          true, 1);
-            convBoss(cache, tasks, "magma_cube",        EntityType.MAGMA_CUBE,      true, 1);
-            convBoss(cache, tasks, "vex",               EntityType.VEX,             true, 1);
 
             // mozzie 转化（to=null, mozzie_to=small_incomplete_form）
+            convMozzie(cache, tasks, "creeper", EntityType.CREEPER);
+            convMozzie(cache, tasks, "iron_golem", EntityType.IRON_GOLEM);
+            convMozzie(cache, tasks, "guardian", EntityType.GUARDIAN);
+            convMozzie(cache, tasks, "elder_guardian", EntityType.ELDER_GUARDIAN);
+            convMozzie(cache, tasks, "warden", EntityType.WARDEN);
+            convMozzie(cache, tasks, "magma_cube", EntityType.MAGMA_CUBE);
+            convMozzie(cache, tasks, "vex", EntityType.VEX);
             convMozzie(cache, tasks, "allay", EntityType.ALLAY);
             convMozzie(cache, tasks, "blaze", EntityType.BLAZE);
-
-            // 受染实体 → walking_head (受染变种交叉转换)
-            conv(cache, tasks, "infested_zombie",           ModEntities.INFESTED_ZOMBIE,            ModEntities.WALKING_ZOMBIE_HEAD,            true, 0);
-            conv(cache, tasks, "infested_husk",             ModEntities.INFESTED_HUSK,              ModEntities.WALKING_HUSK_HEAD,              true, 0);
-            conv(cache, tasks, "infested_drowned",          ModEntities.INFESTED_DROWNED,           ModEntities.WALKING_DROWNED_HEAD,           true, 0);
-            conv(cache, tasks, "infested_villager",         ModEntities.INFESTED_VILLAGER,          ModEntities.WALKING_VILLAGER_HEAD,          true, 0);
-            conv(cache, tasks, "infested_zombie_villager",  ModEntities.INFESTED_ZOMBIE_VILLAGER,   ModEntities.WALKING_ZOMBIE_VILLAGER_HEAD,   true, 0);
-            conv(cache, tasks, "infested_pillager",         ModEntities.INFESTED_PILLAGER,          ModEntities.WALKING_PILLAGER_HEAD,          true, 0);
-            conv(cache, tasks, "infested_vindicator",       ModEntities.INFESTED_VINDICATOR,        ModEntities.WALKING_VINDICATOR_HEAD,        true, 0);
-            conv(cache, tasks, "infested_skeleton",         ModEntities.INFESTED_SKELETON,          ModEntities.WALKING_SKELETON_HEAD,          true, 0);
-            conv(cache, tasks, "infested_cow",              ModEntities.INFESTED_COW,               ModEntities.WALKING_COW_HEAD,               true, 0);
-            conv(cache, tasks, "infested_pig",              ModEntities.INFESTED_PIG,               ModEntities.WALKING_PIG_HEAD,               true, 0);
-            conv(cache, tasks, "infested_sheep",            ModEntities.INFESTED_SHEEP,             ModEntities.WALKING_SHEEP_HEAD,             true, 0);
-            conv(cache, tasks, "infested_chicken",          ModEntities.INFESTED_CHICKEN,           ModEntities.WALKING_CHICKEN_HEAD,           false,0);
-            conv(cache, tasks, "infested_wolf",             ModEntities.INFESTED_WOLF,              ModEntities.WALKING_WOLF_HEAD,              true, 0);
-            conv(cache, tasks, "infested_enderman",         ModEntities.INFESTED_ENDERMAN,          ModEntities.WALKING_ENDERMAN_HEAD,          true, 0);
-            conv(cache, tasks, "infested_fox",              ModEntities.INFESTED_FOX,               ModEntities.WALKING_FOX_HEAD,               true, 0);
 
             return CompletableFuture.allOf(tasks.toArray(CompletableFuture[]::new));
         }

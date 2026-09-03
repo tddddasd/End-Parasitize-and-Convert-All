@@ -19,7 +19,6 @@
     "client.BiomeColorsMixin",
     "client.BlockColorsMixin",
     "client.CreateWorldScreenMixin",
-    "client.ErosionGuiMixin",
     "client.HumanoidModelMixin"
   ],
   "injectors": {

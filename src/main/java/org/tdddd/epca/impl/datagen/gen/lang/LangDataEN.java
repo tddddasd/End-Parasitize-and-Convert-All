@@ -133,6 +133,10 @@ public class LangDataEN extends LanguageProvider {
         add("entity.epca.walking_fox_head", "Walking Fox Head");
         add("entity.epca.reshape_part", "Reshape-Longarms");
         add("entity.epca.infested_pumpkin_head", "Infested Pumpkin Head");
+        add("entity.epca.infested_spider_web_projectile", "Infested Spider Web Projectile");
+        add("entity.epca.infested_spider_web_blood_projectile", "Infested Blood Spider Web Projectile");
+        add("entity.epca.infested_cave_spider_web_projectile", "Infested Cave Spider Web Projectile");
+        add("entity.epca.infested_bat", "Infested Bat");
 
         // Thrown spears
         add("entity.epca.thrown_wooden_spear", "Wooden Spear");
@@ -219,6 +223,7 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.reshape_yelloweye_spawn_egg", "Reshape-Yelloweye Spawn Egg");
         add("item.epca.infested_fox_spawn_egg", "Infested Fox Spawn Egg");
         add("item.epca.walking_fox_head_spawn_egg", "Walking Fox Head Spawn Egg");
+        add("item.epca.infested_bat_spawn_egg", "Infested Bat Spawn Egg");
 
         // Materials & special items
         add("item.epca.parasite_viscera", "Parasite Viscera");
@@ -397,6 +402,8 @@ public class LangDataEN extends LanguageProvider {
         add("block.epca.infested_cactus", "Infested Cactus");
         add("block.epca.infested_sugar_cane", "Infested Sugar Cane");
         add("block.epca.infested_spider_web", "Infested Spider Web");
+        add("block.epca.infested_spider_web_blood", "Infested Blood Spider Web");
+        add("block.epca.infested_cave_spider_web", "Infested Cave Spider Web");
         add("block.epca.acid_solution", "Acid");
         add("fluid_type.epca.acid_solution", "Acid");
 

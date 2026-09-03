@@ -121,6 +121,7 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.WALKING_SKELETON_HEAD_SPAWN_EGG));
                 builder.add(i(ModItems.INFESTED_FOX_SPAWN_EGG));
                 builder.add(i(ModItems.WALKING_FOX_HEAD_SPAWN_EGG));
+                builder.add(i(ModItems.INFESTED_BAT_SPAWN_EGG));
                 builder.add(i(ModItems.RESHAPE_LONGARMS_SPAWN_EGG));
                 builder.add(i(ModItems.RESHAPE_YELLOWEYE_SPAWN_EGG));
                 builder.add(i(ModItems.STAGE_I_BECKON_SPAWN_EGG));
@@ -227,6 +228,8 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_HEAVY_DIAMOND_ORE));
                 builder.add(i(ModItems.SWALLOW_CYST));
                 builder.add(i(ModItems.INFESTED_SPIDER_WEB));
+                builder.add(i(ModItems.INFESTED_SPIDER_WEB_BLOOD));
+                builder.add(i(ModItems.INFESTED_CAVE_SPIDER_WEB));
                 builder.add(i(ModItems.INFESTED_NETHERSEA_BRAND_GROWN));
                 builder.add(i(ModItems.INFESTED_NETHERSEA_BRAND_SOLID));
                 builder.add(i(ModItems.INFESTED_DUSTLIKE));

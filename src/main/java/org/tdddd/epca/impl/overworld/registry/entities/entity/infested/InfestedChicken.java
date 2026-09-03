@@ -148,14 +148,14 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
 
-        
+
         this.goalSelector.addGoal(5, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
 
-        
+
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
     }
 
@@ -548,15 +548,11 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
     }
     
     private void performMeleeAttack(LivingEntity target) {
-        
         if (target.hurt(this.damageSources().mobAttack(this), 2.0F)) {
             
             this.playSound(SoundEvents.CHICKEN_HURT, 0.85F, 0.7F);
         }
     }
-
-
-
     
     private void calculateBodyRotation(LivingEntity target) {
         if (target != null) {
@@ -565,12 +561,9 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
             double distance = eyePos.distanceTo(targetPos);
             double heightDifference = targetPos.y - eyePos.y;
 
-            
             double pitchAngle = -Math.asin(heightDifference / distance) * (180.0 / Math.PI);
-
             
             pitchAngle = Mth.clamp(pitchAngle, -30.0, 72.5);
-
             
             this.bodyRotationX = (float) Math.toRadians(pitchAngle);
         } else {
@@ -578,12 +571,10 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
         }
     }
 
-    
     public float getBodyRotationX() {
         return this.bodyRotationX;
     }
 
-    
     private static void spawnChickenHeads(ServerLevel level, BlockPos pos, int count) {
         for (int i = 0; i < count; i++) {
             
@@ -634,29 +625,12 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
         
         return SoundEvents.CHICKEN_DEATH;
     }
-
-    @Override
-    protected void playHurtSound(DamageSource source) {
-        
-        SoundEvent soundevent = this.getHurtSound(source);
-        if (soundevent != null) {
-            this.playSound(soundevent, 0.85F, 0.7F); 
-        }
-
-        SoundEvent deathSound = this.getDeathSound();
-        if (deathSound != null) {
-            this.playSound(deathSound, 0.85F, 0.7F); 
-        }
-    }
-
     
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        
         if (source.is(DamageTypes.FALL)) {
             return false; 
         }
-
         
         if (source.getEntity() instanceof LivingEntity attacker) {
             
@@ -664,7 +638,6 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
                 return false; 
             }
         }
-
         
         if (isFakingDeath() || isInvulnerable()) {
             return false;
@@ -886,32 +859,17 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
     public void setInvulnerable(boolean invulnerable) {
         this.entityData.set(DATA_IS_INVULNERABLE, invulnerable);
     }
-
-
-
     
     private void triggerFakeDeath(DamageSource source) {
-        
         setFakingDeath(true);
         setInvulnerable(true);
         fakeDeathTimer = 20;
-        deathPosition = this.blockPosition(); 
-
-        
+        deathPosition = this.blockPosition();
         this.setHealth(0.02F);
-
-        
         this.setNoAi(true);
-
-        
         this.setInvulnerable(true);
-
-        
         this.setTarget(null);
-
-        this.setPose(Pose.DYING); 
-
-        
+        this.setPose(Pose.DYING);
         this.entityData.set(DATA_IS_FAKING_DEATH, true);
     }
 

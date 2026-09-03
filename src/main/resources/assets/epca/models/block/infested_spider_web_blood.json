@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "epca:block/infested_spider_web_blood"
+  },
+  "render_type": "cutout"
+}

@@ -157,5 +157,8 @@
   },
   "epca:infested_pumpkin_head": {
     "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_bat": {
+    "immunities": ["epca:coth", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
   }
 }

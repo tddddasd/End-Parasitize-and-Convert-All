@@ -38,6 +38,7 @@
   "epca:walking_skeleton_head": {"min_damage": 0.5},
   "epca:infested_fox": {"min_damage": 0.5},
   "epca:walking_fox_head": {"min_damage": 0.5},
+  "epca:infested_bat": {"min_damage": 0.5},
   "epca:reshape_longarms": {"min_damage": 1.0},
   "epca:reshape_yelloweye": {"min_damage": 1.0}
 }

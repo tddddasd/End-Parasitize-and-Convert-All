@@ -133,6 +133,10 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.walking_fox_head", "虫染狐狸头颅");
         add("entity.epca.reshape_part", "重塑体-长臂");
         add("entity.epca.infested_pumpkin_head", "虫染南瓜头");
+        add("entity.epca.infested_spider_web_projectile", "虫染蜘蛛网团");
+        add("entity.epca.infested_spider_web_blood_projectile", "虫染流血蜘蛛网团");
+        add("entity.epca.infested_cave_spider_web_projectile", "虫染洞穴蜘蛛网团");
+        add("entity.epca.infested_bat", "虫染蝙蝠");
 
         // 投掷矛
         add("entity.epca.thrown_wooden_spear", "木矛");
@@ -219,6 +223,7 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.reshape_yelloweye_spawn_egg", "重塑体-黄眸刷怪蛋");
         add("item.epca.infested_fox_spawn_egg", "虫染狐狸刷怪蛋");
         add("item.epca.walking_fox_head_spawn_egg", "虫染狐狸头颅刷怪蛋");
+        add("item.epca.infested_bat_spawn_egg", "虫染蝙蝠刷怪蛋");
 
         // 材料与特殊物品
         add("item.epca.parasite_viscera", "寄体内脏");
@@ -397,6 +402,8 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.infested_cactus", "虫染仙人掌");
         add("block.epca.infested_sugar_cane", "虫染甘蔗");
         add("block.epca.infested_spider_web", "虫染蜘蛛网");
+        add("block.epca.infested_spider_web_blood", "虫染流血蜘蛛网");
+        add("block.epca.infested_cave_spider_web", "虫染洞穴蜘蛛网");
         add("block.epca.acid_solution", "酸液");
         add("fluid_type.epca.acid_solution", "酸液");
 
