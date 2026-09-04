@@ -176,6 +176,11 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_HEAVY_BRICKS_SLAB));
                 builder.add(i(ModItems.INFESTED_HEAVY_BRICKS_STAIRS));
                 builder.add(i(ModItems.INFESTED_HEAVY_BRICKS_WALL));
+                builder.add(i(ModItems.INFESTED_HEAVY_TILES));
+                builder.add(i(ModItems.INFESTED_CRACKED_HEAVY_TILES));
+                builder.add(i(ModItems.INFESTED_HEAVY_TILES_SLAB));
+                builder.add(i(ModItems.INFESTED_HEAVY_TILES_STAIRS));
+                builder.add(i(ModItems.INFESTED_HEAVY_TILES_WALL));
                 builder.add(i(ModItems.INFESTED_LOG));
                 builder.add(i(ModItems.INFESTED_WOOD));
                 builder.add(i(ModItems.INFESTED_STRIPPED_LOG));

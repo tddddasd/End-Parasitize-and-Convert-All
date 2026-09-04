@@ -100,7 +100,7 @@
       "life_time": 1200,
       "max_count": 1,
       "min_count": 1,
-      "weight": 6
+      "weight": 5
     },
     {
       "effects": [
@@ -117,7 +117,7 @@
       "life_time": 1200,
       "max_count": 1,
       "min_count": 1,
-      "weight": 6
+      "weight": 5
     },
     {
       "effects": [
@@ -166,7 +166,7 @@
       ],
       "entity": "epca:infested_wolf",
       "life_time": 1200,
-      "max_count": 1,
+      "max_count": 2,
       "min_count": 1,
       "weight": 6
     },
@@ -183,9 +183,9 @@
       ],
       "entity": "epca:infested_silverfish",
       "life_time": 1200,
-      "max_count": 3,
-      "min_count": 2,
-      "weight": 6
+      "max_count": 4,
+      "min_count": 3,
+      "weight": 5
     },
     {
       "effects": [
@@ -236,7 +236,24 @@
       "life_time": 1200,
       "max_count": 2,
       "min_count": 2,
-      "weight": 6
+      "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_bat",
+      "life_time": 1200,
+      "max_count": 5,
+      "min_count": 4,
+      "weight": 5
     },
     {
       "effects": [
@@ -251,9 +268,9 @@
       ],
       "entity": "epca:ripper",
       "life_time": 1200,
-      "max_count": 2,
-      "min_count": 1,
-      "weight": 6
+      "max_count": 3,
+      "min_count": 2,
+      "weight": 5
     },
     {
       "effects": [
@@ -336,7 +353,7 @@
       ],
       "entity": "epca:infested_fox",
       "life_time": 1200,
-      "max_count": 1,
+      "max_count": 2,
       "min_count": 1,
       "weight": 5
     }

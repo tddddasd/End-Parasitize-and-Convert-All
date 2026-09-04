@@ -197,6 +197,11 @@ public class ItemEffectHandler {
         if (stack.is(ModItems.INFESTED_SPIDER_WEB.get())) return true;
         if (stack.is(ModItems.INFESTED_SPIDER_WEB_BLOOD.get())) return true;
         if (stack.is(ModItems.INFESTED_CAVE_SPIDER_WEB.get())) return true;
+        if (stack.is(ModItems.INFESTED_CRACKED_HEAVY_TILES.get())) return true;
+        if (stack.is(ModItems.INFESTED_HEAVY_TILES.get())) return true;
+        if (stack.is(ModItems.INFESTED_HEAVY_TILES_SLAB.get())) return true;
+        if (stack.is(ModItems.INFESTED_HEAVY_TILES_STAIRS.get())) return true;
+        if (stack.is(ModItems.INFESTED_HEAVY_TILES_WALL.get())) return true;
         return false;
     }
 

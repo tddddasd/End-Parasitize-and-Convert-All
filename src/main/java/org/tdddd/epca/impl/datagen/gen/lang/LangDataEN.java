@@ -404,6 +404,11 @@ public class LangDataEN extends LanguageProvider {
         add("block.epca.infested_spider_web", "Infested Spider Web");
         add("block.epca.infested_spider_web_blood", "Infested Blood Spider Web");
         add("block.epca.infested_cave_spider_web", "Infested Cave Spider Web");
+        add("block.epca.infested_heavy_tiles", "Infested Heavy Tile");
+        add("block.epca.infested_cracked_heavy_tiles", "Infested Cracked Heavy Tile");
+        add("block.epca.infested_heavy_tiles_stairs", "Infested Heavy Tile Stairs");
+        add("block.epca.infested_heavy_tiles_slab", "Infested Heavy Tile Slab");
+        add("block.epca.infested_heavy_tiles_wall", "Infested Heavy Tile Wall");
         add("block.epca.acid_solution", "Acid");
         add("fluid_type.epca.acid_solution", "Acid");
 

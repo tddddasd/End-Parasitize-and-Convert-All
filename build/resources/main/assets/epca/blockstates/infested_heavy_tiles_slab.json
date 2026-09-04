@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "epca:block/infested_heavy_tiles_slab"
+    },
+    "type=double": {
+      "model": "epca:block/infested_heavy_tiles"
+    },
+    "type=top": {
+      "model": "epca:block/infested_heavy_tiles_slab_top"
+    }
+  }
+}

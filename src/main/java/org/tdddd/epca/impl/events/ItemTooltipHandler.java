@@ -189,6 +189,11 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.INFESTED_SPIDER_WEB, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_SPIDER_WEB_BLOOD, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_CAVE_SPIDER_WEB, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_CRACKED_HEAVY_TILES, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_HEAVY_TILES, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_HEAVY_TILES_SLAB, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_HEAVY_TILES_STAIRS, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_HEAVY_TILES_WALL, "item.epca.category_infested");
 
         //link
         registerTooltip(ModItems.BECKON_CORE, "item.epca.category_link");

@@ -1,12 +1,12 @@
-// 1.20.1	2026-09-02T12:36:18.9833973	Tags for minecraft:block mod id epca
+// 1.20.1	2026-09-04T09:42:28.6257467	Tags for minecraft:block mod id epca
 dda6b48434b07a4013a733e7bd6a7edc9b09391a data/epca/tags/blocks/altar_stones.json
 afff2919694dca61ec02fba86724e8313254e028 data/epca/tags/blocks/pedestals.json
 ebc89732ce220ef873603ff719e5d58217f07f07 data/minecraft/tags/blocks/fences.json
 935dc8168af9e569e2f7ead2c0853acba8cdc2ef data/minecraft/tags/blocks/mineable/axe.json
 c731ad8d8d50564ac08ff65602ed55e59a4d539e data/minecraft/tags/blocks/mineable/hoe.json
-3ad760dec4e7354a9aabc562f7e93155e3889130 data/minecraft/tags/blocks/mineable/pickaxe.json
+fc513ecaa3b9803ed352f7ae24a31dd3cf2a973b data/minecraft/tags/blocks/mineable/pickaxe.json
 ca4440643d9ca1d2adc27ba3590ed66e7a9e917b data/minecraft/tags/blocks/mineable/shovel.json
 d673766af4a38bab46044b5c98dded9b3fdbf1ae data/minecraft/tags/blocks/needs_iron_tool.json
 3afa107c822784c46a170460d775027b89379f0e data/minecraft/tags/blocks/needs_stone_tool.json
-02f8d8b39f837ae0e1af086141b1ea10bf703934 data/minecraft/tags/blocks/walls.json
+35ee13d47a0c64c3b6c21b93e35b3fd1e047e275 data/minecraft/tags/blocks/walls.json
 ebc89732ce220ef873603ff719e5d58217f07f07 data/minecraft/tags/blocks/wooden_fences.json

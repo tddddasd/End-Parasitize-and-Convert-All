@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-01T08:17:06.7390629	EPCA Block Conversions
-7e1eaacf992028dbcc6e07a5f531f03bdc73e95b data/epca/block_conversions/general_block_conversions.json
-7e1eaacf992028dbcc6e07a5f531f03bdc73e95b data/epca/block_conversions/stage_ii_block_conversions.json
-7e1eaacf992028dbcc6e07a5f531f03bdc73e95b data/epca/block_conversions/stage_i_block_conversions.json
+// 1.20.1	2026-09-04T11:49:07.1642455	EPCA Block Conversions
+3d374d4b8e80c4fa558a325c60e16c796e9c01a3 data/epca/block_conversions/general_block_conversions.json
+746945c3b503cd35b5df0359379a7f9e22fb24f2 data/epca/block_conversions/stage_ii_block_conversions.json
+3ce8184d3784eac4951bb24fff62c4da20cd1a77 data/epca/block_conversions/stage_i_block_conversions.json

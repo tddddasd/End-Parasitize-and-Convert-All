@@ -6,6 +6,7 @@
     "epca:infested_sandstone_wall",
     "epca:infested_heavy_cobblestone_wall",
     "epca:infested_polished_heavy_stone_wall",
-    "epca:infested_heavy_bricks_wall"
+    "epca:infested_heavy_bricks_wall",
+    "epca:infested_heavy_tiles_wall"
   ]
 }

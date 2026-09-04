@@ -1,75 +1,75 @@
-[039月2026 09:45:41.827] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, F:\bu\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.2.0, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, epca, --all, --output, G:\epca\epca\src\generated\resources, --existing, G:\epca\epca\src\main\resources, --mixin.config, epca.mixins.json]
-[039月2026 09:45:41.832] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.8.1 by Microsoft; OS Windows 10 arch amd64 version 10.0
-[039月2026 09:45:42.013] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
-[039月2026 09:45:42.090] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/F:/bu/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
-[039月2026 09:45:42.605] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file F:\bu\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.2.0\7f9181f85acc66547685a72020713fc8cbde98\javafmllanguage-1.20.1-47.2.0.jar is missing mods.toml file
-[039月2026 09:45:42.612] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file F:\bu\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.2.0\7872f5205685fdd26fae39b1be79b0e60ca5b7bd\lowcodelanguage-1.20.1-47.2.0.jar is missing mods.toml file
-[039月2026 09:45:42.620] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file F:\bu\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.2.0\d501d161cabed08b3c139a2c6217b02a39f3c3e9\mclanguage-1.20.1-47.2.0.jar is missing mods.toml file
-[039月2026 09:45:42.629] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file F:\bu\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.2.0\ffd3c6debac0a388c9e33ac43c9f5eafb91cb466\fmlcore-1.20.1-47.2.0.jar is missing mods.toml file
-[039月2026 09:45:43.132] [main/WARN] [net.minecraftforge.jarjar.selection.JarSelector/]: Attempted to select a dependency jar for JarJar which was passed in as source: ldlib. Using Mod File: F:\bu\caches\forge_gradle\deobf_dependencies\curse\maven\ldlib-626676\6417175_mapped_official_1.20.1\ldlib-626676-6417175_mapped_official_1.20.1.jar
-[039月2026 09:45:43.132] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: Found 3 dependencies adding them to mods collection
-[039月2026 09:45:46.576] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
-[039月2026 09:45:46.619] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, F:\bu\caches\forge_gradle\assets, --assetIndex, 5, --mod, epca, --all, --output, G:\epca\epca\src\generated\resources, --existing, G:\epca\epca\src\main\resources]
-[039月2026 09:45:46.945] [main/WARN] [mixin/]: Reference map 'epca.refmap.json' for epca.mixins.json could not be read. If this is a development environment you can ignore this message
-[039月2026 09:45:47.687] [main/INFO] [mixin/]: Remapping refMap mixins.caerula_arbor.refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:47.689] [main/INFO] [mixin/]: Remapping refMap jade.refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:47.690] [main/INFO] [mixin/]: Remapping refMap geckolib.refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:47.735] [main/INFO] [mixin/]: Remapping refMap ldlib-common-1.20.1-ldlib-common-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:47.738] [main/INFO] [mixin/]: Remapping refMap ldlib-forge-1.20.1-ldlib-forge-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:47.741] [main/INFO] [mixin/]: Remapping refMap player-animation-lib-minecraft_common-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:47.742] [main/INFO] [mixin/]: Remapping refMap photon-common-1.20.1-photon-common-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:47.745] [main/INFO] [mixin/]: Remapping refMap photon-forge-1.20.1-photon-forge-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:47.747] [main/INFO] [mixin/]: Remapping refMap yawning_neko_api.refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
-[039月2026 09:45:49.204] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [epca]
-[039月2026 09:45:49.448] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.3.5).
-[039月2026 09:45:56.604] [modloading-worker-0/INFO] [Photon/]: Photon is initializing on platform: Forge
-[039月2026 09:45:56.604] [modloading-worker-0/INFO] [LowDragLib/]: LowDragLib is initializing on platform: Forge
-[039月2026 09:45:56.812] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.2.0, for MC 1.20.1 with MCP 20230612.114412
-[039月2026 09:45:56.813] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.2.0 Initialized
-[039月2026 09:45:57.127] [modloading-worker-0/WARN] [software.bernie.geckolib.GeckoLib/]: Minecraft.getInstance() was null, could not register reload listeners
-[039月2026 09:45:57.346] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager...
-[039月2026 09:45:57.363] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager took 9.923 milliseconds
-[039月2026 09:46:08.057] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/G:/epca/epca/build/fg_cache/net/minecraftforge/forge/1.20.1-47.2.0_mapped_official_1.20.1/forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/assets/.mcassetsroot' uses unexpected schema
-[039月2026 09:46:08.058] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/G:/epca/epca/build/fg_cache/net/minecraftforge/forge/1.20.1-47.2.0_mapped_official_1.20.1/forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/data/.mcassetsroot' uses unexpected schema
-[039月2026 09:46:08.305] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Block States: epca
-[039月2026 09:46:08.655] [main/WARN] [epca/]: Skipping blockstate/model for acid_solution: Texture epca:block/acid_solution does not exist in any known resource pack
-[039月2026 09:46:08.774] [main/INFO] [net.minecraft.data.DataGenerator/]: Block States: epca finished after 468 ms
-[039月2026 09:46:08.774] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Item Models: epca
-[039月2026 09:46:08.788] [main/WARN] [epca/]: Skipping item model for yawning_nya_spawn_egg (no texture): Texture epca:item/yawning_nya_spawn_egg does not exist in any known resource pack
-[039月2026 09:46:08.791] [main/WARN] [epca/]: Skipping item model for biomass_small_spawn_egg (no texture): Texture epca:item/biomass_small_spawn_egg does not exist in any known resource pack
-[039月2026 09:46:08.796] [main/WARN] [epca/]: Skipping item model for nullthing_spawn_egg (no texture): Texture epca:item/nullthing_spawn_egg does not exist in any known resource pack
-[039月2026 09:46:08.797] [main/WARN] [epca/]: Skipping item model for biomass_medium_spawn_egg (no texture): Texture epca:item/biomass_medium_spawn_egg does not exist in any known resource pack
-[039月2026 09:46:08.800] [main/WARN] [epca/]: Skipping item model for infested_player_spawn_egg (no texture): Texture epca:item/infested_player_spawn_egg does not exist in any known resource pack
-[039月2026 09:46:08.807] [main/INFO] [net.minecraft.data.DataGenerator/]: Item Models: epca finished after 32 ms
-[039月2026 09:46:08.807] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Languages: zh_cn
-[039月2026 09:46:08.813] [main/INFO] [net.minecraft.data.DataGenerator/]: Languages: zh_cn finished after 5 ms
-[039月2026 09:46:08.814] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Languages: en_us
-[039月2026 09:46:08.817] [main/INFO] [net.minecraft.data.DataGenerator/]: Languages: en_us finished after 3 ms
-[039月2026 09:46:08.818] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Sound Definitions
-[039月2026 09:46:08.841] [main/INFO] [net.minecraft.data.DataGenerator/]: Sound Definitions finished after 23 ms
-[039月2026 09:46:08.841] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Particle Descriptions
-[039月2026 09:46:08.849] [main/INFO] [net.minecraft.data.DataGenerator/]: Particle Descriptions finished after 7 ms
-[039月2026 09:46:08.849] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: atlases generator for epca
-[039月2026 09:46:08.860] [main/INFO] [net.minecraft.data.DataGenerator/]: atlases generator for epca finished after 10 ms
-[039月2026 09:46:08.860] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:block mod id epca
-[039月2026 09:46:08.878] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:block mod id epca finished after 16 ms
-[039月2026 09:46:08.878] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:item mod id epca
-[039月2026 09:46:08.880] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:item mod id epca finished after 2 ms
-[039月2026 09:46:08.880] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:entity_type mod id epca
-[039月2026 09:46:08.881] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:entity_type mod id epca finished after 0 ms
-[039月2026 09:46:08.881] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Recipes
-[039月2026 09:46:08.918] [main/INFO] [net.minecraft.data.DataGenerator/]: Recipes finished after 36 ms
-[039月2026 09:46:08.919] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Registries
-[039月2026 09:46:08.922] [main/INFO] [net.minecraft.data.DataGenerator/]: Registries finished after 3 ms
-[039月2026 09:46:08.922] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Entity Conversions
-[039月2026 09:46:08.955] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Entity Conversions finished after 32 ms
-[039月2026 09:46:08.955] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Entity Carry
-[039月2026 09:46:08.959] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Entity Carry finished after 3 ms
-[039月2026 09:46:08.959] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Block Conversions
-[039月2026 09:46:08.966] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Block Conversions finished after 6 ms
-[039月2026 09:46:08.966] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Biomass Spawns
-[039月2026 09:46:08.974] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Biomass Spawns finished after 7 ms
-[039月2026 09:46:08.974] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Altar Points
-[039月2026 09:46:08.975] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Altar Points finished after 0 ms
-[039月2026 09:46:08.975] [main/INFO] [net.minecraft.data.DataGenerator/]: All providers took: 671 ms
-[039月2026 09:46:09.007] [main/INFO] [net.minecraft.data.HashCache/]: Caching: total files: 493, old count: 507, new count: 494, removed stale: 0, written: 43
+[049月2026 11:48:41.882] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, F:\bu\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.2.0, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, epca, --all, --output, G:\epca\epca\src\generated\resources, --existing, G:\epca\epca\src\main\resources, --mixin.config, epca.mixins.json]
+[049月2026 11:48:41.888] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.8.1 by Microsoft; OS Windows 10 arch amd64 version 10.0
+[049月2026 11:48:42.033] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
+[049月2026 11:48:42.097] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/F:/bu/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
+[049月2026 11:48:42.545] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file F:\bu\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.2.0\7f9181f85acc66547685a72020713fc8cbde98\javafmllanguage-1.20.1-47.2.0.jar is missing mods.toml file
+[049月2026 11:48:42.554] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file F:\bu\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.2.0\7872f5205685fdd26fae39b1be79b0e60ca5b7bd\lowcodelanguage-1.20.1-47.2.0.jar is missing mods.toml file
+[049月2026 11:48:42.562] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file F:\bu\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.2.0\d501d161cabed08b3c139a2c6217b02a39f3c3e9\mclanguage-1.20.1-47.2.0.jar is missing mods.toml file
+[049月2026 11:48:42.571] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file F:\bu\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.2.0\ffd3c6debac0a388c9e33ac43c9f5eafb91cb466\fmlcore-1.20.1-47.2.0.jar is missing mods.toml file
+[049月2026 11:48:43.054] [main/WARN] [net.minecraftforge.jarjar.selection.JarSelector/]: Attempted to select a dependency jar for JarJar which was passed in as source: ldlib. Using Mod File: F:\bu\caches\forge_gradle\deobf_dependencies\curse\maven\ldlib-626676\6417175_mapped_official_1.20.1\ldlib-626676-6417175_mapped_official_1.20.1.jar
+[049月2026 11:48:43.055] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: Found 3 dependencies adding them to mods collection
+[049月2026 11:48:46.106] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[049月2026 11:48:46.144] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, F:\bu\caches\forge_gradle\assets, --assetIndex, 5, --mod, epca, --all, --output, G:\epca\epca\src\generated\resources, --existing, G:\epca\epca\src\main\resources]
+[049月2026 11:48:46.263] [main/WARN] [mixin/]: Reference map 'epca.refmap.json' for epca.mixins.json could not be read. If this is a development environment you can ignore this message
+[049月2026 11:48:46.609] [main/INFO] [mixin/]: Remapping refMap mixins.caerula_arbor.refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:46.611] [main/INFO] [mixin/]: Remapping refMap jade.refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:46.613] [main/INFO] [mixin/]: Remapping refMap geckolib.refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:46.627] [main/INFO] [mixin/]: Remapping refMap ldlib-common-1.20.1-ldlib-common-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:46.629] [main/INFO] [mixin/]: Remapping refMap ldlib-forge-1.20.1-ldlib-forge-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:46.632] [main/INFO] [mixin/]: Remapping refMap player-animation-lib-minecraft_common-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:46.633] [main/INFO] [mixin/]: Remapping refMap photon-common-1.20.1-photon-common-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:46.636] [main/INFO] [mixin/]: Remapping refMap photon-forge-1.20.1-photon-forge-refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:46.637] [main/INFO] [mixin/]: Remapping refMap yawning_neko_api.refmap.json using G:\epca\epca\build\createSrgToMcp\output.srg
+[049月2026 11:48:47.602] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [epca]
+[049月2026 11:48:47.776] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.3.5).
+[049月2026 11:48:55.096] [modloading-worker-0/INFO] [Photon/]: Photon is initializing on platform: Forge
+[049月2026 11:48:55.097] [modloading-worker-0/INFO] [LowDragLib/]: LowDragLib is initializing on platform: Forge
+[049月2026 11:48:55.271] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.2.0, for MC 1.20.1 with MCP 20230612.114412
+[049月2026 11:48:55.275] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.2.0 Initialized
+[049月2026 11:48:55.463] [modloading-worker-0/WARN] [software.bernie.geckolib.GeckoLib/]: Minecraft.getInstance() was null, could not register reload listeners
+[049月2026 11:48:55.871] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager...
+[049月2026 11:48:55.881] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager took 6.182 milliseconds
+[049月2026 11:49:06.262] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/G:/epca/epca/build/fg_cache/net/minecraftforge/forge/1.20.1-47.2.0_mapped_official_1.20.1/forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/assets/.mcassetsroot' uses unexpected schema
+[049月2026 11:49:06.262] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/G:/epca/epca/build/fg_cache/net/minecraftforge/forge/1.20.1-47.2.0_mapped_official_1.20.1/forge-1.20.1-47.2.0_mapped_official_1.20.1.jar%23191!/data/.mcassetsroot' uses unexpected schema
+[049月2026 11:49:06.457] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Block States: epca
+[049月2026 11:49:06.847] [main/WARN] [epca/]: Skipping blockstate/model for acid_solution: Texture epca:block/acid_solution does not exist in any known resource pack
+[049月2026 11:49:06.979] [main/INFO] [net.minecraft.data.DataGenerator/]: Block States: epca finished after 520 ms
+[049月2026 11:49:06.979] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Item Models: epca
+[049月2026 11:49:06.994] [main/WARN] [epca/]: Skipping item model for yawning_nya_spawn_egg (no texture): Texture epca:item/yawning_nya_spawn_egg does not exist in any known resource pack
+[049月2026 11:49:06.997] [main/WARN] [epca/]: Skipping item model for biomass_small_spawn_egg (no texture): Texture epca:item/biomass_small_spawn_egg does not exist in any known resource pack
+[049月2026 11:49:07.002] [main/WARN] [epca/]: Skipping item model for nullthing_spawn_egg (no texture): Texture epca:item/nullthing_spawn_egg does not exist in any known resource pack
+[049月2026 11:49:07.003] [main/WARN] [epca/]: Skipping item model for biomass_medium_spawn_egg (no texture): Texture epca:item/biomass_medium_spawn_egg does not exist in any known resource pack
+[049月2026 11:49:07.005] [main/WARN] [epca/]: Skipping item model for infested_player_spawn_egg (no texture): Texture epca:item/infested_player_spawn_egg does not exist in any known resource pack
+[049月2026 11:49:07.012] [main/INFO] [net.minecraft.data.DataGenerator/]: Item Models: epca finished after 32 ms
+[049月2026 11:49:07.012] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Languages: zh_cn
+[049月2026 11:49:07.016] [main/INFO] [net.minecraft.data.DataGenerator/]: Languages: zh_cn finished after 4 ms
+[049月2026 11:49:07.016] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Languages: en_us
+[049月2026 11:49:07.019] [main/INFO] [net.minecraft.data.DataGenerator/]: Languages: en_us finished after 2 ms
+[049月2026 11:49:07.019] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Sound Definitions
+[049月2026 11:49:07.042] [main/INFO] [net.minecraft.data.DataGenerator/]: Sound Definitions finished after 22 ms
+[049月2026 11:49:07.043] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Particle Descriptions
+[049月2026 11:49:07.049] [main/INFO] [net.minecraft.data.DataGenerator/]: Particle Descriptions finished after 6 ms
+[049月2026 11:49:07.049] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: atlases generator for epca
+[049月2026 11:49:07.058] [main/INFO] [net.minecraft.data.DataGenerator/]: atlases generator for epca finished after 8 ms
+[049月2026 11:49:07.058] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:block mod id epca
+[049月2026 11:49:07.075] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:block mod id epca finished after 16 ms
+[049月2026 11:49:07.075] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:item mod id epca
+[049月2026 11:49:07.077] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:item mod id epca finished after 1 ms
+[049月2026 11:49:07.077] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:entity_type mod id epca
+[049月2026 11:49:07.077] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:entity_type mod id epca finished after 0 ms
+[049月2026 11:49:07.078] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Recipes
+[049月2026 11:49:07.113] [main/INFO] [net.minecraft.data.DataGenerator/]: Recipes finished after 35 ms
+[049月2026 11:49:07.114] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Registries
+[049月2026 11:49:07.117] [main/INFO] [net.minecraft.data.DataGenerator/]: Registries finished after 3 ms
+[049月2026 11:49:07.117] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Entity Conversions
+[049月2026 11:49:07.134] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Entity Conversions finished after 16 ms
+[049月2026 11:49:07.134] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Entity Carry
+[049月2026 11:49:07.140] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Entity Carry finished after 5 ms
+[049月2026 11:49:07.140] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Block Conversions
+[049月2026 11:49:07.154] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Block Conversions finished after 13 ms
+[049月2026 11:49:07.154] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Biomass Spawns
+[049月2026 11:49:07.161] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Biomass Spawns finished after 7 ms
+[049月2026 11:49:07.162] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: EPCA Altar Points
+[049月2026 11:49:07.162] [main/INFO] [net.minecraft.data.DataGenerator/]: EPCA Altar Points finished after 0 ms
+[049月2026 11:49:07.162] [main/INFO] [net.minecraft.data.DataGenerator/]: All providers took: 705 ms
+[049月2026 11:49:07.194] [main/INFO] [net.minecraft.data.HashCache/]: Caching: total files: 514, old count: 514, new count: 515, removed stale: 0, written: 3

@@ -479,15 +479,13 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
         if (!this.level().isClientSide) {
-            IParasite.super.onKillEntity(killedEntity);
-
-            
             this.addEffect(new MobEffectInstance(
                     MobEffects.REGENERATION,
                     60,     
                     0,      
                     false, false, true
             ));
+            IParasite.super.onKillEntity(killedEntity);
         }
     }
 

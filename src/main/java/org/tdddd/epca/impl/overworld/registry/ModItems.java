@@ -308,6 +308,11 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_SPIDER_WEB = blockItem("infested_spider_web", ModBlocks.INFESTED_SPIDER_WEB);
     public static final RegistryObject<Item> INFESTED_SPIDER_WEB_BLOOD = blockItem("infested_spider_web_blood", ModBlocks.INFESTED_SPIDER_WEB_BLOOD);
     public static final RegistryObject<Item> INFESTED_CAVE_SPIDER_WEB = blockItem("infested_cave_spider_web", ModBlocks.INFESTED_CAVE_SPIDER_WEB);
+    public static final RegistryObject<Item> INFESTED_CRACKED_HEAVY_TILES = blockItem("infested_cracked_heavy_tiles", ModBlocks.INFESTED_CRACKED_HEAVY_TILES);
+    public static final RegistryObject<Item> INFESTED_HEAVY_TILES = blockItem("infested_heavy_tiles", ModBlocks.INFESTED_HEAVY_TILES);
+    public static final RegistryObject<Item> INFESTED_HEAVY_TILES_STAIRS = blockItem("infested_heavy_tiles_stairs", ModBlocks.INFESTED_HEAVY_TILES_STAIRS);
+    public static final RegistryObject<Item> INFESTED_HEAVY_TILES_SLAB = blockItem("infested_heavy_tiles_slab", ModBlocks.INFESTED_HEAVY_TILES_SLAB);
+    public static final RegistryObject<Item> INFESTED_HEAVY_TILES_WALL = blockItem("infested_heavy_tiles_wall", ModBlocks.INFESTED_HEAVY_TILES_WALL);
 
     // 特殊 BlockItem 子类（使用自定义的 Item 内部类）
     public static final RegistryObject<InfestedLog.InfestedLogItem> INFESTED_LOG =

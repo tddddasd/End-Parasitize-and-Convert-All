@@ -529,17 +529,17 @@ public class ModBlocks {
 
     public static final RegistryObject<Block> INFESTED_HEAVY_BRICKS_STAIRS = BLOCKS.register(
             "infested_heavy_bricks_stairs",
-            () -> new InfestedPolishedHeavyStoneStairs(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            () -> new InfestedHeavyBricksStairs(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
     );
 
     public static final RegistryObject<Block> INFESTED_HEAVY_BRICKS_SLAB = BLOCKS.register(
             "infested_heavy_bricks_slab",
-            () -> new InfestedPolishedHeavyStoneSlab(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            () -> new InfestedHeavyBricksSlab(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
     );
 
     public static final RegistryObject<Block> INFESTED_HEAVY_BRICKS_WALL = BLOCKS.register(
             "infested_heavy_bricks_wall",
-            () -> new InfestedPolishedHeavyStoneWall(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            () -> new InfestedHeavyBricksWall(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
     );
 
     public static final RegistryObject<Block> INFESTED_CARVED_PUMPKIN = BLOCKS.register(
@@ -579,4 +579,29 @@ public class ModBlocks {
 
     public static final RegistryObject<InfestedCaveSpiderWeb> INFESTED_CAVE_SPIDER_WEB = BLOCKS.register("infested_cave_spider_web",
             () -> new InfestedCaveSpiderWeb(BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.CYAN).noOcclusion().noCollission().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()));
+
+    public static final RegistryObject<Block> INFESTED_HEAVY_TILES = BLOCKS.register(
+            "infested_heavy_tiles",
+            () -> new InfestedHeavyTiles(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+    );
+
+    public static final RegistryObject<Block> INFESTED_CRACKED_HEAVY_TILES = BLOCKS.register(
+            "infested_cracked_heavy_tiles",
+            () -> new InfestedCrackedHeavyTiles(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+    );
+
+    public static final RegistryObject<Block> INFESTED_HEAVY_TILES_STAIRS = BLOCKS.register(
+            "infested_heavy_tiles_stairs",
+            () -> new InfestedHeavyTilesStairs(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+    );
+
+    public static final RegistryObject<Block> INFESTED_HEAVY_TILES_SLAB = BLOCKS.register(
+            "infested_heavy_tiles_slab",
+            () -> new InfestedHeavyTilesSlab(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+    );
+
+    public static final RegistryObject<Block> INFESTED_HEAVY_TILES_WALL = BLOCKS.register(
+            "infested_heavy_tiles_wall",
+            () -> new InfestedHeavyTilesWall(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+    );
 }

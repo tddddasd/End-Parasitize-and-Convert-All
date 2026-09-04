@@ -404,6 +404,11 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.infested_spider_web", "虫染蜘蛛网");
         add("block.epca.infested_spider_web_blood", "虫染流血蜘蛛网");
         add("block.epca.infested_cave_spider_web", "虫染洞穴蜘蛛网");
+        add("block.epca.infested_heavy_tiles", "虫染重质瓦");
+        add("block.epca.infested_cracked_heavy_tiles", "虫染裂纹重质瓦");
+        add("block.epca.infested_heavy_tiles_stairs", "虫染重质瓦楼梯");
+        add("block.epca.infested_heavy_tiles_slab", "虫染重质瓦台阶");
+        add("block.epca.infested_heavy_tiles_wall", "虫染重质瓦墙");
         add("block.epca.acid_solution", "酸液");
         add("fluid_type.epca.acid_solution", "酸液");
 

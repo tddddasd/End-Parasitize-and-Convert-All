@@ -42,6 +42,7 @@
     "minecraft:cobblestone_wall": "epca:infested_cobblestone_wall",
     "minecraft:copper_ore": "epca:infested_copper_ore",
     "minecraft:cracked_deepslate_bricks": "epca:infested_cracked_heavy_bricks",
+    "minecraft:cracked_deepslate_tiles": "epca:infested_cracked_heavy_tiles",
     "minecraft:cracked_stone_bricks": "epca:infested_cracked_stone_bricks",
     "minecraft:cut_red_sandstone": "epca:infested_cut_sandstone",
     "minecraft:cut_red_sandstone_slab": "epca:infested_cut_sandstone_slab",
@@ -66,6 +67,10 @@
     "minecraft:deepslate_iron_ore": "epca:infested_heavy_iron_ore",
     "minecraft:deepslate_lapis_ore": "epca:infested_heavy_lapis_ore",
     "minecraft:deepslate_redstone_ore": "epca:infested_heavy_redstone_ore",
+    "minecraft:deepslate_tiles": "epca:infested_heavy_tiles",
+    "minecraft:deepslate_tiles_slab": "epca:infested_heavy_tiles_slab",
+    "minecraft:deepslate_tiles_stairs": "epca:infested_heavy_tiles_stairs",
+    "minecraft:deepslate_tiles_wall": "epca:infested_heavy_tiles_wall",
     "minecraft:diamond_ore": "epca:infested_diamond_ore",
     "minecraft:diorite": "epca:infested_stone",
     "minecraft:diorite_slab": "epca:infested_stone_slab",
@@ -197,5 +202,8 @@
     "minecraft:tuff": "epca:infested_heavy_stone",
     "minecraft:vine": "epca:infested_vine",
     "minecraft:web": "epca:infested_spider_web"
-  }
+  },
+  "leaves_interval": 2,
+  "leaves_radius": 20,
+  "plant_radius": 1
 }

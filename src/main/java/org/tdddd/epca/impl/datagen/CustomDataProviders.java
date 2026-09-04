@@ -232,6 +232,20 @@ public class CustomDataProviders {
         BlockConversionsData(Map<String, String> c) { this.conversions = c; }
     }
 
+    public static class StageConfigData {
+        public Map<String, String> conversions;
+        public int plant_radius;
+        public int leaves_radius;
+        public int leaves_interval;
+
+        public StageConfigData(Map<String, String> conversions, int plantRadius, int leavesRadius, int leavesInterval) {
+            this.conversions = conversions;
+            this.plant_radius = plantRadius;
+            this.leaves_radius = leavesRadius;
+            this.leaves_interval = leavesInterval;
+        }
+    }
+
     public static class BlockConversionDataProvider implements DataProvider {
         private final PackOutput out;
         public BlockConversionDataProvider(PackOutput out) { this.out = out; }
@@ -418,19 +432,26 @@ public class CustomDataProviders {
             put(general, "minecraft:cactus", "epca:infested_cactus");
             put(general, "minecraft:sugar_cane", "epca:infested_sugar_cane");
             put(general, "minecraft:web", "epca:infested_spider_web");
+            put(general, "minecraft:deepslate_tiles", "epca:infested_heavy_tiles");
+            put(general, "minecraft:cracked_deepslate_tiles", "epca:infested_cracked_heavy_tiles");
+            put(general, "minecraft:deepslate_tiles_slab", "epca:infested_heavy_tiles_slab");
+            put(general, "minecraft:deepslate_tiles_stairs", "epca:infested_heavy_tiles_stairs");
+            put(general, "minecraft:deepslate_tiles_wall", "epca:infested_heavy_tiles_wall");
 
             // beckon — 同 general
             Map<String, String> beckon = new LinkedHashMap<>(general);
 
             return CompletableFuture.allOf(
-                    saveConv(cache, "general_block_conversions", general),
-                    saveConv(cache, "stage_i_block_conversions", beckon),
-                    saveConv(cache, "stage_ii_block_conversions", beckon)
+                    saveConv(cache, "general_block_conversions", general, 1, 4, 2),
+                    saveConv(cache, "stage_i_block_conversions", beckon, 1, 10, 2),
+                    saveConv(cache, "stage_ii_block_conversions", beckon, 1, 20, 2)
             );
         }
         private void put(Map<String, String> m, String k, String v) { m.put(k, v); }
-        private CompletableFuture<?> saveConv(CachedOutput c, String file, Map<String, String> map) {
-            return saveStable(c, JsonParser.parseString(GSON.toJson(new BlockConversionsData(map))),
+        private CompletableFuture<?> saveConv(CachedOutput c, String file, Map<String, String> map,
+                                              int plantRadius, int leavesRadius, int leavesInterval) {
+            StageConfigData data = new StageConfigData(map, plantRadius, leavesRadius, leavesInterval);
+            return saveStable(c, JsonParser.parseString(GSON.toJson(data)),
                     dataPath(out, "block_conversions", file));
         }
         @Override public String getName() { return "EPCA Block Conversions"; }
@@ -472,15 +493,15 @@ public class CustomDataProviders {
             medium.land_spawns = List.of(
                     e(ModEntities.INFESTED_ZOMBIE, 5,1,1), e(ModEntities.INFESTED_HUSK, 5,1,1),
                     e(ModEntities.INFESTED_VILLAGER, 5,1,1), e(ModEntities.INFESTED_ZOMBIE_VILLAGER, 5,1,1),
-                    e(ModEntities.INFESTED_PILLAGER, 5,1,1), e(ModEntities.INFESTED_VINDICATOR, 6,1,1),
-                    e(ModEntities.INFESTED_PIG, 6,1,1), e(ModEntities.INFESTED_COW, 6,1,1),
-                    e(ModEntities.INFESTED_SHEEP, 6,1,1), e(ModEntities.INFESTED_WOLF, 6,1,1),
-                    e(ModEntities.INFESTED_SILVERFISH, 6,2,3),
+                    e(ModEntities.INFESTED_PILLAGER, 5,1,1), e(ModEntities.INFESTED_VINDICATOR, 5,1,1),
+                    e(ModEntities.INFESTED_PIG, 5,1,1), e(ModEntities.INFESTED_COW, 6,1,1),
+                    e(ModEntities.INFESTED_SHEEP, 6,1,1), e(ModEntities.INFESTED_WOLF, 6,1,2),
+                    e(ModEntities.INFESTED_SILVERFISH, 5,3,4),
                     e(ModEntities.INFESTED_SLIME_SIZE1, 4,1,1), e(ModEntities.INFESTED_SLIME_SIZE3, 4,1,1),
-                    e(ModEntities.INFESTED_CHICKEN, 6,2,2),
-                    e(ModEntities.RIPPER, 6,1,2), e(ModEntities.INFESTED_SKELETON, 5,1,1),
+                    e(ModEntities.INFESTED_CHICKEN, 5,2,2), e(ModEntities.INFESTED_BAT, 5,4,5),
+                    e(ModEntities.RIPPER, 5,2,3), e(ModEntities.INFESTED_SKELETON, 5,1,1),
                     e(ModEntities.FLYING_CARRIER, 5,1,1), e(ModEntities.LIGHT_CARRIER, 2,1,1),
-                    e(ModEntities.INFESTED_ENDERMAN, 2,1,1), e(ModEntities.INFESTED_FOX, 5,1,1));
+                    e(ModEntities.INFESTED_ENDERMAN, 2,1,1), e(ModEntities.INFESTED_FOX, 5,1,2));
 
             return CompletableFuture.allOf(
                     saveSpawns(cache, "biomass_small", small),

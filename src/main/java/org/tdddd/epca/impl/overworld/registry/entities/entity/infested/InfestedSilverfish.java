@@ -38,8 +38,6 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-
-    
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
     private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
