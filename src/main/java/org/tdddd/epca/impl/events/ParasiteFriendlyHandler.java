@@ -23,24 +23,6 @@ public class ParasiteFriendlyHandler {
         }
 
         
-        if (target instanceof Player player) {
-            
-            if (ModConfig.isEnemyPlayer(player.getScoreboardName())) {
-                
-                return;
-            }
-
-            
-            if (ModConfig.isParasiteFriendly()) {
-                
-                if (entity instanceof Mob) {
-                    ((Mob) entity).setTarget(null);
-                }
-                event.setNewTarget(null);
-            }
-        }
-
-        
         if (target != null && ModConfig.isInImmunityWhitelist(target)) {
             
             if (entity instanceof Mob) {
@@ -54,19 +36,6 @@ public class ParasiteFriendlyHandler {
         if (ModConfig.isParasitePeaceful()) {
             
             if (target != null && !ModConfig.isInTargetWhitelist(target)) {
-                if (entity instanceof Mob) {
-                    ((Mob) entity).setTarget(null);
-                }
-                event.setNewTarget(null);
-            }
-            return;
-        }
-
-        
-        if (ModConfig.isParasiteFriendly()) {
-            
-            if (target instanceof Player) {
-                
                 if (entity instanceof Mob) {
                     ((Mob) entity).setTarget(null);
                 }

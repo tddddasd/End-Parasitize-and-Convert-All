@@ -202,6 +202,9 @@ public class ItemEffectHandler {
         if (stack.is(ModItems.INFESTED_HEAVY_TILES_SLAB.get())) return true;
         if (stack.is(ModItems.INFESTED_HEAVY_TILES_STAIRS.get())) return true;
         if (stack.is(ModItems.INFESTED_HEAVY_TILES_WALL.get())) return true;
+        if (stack.is(ModItems.INFESTED_MANGROVE_ROOTS.get())) return true;
+        if (stack.is(ModItems.INFESTED_MUDDY_MANGROVE_ROOTS.get())) return true;
+        if (stack.is(ModItems.INFESTED_DEAD_BUSH.get())) return true;
         return false;
     }
 

@@ -86,8 +86,6 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.biomass_medium", "生物质");
         add("entity.epca.stage_i_beckon", "一阶召唤柱");
         add("entity.epca.stage_ii_beckon", "二阶召唤柱");
-        add("entity.epca.viral_bomb", "病毒炸弹");
-        add("entity.epca.viral_bomb_ii", "病毒炸弹");
         add("entity.epca.infested_pillager", "虫染掠夺者");
         add("entity.epca.walking_pillager_head", "虫染掠夺者头颅");
         add("entity.epca.infested_vindicator", "虫染卫道士");
@@ -241,7 +239,7 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.erosion_clock", "侵蚀刻钟");
         add("item.epca.living_armor_box", "活体盔甲盒");
         add("item.epca.feeding_module_i", "[一阶自动喂食模块]");
-        add("item.epca.instinct_module_i", "[一阶血性本能模块]");
+        add("item.epca.afterimage_module", "[残像模块]");
         add("item.epca.flesh_armor_module_i", "[一阶肉甲模块]");
         add("item.epca.netherite_module_i", "[一阶下界合金化模块]");
         add("item.epca.flight_module_i", "[一阶飞行模块]");
@@ -409,6 +407,9 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.infested_heavy_tiles_stairs", "虫染重质瓦楼梯");
         add("block.epca.infested_heavy_tiles_slab", "虫染重质瓦台阶");
         add("block.epca.infested_heavy_tiles_wall", "虫染重质瓦墙");
+        add("block.epca.infested_mangrove_roots", "虫染红树根");
+        add("block.epca.infested_muddy_mangrove_roots", "虫染粘泥的红树根");
+        add("block.epca.infested_dead_bush", "虫染枯萎的灌木");
         add("block.epca.acid_solution", "酸液");
         add("fluid_type.epca.acid_solution", "酸液");
 
@@ -450,6 +451,11 @@ public class LangDataCN extends LanguageProvider {
         add("epca.difficulty.master", "大师");
         add("epca.difficulty.custom", "自定义");
         add("epca.difficulty.legendary", "§5传说");
+
+        add("key.category.epca", "终末-归寄万物");
+        add("key.epca.switch_state", "切换领巢者伪装状态");
+        add("key.epca.follow", "寄生虫跟随");
+        add("key.epca.follow_cancel", "取消寄生体跟随");
 
         // 笔记
         add("epca.note.title", "寄巢笔记");

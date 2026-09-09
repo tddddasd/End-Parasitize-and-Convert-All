@@ -19,8 +19,6 @@ public class NeedlerEffect extends MobEffect implements RemovableEffect {
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
         super.applyEffectTick(entity, amplifier);
-
-        if (amplifier == 6) {
             
             if (entity.level().isClientSide) return;
 
@@ -29,9 +27,7 @@ public class NeedlerEffect extends MobEffect implements RemovableEffect {
             double y = entity.getY();
             double z = entity.getZ();
 
-            
             level.playSound(null, x, y, z, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 4.0F, (1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.2F) * 0.7F);
-
             
             if (level instanceof net.minecraft.server.level.ServerLevel) {
                 ((net.minecraft.server.level.ServerLevel) level).sendParticles(
@@ -41,7 +37,6 @@ public class NeedlerEffect extends MobEffect implements RemovableEffect {
                         4.0D, 4.0D, 4.0D, 
                         0.5D 
                 );
-
                 
                 ((net.minecraft.server.level.ServerLevel) level).sendParticles(
                         ParticleTypes.EXPLOSION_EMITTER,
@@ -51,7 +46,6 @@ public class NeedlerEffect extends MobEffect implements RemovableEffect {
                         0.5D 
                 );
             }
-
             
             level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(4.0))
                     .forEach(target -> {
@@ -59,20 +53,16 @@ public class NeedlerEffect extends MobEffect implements RemovableEffect {
                         if (target instanceof Player || IParasite.isParasiteByTagOrInterface(entity)) {
                             return;
                         }
-
                         
                         double distSqr = target.distanceToSqr(x, y, z);
-
                         
-                        if (distSqr <= 16.0D ) { 
-                            
-                            target.setHealth(target.getHealth() - target.getMaxHealth() * 0.6F);
+                        if (distSqr <= 16.0D ) {
+                            target.setHealth(target.getHealth() - target.getMaxHealth() * (amplifier + 1) * 0.01F);
                         }
                     });
 
             
             entity.removeEffect(this);
-        }
     }
 
     @Override

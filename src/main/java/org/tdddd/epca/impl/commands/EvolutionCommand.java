@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import org.tdddd.epca.impl.overworld.data.EvolutionDataStorage;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.ModConfig;
 
 public class EvolutionCommand {
 
@@ -104,22 +103,20 @@ public class EvolutionCommand {
         EvolutionManager manager = EvolutionManager.forDimension(targetLevel);
 
         if (stage >= 11) {
-            // 强制阶段：保存覆盖
             manager.setOverriddenStage(stage);
             context.getSource().sendSuccess(() -> Component.literal("[世界侵蚀度] 已将 " + manager.getDimensionName() +
                             " 的侵蚀阶段强制设置为 " + stage),
                     true);
-            return 1;
+            return 0;
         } else {
-            // 普通阶段：清除强制，设置点数
             manager.clearOverriddenStage();
-            double[] thresholds = ModConfig.getStageThresholds();
+            int[] thresholds = EvolutionManager.STAGE_THRESHOLDS;
             int index = stage + 2;
             if (index < 0 || index >= thresholds.length) {
                 context.getSource().sendFailure(Component.literal("[世界侵蚀度] 无效的阶段值: " + stage));
                 return 0;
             }
-            int requiredPoints = (int) Math.round(thresholds[index]);
+            int requiredPoints = thresholds[index];
             int oldStage = manager.getStage();
             manager.setPoints(requiredPoints);
             int newStage = manager.getStage();
@@ -127,7 +124,7 @@ public class EvolutionCommand {
                             " 的侵蚀阶段设置为 " + stage + " (对应侵蚀点数: " + requiredPoints + ")" +
                             (newStage != oldStage ? " (侵蚀阶段变化: " + oldStage + " → " + newStage + ")" : "")),
                     true);
-            return 1;
+            return 0;
         }
     }
 
@@ -147,7 +144,7 @@ public class EvolutionCommand {
                         " → 新侵蚀点数: " + manager.getPoints() +
                         (newStage != oldStage ? " (阶段变化: " + oldStage + " → " + newStage + ")" : "")),
                 true);
-        return 1;
+        return 0;
     }
 
     private static int resetDimension(CommandContext<CommandSourceStack> context, ServerLevel dimension) {
@@ -159,7 +156,7 @@ public class EvolutionCommand {
                         getDimensionName(targetLevel) +
                         " 的侵蚀度状态为默认值"),
                 true);
-        return 1;
+        return 0;
     }
 
     private static int resetAllDimensions(CommandContext<CommandSourceStack> context) {
@@ -169,7 +166,7 @@ public class EvolutionCommand {
         storage.getOverriddenDimensions().forEach(storage::clearOverriddenStage);
         context.getSource().sendSuccess(() -> Component.literal("[世界侵蚀度] 已重置所有维度的侵蚀度状态为默认值"),
                 true);
-        return 1;
+        return 0;
     }
 
     private static int showThresholds(CommandContext<CommandSourceStack> context) {
@@ -183,7 +180,7 @@ public class EvolutionCommand {
         }
 
         context.getSource().sendSuccess(() -> Component.literal(sb.toString()), false);
-        return 1;
+        return 0;
     }
 
     private static String getDimensionName(ServerLevel level) {

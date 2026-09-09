@@ -24,6 +24,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
@@ -106,7 +107,7 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
 
         
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 32.0D));
-
+        this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(6, new Mozzie.RandomSoundGoal(this));
     }
 

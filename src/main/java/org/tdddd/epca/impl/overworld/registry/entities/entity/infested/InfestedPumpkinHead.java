@@ -87,7 +87,7 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
             if (gameTime % 10 == 0) {
                 AABB expandedBox = this.getBoundingBox().inflate(0.025);
                 if (expandedBox.intersects(target.getBoundingBox())) {
-                    if (!(target instanceof IParasite)) {
+                    if (!(IParasite.isParasiteByTagOrInterface(target))) {
                         target.hurt(this.damageSources().inWall(), 2.0F);
                     }
                 }
@@ -185,7 +185,6 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     public boolean doHurtTarget(Entity target) {
-        if (target instanceof IParasite) return false;
         if (!canAttackEntity(target)) return false;
         float damage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
         return target.hurt(this.damageSources().mobAttack(this), damage);
@@ -218,8 +217,8 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
             for (LivingEntity entity : this.level().getEntitiesOfClass(LivingEntity.class, box)) {
                 if (entity == this) continue;
                 if (entity.getBoundingBox().intersects(box) && entity.getBoundingBox().maxY <= this.getBoundingBox().minY + 0.1) {
-                    if (!(entity instanceof IParasite)) {
-                        entity.hurt(this.damageSources().fall(), damage);
+                    if (!(IParasite.isParasiteByTagOrInterface(entity))) {
+                        return entity.hurt(this.damageSources().fall(), damage);
                     }
                 }
             }

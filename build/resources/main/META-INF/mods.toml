@@ -4,7 +4,7 @@ license = "MIT License"
 
 [[mods]]
 modId = "epca"
-version = "0.146"
+version = "0.147"
 displayName = "End-Parasitize and Convert All"
 displayURL = "https://space.bilibili.com/1446970336"
 logoFile="epca_icon.png"

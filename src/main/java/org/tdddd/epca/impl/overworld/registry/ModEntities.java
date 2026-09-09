@@ -317,10 +317,6 @@ public class ModEntities {
     // --- Misc entities (no attributes, custom renderers) ---
     public static final RegistryObject<EntityType<ContaminatedWater>> CONTAMINATED_WATER =
             registerMiscNoSummon("contaminated_water", 5.0F, 5.0F, ContaminatedWater::new);
-    public static final RegistryObject<EntityType<ViralBomb>> VIRAL_BOMB =
-            registerMiscWithRender("viral_bomb", 0.8F, 0.8F, ViralBomb::new);
-    public static final RegistryObject<EntityType<ViralBombII>> VIRAL_BOMB_II =
-            registerMiscWithRender("viral_bomb_ii", "viral_bomb", 0.8F, 0.8F, ViralBombII::new);
     public static final RegistryObject<EntityType<SlimeProjectile>> SLIME_PROJECTILE =
             registerMiscWithRender("slime_projectile", 0.3F, 0.3F, SlimeProjectile::new);
     public static final RegistryObject<EntityType<InfestedSpiderWebProjectile>> INFESTED_SPIDER_WEB_PROJECTILE =

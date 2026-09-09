@@ -58,7 +58,7 @@ public class epca {
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
-
+        ModNetwork.register();
         ModCreativeTabs.CREATIVE_TABS.register(modEventBus);
         ModParticles.REGISTRY.register(modEventBus);
         ModFluids.FLUID_TYPES.register(modEventBus);
@@ -93,7 +93,6 @@ public class epca {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            ModNetwork.register();
             LIFETIME_CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
         });
     }
@@ -107,10 +106,10 @@ public class epca {
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         EvolutionCommand.register(event.getDispatcher());
-        ParasiteEnemyCommand.register(event.getDispatcher());
         NegativeDamageCommand.register(event.getDispatcher());
         event.getDispatcher().register(ParasiteSummonCommand.register());
         event.getDispatcher().register(ParasiteSummonCommand.registerSetParasite());
+        NestLeaderCommand.register(event);
     }
 
     @SubscribeEvent

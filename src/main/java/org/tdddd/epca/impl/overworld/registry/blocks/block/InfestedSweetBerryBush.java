@@ -12,7 +12,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -97,9 +96,7 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
             return;
         }
 
-        boolean isParasite = living instanceof IParasite;
-
-        if (!isParasite) {
+        if (!IParasite.isParasiteByTagOrInterface(living)) {
             // 减速（所有 age 均生效，因为只有 1 和 2）
             living.makeStuckInBlock(state, new Vec3(0.8, 0.75, 0.8));
 

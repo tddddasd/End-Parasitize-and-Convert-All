@@ -79,7 +79,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
         }
 
         if (entity instanceof LivingEntity living) {
-            if (living instanceof IParasite) {
+            if (IParasite.isParasiteByTagOrInterface(living)) {
                 return;
             }
             living.hurt(entity.damageSources().cactus(), 1.5F);
@@ -116,16 +116,13 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockPos below = pos.below();
         BlockState belowState = level.getBlockState(below);
-        // 下方不能是空气
         if (belowState.isAir()) return false;
-        // 允许放置的方块：沙子、红沙、InfestedSand、仙人掌（用于生长）
         boolean validBelow = belowState.is(Blocks.SAND) ||
                 belowState.is(Blocks.RED_SAND) ||
                 belowState.is(ModBlocks.INFESTED_CACTUS.get()) ||
                 belowState.is(ModBlocks.INFESTED_SAND.get()) ||
                 belowState.is(Blocks.CACTUS);
         if (!validBelow) return false;
-        // 四周必须为空气或可替换方块
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             BlockState sideState = level.getBlockState(pos.relative(dir));
             if (!sideState.isAir() && !sideState.canBeReplaced()) {

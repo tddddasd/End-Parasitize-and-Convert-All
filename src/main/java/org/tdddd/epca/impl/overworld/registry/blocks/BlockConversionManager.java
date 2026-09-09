@@ -6,6 +6,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,6 +18,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -23,11 +29,10 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.InfestedSourcePacket;
+import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
-import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedFloweringLeaves;
-import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedLeaves;
-import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedLilyPad;
-import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedResidue;
+import org.tdddd.epca.impl.overworld.registry.ModEffects;
+import org.tdddd.epca.impl.overworld.registry.blocks.block.*;
 import org.tdddd.epca.impl.epca;
 
 import java.io.InputStream;
@@ -111,7 +116,11 @@ public class BlockConversionManager {
         if (hardness < 0.0f || hardness > 2.0f) {
             return false; // 不转化
         }
-        return convertBlockUsingMap(level, pos, state, stageIConfig.conversions);
+        float multiplier = 1.0f;
+        if (state.is(PackedMudPedestal.PEDESTAL_TAG) || state.is(PackedMudPedestal.ALTAR_STONE_TAG)) {
+            multiplier = 2.0f;
+        }
+        return convertBlockUsingMap(level, pos, state, stageIConfig.conversions, multiplier);
     }
 
     public void convertPlantsInRangeForStageI(ServerLevel level, BlockPos center) {
@@ -128,7 +137,11 @@ public class BlockConversionManager {
 
     
     public boolean convertBlockUsingStageIIConfig(ServerLevel level, BlockPos pos, BlockState state) {
-        return convertBlockUsingMap(level, pos, state, stageIIConfig.conversions);
+        float multiplier = 1.0f;
+        if (state.is(PackedMudPedestal.PEDESTAL_TAG) || state.is(PackedMudPedestal.ALTAR_STONE_TAG)) {
+            multiplier = 2.0f;
+        }
+        return convertBlockUsingMap(level, pos, state, stageIIConfig.conversions, multiplier);
     }
 
     public void convertPlantsInRangeForStageII(ServerLevel level, BlockPos center) {
@@ -142,9 +155,13 @@ public class BlockConversionManager {
     public void convertNearbyLeavesForStageII(ServerLevel level, BlockPos center) {
         convertNearbyLeaves(level, center, stageIIConfig.leaves_radius);
     }
-    
+
     public boolean convertBlockUsingGeneralConfig(ServerLevel level, BlockPos pos, BlockState state) {
-        return convertBlockUsingMap(level, pos, state, generalConfig.conversions);
+        float multiplier = 1.0f;
+        if (state.is(PackedMudPedestal.PEDESTAL_TAG) || state.is(PackedMudPedestal.ALTAR_STONE_TAG)) {
+            multiplier = 2.0f;
+        }
+        return convertBlockUsingMap(level, pos, state, generalConfig.conversions, multiplier);
     }
 
     public void convertPlantsInRangeForGeneral(ServerLevel level, BlockPos center) {
@@ -158,10 +175,8 @@ public class BlockConversionManager {
     public void convertNearbyLeavesForGeneral(ServerLevel level, BlockPos center) {
         convertNearbyLeaves(level, center, generalConfig.leaves_radius);
     }
-
     
-    private boolean convertBlockUsingMap(ServerLevel level, BlockPos pos, BlockState state, Map<String, String> map) {
-
+    private boolean convertBlockUsingMap(ServerLevel level, BlockPos pos, BlockState state, Map<String, String> map, float hardnessMultiplier) {
         Block originalBlock = state.getBlock();
         ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(originalBlock);
         String fullBlockId = blockId.toString();
@@ -191,10 +206,10 @@ public class BlockConversionManager {
                 return false;
             }
             ResourceLocation id = ForgeRegistries.BLOCKS.getKey(state.getBlock());
-            if (id.getNamespace().equals("minecraft") || id.getNamespace().equals("epca")) {
+            if (id.getNamespace().equals("minecraft") || id.getNamespace().equals("epca") && !(state.is(PackedMudPedestal.PEDESTAL_TAG) || state.is(PackedMudPedestal.ALTAR_STONE_TAG))) {
                 return false;
             }
-            float hardness = state.getDestroySpeed(level, pos);
+            float hardness = state.getDestroySpeed(level, pos) * hardnessMultiplier;
 
             if (hardness == 0.0f || !state.isCollisionShapeFullBlock(level, pos)) {
                 int layers = 2 + level.random.nextInt(5); 
@@ -396,27 +411,22 @@ public class BlockConversionManager {
 
     private void applyPendingDoublePlantConversions(ServerLevel level, Set<BlockPos> lowerPositions) {
         for (BlockPos lowerPos : lowerPositions) {
-            // 1. 检查下半是否仍有效
             BlockState lowerState = level.getBlockState(lowerPos);
             if (!lowerState.is(Blocks.TALL_GRASS) && !lowerState.is(Blocks.LARGE_FERN)) continue;
             if (lowerState.getValue(DoublePlantBlock.HALF) != DoubleBlockHalf.LOWER) continue;
 
             BlockPos upperPos = lowerPos.above();
             BlockState upperState = level.getBlockState(upperPos);
-            // 2. 检查上半是否可被替换（允许被原版上半覆盖或空气）
             if (!upperState.isAir() && !upperState.canBeReplaced() && !upperState.is(lowerState.getBlock())) {
-                continue; // 结构不完整或被占用，放弃转换
+                continue;
             }
 
-            // 3. 确定目标虫染方块
             RegistryObject<Block> targetBlock = lowerState.is(Blocks.TALL_GRASS) ?
                     ModBlocks.INFESTED_TALL_GRASS : ModBlocks.INFESTED_TALL_FERN;
 
-            // 4. 移除旧方块（先上半，再下半，使用标志 2 抑制邻居更新）
             level.setBlock(upperPos, Blocks.AIR.defaultBlockState(), 2);
             level.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), 2);
 
-            // 5. 放置虫染方块（先下半，再上半，使用标志 3 正常通知）
             BlockState newLower = targetBlock.get().defaultBlockState()
                     .setValue(DoublePlantBlock.HALF, DoubleBlockHalf.LOWER);
             BlockState newUpper = targetBlock.get().defaultBlockState()
@@ -430,31 +440,9 @@ public class BlockConversionManager {
         }
     }
 
-    // Tick 事件处理：在服务器 Tick 结束时处理延迟队列
-    @SubscribeEvent
-    public void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        if (pendingDoublePlantConversions.isEmpty()) return;
-
-        // 复制一份当前队列，避免遍历时修改
-        Map<ServerLevel, Set<BlockPos>> toProcess;
-        synchronized (pendingDoublePlantConversions) {
-            if (pendingDoublePlantConversions.isEmpty()) return;
-            toProcess = new HashMap<>(pendingDoublePlantConversions);
-            pendingDoublePlantConversions.clear();
-        }
-
-        for (Map.Entry<ServerLevel, Set<BlockPos>> entry : toProcess.entrySet()) {
-            ServerLevel level = entry.getKey();
-            if (ServerLifecycleHooks.getCurrentServer().getLevel(level.dimension()) == null) continue;
-            applyPendingDoublePlantConversions(level, entry.getValue());
-        }
-    }
-
     private void convertPlantsInRange(ServerLevel level, BlockPos center, int radius) {
-        // 先检查 3x3x3 范围内是否有双格植物
         boolean hasDoublePlant = false;
-        int verticalRadius = radius; // 默认垂直半径等于水平半径
+        int verticalRadius = radius;
         outer:
         for (int x = -radius; x <= radius; x++) {
             for (int y = -radius; y <= radius; y++) {
@@ -468,11 +456,9 @@ public class BlockConversionManager {
                 }
             }
         }
-        // 如果存在双格植物，增大垂直半径
         if (hasDoublePlant) {
             verticalRadius = radius + 1;
         }
-        // 执行实际转换
         for (int x = -radius; x <= radius; x++) {
             for (int y = -verticalRadius; y <= verticalRadius; y++) {
                 for (int z = -radius; z <= radius; z++) {
@@ -499,7 +485,10 @@ public class BlockConversionManager {
             level.setBlock(pos, ModBlocks.INFESTED_FERN.get().defaultBlockState(), 3);
             return;
         }
-
+        if (state.is(Blocks.DEAD_BUSH)) {
+            level.setBlock(pos, ModBlocks.INFESTED_DEAD_BUSH.get().defaultBlockState(), 3);
+            return;
+        }
         if (state.is(Blocks.TALL_GRASS) || state.is(Blocks.LARGE_FERN)) {
             BlockPos lowerPos = state.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER ?
                     pos.below() : pos;
@@ -662,5 +651,123 @@ public class BlockConversionManager {
             }
         }
         return null;
+    }
+
+
+
+    private static class SacrificeTask {
+        final ServerLevel level;
+        final BlockPos center;
+        final UUID playerId;
+        final List<BlockPos> positions;
+        final int batchSize;
+        int index;
+
+        SacrificeTask(ServerLevel level, BlockPos center, UUID playerId, List<BlockPos> positions) {
+            this.level = level;
+            this.center = center;
+            this.playerId = playerId;
+            this.positions = positions;
+            this.batchSize = 700;
+            this.index = 0;
+        }
+
+        boolean isComplete() { return index >= positions.size(); }
+    }
+
+    private final Map<ServerLevel, Queue<SacrificeTask>> sacrificeTasks = new HashMap<>();
+
+    public void addSacrificeTask(ServerLevel level, BlockPos center, UUID playerId, List<BlockPos> positions) {
+        synchronized (sacrificeTasks) {
+            sacrificeTasks.computeIfAbsent(level, k -> new LinkedList<>())
+                    .add(new SacrificeTask(level, center, playerId, positions));
+        }
+    }
+
+    @SubscribeEvent
+    public void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+
+        if (!pendingDoublePlantConversions.isEmpty()) {
+            Map<ServerLevel, Set<BlockPos>> toProcess;
+            synchronized (pendingDoublePlantConversions) {
+                toProcess = new HashMap<>(pendingDoublePlantConversions);
+                pendingDoublePlantConversions.clear();
+            }
+            for (Map.Entry<ServerLevel, Set<BlockPos>> entry : toProcess.entrySet()) {
+                ServerLevel level = entry.getKey();
+                if (ServerLifecycleHooks.getCurrentServer().getLevel(level.dimension()) == null) continue;
+                applyPendingDoublePlantConversions(level, entry.getValue());
+            }
+        }
+
+        synchronized (sacrificeTasks) {
+            Iterator<Map.Entry<ServerLevel, Queue<SacrificeTask>>> it = sacrificeTasks.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<ServerLevel, Queue<SacrificeTask>> entry = it.next();
+                Queue<SacrificeTask> queue = entry.getValue();
+                if (queue.isEmpty()) {
+                    it.remove();
+                    continue;
+                }
+                SacrificeTask task = queue.peek();
+                if (task == null) continue;
+
+                ServerLevel level = task.level;
+                if (level.isClientSide) {
+                    queue.poll();
+                    continue;
+                }
+
+                int end = Math.min(task.index + task.batchSize, task.positions.size());
+                for (int i = task.index; i < end; i++) {
+                    BlockPos targetPos = task.positions.get(i);
+                    BlockState state = level.getBlockState(targetPos);
+                    if (state.isAir()) continue;
+                    double dist = Math.sqrt(task.center.distSqr(targetPos));
+                    if (dist <= 48) {
+                        convertBlockUsingGeneralConfig(level, targetPos, state);
+                    } else if (dist <= 64) {
+                        if (level.random.nextFloat() < 0.65f) {
+                            convertBlockUsingGeneralConfig(level, targetPos, state);
+                        }
+                    } else if (dist <= 72) {
+                        if (level.random.nextFloat() < 0.20f) {
+                            convertBlockUsingGeneralConfig(level, targetPos, state);
+                        }
+                    }
+                }
+                task.index = end;
+
+                if (task.isComplete()) {
+                    queue.poll();
+                    completeSacrifice(task);
+                }
+            }
+        }
+    }
+
+    private void completeSacrifice(SacrificeTask task) {
+        ServerLevel level = task.level;
+        BlockPos center = task.center;
+
+        BlockPos belowPos = center.below();
+        level.setBlock(belowPos, ModBlocks.INFESTED_METALLIKE.get().defaultBlockState(), 3);
+
+        LightningBolt lightning = new LightningBolt(EntityType.LIGHTNING_BOLT, level);
+        lightning.setPos(center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5);
+        level.addFreshEntity(lightning);
+
+        MobEffectInstance cothEffect = new MobEffectInstance(ModEffects.COTH.get(), 1200, 4);
+        AABB effectBox = new AABB(center).inflate(72);
+        List<LivingEntity> livingEntities = level.getEntitiesOfClass(LivingEntity.class, effectBox);
+        for (LivingEntity living : livingEntities) {
+            living.addEffect(cothEffect);
+        }
+
+        Player player = level.getPlayerByUUID(task.playerId);
+        if (player != null) {
+            NestLeaderManager.addNestLeader(player.getUUID());
+        }
     }
 }

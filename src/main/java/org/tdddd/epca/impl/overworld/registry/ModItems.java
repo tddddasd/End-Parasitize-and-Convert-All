@@ -90,8 +90,8 @@ public class ModItems {
             () -> new InfestedEnderPearl(new Item.Properties().stacksTo(16)));
     public static final RegistryObject<Item> FEEDING_MODULE_I = ITEMS.register("feeding_module_i",
             () -> new AutomaticFeedingModuleI(new Item.Properties().stacksTo(1)));
-    public static final RegistryObject<Item> INSTINCT_MODULE_I = ITEMS.register("instinct_module_i",
-            () -> new InstinctModuleI(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> AFTERIMAGE_MODULE = ITEMS.register("afterimage_module",
+            () -> new AfterimageModule(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> FLESH_ARMOR_MODULE_I = ITEMS.register("flesh_armor_module_i",
             () -> new FleshArmorModuleI(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> NETHERITE_MODULE_I = ITEMS.register("netherite_module_i",
@@ -313,6 +313,8 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_HEAVY_TILES_STAIRS = blockItem("infested_heavy_tiles_stairs", ModBlocks.INFESTED_HEAVY_TILES_STAIRS);
     public static final RegistryObject<Item> INFESTED_HEAVY_TILES_SLAB = blockItem("infested_heavy_tiles_slab", ModBlocks.INFESTED_HEAVY_TILES_SLAB);
     public static final RegistryObject<Item> INFESTED_HEAVY_TILES_WALL = blockItem("infested_heavy_tiles_wall", ModBlocks.INFESTED_HEAVY_TILES_WALL);
+    public static final RegistryObject<Item> INFESTED_MUDDY_MANGROVE_ROOTS = blockItem("infested_muddy_mangrove_roots", ModBlocks.INFESTED_MUDDY_MANGROVE_ROOTS);
+    public static final RegistryObject<Item> INFESTED_DEAD_BUSH = blockItem("infested_dead_bush", ModBlocks.INFESTED_DEAD_BUSH);
 
     // 特殊 BlockItem 子类（使用自定义的 Item 内部类）
     public static final RegistryObject<InfestedLog.InfestedLogItem> INFESTED_LOG =
@@ -331,4 +333,6 @@ public class ModItems {
             customBlockItem("infested_planks_stairs", () -> new InfestedPlanksStairs.InfestedPlanksStairsItem(ModBlocks.INFESTED_PLANKS_STAIRS.get(), new Item.Properties()));
     public static final RegistryObject<InfestedPlanksFence.InfestedPlanksItem> INFESTED_PLANKS_FENCE =
             customBlockItem("infested_planks_fence", () -> new InfestedPlanksFence.InfestedPlanksItem(ModBlocks.INFESTED_PLANKS_FENCE.get(), new Item.Properties()));
+    public static final RegistryObject<InfestedMangroveRoots.InfestedMangroveRootsItem> INFESTED_MANGROVE_ROOTS =
+            customBlockItem("infested_mangrove_roots", () -> new InfestedMangroveRoots.InfestedMangroveRootsItem(ModBlocks.INFESTED_MANGROVE_ROOTS.get(), new Item.Properties()));
 }

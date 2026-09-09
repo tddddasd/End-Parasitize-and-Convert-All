@@ -18,14 +18,12 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterface {
     public static final BooleanProperty SPIDER = BooleanProperty.create("spider");
@@ -79,10 +77,17 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
     private void processEntitiesInBlock(BlockState state, ServerLevel level, BlockPos pos) {
         AABB box = new AABB(pos).inflate(0.1);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box,
-                e -> !(e instanceof IParasite));
+                Objects::nonNull);
 
         for (LivingEntity living : entities) {
-            applyCothAndDamage(living, level);
+            if (!(living instanceof IParasite && living instanceof Player player)) {
+                applyCothAndDamage(living, level);
+            }else {
+                if (!(player instanceof Player && NestLeaderManager.isNestLeader(player.getUUID())))
+                {
+                    applyCothAndDamage(living, level);
+                }
+            }
         }
     }
 

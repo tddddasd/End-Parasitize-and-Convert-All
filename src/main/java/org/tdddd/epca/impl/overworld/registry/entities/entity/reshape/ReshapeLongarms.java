@@ -51,6 +51,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.tdddd.epca.impl.overworld.registry.*;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -1081,6 +1082,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         });
         this.targetSelector.addGoal(0, new PriorityTargetGoal(this, 32.0D));
         this.goalSelector.addGoal(5, new ReshapeLongarms.RandomSoundGoal(this));
+        this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
     }
 
     @Override

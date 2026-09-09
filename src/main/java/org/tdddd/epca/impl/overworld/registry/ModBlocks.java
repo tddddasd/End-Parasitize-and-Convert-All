@@ -552,6 +552,11 @@ public class ModBlocks {
             () -> new InfestedPumpkin(Block.Properties.of().strength(1.0f, 1.0f).randomTicks().mapColor(DyeColor.BLUE).ignitedByLava())
     );
 
+    public static final RegistryObject<Block> INFESTED_MUDDY_MANGROVE_ROOTS = BLOCKS.register(
+            "infested_muddy_mangrove_roots",
+            () -> new InfestedMuddyMangroveRoots(Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.PURPLE))
+    );
+
     public static final RegistryObject<Block> INFESTED_TALL_GRASS = BLOCKS.register("infested_tall_grass", () -> new InfestedDoublePlantBlock(BlockBehaviour.Properties.copy(Blocks.LARGE_FERN).sound(Blocks.GRASS.defaultBlockState().getSoundType())));
 
     public static final RegistryObject<Block> INFESTED_TALL_FERN = BLOCKS.register("infested_tall_fern", () -> new InfestedDoublePlantBlock(BlockBehaviour.Properties.copy(Blocks.LARGE_FERN).sound(Blocks.GRASS.defaultBlockState().getSoundType())));
@@ -603,5 +608,15 @@ public class ModBlocks {
     public static final RegistryObject<Block> INFESTED_HEAVY_TILES_WALL = BLOCKS.register(
             "infested_heavy_tiles_wall",
             () -> new InfestedHeavyTilesWall(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+    );
+
+    public static final RegistryObject<Block> INFESTED_MANGROVE_ROOTS = BLOCKS.register(
+            "infested_mangrove_roots",
+            () -> new InfestedMangroveRoots(Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava().noOcclusion())
+    );
+
+    public static final RegistryObject<Block> INFESTED_DEAD_BUSH = BLOCKS.register(
+            "infested_dead_bush",
+            () -> new InfestedDeadBush(Block.Properties.copy(Blocks.DEAD_BUSH).ignitedByLava())
     );
 }

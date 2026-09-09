@@ -103,7 +103,6 @@ public class InfestedLeaves extends LeavesBlock implements InfestedBlockInterfac
     private void applyCothEffects(LivingEntity entity, boolean apply) {
         
         if (IParasite.isParasiteByTagOrInterface(entity)) {
-            
             return;
         }
 

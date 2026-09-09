@@ -7,19 +7,25 @@
   "mixins": [
     "common.AbstractFurnaceBlockEntityMixin",
     "common.AbstractVillagerMixin",
+    "common.BeaconBlockEntityMixin",
+    "common.BeaconMenuMixin",
     "common.CactusBlockMixin",
     "common.EnchantmentMenuMixin",
+    "common.LightningRodBlockMixin",
     "common.LivingEntityMixin",
     "common.MerchantOfferMixin",
     "common.MobMixin",
+    "common.PlayerMixin",
     "common.PointedDripstoneBlockMixin",
     "common.SugarCaneBlockMixin"
   ],
   "client": [
+    "client.BeaconRendererMixin",
     "client.BiomeColorsMixin",
     "client.BlockColorsMixin",
     "client.CreateWorldScreenMixin",
-    "client.HumanoidModelMixin"
+    "client.HumanoidModelMixin",
+    "client.LightningBoltRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

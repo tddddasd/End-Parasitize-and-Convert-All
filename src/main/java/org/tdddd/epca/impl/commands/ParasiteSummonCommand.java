@@ -19,6 +19,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
@@ -75,8 +76,10 @@ public class ParasiteSummonCommand {
                 float healthRatio = living.getHealth() / living.getMaxHealth();
                 living.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
                 living.setHealth((float) (newMaxHealth * healthRatio));
-                double newArmor = living.getArmorValue() * multiplier;
-                living.getAttribute(Attributes.ARMOR).setBaseValue(newArmor);
+                if (!(living instanceof Player)) {
+                    double newArmor = living.getArmorValue() * multiplier;
+                    living.getAttribute(Attributes.ARMOR).setBaseValue(newArmor);
+                }
             }
             successCount++;
         }

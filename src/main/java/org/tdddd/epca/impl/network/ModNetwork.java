@@ -105,6 +105,28 @@ public class ModNetwork {
                 InfestedSourcePacket.RemoveInfestedSourcePacket::encode,
                 InfestedSourcePacket.RemoveInfestedSourcePacket::decode,
                 InfestedSourcePacket.RemoveInfestedSourcePacket::handle);
+        INSTANCE.registerMessage(id++,
+                InfestedSourcePacket.RequestAllInfestedSourcesPacket.class,
+                InfestedSourcePacket.RequestAllInfestedSourcesPacket::encode,
+                InfestedSourcePacket.RequestAllInfestedSourcesPacket::decode,
+                InfestedSourcePacket.RequestAllInfestedSourcesPacket::handle);
+        INSTANCE.registerMessage(id++,
+                SyncAllInfestedSourcesPacket.class,
+                SyncAllInfestedSourcesPacket::encode,
+                SyncAllInfestedSourcesPacket::decode,
+                SyncAllInfestedSourcesPacket::handle);
+        INSTANCE.registerMessage(id++, BiomassSyncPacket.class,
+                BiomassSyncPacket::encode,
+                BiomassSyncPacket::new,
+                BiomassSyncPacket::handle);
+        INSTANCE.registerMessage(id++, VKeyStatePacket.class,
+                VKeyStatePacket::encode,
+                VKeyStatePacket::new,
+                VKeyStatePacket::handle);
+        INSTANCE.registerMessage(id++, ToggleFollowPacket.class,
+                ToggleFollowPacket::encode,
+                ToggleFollowPacket::new,
+                ToggleFollowPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {

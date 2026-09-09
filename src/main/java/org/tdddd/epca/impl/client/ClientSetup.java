@@ -1,10 +1,6 @@
 package org.tdddd.epca.impl.client;
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
@@ -26,11 +22,8 @@ import org.tdddd.epca.impl.overworld.registry.particles.AdaptationParticleProvid
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.particles.partices.*;
 
-import java.util.Optional;
-
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientSetup {
-
     @SubscribeEvent
     public static void onClientSetup1(FMLClientSetupEvent event) {
         

@@ -6,7 +6,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.BoneArrow;
-import software.bernie.geckolib.model.GeoModel;
 
 public class BoneArrowRenderer extends EpcaGeoRenderer<BoneArrow> {
 

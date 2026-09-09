@@ -2,8 +2,10 @@ package org.tdddd.epca.impl.network.packet.s2c;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import org.tdddd.epca.impl.client.WaterColorEffectsManager;
+import org.tdddd.epca.impl.overworld.data.InfestedBlockManager;
 
 import java.util.function.Supplier;
 
@@ -51,6 +53,26 @@ public class InfestedSourcePacket {
             ctx.get().enqueueWork(() -> {
                 // 客户端执行
                 WaterColorEffectsManager.removeInfestedSource(pos);
+            });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+
+    public static class RequestAllInfestedSourcesPacket {
+        public void encode(FriendlyByteBuf buf) {
+            // 无数据
+        }
+
+        public static RequestAllInfestedSourcesPacket decode(FriendlyByteBuf buf) {
+            return new RequestAllInfestedSourcesPacket();
+        }
+
+        public void handle(Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> {
+                ServerPlayer player = ctx.get().getSender();
+                if (player != null) {
+                    InfestedBlockManager.syncAllToPlayer(player);
+                }
             });
             ctx.get().setPacketHandled(true);
         }

@@ -30,6 +30,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.tdddd.epca.impl.overworld.registry.entities.IPoverty;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
@@ -115,7 +116,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
         this.goalSelector.addGoal(5, new LeapAtTargetGoal(this, 0.4F));
         this.goalSelector.addGoal(6, new LargeIncompleteForm.RandomSoundGoal(this));
-
+        this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 24.0D));
     }
 

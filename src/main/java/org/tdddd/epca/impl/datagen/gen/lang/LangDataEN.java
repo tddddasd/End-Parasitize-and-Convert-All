@@ -86,8 +86,6 @@ public class LangDataEN extends LanguageProvider {
         add("entity.epca.biomass_medium", "Biomass");
         add("entity.epca.stage_i_beckon", "Beckon Stage I");
         add("entity.epca.stage_ii_beckon", "Beckon Stage II");
-        add("entity.epca.viral_bomb", "Viral Bomb");
-        add("entity.epca.viral_bomb_ii", "Viral Bomb");
         add("entity.epca.infested_pillager", "Infested Pillager");
         add("entity.epca.walking_pillager_head", "Walking Pillager Head");
         add("entity.epca.infested_vindicator", "Infested Vindicator");
@@ -241,7 +239,7 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.erosion_clock", "Crosion Clock");
         add("item.epca.living_armor_box", "Living Armor Box");
         add("item.epca.feeding_module_i", "[Level 1 Automatic feeding Module]");
-        add("item.epca.instinct_module_i", "[Level 1 Instinct Module]");
+        add("item.epca.afterimage_module", "[Afterimage Module]");
         add("item.epca.flesh_armor_module_i", "[Level 1 Flesh armor Module]");
         add("item.epca.netherite_module_i", "[Level 1 Netherite Module]");
         add("item.epca.flight_module_i", "[Level 1 Flight Module]");
@@ -409,6 +407,9 @@ public class LangDataEN extends LanguageProvider {
         add("block.epca.infested_heavy_tiles_stairs", "Infested Heavy Tile Stairs");
         add("block.epca.infested_heavy_tiles_slab", "Infested Heavy Tile Slab");
         add("block.epca.infested_heavy_tiles_wall", "Infested Heavy Tile Wall");
+        add("block.epca.infested_mangrove_roots", "Infested Mangrove Roots");
+        add("block.epca.infested_muddy_mangrove_roots", "Infested Muddy Mangrove Roots");
+        add("block.epca.infested_dead_bush", "Infested Dead Bush");
         add("block.epca.acid_solution", "Acid");
         add("fluid_type.epca.acid_solution", "Acid");
 
@@ -450,6 +451,11 @@ public class LangDataEN extends LanguageProvider {
         add("epca.difficulty.master", "Master");
         add("epca.difficulty.custom", "Custom");
         add("epca.difficulty.legendary", "§5Legendary");
+
+        add("key.category.epca", "E-PCA");
+        add("key.epca.switch_state", "Switch NestLeader State");
+        add("key.epca.follow", "Follow Parasites");
+        add("key.epca.follow_cancel", "Cancel Follow Parasite");
 
         // Notes & messages
         add("epca.note.title", "E-PCA Note");

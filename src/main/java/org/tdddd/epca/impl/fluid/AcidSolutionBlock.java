@@ -121,7 +121,6 @@ public class AcidSolutionBlock extends LiquidBlock {
     private void applyAcidSolutionEffects(LivingEntity entity) {
         Level level = entity.level();
 
-        
         if (level.getGameTime() % 5 == 0) {
             
             entity.addEffect(new MobEffectInstance(

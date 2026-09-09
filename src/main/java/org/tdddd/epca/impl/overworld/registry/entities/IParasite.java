@@ -9,9 +9,12 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.tdddd.epca.impl.events.ParasiteFollowEvent;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
+import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.ParasiteAttractionManager;
@@ -23,10 +26,54 @@ import java.util.UUID;
 
 public interface IParasite {
     String LAST_RAGE_TRIGGER_KEY = "lastRageTrigger";
+    String FOLLOW_TARGET_KEY = "FollowTarget";
 
-    
+    default void setFollowTarget(UUID targetUuid) {
+        LivingEntity entity = (LivingEntity) this;
+        UUID oldTarget = getFollowTarget();
+        if (oldTarget == targetUuid || (oldTarget != null && oldTarget.equals(targetUuid))) return;
 
-    
+        if (!entity.level().isClientSide) {
+            ParasiteFollowEvent event = new ParasiteFollowEvent(entity, oldTarget, targetUuid);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
+            if (event.isCanceled()) return;
+        }
+
+        CompoundTag tag = entity.getPersistentData();
+        if (targetUuid == null) {
+            tag.remove(FOLLOW_TARGET_KEY);
+        } else {
+            tag.putString(FOLLOW_TARGET_KEY, targetUuid.toString());
+        }
+    }
+
+    default UUID getFollowTarget() {
+        LivingEntity entity = (LivingEntity) this;
+        String s = entity.getPersistentData().getString(FOLLOW_TARGET_KEY);
+        if (s.isEmpty()) return null;
+        try {
+            return UUID.fromString(s);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    static boolean isParasiteByTagOrInterface(LivingEntity entity) {
+        if (entity == null) return false;
+        if (entity instanceof Player) {
+            return NestLeaderManager.isNestLeader(entity.getUUID());
+        }
+        return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite");
+    }
+
+    static boolean isParasiteNoLivingByTagOrInterface(Entity entity) {
+        if (entity == null) return false;
+        if (entity instanceof Player) {
+            return NestLeaderManager.isNestLeader(entity.getUUID());
+        }
+        return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite");
+    }
+
     default boolean hasDamageAdaptationConfig() {
         LivingEntity entity = (LivingEntity) this;
         ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
@@ -127,29 +174,20 @@ public interface IParasite {
         evolutionManager.addPoints(1);
     }
 
-    
+
     default boolean isFriendlyParasite(LivingEntity entity) {
-        if (entity == null) return false;
-        
-        return (entity.getPersistentData().getBoolean("Parasite") || (entity instanceof IParasite));
+        return isParasiteByTagOrInterface(entity);
     }
 
-    static boolean isParasiteByTagOrInterface(LivingEntity entity) {
-        if (entity == null) return false;
-        return ((entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite"));
-    }
-
-    static boolean isParasiteNoLivingByTagOrInterface(Entity entity) {
-        if (entity == null) return false;
-        return ((entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite"));
-    }
-
-    
     default boolean shouldIgnoreDamageFrom(LivingEntity attacker) {
+        if (attacker instanceof Player) {
+            if (NestLeaderManager.isNestLeader(attacker.getUUID())) {
+                return false;
+            }
+        }
         return isFriendlyParasite(attacker);
     }
 
-    
     default boolean shouldIgnoreTarget(LivingEntity target) {
         return isFriendlyParasite(target);
     }
@@ -203,9 +241,10 @@ public interface IParasite {
         float newMaxHealth = entity.getMaxHealth() * multiplier;
         entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
         entity.setHealth(newMaxHealth);
-        
-        float newArmor = entity.getArmorValue() * multiplier;
-        entity.getAttribute(Attributes.ARMOR).setBaseValue(newArmor);
+        if (!(entity instanceof Player)) {
+            float newArmor = entity.getArmorValue() * multiplier;
+            entity.getAttribute(Attributes.ARMOR).setBaseValue(newArmor);
+        }
     }
 
     

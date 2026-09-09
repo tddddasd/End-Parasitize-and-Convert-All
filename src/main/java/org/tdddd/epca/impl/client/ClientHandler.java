@@ -1,11 +1,15 @@
 package org.tdddd.epca.impl.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.FallingBlockRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -13,6 +17,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
+import org.tdddd.epca.impl.client.entity.layer.PlayerAfterimageLayer;
 import org.tdddd.epca.impl.client.entity.model.*;
 import org.tdddd.epca.impl.client.entity.renderer.*;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
@@ -101,6 +106,13 @@ public class ClientHandler {
                 }
                 return 1;
             });
+            Map<String, EntityRenderer<? extends Player>> skinMap = Minecraft.getInstance()
+                    .getEntityRenderDispatcher().getSkinMap();
+            for (EntityRenderer<? extends Player> renderer : skinMap.values()) {
+                if (renderer instanceof PlayerRenderer playerRenderer) {
+                    playerRenderer.addLayer(new PlayerAfterimageLayer(playerRenderer));
+                }
+            }
             }
         );
     }

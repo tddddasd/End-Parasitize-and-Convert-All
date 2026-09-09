@@ -41,6 +41,7 @@ import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
@@ -234,7 +235,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
         this.goalSelector.addGoal(7, new RandomSoundGoal(this));
         this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0D, true));
-
+        this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(2, new MoveToPassiveGoal(this, 1.5D, 16.0F) {
             @Override
             public void tick() {

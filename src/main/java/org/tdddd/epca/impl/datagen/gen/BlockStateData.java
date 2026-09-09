@@ -32,7 +32,7 @@ public class BlockStateData extends BlockStateProvider {
             "infested_dirt", "infested_log", "infested_stone", "infested_heavy_stone","infested_wood", "infested_stripped_wood",
             "infested_snow", "infested_spider_web", "infested_spider_web_blood", "infested_cave_spider_web",
             "infested_vine", "infested_sweet_berry_bush", "infested_cactus", "infested_sugar_cane",
-            "infested_pointed_dripstone",
+            "infested_pointed_dripstone", "infested_mangrove_roots", "infested_muddy_mangrove_roots",
             "swallow_cyst",
             "infested_lily_pad", "infested_carved_pumpkin", "infested_pumpkin",
             "infested_remains_small", "infested_remains_medium", "infested_remains_large",

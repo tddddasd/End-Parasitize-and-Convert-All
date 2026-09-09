@@ -30,7 +30,6 @@ public class InfestedPlanks extends Block implements InfestedBlockInterface {
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
     public InfestedPlanks(Properties properties) {
         super(properties);
-        
         this.registerDefaultState(this.stateDefinition.any().setValue(NATURAL_SPAWN, true));
     }
 

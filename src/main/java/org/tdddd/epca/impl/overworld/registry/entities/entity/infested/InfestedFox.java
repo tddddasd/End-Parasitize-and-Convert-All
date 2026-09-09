@@ -42,6 +42,7 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
@@ -164,7 +165,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         this.goalSelector.addGoal(5, new FloatGoal(this));
         
         this.goalSelector.addGoal(1, new PounceGoal(this));
-        
+        this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(2, new InfestedFoxAttackGoal(this));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D) {
             @Override

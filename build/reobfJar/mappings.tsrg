@@ -212137,6 +212137,13 @@ net/minecraft/world/ticks/WorldGenTickAccess net/minecraft/world/ticks/WorldGenT
 		0 p_193462_ p_193462_
 		1 p_193463_ p_193463_
 net/minecraft/world/ticks/package-info net/minecraft/world/ticks/package-info
+org/tdddd/epca/impl/mixin/client/BeaconRendererMixin org/tdddd/epca/impl/mixin/client/BeaconRendererMixin
+	renderBeaconBeam (Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;FJII[F)V m_112176_
+org/tdddd/epca/impl/mixin/client/LightningBoltRendererMixin org/tdddd/epca/impl/mixin/client/LightningBoltRendererMixin
+	quad (Lorg/joml/Matrix4f;Lcom/mojang/blaze3d/vertex/VertexConsumer;FFIFFFFFFFZZZZ)V m_115272_
+org/tdddd/epca/impl/mixin/common/BeaconMenuMixin org/tdddd/epca/impl/mixin/common/BeaconMenuMixin
+	access f_39033_
+	beacon f_39031_
 org/tdddd/epca/impl/mixin/common/EnchantmentMenuMixin org/tdddd/epca/impl/mixin/common/EnchantmentMenuMixin
 	enchantSlots f_39449_
 org/tdddd/epca/impl/mixin/common/PointedDripstoneBlockMixin org/tdddd/epca/impl/mixin/common/PointedDripstoneBlockMixin

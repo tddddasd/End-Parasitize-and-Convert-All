@@ -28,10 +28,6 @@ public class InfestedPlayerRenderer extends EpcaGeoRenderer<InfestedPlayer> {
     public void render(InfestedPlayer entity, float entityYaw, float partialTick,
                        PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         super.render(entity, entityYaw, partialTick, poseStack, buffer, packedLight);
-        
-        
-        
-        
     }
 
     @Override
@@ -64,18 +60,5 @@ if (maxAdaptations > 0 && adaptationLevel >= maxAdaptations) {
 
         super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer,
                 isReRender, partialTick, packedLight, finalOverlay, r, g, b, a);
-    }
-
-    private void renderHandItem(InfestedPlayer entity, ItemStack stack, ItemDisplayContext context,
-                                PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-        if (stack.isEmpty()) return;
-        poseStack.pushPose();
-        
-        poseStack.translate(0.3, 0.2, 0.1);
-        if (context == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
-            poseStack.scale(-1, 1, 1);
-        }
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, context, packedLight, OverlayTexture.NO_OVERLAY, poseStack, buffer, entity.level(), 0);
-        poseStack.popPose();
     }
 }

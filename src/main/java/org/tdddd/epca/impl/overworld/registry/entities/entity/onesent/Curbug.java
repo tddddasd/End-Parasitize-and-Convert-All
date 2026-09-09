@@ -21,6 +21,7 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractOnesentEntity;
@@ -80,6 +81,7 @@ public class Curbug extends AbstractOnesentEntity {
                 return false;
             }
         });
+        this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D, 0.008F));

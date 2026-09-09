@@ -93,25 +93,19 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
     private int leavesConversionTimer = 0; 
     private BlockPos spawnTargetPos; 
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-    private int suffocationCooldown = 0; 
-    
+    private int suffocationCooldown = 0;
     private int attackCooldown = 0;      
     private int attackCount = 0;          
     private boolean hasTargets = false;   
-    private boolean wasTargeting = false; 
-    
-    private int viralBombCooldown = 0;   
-
+    private boolean wasTargeting = false;
     private static final int OPEN_ANIMATION_DURATION = 15; 
     private static final int CLOSE_ANIMATION_DURATION = 15; 
     private int forcedAnimationTimer = 0;
     private int forcedAnimationState = ANIM_STATE_IDLE;
-    
     private static final int PARTICLE_INTERVAL = 3; 
     private static final float PARTICLE_SPEED = 0.02F; 
     private static final double MAX_ANGLE_RADIANS = Math.toRadians(35); 
-    private static final double SPAWN_HEIGHT_OFFSET = 1.0; 
-    
+    private static final double SPAWN_HEIGHT_OFFSET = 1.0;
     private int autoGrowthTimer = 0;
     private static final int GROWTH_INTERVAL = 300; 
     private static final int GROWTH_AMOUNT = 3;
@@ -206,12 +200,12 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 25.0D)
+                .add(Attributes.MAX_HEALTH, 45.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
-                .add(Attributes.ARMOR, 4.0D)
+                .add(Attributes.ARMOR, 7.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D) 
                 .add(Attributes.MOVEMENT_SPEED, 0.0D) 
-                .add(Attributes.ATTACK_DAMAGE, 2.5D)
+                .add(Attributes.ATTACK_DAMAGE, 0.0D)
                 .build();
     }
 
@@ -226,7 +220,6 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
         if (this.entityData.get(IS_RISING)) {
             return false;
         }
-
         
         if (source.getEntity() instanceof LivingEntity attacker) {
             
@@ -234,18 +227,10 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
                 return false; 
             }
         }
-
-        
-        if (!this.level().isClientSide && viralBombCooldown <= 0) {
-            spawnViralBombs();
-            viralBombCooldown = 60; 
-        }
-
         
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
         
-        boolean result = super.hurt(source, adjustedAmount * 0.4f);
+        boolean result = super.hurt(source, adjustedAmount);
 
         return result;
     }
@@ -291,20 +276,12 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
             return;
         }
 
-        
-        if (viralBombCooldown > 0) {
-            viralBombCooldown--;
-        }
-
         super.tick();
-
         
         this.hasTargets = hasValidTargets();
-
         
         updateAnimationState();
 
-        
         if (this.level().isClientSide) {
             
             if (this.entityData.get(ANIMATION_STATE) == ANIM_STATE_IDLE_OPEN) {
@@ -743,47 +720,6 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
                 EntityKillCountManager.setKillCount(this, Math.max(0, current - BIOMASS_COST));
                 biomass.setPos(x, y, z);
                 this.level().addFreshEntity(biomass);
-            }
-        }
-    }
-
-    
-    private void spawnViralBombs() {
-        if (this.level() instanceof ServerLevelAccessor) {
-            
-            int count = 1 + this.random.nextInt(2);
-
-            
-            Vec3 centerPosition = this.position();
-
-            for (int i = 0; i < count; i++) {
-                
-                double angle = this.random.nextDouble() * Math.PI * 2;
-                double offsetX = Math.cos(angle) * 0.5; 
-                double offsetZ = Math.sin(angle) * 0.5;
-
-                
-                double x = centerPosition.x + offsetX;
-                double y = centerPosition.y + 0.5; 
-                double z = centerPosition.z + offsetZ;
-
-                
-                EntityType<?> viralBombType = ModEntities.VIRAL_BOMB.get();
-                Entity viralBomb = viralBombType.create(this.level());
-
-                if (viralBomb != null) {
-                    viralBomb.setPos(x, y, z);
-
-                    
-                    double speed = 0.3 + this.random.nextDouble() * 0.15;
-                    viralBomb.setDeltaMovement(
-                            Math.cos(angle) * speed,
-                            0.1 + this.random.nextDouble() * 0.1, 
-                            Math.sin(angle) * speed
-                    );
-
-                    this.level().addFreshEntity(viralBomb);
-                }
             }
         }
     }

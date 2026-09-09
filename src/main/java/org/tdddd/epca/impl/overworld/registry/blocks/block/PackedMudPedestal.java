@@ -12,8 +12,17 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.*;
+import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -21,16 +30,14 @@ import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -41,9 +48,14 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.registry.ModBlocks;
+import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
+import org.tdddd.epca.impl.overworld.registry.blocks.BlockConversionManager;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.PackedMudPedestalBlockEntity;
 import org.tdddd.epca.impl.overworld.data.AltarPointManager;
+import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.items.item.SmallItemFrame;
 
 import java.util.*;
@@ -52,12 +64,11 @@ import java.util.stream.Collectors;
 public class PackedMudPedestal extends BaseEntityBlock {
     protected static final VoxelShape SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 16.0D, 13.0D);
     private static final int MAX_PEDESTAL_TOTAL = 21;
-    private static final int GRID_SIZE = 3;
 
     public static final TagKey<Block> PEDESTAL_TAG = TagKey.create(Registries.BLOCK,
-            new ResourceLocation("epca", "pedestals"));
+            new ResourceLocation(epca.MODID, "pedestals"));
     public static final TagKey<Block> ALTAR_STONE_TAG = TagKey.create(Registries.BLOCK,
-            new ResourceLocation("epca", "altar_stones"));
+            new ResourceLocation(epca.MODID, "altar_stones"));
 
     public PackedMudPedestal() {
         super(Properties.of()
@@ -81,8 +92,9 @@ public class PackedMudPedestal extends BaseEntityBlock {
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         ItemStack heldItem = player.getItemInHand(hand);
-
-        // 处理 SmallItemFrame 右键
+        if (tryPerformSacrifice(level, pos, player)) {
+            return InteractionResult.SUCCESS;
+        }
         if (heldItem.getItem() instanceof SmallItemFrame) {
             if (level.getBlockEntity(pos) instanceof PackedMudPedestalBlockEntity pedestal) {
                 String filterData = "";
@@ -91,7 +103,7 @@ public class PackedMudPedestal extends BaseEntityBlock {
                 }
                 pedestal.setFilterData(SmallItemFrame.getItemIds(heldItem));
                 if (filterData.isEmpty()) {
-                    clearMainPedestalInStructure(level, pos); // 空过滤器 → 清除主祭台标记
+                    clearMainPedestalInStructure(level, pos);
                 }
                 level.playSound(null, pos, SoundEvents.WOODEN_BUTTON_CLICK_ON, SoundSource.BLOCKS, 1.0F, 1.0F);
                 return InteractionResult.SUCCESS;
@@ -99,7 +111,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
 
-        // 潜行 + 空手右键 → 取出当前祭台的物品
         if (heldItem.isEmpty() && player.isShiftKeyDown()) {
             if (level.getBlockEntity(pos) instanceof PackedMudPedestalBlockEntity blockEntity) {
                 if (blockEntity.hasItem()) {
@@ -123,7 +134,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
 
-        // 烈焰棒查询祭坛信息（此处使用 Kill Stick，可按需改回 BLAZE_ROD）
         if (heldItem.is(ModItems.KILL_STICK.get())) {
             AltarStructureData data = findAltarStructure(level, pos);
             if (data == null || data.allPositions.isEmpty()) {
@@ -141,11 +151,9 @@ public class PackedMudPedestal extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
 
-        // 空手右键 → 触发合成（仅当右键的是主祭台且结构有效）
         if (heldItem.isEmpty()) {
             AltarStructureData data = findAltarStructure(level, pos);
             if (data != null && data.isValidForCrafting && data.mainPedestal != null && data.mainPedestal.equals(pos)) {
-                // 将该祭台设为主祭台，并清除其他祭台的主祭台标记
                 setMainPedestalInStructure(level, pos);
 
                 ItemStack targetStack = getFrameTarget(level, pos);
@@ -178,8 +186,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
         return InteractionResult.PASS;
     }
 
-    // -------- 合成相关 --------
-
     @Nullable
     private ItemStack getFrameTarget(Level level, BlockPos corePos) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
@@ -209,7 +215,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
         List<BlockPos> pedestalPositions = data.pedestalPositions;
         boolean isSingle = pedestalPositions.size() == 1;
 
-        // ----- 收集可用物品，并记录对应的基座位置（用于返还） -----
         List<ItemStack> availableItems = new ArrayList<>();
         List<BlockPos> sourcePositions = new ArrayList<>();
         if (isSingle) {
@@ -232,16 +237,13 @@ public class PackedMudPedestal extends BaseEntityBlock {
             if (availableItems.isEmpty()) return false;
         }
 
-        // ----- 配方匹配 -----
         RecipeManager recipeManager = level.getRecipeManager();
         List<CraftingRecipe> recipes = recipeManager.getAllRecipesFor(RecipeType.CRAFTING);
         CraftingRecipe matchedRecipe = null;
-        // 记录匹配到的配方中每个非空槽位对应的原料索引（与ingredients列表对应）
-        List<Integer> ingredientSlots = new ArrayList<>(); // 槽位索引（0~8）
+        List<Integer> ingredientSlots = new ArrayList<>();
         List<Ingredient> requiredIngredients = new ArrayList<>();
         for (CraftingRecipe recipe : recipes) {
             NonNullList<Ingredient> ingredients = recipe.getIngredients();
-            // 收集所有非空槽位及其原料
             List<Integer> slots = new ArrayList<>();
             List<Ingredient> required = new ArrayList<>();
             for (int i = 0; i < ingredients.size(); i++) {
@@ -270,10 +272,9 @@ public class PackedMudPedestal extends BaseEntityBlock {
         ItemStack result = matchedRecipe.assemble(new EmptyCraftingContainer(), level.registryAccess());
         if (!coreFilter.isEmpty() && !PackedMudPedestalBlockEntity.matchesFilter(result, coreFilter)) return false;
 
-        // ----- 匹配原料并记录每个消耗的来源索引和槽位 -----
-        List<ItemStack> consumedStacks = new ArrayList<>();      // 每个消耗的物品（数量1）
-        List<Integer> slotIndices = new ArrayList<>();           // 对应配方中的槽位索引
-        List<Integer> sourceIndices = new ArrayList<>();         // 对应 sourcePositions 的索引
+        List<ItemStack> consumedStacks = new ArrayList<>();
+        List<Integer> slotIndices = new ArrayList<>();
+        List<Integer> sourceIndices = new ArrayList<>();
         List<ItemStack> tempItems = availableItems.stream().map(ItemStack::copy).collect(Collectors.toList());
 
         for (int slotIdx : ingredientSlots) {
@@ -295,7 +296,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
             if (!found) return false;
         }
 
-        // ----- 构建虚拟 3×3 容器，按配方槽位填充消耗的物品 -----
         CraftingContainer dummyContainer = new TransientCraftingContainer(
                 new AbstractContainerMenu(null, 0) {
                     @Override public boolean stillValid(Player p) { return true; }
@@ -307,12 +307,9 @@ public class PackedMudPedestal extends BaseEntityBlock {
             dummyContainer.setItem(slot, consumedStacks.get(j).copy());
         }
 
-        // 获取返还物品列表（长度9，按槽位）
         NonNullList<ItemStack> remaining = matchedRecipe.getRemainingItems(dummyContainer);
 
-        // ----- 分配返还到基座（单基座：弹出；多基座：设置到对应基座）-----
         if (isSingle) {
-            // 单基座：所有返还直接掉落
             for (int j = 0; j < sourceIndices.size(); j++) {
                 int slot = slotIndices.get(j);
                 ItemStack returnStack = remaining.get(slot);
@@ -324,13 +321,11 @@ public class PackedMudPedestal extends BaseEntityBlock {
             corePedestal.setItem(result);
             corePedestal.setChanged();
         } else {
-            // 多基座：将返还物品设置到对应来源基座
             for (int j = 0; j < sourceIndices.size(); j++) {
                 int srcIdx = sourceIndices.get(j);
                 BlockPos targetPos = sourcePositions.get(srcIdx);
                 int slot = slotIndices.get(j);
                 ItemStack returnStack = remaining.get(slot);
-                epca.LOGGER.info("Returning {} to {} (slot {})", returnStack, targetPos, slot);
 
                 BlockEntity be = level.getBlockEntity(targetPos);
                 if (be instanceof PackedMudPedestalBlockEntity pedestal) {
@@ -342,19 +337,15 @@ public class PackedMudPedestal extends BaseEntityBlock {
                     if (level instanceof ServerLevel serverLevel) {
                         serverLevel.sendBlockUpdated(targetPos, level.getBlockState(targetPos), level.getBlockState(targetPos), 3);
                     }
-                } else {
-                    epca.LOGGER.warn("Target {} is not a pedestal!", targetPos);
                 }
             }
 
-            // 主祭台产物（原有）
             if (corePedestal.hasItem()) {
                 popResource(level, corePos, corePedestal.getItem());
                 corePedestal.clearItem();
             }
             corePedestal.setItem(result);
             corePedestal.setChanged();
-            // 同步所有基座
             if (level instanceof ServerLevel serverLevel) {
                 for (BlockPos p : pedestalPositions) {
                     serverLevel.sendBlockUpdated(p, level.getBlockState(p), level.getBlockState(p), 3);
@@ -364,9 +355,7 @@ public class PackedMudPedestal extends BaseEntityBlock {
         return true;
     }
 
-    // 辅助：检查物品列表是否满足原料需求（忽略顺序）
     private boolean canCraft(List<ItemStack> available, List<Ingredient> required) {
-        // 深拷贝可用物品列表（以便修改）
         List<ItemStack> remaining = available.stream().map(ItemStack::copy).collect(Collectors.toList());
         for (Ingredient ing : required) {
             boolean found = false;
@@ -386,19 +375,16 @@ public class PackedMudPedestal extends BaseEntityBlock {
         return true;
     }
 
-    // 辅助：检查输出是否与目标匹配（精确或标签）
     private boolean matchesTarget(ItemStack result, ItemStack target) {
         if (target.getItem().equals(result.getItem())) {
             return true;
         }
-        // 检查共同标签
         Set<TagKey<Item>> targetTags = target.getItem().builtInRegistryHolder().tags().collect(Collectors.toSet());
         Set<TagKey<Item>> resultTags = result.getItem().builtInRegistryHolder().tags().collect(Collectors.toSet());
         targetTags.retainAll(resultTags);
         return !targetTags.isEmpty();
     }
 
-    // 空容器（用于仅获取配方结果，不依赖实际容器）
     private static class EmptyCraftingContainer extends TransientCraftingContainer {
         public EmptyCraftingContainer() {
             super(new AbstractContainerMenu(null, 0) {
@@ -409,8 +395,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
             }, 3, 3);
         }
     }
-
-    // -------- 结构检测（已简化，移除网格映射） --------
 
     @Override
     public RenderShape getRenderShape(BlockState state) {
@@ -444,15 +428,12 @@ public class PackedMudPedestal extends BaseEntityBlock {
         BlockPos abovePos = pos.above();
         BlockState aboveState = level.getBlockState(abovePos);
         FluidState aboveFluid = level.getFluidState(abovePos);
-        // 允许空气和流体
         if (aboveState.isAir() || !aboveFluid.isEmpty()) {
             return false;
         }
-        // 非完整方块允许（例如台阶、楼梯）
         if (!aboveState.isCollisionShapeFullBlock(level, abovePos)) {
             return false;
         }
-        // 只有完整固体方块才锁定
         return true;
     }
 
@@ -513,13 +494,11 @@ public class PackedMudPedestal extends BaseEntityBlock {
         boolean valid = true;
         String invalidReason = null;
 
-        // 1. 总祭台数量 1~21
         if (pedestalCount < 1 || pedestalCount > MAX_PEDESTAL_TOTAL) {
             valid = false;
             return new AltarStructureData(visited, totalPoints, pedestalCount, false, invalidReason, mainPedestal, null, 0, false);
         }
 
-        // 2. 上方遮挡
         for (BlockPos p : pedestalPositions) {
             BlockPos above = p.above();
             BlockState aboveState = level.getBlockState(above);
@@ -530,7 +509,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
             }
         }
 
-        // 3. 主祭台与其他祭台间距 ≥ 2
         for (BlockPos p : pedestalPositions) {
             if (p.equals(mainPedestal)) continue;
             int dx = Math.abs(p.getX() - mainPedestal.getX());
@@ -543,13 +521,11 @@ public class PackedMudPedestal extends BaseEntityBlock {
             }
         }
 
-        // 4. 多个祭台需有祭台石
         if (pedestalCount > 1 && altarStonePositions.isEmpty()) {
             valid = false;
             return new AltarStructureData(visited, totalPoints, pedestalCount, false, invalidReason, mainPedestal, null, 0, false);
         }
 
-        // 统计有物品的祭台数量
         int itemCount = 0;
         for (BlockPos p : pedestalPositions) {
             BlockEntity be = level.getBlockEntity(p);
@@ -572,8 +548,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
                 pos.above(), pos.below()
         );
     }
-
-    // -------- 内部数据类 --------
 
     private static class AltarStructureData {
         final Set<BlockPos> allPositions;
@@ -602,8 +576,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
         }
     }
 
-    // -------- 红石信号 --------
-
     @Override
     public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
@@ -617,9 +589,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
         return 0;
     }
 
-    /**
-     * 将结构内所有祭台的主祭台标记清除，并将指定祭台设为主祭台
-     */
     private void setMainPedestalInStructure(Level level, BlockPos pos) {
         AltarStructureData data = findAltarStructure(level, pos);
         if (data != null) {
@@ -630,7 +599,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
                 }
             }
         } else {
-            // 独立祭台，只设置自身
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof PackedMudPedestalBlockEntity pedestal) {
                 pedestal.setMainPedestal(true);
@@ -638,9 +606,6 @@ public class PackedMudPedestal extends BaseEntityBlock {
         }
     }
 
-    /**
-     * 清除结构内所有祭台的主祭台标记
-     */
     private void clearMainPedestalInStructure(Level level, BlockPos pos) {
         AltarStructureData data = findAltarStructure(level, pos);
         if (data != null) {
@@ -656,5 +621,98 @@ public class PackedMudPedestal extends BaseEntityBlock {
                 pedestal.setMainPedestal(false);
             }
         }
+    }
+
+    //献祭仪式
+    private boolean tryPerformSacrifice(Level level, BlockPos pos, Player player) {
+        if (level.isClientSide) return false;
+        if (!(level instanceof ServerLevel serverLevel)) return false;
+
+        BlockPos belowPos = pos.below();
+        BlockState belowState = level.getBlockState(belowPos);
+        if (!isBeaconBaseBlock(belowState)) return false;
+
+        BlockEntity be = level.getBlockEntity(pos);
+        if (!(be instanceof PackedMudPedestalBlockEntity pedestal)) return false;
+        ItemStack stored = pedestal.getItem();
+        if (!isGemBlockItem(stored)) return false;
+
+        List<Animal> animals = new ArrayList<>();
+        List<LivingEntity> villagers = new ArrayList<>();
+        double radius = 1.5;
+        List<Entity> entities = level.getEntities(null, new AABB(pos).inflate(radius));
+        for (Entity e : entities) {
+            if (e.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= radius * radius) {
+                if (IParasite.isParasiteNoLivingByTagOrInterface(e)) {
+                    return false;
+                }
+                if (!e.isAlive()) continue;
+                if (e instanceof Animal && !(e instanceof Monster)) {
+                    animals.add((Animal) e);
+                } else if (isVillagerLike(e) && e instanceof LivingEntity) {
+                    villagers.add((LivingEntity) e);
+                }
+            }
+        }
+        if (animals.size() < 2 || villagers.size() < 1) return false;
+
+        performSacrifice(serverLevel, pos, player, animals, villagers);
+        return true;
+    }
+
+    private void performSacrifice(ServerLevel level, BlockPos pos, Player player,
+                                  List<Animal> animals, List<LivingEntity> villagers) {
+        int animalRemoved = 0;
+        for (Animal a : animals) {
+            if (animalRemoved >= 2) break;
+            a.remove(Entity.RemovalReason.DISCARDED);
+            animalRemoved++;
+        }
+        if (!villagers.isEmpty()) {
+            villagers.get(0).remove(Entity.RemovalReason.DISCARDED);
+        }
+
+        List<BlockPos> positions = new ArrayList<>();
+        int maxRadius = 72;
+        for (int dx = -maxRadius; dx <= maxRadius; dx++) {
+            for (int dy = -maxRadius; dy <= maxRadius; dy++) {
+                for (int dz = -maxRadius; dz <= maxRadius; dz++) {
+                    BlockPos targetPos = pos.offset(dx, dy, dz);
+                    double dist = Math.sqrt(pos.distSqr(targetPos));
+                    if (dist > maxRadius) continue;
+                    BlockState state = level.getBlockState(targetPos);
+                    if (state.isAir()) continue;
+                    positions.add(targetPos);
+                }
+            }
+        }
+
+        positions.sort(Comparator.comparingDouble(p -> p.distSqr(pos)));
+
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof PackedMudPedestalBlockEntity pedestal) {
+            pedestal.clearItem();
+        }
+
+        BlockConversionManager.getInstance().addSacrificeTask(level, pos, player.getUUID(), positions);
+    }
+
+    private boolean isBeaconBaseBlock(BlockState state) {
+        Block block = state.getBlock();
+        return block == Blocks.IRON_BLOCK || block == Blocks.GOLD_BLOCK ||
+                block == Blocks.DIAMOND_BLOCK || block == Blocks.EMERALD_BLOCK ||
+                block == Blocks.NETHERITE_BLOCK;
+    }
+
+    private boolean isGemBlockItem(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        Item item = stack.getItem();
+        return item == Items.DIAMOND_BLOCK || item == Items.EMERALD_BLOCK || item == Items.AMETHYST_BLOCK;
+    }
+
+    private boolean isVillagerLike(Entity entity) {
+        return  entity instanceof AbstractVillager || entity instanceof Pillager ||
+                entity instanceof Witch || entity instanceof Vindicator ||
+                entity instanceof Evoker;
     }
 }

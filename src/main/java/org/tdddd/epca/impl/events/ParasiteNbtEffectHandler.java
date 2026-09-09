@@ -7,6 +7,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -73,10 +74,7 @@ public class ParasiteNbtEffectHandler {
         if (entity instanceof IParasite) {
             entity.getPersistentData().putBoolean("Parasite", true);
             
-            
             if (entity instanceof Mob mob) {
-                
-                
                 boolean hasPriorityGoal = mob.targetSelector.getAvailableGoals().stream()
                         .anyMatch(g -> g.getGoal() instanceof PriorityTargetGoal);
                 if (!hasPriorityGoal) {
@@ -91,17 +89,16 @@ public class ParasiteNbtEffectHandler {
             double newMaxHealth = entity.getMaxHealth() * multiplier;
             entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
             entity.setHealth((float) newMaxHealth);
-            double newArmor = entity.getArmorValue() * multiplier;
-            entity.getAttribute(Attributes.ARMOR).setBaseValue(newArmor);
 
-            
+            if (!(entity instanceof Player)) {
+                double newArmor = entity.getArmorValue() * multiplier;
+                entity.getAttribute(Attributes.ARMOR).setBaseValue(newArmor);
+            }
+
             if (entity instanceof Mob mob) {
-                
-                
                 mob.targetSelector.getAvailableGoals().removeIf(
                         goal -> goal.getGoal() instanceof net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal
                 );
-                
                 mob.targetSelector.addGoal(0, new GenericPriorityTargetGoal(mob, 16.0));
             }
         }

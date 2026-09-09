@@ -50,7 +50,7 @@ public class BleedingEffect extends MobEffect implements RemovableEffect {
             
             float baseDamage = maxHealth * DAMAGE_PERCENT;
             
-            float damage = isMoving ? baseDamage * 2 : baseDamage;
+            float damage = isMoving ? baseDamage * 1.5f : baseDamage;
             
             float multiplier = DifficultyEffects.getBleedingDamageMultiplier(entity.level());
             damage *= multiplier;

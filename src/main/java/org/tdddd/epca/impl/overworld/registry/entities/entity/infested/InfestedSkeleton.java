@@ -25,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
@@ -175,6 +176,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 48.0D));
+        this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
     }
 
     // ────────── Ranged Attack ──────────

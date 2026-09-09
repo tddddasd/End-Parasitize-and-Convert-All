@@ -26,10 +26,7 @@ import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
-import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowPathGoal;
-import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
-import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
-import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.*;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractInfestedEntity;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -82,7 +79,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
-
+        this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
         this.targetSelector.addGoal(0, new FollowPathGoal(this));
     }

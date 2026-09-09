@@ -260,7 +260,7 @@ public class CustomDataProviders {
             put(general, "minecraft:coarse_dirt", "epca:infested_dirt");
             put(general, "minecraft:rooted_dirt", "epca:infested_dirt");
             put(general, "minecraft:mud", "epca:infested_dirt");
-            put(general, "minecraft:muddy_mangrove_roots", "epca:infested_dirt");
+            put(general, "minecraft:muddy_mangrove_roots", "epca:infested_muddy_mangrove_roots");
             put(general, "minecraft:gravel", "epca:infested_dirt");
             put(general, "minecraft:suspicious_gravel", "epca:infested_dirt");
             put(general, "minecraft:clay", "epca:infested_dirt");
@@ -282,6 +282,7 @@ public class CustomDataProviders {
                 put(general, "minecraft:" + wood + "_wood", "epca:infested_wood");
                 put(general, "minecraft:stripped_" + wood + "_log", "epca:infested_stripped_log");
                 put(general, "minecraft:stripped_" + wood + "_wood", "epca:infested_stripped_wood");
+                put(general, "minecraft:" + wood + "_leaves", "epca:infested_leaves");
             }
 
             // 沙子
@@ -339,12 +340,12 @@ public class CustomDataProviders {
             // 石砖
             put(general, "minecraft:stone_bricks", "epca:infested_stone_bricks");
             put(general, "minecraft:mossy_stone_bricks", "epca:infested_stone_bricks");
-            put(general, "minecraft:stone_bricks_slab", "epca:infested_stone_bricks_slab");
-            put(general, "minecraft:mossy_stone_bricks_slab", "epca:infested_stone_bricks_slab");
-            put(general, "minecraft:stone_bricks_stairs", "epca:infested_stone_bricks_stairs");
-            put(general, "minecraft:mossy_stone_bricks_stairs", "epca:infested_stone_bricks_stairs");
-            put(general, "minecraft:stone_bricks_wall", "epca:infested_stone_bricks_wall");
-            put(general, "minecraft:mossy_stone_bricks_wall", "epca:infested_stone_bricks_wall");
+            put(general, "minecraft:stone_brick_slab", "epca:infested_stone_bricks_slab");
+            put(general, "minecraft:mossy_stone_brick_slab", "epca:infested_stone_bricks_slab");
+            put(general, "minecraft:stone_brick_stairs", "epca:infested_stone_bricks_stairs");
+            put(general, "minecraft:mossy_stone_brick_stairs", "epca:infested_stone_bricks_stairs");
+            put(general, "minecraft:stone_brick_wall", "epca:infested_stone_bricks_wall");
+            put(general, "minecraft:mossy_stone_brick_wall", "epca:infested_stone_bricks_wall");
             put(general, "minecraft:cracked_stone_bricks", "epca:infested_cracked_stone_bricks");
             put(general, "minecraft:chiseled_stone_bricks", "epca:infested_chiseled_stone_bricks");
 
@@ -437,6 +438,13 @@ public class CustomDataProviders {
             put(general, "minecraft:deepslate_tiles_slab", "epca:infested_heavy_tiles_slab");
             put(general, "minecraft:deepslate_tiles_stairs", "epca:infested_heavy_tiles_stairs");
             put(general, "minecraft:deepslate_tiles_wall", "epca:infested_heavy_tiles_wall");
+            put(general, "minecraft:mangrove_roots", "epca:infested_mangrove_roots");
+            put(general, "minecraft:grass", "epca:infested_grass");
+            put(general, "minecraft:dead_bush", "epca:infested_dead_bush");
+            put(general, "minecraft:fern", "epca:infested_fern");
+            put(general, "minecraft:tall_grass", "epca:infested_tall_grass");
+            put(general, "minecraft:large_fern", "epca:infested_lager_fern");
+            put(general, "minecraft:chiseled_deepslate", "epca:infested_chiseled_deepslate");
 
             // beckon — 同 general
             Map<String, String> beckon = new LinkedHashMap<>(general);

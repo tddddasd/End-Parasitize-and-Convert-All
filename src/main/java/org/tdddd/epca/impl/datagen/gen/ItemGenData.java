@@ -38,7 +38,7 @@ public class ItemGenData extends ItemModelProvider {
             "swallow_cyst",
 
             // --- 模块物品（无独立纹理，使用特殊渲染） ---
-            "feeding_module_i", "instinct_module_i", "flesh_armor_module_i",
+            "feeding_module_i", "flesh_armor_module_i",
             "netherite_module_i", "flight_module_i",
 
             "infested_carved_pumpkin"

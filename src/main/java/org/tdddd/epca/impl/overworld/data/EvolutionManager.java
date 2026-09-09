@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
-import org.tdddd.epca.impl.ModConfig;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.SyncEvolutionStagePacket;
@@ -102,13 +101,7 @@ public class EvolutionManager {
             return;
         }
 
-        
-        double multiplier = ModConfig.getPointsMultiplier(oldStage);
-        
-        multiplier *= DifficultyEffects.getEvolutionPointsMultiplier(level);
-        int adjustedAmount = (int) Math.round(amount * multiplier);
-
-        int newPoints = evolutionPoints + adjustedAmount;
+        int newPoints = evolutionPoints + amount;
 
         
         if (oldStage >= 0 && newPoints < 0) {
@@ -211,18 +204,6 @@ public class EvolutionManager {
         }
         return null; 
     }
-
-    
-    private int calculateStage() {
-        double[] thresholds = ModConfig.getStageThresholds();
-        for (int stage = thresholds.length - 1; stage >= 0; stage--) {
-            if (evolutionPoints >= thresholds[stage]) {
-                return stage - 2; 
-            }
-        }
-        return -2;
-    }
-
     
     private int clampPoints(int points) {
         return Math.min(Math.max(points, MIN_EVOLUTION_POINTS), MAX_EVOLUTION_POINTS);
@@ -342,12 +323,19 @@ public class EvolutionManager {
         this.cooldownEndTime = dataStorage.getCooldownEndForDimension(level.dimension());
     }
 
-    
+
     public int getStage() {
         if (overriddenStage != null) {
             return overriddenStage;
         }
-        return calculateStage();
+
+        int[] thresholds = STAGE_THRESHOLDS;
+        for (int i = thresholds.length - 1; i >= 0; i--) {
+            if (evolutionPoints >= thresholds[i]) {
+                return i - 2;
+            }
+        }
+        return -2;
     }
 
     public void setOverriddenStage(int stage) {

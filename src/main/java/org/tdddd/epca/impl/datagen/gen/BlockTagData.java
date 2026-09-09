@@ -51,11 +51,12 @@ public class BlockTagData extends BlockTagsProvider {
             if (block instanceof RotatedPillarBlock || block instanceof FenceBlock
                     || block instanceof FenceGateBlock || isWoodLike(name) ||
                     name.contains("pumpkin") || name.contains("carved_pumpkin") ||
-                    name.contains("cactus")) {
+                    name.contains("cactus") || name.contains("mangrove_roots")) {
                 tag(BlockTags.MINEABLE_WITH_AXE).add(block);
             } else if (block instanceof SnowLayerBlock || block instanceof FallingBlock
                     || name.contains("sand") || name.contains("dirt")
-                    || name.contains("dustlike") || name.contains("snow_block")) {
+                    || name.contains("dustlike") || name.contains("snow_block")
+                    || name.contains("muddy_mangrove_roots")) {
                 tag(BlockTags.MINEABLE_WITH_SHOVEL).add(block);
             } else if (block instanceof LeavesBlock || block instanceof BushBlock
                     || block instanceof MultifaceBlock || name.contains("nethersea_brand_grown")

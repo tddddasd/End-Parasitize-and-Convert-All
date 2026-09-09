@@ -11,130 +11,91 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class ModConfig {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec SPEC;
     public static final ForgeConfigSpec.BooleanValue ALLOW_COTH_LEVEL_4;
-    public static final ForgeConfigSpec.BooleanValue PARASITE_FRIENDLY;
     public static final ForgeConfigSpec.BooleanValue PARASITE_PEACEFUL;
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_TARGET_WHITELIST;
-    
     private static final Set<ResourceLocation> TARGET_WHITELIST = ConcurrentHashMap.newKeySet();
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_IMMUNITY_WHITELIST;
     private static final Set<ResourceLocation> IMMUNITY_WHITELIST = ConcurrentHashMap.newKeySet();
-    
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_CONVERSION_MOD_IMMUNITY_WHITELIST;
     private static final Set<String> CONVERSION_MOD_IMMUNITY_WHITELIST = ConcurrentHashMap.newKeySet();
-    
-    
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_MOD_PEACEFUL_PAIRS;
     private static final Map<String, Set<String>> MOD_PEACEFUL_MAP = new ConcurrentHashMap<>();
-    
-    
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_MODS_LIST;
-    private static final Set<String> PARASITE_MODS = ConcurrentHashMap.newKeySet();
-    
-    
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> DISABLED_ENTITIES_WHITELIST;
     private static final Set<ResourceLocation> DISABLED_ENTITIES = ConcurrentHashMap.newKeySet();
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_ENEMY_PLAYERS;
-    
-    
-    public static final ForgeConfigSpec.ConfigValue<List<? extends Double>> STAGE_THRESHOLDS;
-    
-    public static final ForgeConfigSpec.ConfigValue<List<? extends Double>> POINTS_MULTIPLIER;
-    
     public static final ForgeConfigSpec.ConfigValue<String> DEFAULT_EXTRA_DIFFICULTY;
-    
     public static final ForgeConfigSpec.BooleanValue SAFETY_DAY_ENABLED;
     public static final ForgeConfigSpec.IntValue SAFETY_DAY_DURATION_TICKS;
     static {
         BUILDER.push("End-Parasitize and Convert All Configuration");
 
         ALLOW_COTH_LEVEL_4 = BUILDER
-                .comment("如果为true，寄巢之唤效果可以提升至IV级（amplifier=3）。默认值：false")
+                .comment("If true, the effect of Call of The Hive can be upgraded to level IV. Default: false",
+                        "如果为true，寄巢之唤效果可以提升至IV级。默认值：false")
                 .define("allowCothLevel4", false);
 
-        PARASITE_FRIENDLY = BUILDER
-                .comment("如果为true，寄生体不会攻击玩家。默认值：false")
-                .define("parasiteFriendly", false);
-
         PARASITE_PEACEFUL = BUILDER
-                .comment("如果为true，寄生体将不会攻击和转化任何生物（白名单中的生物除外）。默认值：false")
+                .comment(" ",
+                        "If true, the parasite won't attack or convert any creatures (except those on the whitelist). Default: false",
+                        "如果为true，寄生体将不会攻击和转化任何生物（白名单中的生物除外）。默认值：false")
                 .define("parasitePeaceful", false);
 
         PARASITE_TARGET_WHITELIST = BUILDER
-                .comment("寄生体攻击目标白名单（当parasitePeaceful启用时生效）",
-                        "格式: [\"minecraft:creeper\", \"minecraft:zombie\"]")
+                .comment(" ",
+                        "Parasite attack target whitelist (effective when parasitePeaceful is enabled), you need to enter the entity registration name",
+                        "寄生体攻击目标白名单（当parasitePeaceful启用时生效），需填入实体注册名")
                 .defineList("parasiteTargetWhitelist", Collections.emptyList(),
                         entry -> entry instanceof String);
 
         PARASITE_IMMUNITY_WHITELIST = BUILDER
-                .comment("寄生体不攻击目标白名单（寄生体永远不会攻击这些生物，最高优先级）",
-                        "格式: [\"minecraft:creeper\", \"minecraft:zombie\"]")
+                .comment(" ",
+                        "Parasites don’t attack the target whitelist (parasites will never attack these creatures, highest priority), you need to enter the entity registration name",
+                        "寄生体不攻击目标白名单（寄生体永远不会攻击这些生物，最高优先级），需填入实体注册名")
                 .defineList("parasiteImmunityWhitelist", Collections.emptyList(),
                         entry -> entry instanceof String);
 
 
         PARASITE_CONVERSION_MOD_IMMUNITY_WHITELIST = BUILDER
-                .comment("模组免疫寄生体转化白名单（这些模组的所有生物永远不会被转化,最高优先级）",
-                        "格式: [\"modid1\", \"modid2\"]",
-                        "此列表优先级高于其他所有转化条件")
+                .comment(" ",
+                        "Mod creature immune parasite transformation whitelist (all creatures with the entered mod ID will not be transformed, highest priority)",
+                        "模组生物免疫寄生体转化白名单（填入的模组ID的所有生物不会被转化,最高优先级）")
                 .defineList("parasiteConversionModImmunityWhitelist", Collections.emptyList(),
                         entry -> entry instanceof String);
 
         PARASITE_MOD_PEACEFUL_PAIRS = BUILDER
-                .comment("模组生物互不攻击列表，格式为[\"mod1:mod2\", \"mod3:mod4\"]",
-                        "表示mod1和mod2下的生物不会互相攻击，mod3和mod4下的生物不会互相攻击",
-                        "示例：[\"minecraft:epca\"] 表示原版生物和此模组的生物不会互相攻击")
+                .comment(" ",
+                        "List of mod creatures that don’t attack each other, format: [\"mod1:mod2\", \"mod3:mod4\"], you need to fill in the mod IDs",
+                        "模组生物互不攻击列表，格式：[\"mod1:mod2\", \"mod3:mod4\"]，需填入模组ID")
                 .defineList("parasiteModPeacefulPairs", Collections.emptyList(),
                         entry -> entry instanceof String);
 
         DISABLED_ENTITIES_WHITELIST = BUILDER
-                .comment("禁用生物白名单（在该白名单填入生物id后，检测到加载区块内有该生物，便会remove该生物）",
-                        "格式: [\"minecraft:creeper\", \"minecraft:zombie\"]")
+                .comment(" ",
+                        "Disable the mob whitelist (after entering the mob's registered name in this whitelist, the mob in the currently loaded chunks will be removed)",
+                        "禁用生物白名单（在该白名单填入生物注册名后，会清除当前加载区块内的该生物）")
                 .defineList("disabledEntitiesWhitelist", Collections.emptyList(),
                         entry -> entry instanceof String);
 
-        PARASITE_MODS_LIST = BUILDER
-                .comment("判定为寄生体的模组列表（这些模组的所有生物将被视为寄生体）",
-                        "格式: [\"modid1\", \"modid2\"]",
-                        "注意：如果填入\"minecraft\"，则不包括玩家")
-                .defineList("parasiteModsList", Arrays.asList("epca"),
-                        entry -> entry instanceof String);
-
-        PARASITE_ENEMY_PLAYERS = BUILDER
-                .comment("被寄生体视为敌人的玩家列表（即使开启友好模式）",
-                        "格式: [\"player id1\", \"player id2\"]")
-                .defineList("parasiteEnemyPlayers", Collections.emptyList(),
-                        entry -> entry instanceof String);
-
-        STAGE_THRESHOLDS = BUILDER
-                .comment("演化阶段阈值列表，按顺序从阶段-2到阶段10，共13个值，支持小数（最多两位小数）",
-                        "默认值：[-100, -50, 0, 400, 800, 1800, 20000, 200000, 5000000, 25000000, 500000000, 1000000000, 1800000000]")
-                .defineList("stageThresholds",
-                        Arrays.asList(-100.0, -50.0, 0.0, 400.0, 800.0, 1800.0, 20000.0, 200000.0, 5000000.0, 25000000.0, 500000000.0, 1000000000.0, 1800000000.0),
-                        entry -> entry instanceof Double);
-
-        POINTS_MULTIPLIER = BUILDER
-                .comment("每个演化阶段的点数增加倍率，顺序从阶段-2到阶段10，共13个值，范围0.0~10.0（0%~1000%），默认全1.0")
-                .defineList("pointsMultiplier",
-                        Arrays.asList(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
-                        entry -> entry instanceof Double && (Double) entry >= 0.0 && (Double) entry <= 10.0);
-
         DEFAULT_EXTRA_DIFFICULTY = BUILDER
-                .comment("新建世界时的默认额外难度。可选值: easy, normal, expert, master, legendary, custom",
-                        "注：custom 难度下会使用普通难度的数值，但允许通过指令调整额外参数")
+                .comment(" ",
+                        "The default extra difficulty when creating a new world. Options: easy, normal, expert, master, legendary, custom",
+                        "新建世界时的默认额外难度。可选值: easy, normal, expert, master, legendary, custom")
                 .define("defaultExtraDifficulty", "normal");
 
         SAFETY_DAY_ENABLED = BUILDER
-                .comment("是否启用安全日")
+                .comment(" ",
+                        "Enable Safe Day, Default: false",
+                        "是否启用安全日，默认值：false")
                 .define("safetyDayEnabled", false);
 
         SAFETY_DAY_DURATION_TICKS = BUILDER
-                .comment("安全日持续时间（游戏刻）")
+                .comment(" ",
+                        "Safe day duration (game tick)",
+                        "安全日持续时间（游戏刻）")
                 .defineInRange("safetyDayDurationTicks", 60000, 1, Integer.MAX_VALUE);
 
         BUILDER.pop();
@@ -143,16 +104,13 @@ public class ModConfig {
 
     public static void register() {
         
-        Path configPath = Paths.get("E-PCA", "epca.toml");
+        Path configPath = Paths.get("E-PCA", "epca_main_config.toml");
 
         ModLoadingContext.get().registerConfig(
                 net.minecraftforge.fml.config.ModConfig.Type.COMMON,
                 SPEC,
                 configPath.toString() 
         );
-    }
-    public static boolean isParasiteFriendly() {
-        return PARASITE_FRIENDLY.get();
     }
 
     public static boolean isCothLevel4Allowed() {
@@ -178,12 +136,10 @@ public class ModConfig {
         return TARGET_WHITELIST.contains(entityId);
     }
 
-    
     public static boolean isInTargetWhitelist(LivingEntity entity) {
         return isInTargetWhitelist(ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()));
     }
 
-    
     public static boolean isInImmunityWhitelist(ResourceLocation entityId) {
         
         if (IMMUNITY_WHITELIST.isEmpty()) {
@@ -197,12 +153,10 @@ public class ModConfig {
         }
         return IMMUNITY_WHITELIST.contains(entityId);
     }
-
     
     public static boolean isInImmunityWhitelist(LivingEntity entity) {
         return isInImmunityWhitelist(ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()));
     }
-
     
     public static boolean isInConversionModImmunityWhitelist(ResourceLocation entityId) {
         if (CONVERSION_MOD_IMMUNITY_WHITELIST.isEmpty()) {
@@ -217,17 +171,13 @@ public class ModConfig {
         ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
         return entityId != null && isInConversionModImmunityWhitelist(entityId);
     }
-    
 
-
-    
     public static boolean areModsPeaceful(LivingEntity entity1, LivingEntity entity2) {
         
         if (MOD_PEACEFUL_MAP.isEmpty()) {
             initModPeacefulMap();
         }
 
-        
         ResourceLocation key1 = ForgeRegistries.ENTITY_TYPES.getKey(entity1.getType());
         ResourceLocation key2 = ForgeRegistries.ENTITY_TYPES.getKey(entity2.getType());
 
@@ -268,30 +218,6 @@ public class ModConfig {
         return entityId != null && isInDisabledEntitiesWhitelist(entityId);
     }
     
-
-    
-    public static boolean isFromParasiteMod(ResourceLocation entityId) {
-        if (PARASITE_MODS.isEmpty()) {
-            for (String modId : PARASITE_MODS_LIST.get()) {
-                PARASITE_MODS.add(modId);
-            }
-        }
-        return PARASITE_MODS.contains(entityId.getNamespace());
-    }
-
-    public static boolean isFromParasiteMod(LivingEntity entity) {
-        
-        if (entity instanceof net.minecraft.world.entity.player.Player &&
-                isFromParasiteMod(new ResourceLocation("minecraft", "player"))) {
-            return false;
-        }
-
-        ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
-        return entityId != null && isFromParasiteMod(entityId);
-    }
-    
-
-    
     private static synchronized void initModPeacefulMap() {
         
         if (!MOD_PEACEFUL_MAP.isEmpty()) return;
@@ -309,40 +235,6 @@ public class ModConfig {
         }
     }
 
-    
-    public static List<String> getModPeacefulPairs() {
-        if (MOD_PEACEFUL_MAP.isEmpty()) {
-            initModPeacefulMap();
-        }
-        return MOD_PEACEFUL_MAP.entrySet().stream()
-                .flatMap(entry -> entry.getValue().stream()
-                        .map(value -> entry.getKey() + ":" + value))
-                .distinct()
-                .collect(Collectors.toList());
-    }
-    
-
-    
-    public static double[] getStageThresholds() {
-        List<? extends Double> list = STAGE_THRESHOLDS.get();
-        double[] arr = new double[list.size()];
-        for (int i = 0; i < list.size(); i++) {
-            arr[i] = list.get(i);
-        }
-        return arr;
-    }
-
-    
-    public static double getPointsMultiplier(int stage) {
-        
-        int index = stage + 2;
-        List<? extends Double> list = POINTS_MULTIPLIER.get();
-        if (index < 0 || index >= list.size()) {
-            return 1.0; 
-        }
-        return list.get(index);
-    }
-
     public static boolean isSafetyDayEnabled() { return SAFETY_DAY_ENABLED.get(); }
     public static int getSafetyDayDurationTicks() { return SAFETY_DAY_DURATION_TICKS.get(); }
 
@@ -358,19 +250,5 @@ public class ModConfig {
             case "custom" -> DifficultyLevel.CUSTOM;
             default -> DifficultyLevel.NORMAL;
         };
-    }
-
-    
-    public static void clearCache() {
-        TARGET_WHITELIST.clear();
-        IMMUNITY_WHITELIST.clear();
-        CONVERSION_MOD_IMMUNITY_WHITELIST.clear();
-        DISABLED_ENTITIES.clear();
-        MOD_PEACEFUL_MAP.clear();
-        PARASITE_MODS.clear();
-    }
-
-    public static boolean isEnemyPlayer(String playerName) {
-        return PARASITE_ENEMY_PLAYERS.get().contains(playerName);
     }
 }

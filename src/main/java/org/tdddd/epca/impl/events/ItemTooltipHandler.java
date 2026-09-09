@@ -194,6 +194,9 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.INFESTED_HEAVY_TILES_SLAB, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_HEAVY_TILES_STAIRS, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_HEAVY_TILES_WALL, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_MANGROVE_ROOTS, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_MUDDY_MANGROVE_ROOTS, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_DEAD_BUSH, "item.epca.category_infested");
 
         //link
         registerTooltip(ModItems.BECKON_CORE, "item.epca.category_link");

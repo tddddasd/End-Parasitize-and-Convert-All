@@ -41,11 +41,6 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.BECKON_MEMBRANE));
                 builder.add(i(ModItems.BLOODY_CLOCK));
                 builder.add(i(ModItems.LIVING_ARMOR_BOX));
-                builder.add(i(ModItems.FEEDING_MODULE_I));
-                builder.add(i(ModItems.INSTINCT_MODULE_I));
-                builder.add(i(ModItems.FLESH_ARMOR_MODULE_I));
-                builder.add(i(ModItems.NETHERITE_MODULE_I));
-                builder.add(i(ModItems.FLIGHT_MODULE_I));
                 builder.add(i(ModItems.LIVING_HELMET));
                 builder.add(i(ModItems.LIVING_CHESTPLATE));
                 builder.add(i(ModItems.LIVING_LEGGINGS));
@@ -210,8 +205,11 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_TALL_GRASS));
                 builder.add(i(ModItems.INFESTED_TALL_FERN));
                 builder.add(i(ModItems.INFESTED_SWEET_BERRY_BUSH));
+                builder.add(i(ModItems.INFESTED_DEAD_BUSH));
                 builder.add(i(ModItems.INFESTED_PUMPKIN));
                 builder.add(i(ModItems.INFESTED_CARVED_PUMPKIN));
+                builder.add(i(ModItems.INFESTED_MANGROVE_ROOTS));
+                builder.add(i(ModItems.INFESTED_MUDDY_MANGROVE_ROOTS));
                 builder.add(i(ModItems.INFESTED_SUGAR_CANE));
                 builder.add(i(ModItems.INFESTED_CACTUS));
                 builder.add(i(ModItems.INFESTED_LILY_PAD));

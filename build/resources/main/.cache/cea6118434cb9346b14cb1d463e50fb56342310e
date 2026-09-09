@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-04T09:42:28.6207495	Block States: epca
+// 1.20.1	2026-09-06T11:17:31.6625611	Block States: epca
 41144d4a06f8e975e48a517e4e0f6fd13a47d8f7 assets/epca/blockstates/beckon_core.json
 8731cab9209eb44603329fb421459c454137ac55 assets/epca/blockstates/infested_chiseled_deepslate.json
 e3a33c3a14804c5c23dd4fa34a7caa8e5dd3f57e assets/epca/blockstates/infested_chiseled_stone_bricks.json
@@ -11,6 +11,7 @@ c144b323abe742c515978368e2b8ebab57eb8f1a assets/epca/blockstates/infested_copper
 f37ab28390778cbee59fae82d34a8cb4103281e6 assets/epca/blockstates/infested_cracked_heavy_bricks.json
 6bebd484fc615ce0545a29e33b77b827ca421963 assets/epca/blockstates/infested_cracked_heavy_tiles.json
 dd9e632081fe424088654ee6e6f4483513a04676 assets/epca/blockstates/infested_cracked_stone_bricks.json
+733be2104bb668fcc43f420b97f5ead3469e28a6 assets/epca/blockstates/infested_dead_bush.json
 5d8000321e281d1d3db2fe0ce8f71ec2f18d1d02 assets/epca/blockstates/infested_diamond_ore.json
 c67c5a26d1b5585ca48328c1e70784de15e2245b assets/epca/blockstates/infested_dustlike.json
 cf6b9dd89d2281431d8eed6164731d5d4cc60a3f assets/epca/blockstates/infested_emerald_ore.json
@@ -99,6 +100,7 @@ cafbf6c8b8f1bb0a90e81ede9b8fb382b476fd8d assets/epca/models/block/infested_coppe
 4b803dc4bbf6d9c99e5f1b200ace27db2a7174de assets/epca/models/block/infested_cracked_heavy_bricks.json
 e42251aeb13176f3fdb605258809fe04fba6dec3 assets/epca/models/block/infested_cracked_heavy_tiles.json
 ffb1a6cb70efac3e5ad080f99010d67a7735627e assets/epca/models/block/infested_cracked_stone_bricks.json
+851fb789d26be129bfe2bb812ac117ee11b69c1e assets/epca/models/block/infested_dead_bush.json
 014102dc0c449fe399a7752e4f4c10a20ce6e2fb assets/epca/models/block/infested_diamond_ore.json
 5fdaa061fc5aadda755a9291295f943987815a8f assets/epca/models/block/infested_dustlike.json
 a717a8cac19cca0f45ac1d3a70d58a275777197e assets/epca/models/block/infested_emerald_ore.json
@@ -231,6 +233,7 @@ b3d31843be727e700e2084fbce24632e27b582f0 assets/epca/models/item/infested_cobble
 ff2c7ae7794c60428fc73ff59393e23a8960307c assets/epca/models/item/infested_cracked_heavy_bricks.json
 1b494f411f2913ad541871a4e3eebdf6a139a597 assets/epca/models/item/infested_cracked_heavy_tiles.json
 a4970a68d61d795d6d30229d32d48c215b1ba694 assets/epca/models/item/infested_cracked_stone_bricks.json
+c728a780940a9d2ca79aedac8cc0a00b8da6519d assets/epca/models/item/infested_dead_bush.json
 b3d6842d14c9bb783074e76b84523f0ae52a6e0c assets/epca/models/item/infested_diamond_ore.json
 a201ef35c8b0475ff07ebd151625503e660d5b66 assets/epca/models/item/infested_dustlike.json
 03d87f05e58ab424b9d40d35ae72d4bd34806404 assets/epca/models/item/infested_emerald_ore.json
