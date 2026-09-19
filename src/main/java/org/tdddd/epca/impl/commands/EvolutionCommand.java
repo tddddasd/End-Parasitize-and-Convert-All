@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.commands;
 
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.permissions.PermissionCheck;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -16,7 +18,7 @@ public class EvolutionCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("epca_evolution")
-                .requires(source -> source.hasPermission(2))
+                .requires(Commands.hasPermission(new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER)))
 
                 .then(Commands.literal("status")
                         .executes(context -> showStatus(context, null))
@@ -187,6 +189,6 @@ public class EvolutionCommand {
         if (level.dimension().equals(Level.OVERWORLD)) return "主世界";
         if (level.dimension().equals(Level.NETHER)) return "下界";
         if (level.dimension().equals(Level.END)) return "末地";
-        return level.dimension().location().toString();
+        return level.dimension().identifier().toString();
     }
 }

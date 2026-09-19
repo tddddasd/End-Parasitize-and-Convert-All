@@ -15,10 +15,13 @@ public class FearEffect extends MobEffect implements RemovableEffect {
         super(MobEffectCategory.BENEFICIAL,  0x333333);
     }
 
+    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
+    // tickCount is the effect duration for timed effects (MobEffectInstance#tickServer), so the 1.20.1
+    // "duration % (1 << amplifier) == 0" condition is reproduced verbatim, negative-shift guard included.
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        int interval = 1 << amplifier; 
-        return interval > 0 ? duration % interval == 0 : true;
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
+        int interval = 1 << amplification; 
+        return interval > 0 ? tickCount % interval == 0 : true;
     }
 
     @Override

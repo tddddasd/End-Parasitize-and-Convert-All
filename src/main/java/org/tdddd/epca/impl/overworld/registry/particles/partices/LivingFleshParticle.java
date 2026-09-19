@@ -3,16 +3,16 @@ package org.tdddd.epca.impl.overworld.registry.particles.partices;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.util.RandomSource;
+import net.neoforged.api.distmarker.Dist;
 import org.tdddd.epca.impl.epca;
 
-@OnlyIn(Dist.CLIENT)
-public class LivingFleshParticle extends TextureSheetParticle {
+// 26.1.2: TextureSheetParticle -> SingleQuadParticle.
+public class LivingFleshParticle extends SingleQuadParticle {
     private final SpriteSet spriteSet; 
 
     protected LivingFleshParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet spriteSet) {
-        super(level, x, y, z, xd, yd, zd);
+        super(level, x, y, z, xd, yd, zd, spriteSet.first());
         this.spriteSet = spriteSet; 
         this.friction = 0.9F;
         this.gravity = 0.3F;
@@ -23,8 +23,8 @@ public class LivingFleshParticle extends TextureSheetParticle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+    public SingleQuadParticle.Layer getLayer() {
+        return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
     @Override
@@ -43,7 +43,8 @@ public class LivingFleshParticle extends TextureSheetParticle {
 
         public Particle createParticle(SimpleParticleType type, ClientLevel level,
                                        double x, double y, double z,
-                                       double xd, double yd, double zd) {
+                                       double xd, double yd, double zd,
+                                       RandomSource random) {
             try {
                 if (spriteSet == null) {
                     epca.LOGGER.error("SpriteSet is null in SplashiParticle provider!");

@@ -1,4 +1,5 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+import net.minecraft.resources.Identifier;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 
 import net.minecraft.core.BlockPos;
@@ -24,8 +25,8 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
@@ -46,14 +47,14 @@ import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
@@ -70,20 +71,14 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     
     private static final EntityDataAccessor<Boolean> DATA_IS_CHARGING = SynchedEntityData.defineId(InfestedCow.class, EntityDataSerializers.BOOLEAN);
 
-    private static final UUID WANDER_SPEED_ID = UUID.fromString("A5766B59-7066-4402-AD81-0E3B7B6C2B9B");
-    private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, "Wander speed reduction", -0.35, AttributeModifier.Operation.MULTIPLY_TOTAL);
-
-    
+    private static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath("epca", "a5766b59-7066-4402-ad81-0e3b7b6c2b9b");
+    private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20; 
     private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20; 
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedCow.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 30;
     private BlockPos deathPosition; 
-
-    
     private int chargeCooldown = 0;                      
     private int chargeTicksRemaining = 0;                 
     private Vec3 chargeDirection;                          
@@ -98,7 +93,8 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
         super(type, level);
         this.xpReward = 8;
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-        this.setMaxUpStep(0.5F);
+        var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
+        if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
         this.navigation = new GroundPathNavigation(this, level);
     }
 
@@ -110,10 +106,10 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     private int breakCooldown = 0;
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             breakCooldown = tryBreakLightSources(this, breakCooldown);
             
             tickCharge();
@@ -127,8 +123,6 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     private void setFakingDeath(boolean faking) {
         this.entityData.set(DATA_IS_FAKING_DEATH, faking);
     }
-
-    
     public boolean isCharging() {
         return this.entityData.get(DATA_IS_CHARGING);
     }
@@ -169,13 +163,9 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     @Override
     public void tick() {
         super.tick();
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
             boolean hasTarget = this.getTarget() != null;
-
-            
             if (!isCharging()) {
                 this.setRunning(isMoving && hasTarget);
                 this.setWalking(isMoving && !hasTarget);
@@ -194,13 +184,11 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                 this.setWalking(false);
             }
         }
-
-        
         if (isFakingDeath()) {
             super.tick();
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
@@ -218,7 +206,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                         long seed = this.random.nextLong();
                         int delay = this.random.nextInt(30) + 40;
 
-                        serverLevel.getServer().tell(new TickTask(
+                        serverLevel.getServer().schedule(new TickTask(
                                 serverLevel.getServer().getTickCount() + delay,
                                 () -> {
                                     spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed));
@@ -232,7 +220,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                         cloud.setDuration(60);
                         cloud.setRadiusPerTick(0);
                         cloud.setWaitTime(0);
-                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 1, false, true));
                         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
                         serverLevel.addFreshEntity(cloud);
                     }
@@ -242,8 +230,6 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             }
             return;
         }
-
-        
         AttributeInstance movementAttribute = this.getAttribute(Attributes.MOVEMENT_SPEED);
         if (movementAttribute != null) {
             boolean hasTarget = this.getTarget() != null;
@@ -256,7 +242,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                 movementAttribute.addTransientModifier(WANDER_SPEED_REDUCTION);
             }
 
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 double horizontalMovement = this.getDeltaMovement().horizontalDistance();
                 boolean isActuallyMoving = horizontalMovement > 0.01;
 
@@ -270,7 +256,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             }
         }
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
@@ -280,15 +266,11 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             }
             
             updateFloating();
-
-            
             if (chargeCooldown > 0) {
                 chargeCooldown--;
             }
         }
-
-        
-        if (!this.level().isClientSide && this.onGround() && this.isMoving()) {
+        if (!this.level().isClientSide() && this.onGround() && this.isMoving()) {
             if (this.stepSoundDelay <= 0) {
                 this.playSound(ModSoundEvents.INFESTED_COW_STEP.get(), 1.0F, 1.0F);
                 
@@ -313,9 +295,6 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
         RandomSoundGoal(InfestedCow infestedCow) {
             this.infestedCow = infestedCow;
         }
-
-        
-
         @Override
         public boolean canUse() {
             return infestedCow.isAlive() && !infestedCow.isAggressive();
@@ -338,46 +317,30 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             infestedCow.playSound(ModSoundEvents.INFESTED_COW_IDLE.get(), 1.0F, 1.0F);
         }
     }
-
-    
     private void tickCharge() {
         if (!isCharging()) {
             return;
         }
-
-        
         if (chargeTarget == null || !chargeTarget.isAlive() || chargeTicksRemaining <= 0) {
             stopCharging();
             return;
         }
-
-        
         double speed = this.getAttributeValue(Attributes.MOVEMENT_SPEED) * CHARGE_SPEED_MULTIPLIER;
         if (speed <= 0) speed = 0.3; 
-
-        
         Vec3 currentPos = this.position();
         Vec3 nextPos = currentPos.add(chargeDirection.scale(speed));
-
-        
         BlockPos nextBlockPos = new BlockPos((int) Math.floor(nextPos.x), (int) Math.floor(nextPos.y), (int) Math.floor(nextPos.z));
         BlockPos belowNext = nextBlockPos.below();
         boolean canStand = this.level().getBlockState(belowNext).isSolid();
-
-        
         if (!canStand && chargeTicksRemaining > STOP_AHEAD_TICKS) {
             stopCharging();
             return;
         }
-
-        
         this.setDeltaMovement(chargeDirection.x * speed, 0, chargeDirection.z * speed);
         
         this.setOnGround(true);
         
         this.move(MoverType.SELF, new Vec3(chargeDirection.x * speed, 0, chargeDirection.z * speed));
-
-        
         AABB chargeBox = this.getBoundingBox();
         List<Entity> nearby = this.level().getEntities(this, chargeBox, entity -> {
             if (entity == this || !entity.isAlive()) return false;
@@ -391,14 +354,12 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                 chargedEntities.add(hit);
                 
                 if (hit instanceof LivingEntity living) {
-                    living.hurt(this.damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE) * 0.25f);
+                    living.hurtOrSimulate(this.damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE) * 0.25f);
                 }
             }
         }
 
         chargeTicksRemaining--;
-
-        
         if (chargeTicksRemaining <= 0) {
             stopCharging();
         }
@@ -429,12 +390,10 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
         
         this.setDeltaMovement(Vec3.ZERO);
     }
-
-    
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 3; i++) {
             EntityType<?> buglinType = ModEntities.CURBUG.get();
-            Entity buglin = buglinType.create(level);
+            Entity buglin = buglinType.create(level, EntitySpawnReason.MOB_SUMMONED);
             if (buglin != null) {
                 double offsetX = random.nextDouble() - 0.5;
                 double offsetY = random.nextDouble() * 0.5;
@@ -463,7 +422,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
             if (shouldIgnoreDamageFrom(attacker)) {
                 return false;
@@ -474,17 +433,17 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             return false;
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
 
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        return super.hurt(source, adjustedAmount);
+        return super.hurtServer(level, source, adjustedAmount);
     }
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             IParasite.super.onKillEntity(killedEntity);
             this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0, false, false, true));
         }
@@ -492,18 +451,18 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::playState));
+        controllers.add(new AnimationController<>("controller", 4, this::playState));
     }
 
-    private PlayState playState(AnimationState<InfestedCow> event) {
+    private PlayState playState(AnimationTest<InfestedCow> event) {
         if (this.isFakingDeath()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("dead"));
+            event.setAnimation(RawAnimation.begin().thenLoop("dead"));
         } else if (this.isRunning()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("run"));
+            event.setAnimation(RawAnimation.begin().thenLoop("run"));
         } else if (this.isWalking()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+            event.setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
         return PlayState.CONTINUE;
     }
@@ -511,11 +470,11 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     public static boolean checkInfestedCowSpawnRules(
             EntityType<InfestedCow> entityType,
             ServerLevelAccessor levelAccessor,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
             if (stage < 2 || stage > 5) {
                 return false;
@@ -561,15 +520,15 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             return;
         }
 
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
             this.onDeath(source);
         } else {
             super.die(source);
             this.onDeath(source);
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 if (this.random.nextFloat() < 0.3f) {
-                    WalkingCowHead head = ModEntities.WALKING_COW_HEAD.get().create(this.level());
+                    WalkingCowHead head = ModEntities.WALKING_COW_HEAD.get().create(this.level(), EntitySpawnReason.MOB_SUMMONED);
                     if (head != null) {
                         head.setPos(this.getX(), this.getY(), this.getZ());
                         head.setYRot(this.random.nextFloat() * 360.0F);
@@ -583,14 +542,14 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     private static final EntityDataAccessor<Boolean> DATA_IS_INVULNERABLE = SynchedEntityData.defineId(InfestedCow.class, EntityDataSerializers.BOOLEAN);
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_FAKING_DEATH, false);
-        this.entityData.define(DATA_IS_INVULNERABLE, false);
-        this.entityData.define(DATA_IS_RUNNING, false);
-        this.entityData.define(DATA_IS_WALKING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_FAKING_DEATH, false);
+        entityData.define(DATA_IS_INVULNERABLE, false);
+        entityData.define(DATA_IS_RUNNING, false);
+        entityData.define(DATA_IS_WALKING, false);
         
-        this.entityData.define(DATA_IS_CHARGING, false);
+        entityData.define(DATA_IS_CHARGING, false);
     }
 
     public boolean isRunning() {
@@ -631,7 +590,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     private static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
-        if (level.isClientSide || deathPos == null) return;
+        if (level.isClientSide() || deathPos == null) return;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_LARGE.get().defaultBlockState(), 1);
         int mediumCount = rand.nextInt(3) + 2;
@@ -658,11 +617,11 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
 
     @Override
@@ -703,7 +662,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
 
@@ -711,8 +670,6 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
-
-    
     class ChargeGoal extends Goal {
         public ChargeGoal() {
             this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));

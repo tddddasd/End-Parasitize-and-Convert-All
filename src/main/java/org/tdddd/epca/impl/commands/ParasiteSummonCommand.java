@@ -1,5 +1,10 @@
 package org.tdddd.epca.impl.commands;
 
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.core.Holder;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.permissions.PermissionCheck;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -13,7 +18,7 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -21,7 +26,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 
 import java.util.Collection;
@@ -31,13 +36,13 @@ public class ParasiteSummonCommand {
 
     private static final SuggestionProvider<CommandSourceStack> ENTITY_TYPE_SUGGESTIONS =
             (context, builder) -> SharedSuggestionProvider.suggest(
-                    ForgeRegistries.ENTITY_TYPES.getKeys().stream()
+                    BuiltInRegistries.ENTITY_TYPE.keySet().stream()
                             .map(id -> "\"" + id.toString() + "\""),
                     builder);
 
     public static LiteralArgumentBuilder<CommandSourceStack> register() {
         return Commands.literal("epca_parasitesummon")
-                .requires(source -> source.hasPermission(2))
+                .requires(Commands.hasPermission(new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER)))
                 .then(Commands.argument("entityType", StringArgumentType.string())
                         .suggests(ENTITY_TYPE_SUGGESTIONS)
                         .executes(ctx -> summonEntity(ctx, StringArgumentType.getString(ctx, "entityType"), null, null))
@@ -55,7 +60,7 @@ public class ParasiteSummonCommand {
 
     public static LiteralArgumentBuilder<CommandSourceStack> registerSetParasite() {
         return Commands.literal("epca_setparasite")
-                .requires(source -> source.hasPermission(2))
+                .requires(Commands.hasPermission(new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER)))
                 .then(Commands.argument("targets", EntityArgument.entities())
                         .executes(ctx -> setParasite(ctx, EntityArgument.getEntities(ctx, "targets"))));
     }
@@ -92,12 +97,12 @@ public class ParasiteSummonCommand {
         CommandSourceStack source = ctx.getSource();
         ServerLevel level = source.getLevel();
 
-        ResourceLocation entityId = ResourceLocation.tryParse(entityTypeStr);
-        if (entityId == null || !ForgeRegistries.ENTITY_TYPES.containsKey(entityId)) {
+        Identifier entityId = Identifier.tryParse(entityTypeStr);
+        if (entityId == null || !BuiltInRegistries.ENTITY_TYPE.containsKey(entityId)) {
             source.sendFailure(Component.literal("未知实体类型: " + entityTypeStr));
             return 0;
         }
-        EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(entityId);
+        EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.getValue(entityId);
         if (entityType == null) {
             source.sendFailure(Component.literal("无法获取实体类型: " + entityTypeStr));
             return 0;
@@ -110,20 +115,20 @@ public class ParasiteSummonCommand {
         CompoundTag userNbt = new CompoundTag();
         if (nbtString != null && !nbtString.isEmpty()) {
             try {
-                userNbt = TagParser.parseTag(nbtString);
+                userNbt = TagParser.parseCompoundFully(nbtString);
             } catch (CommandSyntaxException e) {
                 source.sendFailure(Component.literal("NBT解析错误: " + e.getMessage()));
                 return 0;
             }
         }
 
-        Entity entity = entityType.create(level);
+        Entity entity = entityType.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
         if (entity == null) {
             source.sendFailure(Component.literal("无法生成实体: " + entityTypeStr));
             return 0;
         }
 
-        entity.load(userNbt);
+        entity.load(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), userNbt));
         entity.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
 
         entity.getPersistentData().putBoolean(PARASITE_TAG_KEY, true);

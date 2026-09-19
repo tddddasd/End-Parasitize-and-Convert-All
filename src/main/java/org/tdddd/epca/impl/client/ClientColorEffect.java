@@ -1,25 +1,21 @@
 package org.tdddd.epca.impl.client;
 
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
-@OnlyIn(Dist.CLIENT)
+@EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public class ClientColorEffect {
     private static final ConcurrentHashMap<Integer, EffectData> ACTIVE = new ConcurrentHashMap<>();
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            ClientColorEffect.tick();
-        }
+    public static void onClientTick(ClientTickEvent.Post event) {
+        ClientColorEffect.tick();
     }
 
     public static void setEffect(int entityId, int type, int durationTicks) {

@@ -1,43 +1,43 @@
 package org.tdddd.epca.impl.events;
 
-import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.data.WorldDifficultyData;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 import org.tdddd.epca.impl.epca;
 
-@Mod.EventBusSubscriber(modid = epca.MODID)
+@EventBusSubscriber(modid = epca.MODID)
 public class MasterDifficultyAdvancementHandler {
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
-        var server = player.getServer();
+        var server = player.level().getServer();
         if (server == null) return;
 
         
-        boolean allowCommands = server.getWorldData().getAllowCommands();
+        boolean allowCommands = server.getWorldData().isAllowCommands();
         
-        boolean isHardDifficulty = server.getLevel(player.level().dimension()).getDifficulty() == Difficulty.HARD;
+        boolean isHardDifficulty = player.level().getDifficulty() == Difficulty.HARD;
 
         
-        ServerLevel level = player.serverLevel();
+        ServerLevel level = player.level();
         WorldDifficultyData difficultyData = WorldDifficultyData.get(level);
         boolean isMasterDifficulty = difficultyData.getDifficulty() == DifficultyLevel.MASTER;
 
         
         if (!allowCommands && isHardDifficulty && isMasterDifficulty) {
             
-            Advancement advancement = server.getAdvancements().getAdvancement(
-                    new ResourceLocation(epca.MODID, "master_difficulty")
+            AdvancementHolder advancement = server.getAdvancements().get(
+                    Identifier.fromNamespaceAndPath(epca.MODID, "master_difficulty")
             );
             if (advancement != null) {
                 AdvancementProgress progress = player.getAdvancements().getOrStartProgress(advancement);

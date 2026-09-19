@@ -2,58 +2,86 @@ package org.tdddd.epca.impl.client.entity.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.ThrownGoldenSpear;
 import org.tdddd.epca.impl.epca;
 
-public class ThrownGoldenSpearRenderer extends EntityRenderer<ThrownGoldenSpear> {
-    private final ItemRenderer itemRenderer;
+// 26.1.2: EntityRenderer<T, S> + extract/submit; items are drawn through ItemModelResolver ->
+// ItemStackRenderState#submit instead of the deleted ItemRenderer#renderStatic.
+public class ThrownGoldenSpearRenderer extends EntityRenderer<ThrownGoldenSpear, ThrownGoldenSpearRenderer.SpearRenderState> {
+
+    /** 26.1.2 render state: the resolved item model plus the motion angles computed in the extract phase. */
+    public static class SpearRenderState extends EntityRenderState {
+        public final ItemStackRenderState item = new ItemStackRenderState();
+        public float yaw;
+        public float pitch;
+    }
+
+    private final ItemModelResolver itemModelResolver;
 
     public ThrownGoldenSpearRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.itemRenderer = context.getItemRenderer();
+        this.itemModelResolver = context.getItemModelResolver();
     }
 
     @Override
-    public void render(ThrownGoldenSpear entity, float entityYaw, float partialTick,
-                       PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-        poseStack.pushPose();
+    public SpearRenderState createRenderState() {
+        return new SpearRenderState();
+    }
 
-        
+    @Override
+    public void extractRenderState(ThrownGoldenSpear entity, SpearRenderState state, float partialTick) {
+        super.extractRenderState(entity, state, partialTick);
+
         double motionX = entity.getDeltaMovement().x;
         double motionY = entity.getDeltaMovement().y;
         double motionZ = entity.getDeltaMovement().z;
 
-        
-        float yaw = (float) (Math.atan2(motionX, motionZ) * (180.0 / Math.PI)) - 90;
-        
-        float pitch = (float) (Math.atan2(motionY, Math.sqrt(motionX * motionX + motionZ * motionZ)) * (180.0 / Math.PI)) + 225.0F;
+        if (motionX * motionX + motionY * motionY + motionZ * motionZ < 1.0E-6) {
+            // Landed / stuck: the entity zeroes its motion and freezes its own rotation, so
+            // atan2(0, 0) would snap every stuck spear to a fixed -90/225 pose. Reuse the
+            // orientation it had in flight - exactly what vanilla arrows/tridents render from.
+            state.yaw = Mth.lerp(partialTick, entity.yRotO, entity.getYRot()) - 90.0F;
+            state.pitch = Mth.lerp(partialTick, entity.xRotO, entity.getXRot()) + 225.0F;
+        } else {
+            state.yaw = (float) (Math.atan2(motionX, motionZ) * (180.0 / Math.PI)) - 90;
+            state.pitch = (float) (Math.atan2(motionY, Math.sqrt(motionX * motionX + motionZ * motionZ)) * (180.0 / Math.PI)) + 225.0F;
+        }
 
-        
-        poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(pitch));
-        poseStack.translate(0, -0.4, 0);
-
-        
-        poseStack.scale(4f, 4f, 4f);
-        poseStack.translate(0.3D, -0.2D, 0.0D);
-
-        ItemStack stack = entity.getPickupItem();
-        itemRenderer.renderStatic(stack, ItemDisplayContext.GROUND, packedLight,
-                OverlayTexture.NO_OVERLAY, poseStack, buffer, entity.level(), 0);
-        poseStack.popPose();
-        super.render(entity, entityYaw, partialTick, poseStack, buffer, packedLight);
+        this.itemModelResolver.updateForNonLiving(state.item, entity.getPickupItem(), ItemDisplayContext.GROUND, entity);
     }
 
     @Override
-    public ResourceLocation getTextureLocation(ThrownGoldenSpear entity) {
-        return new ResourceLocation(epca.MODID, "textures/entity/golden_spear.png");
+    public void submit(SpearRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+        poseStack.pushPose();
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(state.yaw));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(state.pitch));
+        poseStack.translate(0, -0.4, 0);
+
+        poseStack.scale(4f, 4f, 4f);
+        poseStack.translate(0.3D, -0.2D, 0.0D);
+
+        state.item.submit(poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
+        poseStack.popPose();
+        super.submit(state, poseStack, submitNodeCollector, camera);
+    }
+
+    /**
+     * 26.1.2: {@code EntityRenderer} no longer declares {@code getTextureLocation}. This renderer never used the
+     * texture (it draws an item model), so the override was dropped; the constant is kept for reference.
+     */
+    public static Identifier textureLocation() {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/golden_spear.png");
     }
 }

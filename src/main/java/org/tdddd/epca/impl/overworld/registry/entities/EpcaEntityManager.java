@@ -1,10 +1,10 @@
 package org.tdddd.epca.impl.overworld.registry.entities;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,9 +26,9 @@ public class EpcaEntityManager {
     private static final List<EntityType<? extends LivingEntity>> RENDER_TYPES = new ArrayList<>();
 
     /** Per-type model resources (for auto-renderers, so entities don't need IAutoRenderableEntity). */
-    private static final Map<EntityType<?>, ResourceLocation> MODEL_MAP = new HashMap<>();
-    private static final Map<EntityType<?>, ResourceLocation> TEXTURE_MAP = new HashMap<>();
-    private static final Map<EntityType<?>, ResourceLocation> ANIMATION_MAP = new HashMap<>();
+    private static final Map<EntityType<?>, Identifier> MODEL_MAP = new HashMap<>();
+    private static final Map<EntityType<?>, Identifier> TEXTURE_MAP = new HashMap<>();
+    private static final Map<EntityType<?>, Identifier> ANIMATION_MAP = new HashMap<>();
 
     /** Tracked living entity instances (server-side). */
     private static final Map<EntityType<?>, Set<LivingEntity>> TRACKED_ENTITIES = new ConcurrentHashMap<>();
@@ -54,7 +54,7 @@ public class EpcaEntityManager {
      */
     public static <T extends LivingEntity> EntityType<T> registerMobWithRender(
             EntityType<T> type, Supplier<AttributeSupplier> attrSupplier,
-            ResourceLocation model, ResourceLocation texture, ResourceLocation animation) {
+            Identifier model, Identifier texture, Identifier animation) {
         ATTRIBUTE_BLUEPRINTS.put(type, attrSupplier);
         RENDER_TYPES.add(type);
         MODEL_MAP.put(type, model);
@@ -68,7 +68,7 @@ public class EpcaEntityManager {
      * Model/texture/animation are looked up by name convention.
      */
     public static <T extends LivingEntity> EntityType<T> registerRenderOnly(
-            EntityType<T> type, ResourceLocation model, ResourceLocation texture, ResourceLocation animation) {
+            EntityType<T> type, Identifier model, Identifier texture, Identifier animation) {
         RENDER_TYPES.add(type);
         MODEL_MAP.put(type, model);
         TEXTURE_MAP.put(type, texture);
@@ -104,15 +104,15 @@ public class EpcaEntityManager {
     //  Resource lookups  (for auto-renderer model)
     // ═══════════════════════════════════════════════════════════════
 
-    public static ResourceLocation getModel(EntityType<?> type) {
+    public static Identifier getModel(EntityType<?> type) {
         return MODEL_MAP.get(type);
     }
 
-    public static ResourceLocation getTexture(EntityType<?> type) {
+    public static Identifier getTexture(EntityType<?> type) {
         return TEXTURE_MAP.get(type);
     }
 
-    public static ResourceLocation getAnimation(EntityType<?> type) {
+    public static Identifier getAnimation(EntityType<?> type) {
         return ANIMATION_MAP.get(type);
     }
 
@@ -121,7 +121,7 @@ public class EpcaEntityManager {
     // ═══════════════════════════════════════════════════════════════
 
     public static void track(LivingEntity entity) {
-        if (entity.level().isClientSide) return;
+        if (entity.level().isClientSide()) return;
         TRACKED_ENTITIES.computeIfAbsent(entity.getType(),
                 k -> Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()))).add(entity);
     }

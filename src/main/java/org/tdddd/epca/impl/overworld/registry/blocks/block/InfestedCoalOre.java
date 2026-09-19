@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -33,6 +34,12 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(NATURAL_SPAWN);
+
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(InfestedCoalOre::new);
     }
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
@@ -41,17 +48,26 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
         }
     }
 
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
+                                   net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
+        super.neighborChanged(state, level, pos, block, orientation, isMoving);
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             
-            BlockState neighborState = level.getBlockState(fromPos);
+            BlockState neighborState = level.getBlockState(neighborPosFrom(pos, orientation));
             if (neighborState.is(Blocks.FIRE) || neighborState.is(Blocks.SOUL_FIRE)) {
                 triggerExplosion(level, pos);
             }
         }
+    }
+
+    /** 26.1.2: {@code neighborChanged} carries an {@code Orientation}, not a neighbour BlockPos. */
+    private static BlockPos neighborPosFrom(BlockPos pos, net.minecraft.world.level.redstone.Orientation orientation) {
+        if (orientation == null) {
+            return pos;
+        }
+        Direction direction = orientation.getFront();
+        return direction == null ? pos : pos.relative(direction);
     }
 
     @Override

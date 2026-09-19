@@ -1,10 +1,11 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.onesent;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -21,8 +22,8 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -34,13 +35,13 @@ import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.Objects;
 
@@ -53,10 +54,10 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         BLOOD
     }
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
         
-        this.entityData.define(DATA_VARIANT, Fins.Variant.DEFAULT.ordinal());
+        entityData.define(DATA_VARIANT, Fins.Variant.DEFAULT.ordinal());
     }
     
     private boolean isSprinting = false;
@@ -71,8 +72,6 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     
     private int landMovementCooldown = 0;
     private boolean isOnLand = false;
-
-    
     private int deepSneakCheckCooldown = 0;
     private static final int DEEP_SNEAK_CHECK_INTERVAL = 100; 
 
@@ -80,12 +79,9 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         super(type, level);
         this.moveControl = new SmoothSwimmingMoveControl(this, 85, 10, 0.02F, 0.1F, true);
         this.lookControl = new SmoothSwimmingLookControl(this, 10);
-
-        
-        this.setMaxUpStep(0.3F);
-
-        
-        if (!level.isClientSide) {
+        var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
+        if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.3F);
+        if (!level.isClientSide()) {
             int roll = this.random.nextInt(100);
             if (roll < 50) {
                 this.setVariant(Fins.Variant.DEFAULT);  
@@ -95,8 +91,6 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         }
 
         this.xpReward = 5;
-
-        
         this.navigation = new WaterBoundPathNavigation(this, level);
     }
 
@@ -108,8 +102,6 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     private static final EntityDataAccessor<Integer> DATA_VARIANT = SynchedEntityData.defineId(
             Fins.class, EntityDataSerializers.INT
     );
-
-    
     public Fins.Variant getVariant() {
         
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
@@ -117,8 +109,6 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
             
             return Fins.Variant.DEFAULT;
         }
-
-        
         int index = Mth.clamp(variantOrdinal, 0, Fins.Variant.values().length - 1);
         return Fins.Variant.values()[index];
     }
@@ -146,13 +136,9 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         this.goalSelector.addGoal(3, new Fins.FinsLandMoveGoal(this)); 
         this.goalSelector.addGoal(4, new RandomSwimmingGoal(this, 0.5D, 10));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
-
-        
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 32.0D));
-
-        
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true,
-                entity -> {
+                (entity, serverLevel) -> {
                     if (!isValidTarget(entity) || IParasite.isParasiteByTagOrInterface(entity) || entity instanceof Creeper) {
                         return false;
                     }
@@ -161,18 +147,14 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
                     return this.distanceToSqr(entity) <= range * range;
                 }));
     }
-
-    
     private boolean isValidTarget(Entity entity) {
         return entity != null &&
                 entity.isAlive() &&
                 !IParasite.isParasiteNoLivingByTagOrInterface(entity) &&
                 !(entity instanceof Creeper);
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (source.getEntity() instanceof LivingEntity attacker) {
             
@@ -181,29 +163,19 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
-
-    
     @Override
-    public boolean doHurtTarget(Entity target) {
-        boolean attackSuccess = super.doHurtTarget(target);
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        boolean attackSuccess = super.doHurtTarget(level, target);
 
         if (attackSuccess && target instanceof LivingEntity livingTarget) {
-            
-            
-
-            
             if (Objects.requireNonNull(this.getVariant()) == Variant.BLOOD) {
                 applyBleedingEffect(livingTarget);
             }
@@ -214,42 +186,34 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
 
     private void applyBleedingEffect(LivingEntity target) {
         
-        MobEffectInstance existingEffect = target.getEffect(ModEffects.BLEEDING.get());
+        MobEffectInstance existingEffect = target.getEffect(ModEffects.BLEEDING);
         int newAmplifier = 0; 
 
         if (existingEffect != null) {
             
             newAmplifier = Math.min(existingEffect.getAmplifier() + 1, 4); 
         }
-
-        
         target.addEffect(new MobEffectInstance(
-                ModEffects.BLEEDING.get(),
+                ModEffects.BLEEDING,
                 100,  
                 newAmplifier,
                 false, false, true
         ));
     }
-
-    
     public static boolean checkFinsSpawnRules(
             EntityType<Fins> entityType,
             ServerLevelAccessor levelAccessor,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
-
-            
             if (stage < 3 || stage > 5) {
                 return false;
             }
         }
-
-        
         return levelAccessor.getBlockState(pos).is(Blocks.WATER) && levelAccessor.getMaxLocalRawBrightness(pos) < 10;
     }
 
@@ -275,8 +239,6 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         } else {
             
             super.travel(travelVector);
-
-            
             if (!this.isInWater()) {
                 this.setDeltaMovement(this.getDeltaMovement().scale(0.5D)); 
             }
@@ -287,7 +249,7 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     public void tick() {
         super.tick();
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             if (deepSneakCheckCooldown > 0) {
                 deepSneakCheckCooldown--;
@@ -297,50 +259,34 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
                 checkAndApplyDeepSneak();
             }
         }
-
-        
         boolean wasOnLand = this.isOnLand;
         this.isOnLand = !this.isInWater() && this.onGround();
-
-        
         if (!this.isInWater() && this.waterSearchCooldown-- <= 0) {
             this.waterSearchCooldown = 20; 
             this.findWater();
         }
-
-        
         if (!this.isInWater() && this.getAirSupply() < this.getMaxAirSupply()) {
             this.setAirSupply(this.getMaxAirSupply());
         }
-
-        
         if (this.sprintCooldown > 0) {
             this.sprintCooldown--;
         }
 
         if (this.isSprinting) {
             this.sprintDuration--;
-
-            
             if (this.sprintDuration <= 0) {
                 this.isSprinting = false;
                 
                 this.checkSprintCollision();
             }
         }
-
-        
         if (this.jumpAnimationTime > 0) {
             this.jumpAnimationTime--;
         }
-
-        
         if (this.jumpOutCooldown > 0) {
             this.jumpOutCooldown--;
         }
-
-        
-        if (!this.level().isClientSide && this.isInWater() && this.getDeltaMovement().y > 0.2 && this.jumpAnimationTime <= 0) {
+        if (!this.level().isClientSide() && this.isInWater() && this.getDeltaMovement().y > 0.2 && this.jumpAnimationTime <= 0) {
             
             if (this.canJumpOutOfWater()) {
                 this.jumpAnimationTime = 20; 
@@ -348,52 +294,38 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
                 this.jumpOutCooldown = MIN_JUMP_OUT_COOLDOWN + this.random.nextInt(MAX_JUMP_OUT_COOLDOWN - MIN_JUMP_OUT_COOLDOWN + 1);
             }
         }
-
-        
-        if (!this.level().isClientSide && this.isOnLand && this.getDeltaMovement().horizontalDistanceSqr() > 0.01 && this.landMovementCooldown-- <= 0) {
+        if (!this.level().isClientSide() && this.isOnLand && this.getDeltaMovement().horizontalDistanceSqr() > 0.01 && this.landMovementCooldown-- <= 0) {
             this.landMovementCooldown = 10;
         }
     }
-
-    
     private void checkAndApplyDeepSneak() {
         
-        if (this.getEffect(ModEffects.DEEP_SNEAK.get()) == null) {
+        if (this.getEffect(ModEffects.DEEP_SNEAK) == null) {
             
             this.addEffect(new MobEffectInstance(
-                    ModEffects.DEEP_SNEAK.get(),
+                    ModEffects.DEEP_SNEAK,
                     Integer.MAX_VALUE, 
                     0,                 
                     false, false, false
             ));
         }
     }
-
-    
     private boolean canJumpOutOfWater() {
         
         if (this.jumpOutCooldown > 0) {
             return false;
         }
-
-        
         if (this.getTarget() != null) {
             return false;
         }
-
-        
         if (!this.isInWater()) {
             return false;
         }
-
-        
         BlockPos pos = this.blockPosition();
         int surfaceY = this.findWaterSurface(pos);
         if (surfaceY == -1 || this.getY() < surfaceY - 2) {
             return false;
         }
-
-        
         for (int i = 1; i <= 3; i++) {
             BlockPos abovePos = new BlockPos(pos.getX(), surfaceY + i, pos.getZ());
             if (!this.level().getBlockState(abovePos).isAir()) {
@@ -403,12 +335,10 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
 
         return true;
     }
-
-    
     private int findWaterSurface(BlockPos pos) {
         int y = pos.getY();
         
-        while (y < this.level().getMaxBuildHeight()) {
+        while (y < this.level().getMaxY()) {
             BlockPos checkPos = new BlockPos(pos.getX(), y, pos.getZ());
             if (!this.level().getBlockState(checkPos).is(Blocks.WATER)) {
                 return y - 1; 
@@ -417,30 +347,24 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         }
         return -1; 
     }
-
-    
     public void checkSprintCollision() {
-        if ((!this.level().isClientSide) && !hasSprintDamaged) {
+        if ((!this.level().isClientSide()) && !hasSprintDamaged) {
             LivingEntity target = this.getTarget();
             if (target != null && target.isAlive() && !IParasite.isParasiteByTagOrInterface(target) && !(target instanceof Creeper)) {
                 
                 if (this.distanceToSqr(target) < 4.0) { 
-                    target.hurt(this.damageSources().mobAttack(this), 5.0F);
+                    target.hurtOrSimulate(this.damageSources().mobAttack(this), 5.0F);
                     this.hasSprintDamaged = true; 
                 }
             }
         }
     }
-
-    
     public void startSprint() {
         if (this.sprintCooldown <= 0 && this.getTarget() != null && this.isValidTarget(this.getTarget())) {
             this.isSprinting = true;
             this.sprintDuration = 15; 
             this.sprintCooldown = 80; 
             this.hasSprintDamaged = false; 
-
-            
             Vec3 targetDir = new Vec3(
                     this.getTarget().getX() - this.getX(),
                     0,
@@ -485,39 +409,29 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         return 1; 
     }
 
-    @Override
-    protected float getStandingEyeHeight(net.minecraft.world.entity.Pose pose, net.minecraft.world.entity.EntityDimensions size) {
-        return size.height * 0.6F;
-    }
-
-    
+    // 26.1.2: Entity#getEyeHeight(Pose) is final; the eye height now comes from the
+    // EntityType EntityDimensions#withEyeHeight (see the shared change request).
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 5, event -> {
+        controllers.add(new AnimationController<>("controller", 5, event -> {
             
             if (this.isSprinting) {
-                event.getController().setAnimation(RawAnimation.begin().thenPlay("sprint"));
+                event.setAnimation(RawAnimation.begin().thenPlay("sprint"));
                 return PlayState.CONTINUE;
             }
-
-            
             if (this.jumpAnimationTime > 0) {
-                event.getController().setAnimation(RawAnimation.begin().thenPlay("jump_water"));
+                event.setAnimation(RawAnimation.begin().thenPlay("jump_water"));
                 return PlayState.CONTINUE;
             }
-
-            
             if (!this.isInWater() && this.onGround()) {
                 if (this.getDeltaMovement().horizontalDistanceSqr() > 0.01) {
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("walk"));
                 } else {
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("idle_land"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("idle"));
                 }
                 return PlayState.CONTINUE;
             }
-
-            
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("run_water"));
+            event.setAnimation(RawAnimation.begin().thenLoop("run_water"));
             return PlayState.CONTINUE;
         }));
     }
@@ -526,8 +440,6 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.cache;
     }
-
-    
     static class FinsSwimGoal extends Goal {
         private final Fins fins;
 
@@ -549,17 +461,11 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
             if (this.fins.getRandom().nextFloat() < 0.8F) {
                 this.fins.getJumpControl().jump();
             }
-
-            
             if (this.fins.getTarget() != null && this.fins.getRandom().nextFloat() < 0.1F) {
                 this.fins.startSprint();
             }
-
-            
             Vec3 movement = this.fins.getDeltaMovement();
             double speed = SWIM_SPEED_MULTIPLIER;
-
-            
             if (this.fins.getTarget() != null && !this.fins.isSprinting) {
                 Vec3 targetPos = new Vec3(
                         this.fins.getTarget().getX() - this.fins.getX(),
@@ -580,8 +486,6 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
                 double x = Math.sin(yRot) * Math.cos(xRot) * speed;
                 double z = Math.cos(yRot) * Math.cos(xRot) * speed;
                 double y = -Math.sin(xRot) * speed;
-
-                
                 y = Mth.clamp(y, -0.05, 0.05);
 
                 this.fins.setDeltaMovement(
@@ -590,14 +494,10 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
                         Mth.lerp(0.2, movement.z, z)
                 );
             }
-
-            
             this.fins.setYRot(Mth.rotLerp(0.2F, this.fins.getYRot(), this.fins.yHeadRot));
             this.fins.yBodyRot = this.fins.getYRot();
         }
     }
-
-    
     static class FinsLandMoveGoal extends Goal {
         private final Fins fins;
 
@@ -616,21 +516,19 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
             if (target != null && target.isAlive()) {
                 
                 this.fins.getNavigation().moveTo(target, 0.5); 
-
-                
                 if (this.fins.distanceToSqr(target) < 4.0) {
-                    this.fins.doHurtTarget(target);
+                    this.fins.doHurtTarget((ServerLevel) this.fins.level(), target);
                 }
             }
         }
     }
 
-    public ResourceLocation getTextureResource() {
+    public Identifier getTextureResource() {
         switch (getVariant()) {
             case BLOOD:
-                return new ResourceLocation("epca", "textures/entity/fins_blood.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/fins_blood.png");
             default:
-                return new ResourceLocation("epca", "textures/entity/fins.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/fins.png");
         }
     }
 
@@ -643,18 +541,14 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     protected SoundEvent getHurtSound(DamageSource damageSource) {
         return ModSoundEvents.RIPPER_HUNT.get();
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -673,7 +567,7 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
         
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             IParasite.super.onKillEntity(killedEntity);
         }

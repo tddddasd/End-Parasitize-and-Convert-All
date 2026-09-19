@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -40,7 +40,8 @@ public class CustomTab extends CreativeModeTab {
             displayItemsSearchTab.addAll(entry.getItemsToAddToSearch(parameters));
         };
         displayItems = items;
-        rebuildSearchTree();
+        // 26.1.2: CreativeModeTab#rebuildSearchTree() no longer exists — the creative search tree is built by
+        // CreativeModeInventoryScreen from getSearchTabDisplayItems(), so there is nothing left to rebuild here.
     };
 
     public static class Builder extends CreativeModeTab.Builder {
@@ -71,7 +72,7 @@ public class CustomTab extends CreativeModeTab {
 
     public static interface ITabEntry {
         
-        public default void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {};
+        public default void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {};
         
         public default int getSize() {
             return 1;
@@ -93,7 +94,7 @@ public class CustomTab extends CreativeModeTab {
             return false;
         };
 
-        public default void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {};
+        public default void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {};
 
         public default Collection<ItemStack> getItemsToAddToSearch(ItemDisplayParameters parameters) {
             return Collections.emptyList();
@@ -193,10 +194,11 @@ public class CustomTab extends CreativeModeTab {
             public boolean hasSpecialRendering() { return true; }
 
             @Override
-            public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
+            public void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
                 backgroundTexture.render(graphics, x, y);   
-                graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
+                // 26.1.2: GuiGraphics#drawString -> GuiGraphicsExtractor#text
+                graphics.text(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
 
@@ -225,10 +227,11 @@ public class CustomTab extends CreativeModeTab {
             public boolean hasSpecialRendering() { return true; }
 
             @Override
-            public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
+            public void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
                 backgroundTexture.render(graphics, x, y);   
-                graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
+                // 26.1.2: GuiGraphics#drawString -> GuiGraphicsExtractor#text
+                graphics.text(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
 
@@ -257,10 +260,11 @@ public class CustomTab extends CreativeModeTab {
             public boolean hasSpecialRendering() { return true; }
 
             @Override
-            public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
+            public void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
                 backgroundTexture.render(graphics, x, y);   
-                graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
+                // 26.1.2: GuiGraphics#drawString -> GuiGraphicsExtractor#text
+                graphics.text(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
 
@@ -289,10 +293,11 @@ public class CustomTab extends CreativeModeTab {
             public boolean hasSpecialRendering() { return true; }
 
             @Override
-            public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
+            public void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
                 backgroundTexture.render(graphics, x, y);   
-                graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
+                // 26.1.2: GuiGraphics#drawString -> GuiGraphicsExtractor#text
+                graphics.text(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
     }

@@ -1,17 +1,17 @@
 package org.tdddd.epca.impl.events;
 
-import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class PlayerEventHandler {
     private static final String HAS_RECEIVED_BLOOD_PAPER_KEY = "epca_has_received_blood_paper";
 
@@ -21,7 +21,8 @@ public class PlayerEventHandler {
             return;
         }
         
-        player.getServer().execute(() -> {
+        ServerLevel serverLevel = player.level();
+        serverLevel.getServer().execute(() -> {
             checkAndGrantEvolutionProgress(player);
         });
     }
@@ -30,7 +31,7 @@ public class PlayerEventHandler {
     private static void checkAndGrantEvolutionProgress(ServerPlayer player) {
         try {
             
-            ServerLevel overworld = player.getServer().overworld();
+            ServerLevel overworld = player.level().getServer().overworld();
             EvolutionManager evolutionManager = EvolutionManager.forOverworld(overworld);
 
             int currentStage = evolutionManager.getStage();
@@ -48,8 +49,8 @@ public class PlayerEventHandler {
     private static void grantSenseOfCrisisAdvancement(ServerPlayer player) {
         try {
             
-            Advancement advancement = player.getServer().getAdvancements()
-                    .getAdvancement(new ResourceLocation("epca", "sense_of_crisis"));
+            AdvancementHolder advancement = player.level().getServer().getAdvancements()
+                    .get(Identifier.fromNamespaceAndPath("epca", "sense_of_crisis"));
 
             if (advancement != null) {
                 
@@ -66,7 +67,7 @@ public class PlayerEventHandler {
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            for (ServerLevel level : player.server.getAllLevels()) {
+            for (ServerLevel level : player.level().getServer().getAllLevels()) {
                 EvolutionManager em = EvolutionManager.forDimension(level);
                 em.syncToPlayer(player);
             }

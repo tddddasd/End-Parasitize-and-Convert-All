@@ -1,6 +1,6 @@
 package org.tdddd.epca.impl.client.entity;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import javax.annotation.Nullable;
 
@@ -13,7 +13,7 @@ public interface IOverlayRenderable {
 
     /** The overlay texture. Return null to skip overlay for this frame. */
     @Nullable
-    ResourceLocation getOverlayTexture();
+    Identifier getOverlayTexture();
 
     /** RGB color tint for the overlay (each 0-1). Default white. */
     default float[] getOverlayColor() {

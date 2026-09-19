@@ -1,0 +1,97 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "epca:evolution_stage",
+    "scale": 1.0,
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "epca:item/erosion_clock_phase_unknow"
+    },
+    "entries": [
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase-1"
+        }
+      },
+      {
+        "threshold": 2.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase0"
+        }
+      },
+      {
+        "threshold": 3.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase1"
+        }
+      },
+      {
+        "threshold": 4.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase2"
+        }
+      },
+      {
+        "threshold": 5.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase3"
+        }
+      },
+      {
+        "threshold": 6.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase4"
+        }
+      },
+      {
+        "threshold": 7.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase5"
+        }
+      },
+      {
+        "threshold": 8.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase6"
+        }
+      },
+      {
+        "threshold": 9.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase7"
+        }
+      },
+      {
+        "threshold": 10.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase8"
+        }
+      },
+      {
+        "threshold": 11.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase9"
+        }
+      },
+      {
+        "threshold": 12.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/erosion_clock_phase10"
+        }
+      }
+    ]
+  }
+}

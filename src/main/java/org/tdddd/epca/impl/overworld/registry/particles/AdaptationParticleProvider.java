@@ -5,11 +5,10 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.RandomSource;
+import net.neoforged.api.distmarker.Dist;
+import org.jspecify.annotations.Nullable;
 
-@OnlyIn(Dist.CLIENT)
 public class AdaptationParticleProvider implements ParticleProvider<SimpleParticleType> {
     private final SpriteSet sprite;
 
@@ -21,9 +20,9 @@ public class AdaptationParticleProvider implements ParticleProvider<SimplePartic
     @Override
     public Particle createParticle(SimpleParticleType type, ClientLevel level,
                                    double x, double y, double z,
-                                   double xSpeed, double ySpeed, double zSpeed) {
-        AdaptationParticle particle = new AdaptationParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, type);
-        particle.pickSprite(this.sprite);
-        return particle;
+                                   double xSpeed, double ySpeed, double zSpeed,
+                                   RandomSource random) {
+        // 26.1.2: the sprite is passed into the particle constructor; TextureSheetParticle#pickSprite is gone.
+        return new AdaptationParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, type, this.sprite.get(random));
     }
 }

@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -7,7 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -22,8 +23,8 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,15 +39,15 @@ import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,25 +55,19 @@ import java.util.Optional;
 public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy, IGlowRenderable {
 
     @Override
-    public ResourceLocation getGlowTexture() {
-        return new ResourceLocation(epca.MODID, "textures/entity/walking_enderman_head_unstable_glow.png");
+    public Identifier getGlowTexture() {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/walking_enderman_head_unstable_glow.png");
     }
     
     public enum Variant {
         DEFAULT,
         UNSTABLE
     }
-
-    
     private static final EntityDataAccessor<Integer> DATA_CARRIED_ENTITY_ID = SynchedEntityData.defineId(WalkingEndermanHead.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_VARIANT = SynchedEntityData.defineId(WalkingEndermanHead.class, EntityDataSerializers.INT);
-
-    
     private static final int TELEPORT_COOLDOWN_MIN = 160;
     private static final int TELEPORT_COOLDOWN_MAX = 200;
     private int teleportCooldown = 0;
-
-    
     private Entity carriedEntity; 
     
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -80,15 +75,13 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20;
     private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20;
     private int floatingTime;
-
-    
     public WalkingEndermanHead(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
         this.navigation = new GroundPathNavigation(this, level);
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             
             int roll = this.random.nextInt(100);
             if (roll < 70) {
@@ -98,8 +91,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
             }
         }
     }
-
-    
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 8.0D)
@@ -109,8 +100,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .build();
     }
-
-    
     @Override
     protected void registerGoals() {
         super.registerGoals();
@@ -119,8 +108,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         
         this.goalSelector.addGoal(0, new PickUpParasiteGoal());
         this.goalSelector.addGoal(1, new PlacePassengerGoal());
-
-        
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -129,22 +116,18 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 32.0D));
     }
-
-    
     @Override
     public void tick() {
         super.tick();
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             if (this.teleportCooldown > 0) this.teleportCooldown--;
-
-            
             Entity carried = this.getCarriedEntity();
             if (carried != null) {
                 updateCarriedEntityPosition(carried);
                 if (this.isOnFire()) {
-                    carried.setSecondsOnFire(5);
+                    carried.igniteForSeconds(5);
                 } else {
                     carried.setRemainingFireTicks(-1);
                 }
@@ -155,8 +138,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                     releaseCarriedEntity();
                 }
             }
-
-            
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
@@ -177,12 +158,8 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                 );
             }
         }
-
-        
         updateFloating();
     }
-
-    
     private boolean attemptTeleportAndPlace(LivingEntity target) {
         if (target == null || getCarriedEntity() == null) return false;
         
@@ -199,8 +176,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         }
         return false;
     }
-
-    
     private boolean attemptPlaceCarried() {
         Entity passenger = getCarriedEntity();
         if (passenger == null) return false;
@@ -235,13 +210,11 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     public void remove(RemovalReason reason) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             releaseCarriedEntity();
         }
         super.remove(reason);
     }
-
-    
     private boolean isTeleportFromExternalSource() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (StackTraceElement element : stackTrace) {
@@ -263,7 +236,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     @Override
     public void teleportTo(double x, double y, double z) {
         
-        if (!this.level().isClientSide && this.getCarriedEntity() != null && isTeleportFromExternalSource()) {
+        if (!this.level().isClientSide() && this.getCarriedEntity() != null && isTeleportFromExternalSource()) {
             releaseCarriedEntity();
         }
         super.teleportTo(x, y, z);
@@ -276,7 +249,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     }
 
     private void applyVariantAttributes() {
-        if (this.level().isClientSide) return; 
+        if (this.level().isClientSide()) return; 
         AttributeInstance followRange = this.getAttribute(Attributes.FOLLOW_RANGE);
         if (followRange != null) {
             double base = 32.0D;
@@ -286,10 +259,8 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
             followRange.setBaseValue(base);
         }
     }
-
-    
     public Entity getCarriedEntity() {
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             int id = this.entityData.get(DATA_CARRIED_ENTITY_ID);
             return id == -1 ? null : this.level().getEntity(id);
         } else {
@@ -298,7 +269,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     }
 
     private void setCarriedEntity(Entity entity) {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
         this.carriedEntity = entity;
         this.entityData.set(DATA_CARRIED_ENTITY_ID, entity == null ? -1 : entity.getId());
         if (entity != null) {
@@ -329,10 +300,8 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
             this.setCarriedEntity(null);
         }
     }
-
-    
     private boolean tryTeleportRandomly() {
-        if (this.level().isClientSide) return false;
+        if (this.level().isClientSide()) return false;
         double x = this.getX() + (this.random.nextDouble() - 0.5) * 64.0;
         double y = this.getY() + (double)(this.random.nextInt(64) - 32);
         double z = this.getZ() + (this.random.nextDouble() - 0.5) * 64.0;
@@ -357,8 +326,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         Vec3 vec3 = projectile.getDeltaMovement();
         projectile.setDeltaMovement(vec3.scale(-1.0));
     }
-
-    
     public Variant getVariant() {
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
         if (variantOrdinal == null) return Variant.DEFAULT;
@@ -368,20 +335,16 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
     public void setVariant(Variant variant) {
         this.entityData.set(DATA_VARIANT, variant.ordinal());
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             applyVariantAttributes(); 
         }
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
             if (shouldIgnoreDamageFrom(attacker)) return false;
         }
-
-        
-        if (!this.level().isClientSide && source.getDirectEntity() instanceof Projectile projectile) {
+        if (!this.level().isClientSide() && source.getDirectEntity() instanceof Projectile projectile) {
             if (tryForcedTeleport()) {
                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                         ModSoundEvents.INFESTED_ENDERMAN_PORTAL.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
@@ -392,14 +355,14 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
 
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
-        if (!this.level().isClientSide && result && this.teleportCooldown <= 0) {
+        if (!this.level().isClientSide() && result && this.teleportCooldown <= 0) {
             if (tryTeleportRandomly()) {
                 this.teleportCooldown = this.random.nextInt(TELEPORT_COOLDOWN_MIN, TELEPORT_COOLDOWN_MAX + 1);
                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -408,8 +371,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         }
         return result;
     }
-
-    
     public void playAmbientSound() {
         if (this.getTarget() != null && !this.isSilent()) {
             this.playSound(ModSoundEvents.INFESTED_ENDERMAN_SCREAM.get());
@@ -427,16 +388,12 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     protected SoundEvent getDeathSound() {
         return ModSoundEvents.INFESTED_ENDERMAN_DEATH.get();
     }
-
-    
     @Override
     public void die(DamageSource source) {
         releaseCarriedEntity(); 
         super.die(source);
         this.onDeath(source); 
     }
-
-    
     private void updateFloating() {
         if (this.isInWater()) {
             Vec3 vec3 = this.getDeltaMovement();
@@ -465,7 +422,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     }
 
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
 
@@ -473,55 +430,49 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<WalkingEndermanHead> event) {
+    private PlayState animationPredicate(AnimationTest<WalkingEndermanHead> event) {
         boolean isMoving = event.isMoving();
 
         if (isMoving) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+            event.setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else {
             if (getVariant() != Variant.DEFAULT) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle2"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle2"));
             } else {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle1"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle1"));
             }
         }
         return PlayState.CONTINUE;
     }
-
-    
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_CARRIED_ENTITY_ID, -1);
-        this.entityData.define(DATA_VARIANT, Variant.DEFAULT.ordinal());
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_CARRIED_ENTITY_ID, -1);
+        entityData.define(DATA_VARIANT, Variant.DEFAULT.ordinal());
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putString("Variant", this.getVariant().name());
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("Variant", 8)) {
+        if (tag.getString("Variant").isPresent()) {
             try {
-                this.setVariant(Variant.valueOf(tag.getString("Variant")));
+                this.setVariant(Variant.valueOf(tag.getStringOr("Variant", "")));
             } catch (IllegalArgumentException e) {
                 this.setVariant(Variant.DEFAULT);
             }
         }
     }
-
-    
     @Override
     public boolean canPassThroughInfestedLeaves() {
         return true;
@@ -531,23 +482,19 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return factory;
     }
-
-    
     public static boolean checkWalkingEndermanHeadSpawnRules(
             EntityType<WalkingEndermanHead> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 4 || stage > 7) return false;
         }
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
-
-    
     private boolean tryTeleportToEntity(LivingEntity target) {
         if (target == null) return false;
         RandomSource rand = random;
@@ -564,8 +511,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         }
         return false;
     }
-
-    
     private class PickUpParasiteGoal extends Goal {
         private static final int SEARCH_RADIUS = 32;
         private LivingEntity carryTarget;
@@ -593,8 +538,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                             !e.isOnFire() &&
                             !isCarriedByOther(e)
             );
-
-            
             list.removeIf(candidate -> attackTarget.distanceToSqr(candidate) > 24 * 24);
 
             if (list.isEmpty()) return false;
@@ -627,18 +570,12 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         public void tick() {
             if (carryTarget == null) return;
             double distSq = WalkingEndermanHead.this.distanceToSqr(carryTarget);
-
-            
             if (distSq <= 24 * 24 && WalkingEndermanHead.this.teleportCooldown <= 0) {
                 if (WalkingEndermanHead.this.tryTeleportToEntity(carryTarget)) {
-                    
-                    
                     WalkingEndermanHead.this.setCarriedEntity(carryTarget);
                     WalkingEndermanHead.this.level().playSound(null, WalkingEndermanHead.this.getX(), WalkingEndermanHead.this.getY(), WalkingEndermanHead.this.getZ(),
                             ModSoundEvents.INFESTED_ENDERMAN_PORTAL.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     WalkingEndermanHead.this.getNavigation().stop();
-
-                    
                     LivingEntity target = WalkingEndermanHead.this.getTarget();
                     if (target != null && WalkingEndermanHead.this.attemptTeleportAndPlace(target)) {
                         
@@ -652,8 +589,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                     return;
                 }
             }
-
-            
             if (distSq <= 1.2 * 1.2) {
                 
                 if (WalkingEndermanHead.this.getCarriedEntity() == null) {
@@ -661,8 +596,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                     WalkingEndermanHead.this.level().playSound(null, WalkingEndermanHead.this.getX(), WalkingEndermanHead.this.getY(), WalkingEndermanHead.this.getZ(),
                             ModSoundEvents.INFESTED_ENDERMAN_PORTAL.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     WalkingEndermanHead.this.getNavigation().stop();
-
-                    
                     LivingEntity target = WalkingEndermanHead.this.getTarget();
                     if (target != null && WalkingEndermanHead.this.attemptTeleportAndPlace(target)) {
                         
@@ -684,8 +617,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
             WalkingEndermanHead.this.getNavigation().stop();
         }
     }
-
-    
     private class PlacePassengerGoal extends Goal {
         private static final int PLACE_RANGE = 6;
         private int placeAttempts = 0;
@@ -787,18 +718,14 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
             placeAttempts++;
         }
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -808,12 +735,12 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         return super.canRide(entity);
     }
 
-    public ResourceLocation getTextureResource() {
+    public Identifier getTextureResource() {
         switch (getVariant()) {
             case UNSTABLE:
-                return new ResourceLocation("epca", "textures/entity/walking_enderman_head_unstable.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/walking_enderman_head_unstable.png");
             default:
-                return new ResourceLocation("epca", "textures/entity/walking_enderman_head.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/walking_enderman_head.png");
         }
     }
 }

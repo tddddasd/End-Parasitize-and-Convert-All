@@ -8,16 +8,18 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.permissions.PermissionCheck;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.data.WorldDifficultyData;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 import org.tdddd.epca.impl.epca;
 
-@Mod.EventBusSubscriber(modid = epca.MODID)
+@EventBusSubscriber(modid = epca.MODID)
 public class EpcaCustomCommand {
 
     @SubscribeEvent
@@ -25,7 +27,7 @@ public class EpcaCustomCommand {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
         dispatcher.register(
                 Commands.literal("epca_custom")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Commands.hasPermission(new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER)))
                         .then(Commands.literal("difficulty")
                                 .then(Commands.argument("level", StringArgumentType.word())
                                         .suggests((ctx, builder) -> {

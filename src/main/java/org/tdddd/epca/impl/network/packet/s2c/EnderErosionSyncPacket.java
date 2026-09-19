@@ -1,14 +1,31 @@
 package org.tdddd.epca.impl.network.packet.s2c;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.ClientErosionData;
+import org.tdddd.epca.impl.network.ModNetwork;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
+/**
+ * 服务端 → 客户端：终末侵蚀数值同步。
+ *
+ * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}；
+ * 原 {@code getDirection().getReceptionSide().isClient()} 判断由
+ * “注册在 {@code playToClient}”取代。
+ * <b>线上字段与顺序不变</b>：{@code uuid} + {@code float erosionValue} + {@code int effectLevel}
+ * + {@code float maxHealth} + {@code float currentHealth}。
+ */
+public class EnderErosionSyncPacket implements CustomPacketPayload {
 
-public class EnderErosionSyncPacket {
+    public static final CustomPacketPayload.Type<EnderErosionSyncPacket> TYPE =
+            new CustomPacketPayload.Type<>(ModNetwork.id("ender_erosion_sync"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, EnderErosionSyncPacket> STREAM_CODEC =
+            CustomPacketPayload.codec(EnderErosionSyncPacket::encode, EnderErosionSyncPacket::decode);
+
     private final UUID playerUUID;
     private final float erosionValue;
     private final int effectLevel;
@@ -23,7 +40,7 @@ public class EnderErosionSyncPacket {
         this.currentHealth = currentHealth;
     }
 
-    public static void encode(EnderErosionSyncPacket packet, FriendlyByteBuf buffer) {
+    public static void encode(EnderErosionSyncPacket packet, RegistryFriendlyByteBuf buffer) {
         buffer.writeUUID(packet.playerUUID);
         buffer.writeFloat(packet.erosionValue);
         buffer.writeInt(packet.effectLevel);
@@ -31,7 +48,7 @@ public class EnderErosionSyncPacket {
         buffer.writeFloat(packet.currentHealth);
     }
 
-    public static EnderErosionSyncPacket decode(FriendlyByteBuf buffer) {
+    public static EnderErosionSyncPacket decode(RegistryFriendlyByteBuf buffer) {
         UUID playerUUID = buffer.readUUID();
         float erosionValue = buffer.readFloat();
         int effectLevel = buffer.readInt();
@@ -40,24 +57,21 @@ public class EnderErosionSyncPacket {
         return new EnderErosionSyncPacket(playerUUID, erosionValue, effectLevel, maxHealth, currentHealth);
     }
 
-    public static void handle(EnderErosionSyncPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        context.enqueueWork(() -> {
-            
-            if (context.getDirection().getReceptionSide().isClient()) {
-                ClientErosionData.setErosionData(
-                        packet.playerUUID,
-                        packet.erosionValue,
-                        packet.effectLevel,
-                        packet.maxHealth,
-                        packet.currentHealth
-                );
-            }
-        });
-        context.setPacketHandled(true);
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    
+    public static void handle(EnderErosionSyncPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> ClientErosionData.setErosionData(
+                packet.playerUUID,
+                packet.erosionValue,
+                packet.effectLevel,
+                packet.maxHealth,
+                packet.currentHealth
+        ));
+    }
+
     public UUID getPlayerUUID() { return playerUUID; }
     public float getErosionValue() { return erosionValue; }
     public int getEffectLevel() { return effectLevel; }

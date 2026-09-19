@@ -26,8 +26,20 @@ public class InfestedRemainsLarge extends Block {
     
     private static final VoxelShape COLLISION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 0.1D, 16.0D);
 
+    /**
+     * 26.1.2: {@code DeferredRegister.Blocks#registerBlock} takes a
+     * {@code Function<Properties, B>} so the registry id can be attached to the
+     * properties. A no-arg-only block is registered through the plain
+     * {@code register(...)} overload, which leaves the id unset and aborts the whole
+     * block registry at runtime with {@code NullPointerException: Block id not set}.
+     */
+    public InfestedRemainsLarge(Properties properties) {
+        super(properties);
+    }
+
+    /** Kept for {@code simpleCodec} / hand construction with the original defaults. */
     public InfestedRemainsLarge() {
-        super(Properties.of()
+        this(Properties.of()
                 .noOcclusion() 
                 .strength(0.0f) 
                 .sound(SoundType.NETHER_WART)
@@ -38,15 +50,21 @@ public class InfestedRemainsLarge extends Block {
         );
     }
 
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(InfestedRemainsLarge::new);
+    }
+
     
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        if (!level.isClientSide && entity instanceof LivingEntity livingEntity) {
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+        if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
             
-            if (!livingEntity.hasEffect(ModEffects.COTH.get())) {
+            if (!livingEntity.hasEffect(ModEffects.COTH)) {
                 
                 livingEntity.addEffect(new MobEffectInstance(
-                        ModEffects.COTH.get(),
+                        ModEffects.COTH,
                         900,   
                         1,     
                         false, 
@@ -55,7 +73,7 @@ public class InfestedRemainsLarge extends Block {
                 ));
             }
         }
-        super.entityInside(state, level, pos, entity);
+        super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
     }
 
     @Override
@@ -76,7 +94,7 @@ public class InfestedRemainsLarge extends Block {
 
     
     @Override
-    public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
+    public boolean propagatesSkylightDown(BlockState state) {
         return true;
     }
 
@@ -89,12 +107,13 @@ public class InfestedRemainsLarge extends Block {
 
     
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
-                                  LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    public BlockState updateShape(BlockState state, LevelReader level, net.minecraft.world.level.ScheduledTickAccess ticks,
+                                  BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState,
+                                  RandomSource random) {
         if (!state.canSurvive(level, pos)) {
-            level.scheduleTick(pos, this, 1);
+            ticks.scheduleTick(pos, this, 1);
         }
-        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
     }
 
     

@@ -1,42 +1,84 @@
 package org.tdddd.epca.impl.client;
 
-import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperty;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystScreen;
-import org.tdddd.epca.impl.overworld.registry.ModItems;
 import org.tdddd.epca.impl.overworld.registry.particles.AdaptationParticleProvider;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.particles.partices.*;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public class ClientSetup {
     @SubscribeEvent
     public static void onClientSetup1(FMLClientSetupEvent event) {
-        
         event.enqueueWork(() -> {
-            MenuScreens.register(ModMenus.SWALLOW_CYST.get(), SwallowCystScreen::new);
-            Item bloodyClock = ModItems.BLOODY_CLOCK.get();
-            ItemProperties.register(bloodyClock, new ResourceLocation("stage"),
-                    (stack, level, entity, seed) -> {
-                        Level world = level;
-                        if (entity instanceof LivingEntity) world = entity.level();
-                        if (world == null) return 0f;   
-                        int stage = ClientEvolutionData.getStageForDimension(world);
-                        
-                        return (float)(stage + 2);
-                    });
+            // 1.20.1 registered the menu screen here through ItemProperties-driven model predicates. In 26.1.2
+            // the screen goes through RegisterMenuScreensEvent (see registerMenuScreens below) and item model
+            // predicates are data driven, so nothing is left to enqueue.
         });
+    }
+
+    /**
+     * 26.1.2: {@code MenuScreens#register} is private; NeoForge exposes the dedicated
+     * {@link RegisterMenuScreensEvent} on the mod bus instead.
+     */
+    @SubscribeEvent
+    public static void registerMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenus.SWALLOW_CYST.get(), SwallowCystScreen::new);
+    }
+
+    /**
+     * 26.1.2: {@code ItemProperties.register(item, "stage", predicate)} was deleted along with the whole
+     * {@code ItemProperties} class — item model predicates are declared in resources and resolved through
+     * {@code RangeSelectItemModelProperty}. This registers the equivalent of the old {@code "stage"} predicate
+     * as {@code epca:evolution_stage} so {@code assets/epca/items/bloody_clock.json} can drive the model.
+     */
+    @SubscribeEvent
+    public static void registerItemModelProperties(RegisterRangeSelectItemModelPropertyEvent event) {
+        event.register(Identifier.fromNamespaceAndPath(epca.MODID, "evolution_stage"), EvolutionStageProperty.MAP_CODEC);
+    }
+
+    /**
+     * Numeric item model property reproducing the 1.20.1 {@code ItemProperties.register(bloodyClock, "stage", …)}
+     * predicate: {@code stageForDimension(level) + 2}, evaluated against the item owner's level (or the item's
+     * own level when there is no living owner).
+     */
+    public static class EvolutionStageProperty implements RangeSelectItemModelProperty {
+        public static final MapCodec<EvolutionStageProperty> MAP_CODEC =
+                MapCodec.unit(new EvolutionStageProperty());
+
+        @Override
+        public float get(ItemStack itemStack, ClientLevel level, ItemOwner owner, int seed) {
+            Level world = level;
+            if (owner != null) {
+                LivingEntity living = owner.asLivingEntity();
+                if (living != null) {
+                    world = living.level();
+                }
+            }
+            if (world == null) return 0f;
+            return (float) (ClientEvolutionData.getStageForDimension(world) + 2);
+        }
+
+        @Override
+        public MapCodec<EvolutionStageProperty> type() {
+            return MAP_CODEC;
+        }
     }
 
     @SubscribeEvent

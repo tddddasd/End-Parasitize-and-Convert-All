@@ -1,0 +1,7 @@
+{
+  "parent": "epca:item/spear",
+  "textures": {
+    "layer0": "epca:item/stone_spear",
+    "particle": "epca:item/stone_spear_item"
+  }
+}

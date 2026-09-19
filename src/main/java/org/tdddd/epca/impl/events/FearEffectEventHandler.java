@@ -1,29 +1,29 @@
 package org.tdddd.epca.impl.events;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileWeaponItem;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.effects.debuff.FearEffect;
 
 import java.util.Set;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class FearEffectEventHandler {
-    private static final Set<ResourceLocation> THROWABLE_ITEMS = Set.of(
-            new ResourceLocation("minecraft", "snowball"),
-            new ResourceLocation("minecraft", "ender_pearl"),
-            new ResourceLocation("minecraft", "egg"),
-            new ResourceLocation("minecraft", "experience_bottle"),
-            new ResourceLocation("minecraft", "splash_potion"),
-            new ResourceLocation("minecraft", "lingering_potion")
+    private static final Set<Identifier> THROWABLE_ITEMS = Set.of(
+            Identifier.fromNamespaceAndPath("minecraft", "snowball"),
+            Identifier.fromNamespaceAndPath("minecraft", "ender_pearl"),
+            Identifier.fromNamespaceAndPath("minecraft", "egg"),
+            Identifier.fromNamespaceAndPath("minecraft", "experience_bottle"),
+            Identifier.fromNamespaceAndPath("minecraft", "splash_potion"),
+            Identifier.fromNamespaceAndPath("minecraft", "lingering_potion")
     );
 
     
@@ -31,11 +31,11 @@ public class FearEffectEventHandler {
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Player player = event.getEntity();
         
-        if (!player.hasEffect(ModEffects.FEAR.get())) return;
+        if (!player.hasEffect(ModEffects.FEAR)) return;
 
-        int amplifier = player.getEffect(ModEffects.FEAR.get()).getAmplifier();
+        int amplifier = player.getEffect(ModEffects.FEAR).getAmplifier();
         if (FearEffect.shouldPreventBlockPlacement(amplifier)) {
-            player.displayClientMessage(FearEffect.FEAR_MESSAGE, true);
+            player.sendOverlayMessage(FearEffect.FEAR_MESSAGE);
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.FAIL);
         }
@@ -46,20 +46,20 @@ public class FearEffectEventHandler {
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         Player player = event.getEntity();
         
-        if (!player.hasEffect(ModEffects.FEAR.get())) return;
+        if (!player.hasEffect(ModEffects.FEAR)) return;
 
         
         ItemStack stack = player.getItemInHand(event.getHand());
-        ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 
         
         if (itemId != null && (THROWABLE_ITEMS.contains(itemId) || stack.getItem() instanceof ProjectileWeaponItem)) {
             return;
         }
 
-        int amplifier = player.getEffect(ModEffects.FEAR.get()).getAmplifier();
+        int amplifier = player.getEffect(ModEffects.FEAR).getAmplifier();
         if (FearEffect.shouldPreventItemUse(amplifier)) {
-            player.displayClientMessage(FearEffect.FEAR_MESSAGE, true);
+            player.sendOverlayMessage(FearEffect.FEAR_MESSAGE);
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.FAIL);
         }

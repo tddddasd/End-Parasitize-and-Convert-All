@@ -1,7 +1,7 @@
 package org.tdddd.epca.impl.datagen.gen.lang;
 
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.tdddd.epca.impl.epca;
 
 public class LangDataCN extends LanguageProvider {
@@ -15,8 +15,8 @@ public class LangDataCN extends LanguageProvider {
         add("itemGroup." + epca.MODID + ".main_tab", "终末-归寄万物");
 
         // 游戏规则
-        add("gamerule.epca_hardnessConversionBlock", "根据硬度转化模组方块");
-        add("gamerule.epca_hardnessConversionBlock.description", "当模组方块没有转化配置映射时，是否允许根据硬度将其转化为虫染残渣、类岩、类板等方块");
+        add("gamerule.epca_hardness_conversion_block", "根据硬度转化模组方块");
+        add("gamerule.epca_hardness_conversion_block.description", "当模组方块没有转化配置映射时，是否允许根据硬度将其转化为虫染残渣、类岩、类板等方块");
 
         // 工具提示
         add("tooltip.epca.max_damage_type", "最大受击倍率伤害类型: %s (\u00d7%s)");
@@ -218,7 +218,6 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.infested_bat_spawn_egg", "虫染蝙蝠刷怪蛋");
 
         // 材料与特殊物品
-        add("item.epca.copper_nugget", "铜粒");
         add("item.epca.parasite_viscera", "寄体内脏");
         add("item.epca.infested_bone", "虫染骨");
         add("item.epca.weird_minced_flesh", "怪异肉沫");
@@ -385,6 +384,10 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.infested_heavy_bricks_wall", "虫染重质砖墙");
         add("block.epca.infested_lily_pad", "虫染睡莲");
         add("block.epca.infested_carved_pumpkin", "虫染雕刻南瓜");
+        // infested_carved_pumpkin 是唯一用 ITEMS.registerItem(name, factory) 注册、
+        // 没有走 Item.Properties#useBlockDescriptionPrefix() 的 BlockItem，
+        // 因此它自身的名称键是 item.epca.*，而方块本身仍是 block.epca.*。两个键都必须存在。
+        add("item.epca.infested_carved_pumpkin", "虫染雕刻南瓜");
         add("block.epca.infested_pumpkin", "虫染南瓜");
         add("block.epca.infested_short_grass", "虫染矮草丛");
         add("block.epca.infested_tall_grass", "虫染高草丛");
@@ -452,6 +455,32 @@ public class LangDataCN extends LanguageProvider {
         // 笔记
         add("epca.note.title", "寄巢笔记");
         add("epca.message.stage_too_low", "这里的侵蚀阶段小于3级...");
+
+        // 祭坛调试反馈（Kill 棒 / 结构检测，EpcaAltarInteractionHandler）
+        // 参数个数必须与 Component.translatable 调用一致；百分号按 String.format 规则写成 %%
+        add("altar_debug.epca.not_structure", "当前方块不属于任何有效祭坛结构");
+        add("altar_debug.epca.pedestal_count", "总祭台数: %s");
+        add("altar_debug.epca.pedestals_with_item", "有物品的祭台数: %s");
+        add("altar_debug.epca.total_points", "总点数: %s");
+        add("altar_debug.epca.status.valid", "状态: 有效");
+        add("altar_debug.epca.status.invalid", "状态: 无效");
+        add("altar_debug.epca.reason", "原因: %s");
+
+        // 献祭仪式反馈（EpcaAltarInteractionHandler.SacrificeCheck + BlockConversionManager）
+        add("ritual.epca.no_base", "献祭失败：祭坛下方需要信标底座方块（铁/金/钻石/绿宝石/下界合金块）");
+        add("ritual.epca.no_gem", "献祭失败：祭台上需要放置钻石块、绿宝石块或紫水晶块");
+        add("ritual.epca.parasite_present", "献祭失败：附近存在寄生体");
+        add("ritual.epca.not_enough_animals", "献祭失败：需要至少 2 只动物");
+        add("ritual.epca.not_enough_villagers", "献祭失败：需要至少 1 个村民");
+        add("ritual.epca.already_running", "这个祭坛上已经有一个仪式正在进行");
+        add("ritual.epca.started", "献祭仪式开始（%s 个方块将被改造）");
+        add("ritual.epca.started_nearby", "附近的祭坛开始了献祭仪式……");
+        add("ritual.epca.progress", "仪式进行中: %s%%");
+        add("ritual.epca.progress_nearby", "仪式仍在进行……");
+        add("ritual.epca.completed", "献祭仪式完成");
+        add("ritual.epca.completed_nearby", "献祭仪式完成了");
+        add("ritual.epca.cancelled", "仪式已取消（发起者离开了）");
+        add("ritual.epca.resumed", "检测到未完成的献祭仪式，已从 %s%% 处继续");
 
         // 图鉴内容（含换行与图像占位符）
         add("epca.content.onesent",

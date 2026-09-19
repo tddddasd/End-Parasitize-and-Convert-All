@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#c:is_cave",
+  "spawners": {
+    "type": "epca:infested_drowned",
+    "weight": 5,
+    "minCount": 1,
+    "maxCount": 3
+  }
+}

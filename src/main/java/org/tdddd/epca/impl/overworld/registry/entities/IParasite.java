@@ -1,7 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -11,7 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.events.ParasiteFollowEvent;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
@@ -33,10 +33,18 @@ public interface IParasite {
         UUID oldTarget = getFollowTarget();
         if (oldTarget == targetUuid || (oldTarget != null && oldTarget.equals(targetUuid))) return;
 
-        if (!entity.level().isClientSide) {
+        if (!entity.level().isClientSide()) {
             ParasiteFollowEvent event = new ParasiteFollowEvent(entity, oldTarget, targetUuid);
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
-            if (event.isCanceled()) return;
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(event);
+            // SCR-3: ParasiteFollowEvent still carries the deleted @Cancelable annotation and does
+            // not implement ICancellableEvent yet (it is owned by the events cluster). Reading the
+            // flag through the marker interface keeps this file compiling now and behaves exactly
+            // like a direct event.isCanceled() call the moment the marker is added. Until then
+            // cancellation is inert.
+            if (event instanceof net.neoforged.bus.api.ICancellableEvent cancellable
+                    && cancellable.isCanceled()) {
+                return;
+            }
         }
 
         CompoundTag tag = entity.getPersistentData();
@@ -49,7 +57,7 @@ public interface IParasite {
 
     default UUID getFollowTarget() {
         LivingEntity entity = (LivingEntity) this;
-        String s = entity.getPersistentData().getString(FOLLOW_TARGET_KEY);
+        String s = entity.getPersistentData().getString(FOLLOW_TARGET_KEY).orElse("");
         if (s.isEmpty()) return null;
         try {
             return UUID.fromString(s);
@@ -63,7 +71,7 @@ public interface IParasite {
         if (entity instanceof Player) {
             return NestLeaderManager.isNestLeader(entity.getUUID());
         }
-        return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite");
+        return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite").orElse(false);
     }
 
     static boolean isParasiteNoLivingByTagOrInterface(Entity entity) {
@@ -71,19 +79,19 @@ public interface IParasite {
         if (entity instanceof Player) {
             return NestLeaderManager.isNestLeader(entity.getUUID());
         }
-        return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite");
+        return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite").orElse(false);
     }
 
     default boolean hasDamageAdaptationConfig() {
         LivingEntity entity = (LivingEntity) this;
-        ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        Identifier entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         return DamageAdaptationManager.hasConfig(entityId);
     }
 
     
     default DamageAdaptationConfig getDamageAdaptationConfig() {
         LivingEntity entity = (LivingEntity) this;
-        ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        Identifier entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         return DamageAdaptationManager.getConfig(entityId);
     }
 
@@ -129,9 +137,9 @@ public interface IParasite {
             }
 
             
-            if (level.random.nextFloat() < 0.1f) {
+            if (level.getRandom().nextFloat() < 0.1f) {
                 
-                MobEffectInstance currentRage = parasite.getEffect(ModEffects.RAGE.get());
+                MobEffectInstance currentRage = parasite.getEffect(ModEffects.RAGE);
                 int amplifier = 0;
 
                 if (currentRage != null) {
@@ -141,7 +149,7 @@ public interface IParasite {
 
                 
                 MobEffectInstance rageEffect = new MobEffectInstance(
-                        ModEffects.RAGE.get(),
+                        ModEffects.RAGE,
                         300, 
                         amplifier,
                         false, 
@@ -215,7 +223,7 @@ public interface IParasite {
     
     private int getLastRageTriggerTick(LivingEntity parasite) {
         
-        return parasite.getPersistentData().getInt(LAST_RAGE_TRIGGER_KEY);
+        return parasite.getPersistentData().getInt(LAST_RAGE_TRIGGER_KEY).orElse(0);
     }
 
     
@@ -267,7 +275,7 @@ public interface IParasite {
 
     
     default UUID getForcedTargetUuid() {
-        String uuidStr = ((LivingEntity) this).getPersistentData().getString(FORCED_TARGET_UUID_KEY);
+        String uuidStr = ((LivingEntity) this).getPersistentData().getString(FORCED_TARGET_UUID_KEY).orElse("");
         if (uuidStr.isEmpty()) return null;
         try {
             return UUID.fromString(uuidStr);
@@ -307,7 +315,7 @@ public interface IParasite {
 
     
     default long getLastForcedSwitchTick() {
-        return ((LivingEntity) this).getPersistentData().getLong(LAST_FORCED_SWITCH_TICK_KEY);
+        return ((LivingEntity) this).getPersistentData().getLong(LAST_FORCED_SWITCH_TICK_KEY).orElse(0L);
     }
 
     default void setLastForcedSwitchTick(long tick) {
@@ -324,7 +332,7 @@ public interface IParasite {
     default boolean trySwitchForcedTargetOnAttacked(LivingEntity attacker) {
         LivingEntity self = (LivingEntity) this;
         Level level = self.level();
-        if (level.isClientSide) return false;
+        if (level.isClientSide()) return false;
 
         
         if (isForcedTargetSwitchOnCooldown(level)) return false;

@@ -45,6 +45,12 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add( NATURAL_SPAWN);
+
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(InfestedCactus::new);
     }
 
     @Override
@@ -68,7 +74,8 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
     }
 
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         if (entity instanceof ItemEntity item) {
             item.discard();
             return;
@@ -80,7 +87,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
             }
             living.hurt(entity.damageSources().cactus(), 1.5F);
             living.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     600,
                     0,
                     false,
@@ -90,13 +97,14 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
     }
 
     @Override
-    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide) {
+    // 26.1.2: Block#playerWillDestroy now returns the (possibly transformed) BlockState.
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide()) {
             if (player.getMainHandItem().isEmpty()) {
-                if (level.random.nextFloat() < 0.75F) {
+                if (level.getRandom().nextFloat() < 0.75F) {
                     player.hurt(player.damageSources().cactus(), 1.5F);
                     player.addEffect(new MobEffectInstance(
-                            ModEffects.COTH.get(),
+                            ModEffects.COTH,
                             600,
                             0,
                             false,
@@ -105,7 +113,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
                 }
             }
         }
-        super.playerWillDestroy(level, pos, state, player);
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
@@ -128,8 +136,9 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
         return true;
     }
 
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean isMoving) {
+    // 26.1.2: the neighbour position was replaced by the redstone Orientation.
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
         if (!state.canSurvive(level, pos)) {
             level.destroyBlock(pos, true);
         }
@@ -137,7 +146,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
 
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
             BlockPos above = pos.above();
             if (level.getBlockState(above).isAir()) {
                 int height = 1;

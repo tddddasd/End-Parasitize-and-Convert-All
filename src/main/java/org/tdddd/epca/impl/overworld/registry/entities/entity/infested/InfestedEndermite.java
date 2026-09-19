@@ -1,12 +1,13 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -22,8 +23,8 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
@@ -36,19 +37,17 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 public class InfestedEndermite extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy, IGlowRenderable {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-
-    
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
     private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
@@ -60,9 +59,7 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
     public InfestedEndermite(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
-
-        
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             int roll = this.random.nextInt(100);
             if (roll < 70) {
                 this.setVariant(InfestedEndermite.Variant.DEFAULT);  
@@ -70,17 +67,13 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
                 this.setVariant(InfestedEndermite.Variant.UNSTABLE);    
             }
         }
-
-        
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-        
         this.navigation = new GroundPathNavigation(this, level);
     }
 
     @Override
-    public ResourceLocation getGlowTexture() {
-        return new ResourceLocation(epca.MODID, "textures/entity/infested_endermite_unstable_glow.png");
+    public Identifier getGlowTexture() {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/infested_endermite_unstable_glow.png");
     }
 
     public enum Variant {
@@ -112,11 +105,7 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
-
-        
         this.targetSelector.addGoal(0, new NearestAttackableTargetGoal<>(this, EnderMan.class, 10, true, false, null));
-
-        
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
@@ -127,15 +116,11 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
     public void tick() {
         super.tick();
 
-        if (!this.level().isClientSide) {
-
-            
+        if (!this.level().isClientSide()) {
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-                    
                     playAmbientSound();
                 }
             }
@@ -156,8 +141,6 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             }
         }
     }
-
-    
     public InfestedEndermite.Variant getVariant() {
         
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
@@ -165,21 +148,19 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             
             return InfestedEndermite.Variant.DEFAULT;
         }
-
-        
         int index = Mth.clamp(variantOrdinal, 0, InfestedEndermite.Variant.values().length - 1);
         return InfestedEndermite.Variant.values()[index];
     }
 
     public void setVariant(InfestedEndermite.Variant variant) {
         this.entityData.set(DATA_VARIANT, variant.ordinal());
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             applyVariantAttributes(); 
         }
     }
 
     private void applyVariantAttributes() {
-        if (this.level().isClientSide) return; 
+        if (this.level().isClientSide()) return; 
         AttributeInstance followRange = this.getAttribute(Attributes.FOLLOW_RANGE);
         if (followRange != null) {
             double base = 16.0D;
@@ -189,17 +170,12 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             followRange.setBaseValue(base);
         }
     }
-
-    
     public void playAmbientSound() {
         if (!this.isSilent() && this.random.nextInt(3) == 0) {
             
             this.playSound(SoundEvents.ENDERMITE_AMBIENT, 0.95F, 0.8F);
         }
     }
-
-    
-
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         
@@ -220,12 +196,8 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             this.playSound(soundevent, 0.95F, 0.8F); 
         }
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-
-        
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
             
             if (shouldIgnoreDamageFrom(attacker)) {
@@ -233,35 +205,29 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<InfestedEndermite> event) {
+    private PlayState animationPredicate(AnimationTest<InfestedEndermite> event) {
 
             if (event.isMoving()) {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+                event.setAnimation(RawAnimation.begin().thenLoop("walk"));
             } else if (getVariant() != InfestedEndermite.Variant.DEFAULT) {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle2"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle2"));
             } else {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle1"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle1"));
             }
 
         return PlayState.CONTINUE;
@@ -270,36 +236,28 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
     public static boolean checkInfestedEndermiteSpawnRules(
             EntityType<InfestedEndermite> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
         
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
-
-            
             if (stage < 2 || stage > 5) {
                 return false;
             }
         }
-
-        
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -319,11 +277,7 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
         super.die(source);
         this.onDeath(source); 
     }
-
-    
     private int floatingTime;
-
-    
     private void updateFloating() {
         if (this.isInWater()) {
             
@@ -332,11 +286,7 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
                 
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
-
-            
             this.floatingTime++;
-
-            
             if (this.floatingTime > 10) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.4D, 0.0D));
                 this.floatingTime = 0;
@@ -347,16 +297,16 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_VARIANT, InfestedEndermite.Variant.DEFAULT.ordinal());
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_VARIANT, InfestedEndermite.Variant.DEFAULT.ordinal());
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("Variant", 8)) {
-            String variantName = tag.getString("Variant");
+        if (tag.getString("Variant").isPresent()) {
+            String variantName = tag.getStringOr("Variant", "");
             try {
                 this.setVariant(InfestedEndermite.Variant.valueOf(variantName));
             } catch (IllegalArgumentException e) {
@@ -365,8 +315,6 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             }
         }
     }
-
-    
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
@@ -378,25 +326,21 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             super.travel(travelVector);
         }
     }
-
-    
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
-
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
 
-    public ResourceLocation getTextureResource() {
+    public Identifier getTextureResource() {
         switch (getVariant()) {
             case UNSTABLE:
-                return new ResourceLocation("epca", "textures/entity/infested_endermite_unstable.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_endermite_unstable.png");
             default:
-                return new ResourceLocation("epca", "textures/entity/infested_endermite.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_endermite.png");
         }
     }
 }

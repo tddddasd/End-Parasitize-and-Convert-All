@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#c:is_cave",
+  "spawners": {
+    "type": "epca:infested_bat",
+    "weight": 8,
+    "minCount": 4,
+    "maxCount": 6
+  }
+}

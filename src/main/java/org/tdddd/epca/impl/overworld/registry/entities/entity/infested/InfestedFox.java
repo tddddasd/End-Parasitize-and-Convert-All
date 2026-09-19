@@ -1,4 +1,5 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+import net.minecraft.world.entity.animal.fox.Fox;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 
 import net.minecraft.core.BlockPos;
@@ -7,7 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -28,13 +29,13 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
+import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
@@ -50,14 +51,14 @@ import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
@@ -65,8 +66,8 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
-    private static final UUID WANDER_SPEED_ID = UUID.fromString("A3766B59-7066-4402-AD81-0E3B7B6C2B9B");
-    private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, "Wander speed reduction", -0.35, AttributeModifier.Operation.MULTIPLY_TOTAL);
+    private static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath("epca", "a3766b59-7066-4402-ad81-0e3b7b6c2b9b");
+    private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 30;
     private BlockPos deathPosition; 
@@ -78,8 +79,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         this.entityData.set(DATA_IS_FAKING_DEATH, faking);
     }
     private static final EntityDataAccessor<Boolean> DATA_IS_INVULNERABLE = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
-
-    
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
     private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
@@ -96,8 +95,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     private boolean isPouncing = false;
     public double pounceStartY;
     private double pounceDamageBonus;               
-
-    
     private static final int MAX_POUNCE_HEIGHT = 8; 
     private static final int POUNCE_CHECK_HEIGHT = 3; 
     
@@ -116,22 +113,15 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     private void setIdleAnimType(IdleAnimType type) {
         this.entityData.set(DATA_IDLE_ANIM_TYPE, type.ordinal());
     }
-
-    
-    private static final UUID LAYING_RANGE_ID = UUID.fromString("B7D8C1E2-3F4A-5B6C-7D8E-9F0A1B2C3D4E");
+    private static final Identifier LAYING_RANGE_ID = Identifier.fromNamespaceAndPath("epca", "b7d8c1e2-3f4a-5b6c-7d8e-9f0a1b2c3d4e");
     private static final AttributeModifier LAYING_RANGE_REDUCTION =
-            new AttributeModifier(LAYING_RANGE_ID, "Laying range reduction", -0.9,
-                    AttributeModifier.Operation.MULTIPLY_TOTAL);
+            new AttributeModifier(LAYING_RANGE_ID, -0.9, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     private int attackCooldownTimer = 0;  
 
     public InfestedFox(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
-
-        
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-        
         this.navigation = new GroundPathNavigation(this, level);
     }
 
@@ -176,25 +166,17 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         });
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
-
-        
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
     }
 
     @Override
     public void tick() {
         super.tick();
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001; 
             boolean hasTarget = this.getTarget() != null;
-
-            
             this.setRunning(isMoving && hasTarget);
             this.setWalking(isMoving && !hasTarget);
-
-            
             if (isMoving && hasTarget) {
                 this.setWalking(false);
             } else if (isMoving && !hasTarget) {
@@ -204,8 +186,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                 this.setRunning(false);
                 this.setWalking(false);
             }
-
-            
             if (this.getTarget() == null &&
                     this.getDeltaMovement().horizontalDistanceSqr() < 0.001 &&
                     !this.isPouncing() &&
@@ -237,19 +217,15 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                 idleAnimTimer = 0;
             }
         }
-
-        
         if (isFakingDeath()) {
             super.tick();
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
                 
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
-
-                    
                     if (this.level() instanceof ServerLevel serverLevel) {
                         
                         serverLevel.sendParticles(ModParticles.COTH.get(), 
@@ -258,20 +234,16 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                                 0.3, 0.45, 0.3, 
                                 0.0 
                         );
-
-                        
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 7, 
                                 0.4, 0.3, 0.4, 
                                 0.2); 
-
-                        
                         BlockPos deathPos = this.deathPosition;
                         long seed = this.random.nextLong();
                         int delay = this.random.nextInt(30) + 40;
 
-                        serverLevel.getServer().tell(new TickTask(
+                        serverLevel.getServer().schedule(new TickTask(
                                 serverLevel.getServer().getTickCount() + delay,
                                 () -> {
                                     spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed));
@@ -279,24 +251,18 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                                     spawnBuglins(serverLevel, deathPos, RandomSource.create(seed));
                                 }
                         ));
-
-                        
                         AreaEffectCloud cloud = new AreaEffectCloud(serverLevel,
                                 deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
                         cloud.setRadius(1.5F); 
                         cloud.setDuration(60); 
                         cloud.setRadiusPerTick(0); 
                         cloud.setWaitTime(0); 
-
-                        
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH.get(),
+                                ModEffects.COTH,
                                 1200, 
                                 0,    
                                 false, true
                         ));
-
-                        
                         cloud.addEffect(new MobEffectInstance(
                                 MobEffects.POISON,
                                 200,  
@@ -307,8 +273,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-
-                
                 this.discard();
                 return; 
             }
@@ -316,36 +280,24 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             return;
         }
 
-        if (!this.level().isClientSide) {
-
-            
+        if (!this.level().isClientSide()) {
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-                    
                     playAmbientSound();
                 }
             }
             
             updateFloating();
-
-            
             if (attackCooldownTimer > 0) {
                 attackCooldownTimer--;
             }
         }
-
-        
         AttributeInstance movementAttribute = this.getAttribute(Attributes.MOVEMENT_SPEED);
         if (movementAttribute != null) {
             boolean hasTarget = this.getTarget() != null;
-
-            
             movementAttribute.removeModifier(WANDER_SPEED_ID);
-
-            
             if (hasTarget) {
                 
                 movementAttribute.setBaseValue(chaseSpeed);
@@ -354,31 +306,25 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                 movementAttribute.setBaseValue(baseSpeed);
                 movementAttribute.addTransientModifier(WANDER_SPEED_REDUCTION);
             }
-
-            
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 double horizontalMovement = this.getDeltaMovement().horizontalDistance();
                 boolean isActuallyMoving = horizontalMovement > 0.01; 
 
                 this.setRunning(isActuallyMoving && hasTarget);
                 this.setWalking(isActuallyMoving && !hasTarget);
-
-                
                 if (this.isRunning()) {
                     this.setWalking(false);
                 }
             }
         }
-
-        
         AttributeInstance followRange = this.getAttribute(Attributes.FOLLOW_RANGE);
         if (followRange != null) {
             if (getIdleAnimType() == IdleAnimType.LAYING) {
-                if (!followRange.hasModifier(LAYING_RANGE_REDUCTION)) {
+                if (!followRange.hasModifier(LAYING_RANGE_REDUCTION.id())) {
                     followRange.addPermanentModifier(LAYING_RANGE_REDUCTION);
                 }
             } else {
-                if (followRange.hasModifier(LAYING_RANGE_REDUCTION)) {
+                if (followRange.hasModifier(LAYING_RANGE_REDUCTION.id())) {
                     followRange.removeModifier(LAYING_RANGE_REDUCTION);
                 }
             }
@@ -387,8 +333,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
 
     private double baseSpeed = 0.27D; 
     private double chaseSpeed = 0.38D; 
-
-    
     public InfestedFox.Variant getVariant() {
         
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
@@ -396,19 +340,15 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             
             return InfestedFox.Variant.DEFAULT;
         }
-
-        
         int index = Mth.clamp(variantOrdinal, 0, InfestedFox.Variant.values().length - 1);
         return InfestedFox.Variant.values()[index];
     }
 
     public void setVariant(InfestedFox.Variant variant) {
         this.entityData.set(DATA_VARIANT, variant.ordinal());
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
         }
     }
-
-    
     public void playAmbientSound() {
         if (this.getTarget() != null) {
             this.playSound(ModSoundEvents.INFESTED_FOX_AGGRO.get());
@@ -416,8 +356,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             this.playSound(ModSoundEvents.INFESTED_FOX_SCREECH.get());
         }
     }
-
-    
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         
@@ -429,60 +367,38 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         
         return ModSoundEvents.INFESTED_FOX_DEATH.get();
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-
-        
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
             
             if (shouldIgnoreDamageFrom(attacker)) {
                 return false; 
             }
         }
-
-        
         if (isFakingDeath() || isInvulnerable()) {
             return false;
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
-
-    
     private void triggerFakeDeath(DamageSource source) {
         
         setFakingDeath(true);
         setInvulnerable(true);
         fakeDeathTimer = 30; 
         deathPosition = this.blockPosition(); 
-
-        
         this.setHealth(0.02F);
-
-        
         this.setNoAi(true);
-
-        
         this.setInvulnerable(true);
-
-        
         this.setTarget(null);
 
         this.setPose(Pose.DYING); 
-
-        
         this.entityData.set(DATA_IS_FAKING_DEATH, true);
     }
 
@@ -493,8 +409,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             super.die(source);
             return;
         }
-
-        
         DamageAdaptationConfig config = DamageAdaptation.getEntityConfig(this);
         if (config != null) {
             int minKills = config.getMinimumKillCount();
@@ -516,18 +430,16 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             this.onDeath(source);
             return;
         }
-
-        
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
             this.onDeath(source); 
         } else {
             
             super.die(source);
             this.onDeath(source); 
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 if (this.random.nextFloat() < 0.3f) {
-                    WalkingFoxHead head = ModEntities.WALKING_FOX_HEAD.get().create(this.level());
+                    WalkingFoxHead head = ModEntities.WALKING_FOX_HEAD.get().create(this.level(), EntitySpawnReason.MOB_SUMMONED);
                     if (head != null) {
                         head.setPos(this.getX(), this.getY(), this.getZ());
                         head.setYRot(this.random.nextFloat() * 360.0F);
@@ -542,37 +454,33 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             }
         }
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<InfestedFox> event) {
-
-        
+    private PlayState animationPredicate(AnimationTest<InfestedFox> event) {
         if (this.isFakingDeath()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("dead"));
+            event.setAnimation(RawAnimation.begin().thenLoop("dead"));
         }else if (this.isPouncing() || !this.onGround()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle_air"));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle_air"));
         } else if (this.isRunning()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("run"));
+            event.setAnimation(RawAnimation.begin().thenLoop("run"));
         } else if (this.isWalking()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+            event.setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else if (this.isPouncing) {
-            event.getController().setAnimation(RawAnimation.begin().thenPlay("attack"));
+            event.setAnimation(RawAnimation.begin().thenPlay("attack"));
         } else {
             
             switch (getIdleAnimType()) {
                 case IDLE:
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("idle"));
                     break;
                 case SIT:
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("sit"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("sit"));
                     break;
                 case LAYING:
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("laying"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("laying"));
                     break;
             }
         }
@@ -583,50 +491,39 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     public static boolean checkInfestedFoxSpawnRules(
             EntityType<InfestedFox> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
         
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
-
-            
             if (stage < 2 || stage > 5) {
                 return false;
             }
         }
-
-        
         return level.getMaxLocalRawBrightness(pos) < 8;
     }
 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
-                                        MobSpawnType spawnType, @Nullable SpawnGroupData spawnGroupData,
-                                        @Nullable CompoundTag tag) {
-        spawnGroupData = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData, tag);
-
-        
+                                        EntitySpawnReason spawnType, @Nullable SpawnGroupData spawnGroupData) {
+        spawnGroupData = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData);
         if (level.getBiome(this.blockPosition()).is(Tags.Biomes.IS_SNOWY)) {
             this.setVariant(Variant.SNOW);
         }
 
         return spawnGroupData;
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -640,11 +537,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return factory;
     }
-
-    
     private int floatingTime;
-
-    
     private void updateFloating() {
         if (this.isInWater()) {
             
@@ -653,11 +546,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                 
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
-
-            
             this.floatingTime++;
-
-            
             if (this.floatingTime > 10) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.4D, 0.0D));
                 this.floatingTime = 0;
@@ -666,13 +555,11 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             this.floatingTime = 0;
         }
     }
-
-    
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 3; i++) {
             
             EntityType<?> buglinType = ModEntities.CURBUG.get(); 
-            Entity buglin = buglinType.create(level);
+            Entity buglin = buglinType.create(level, EntitySpawnReason.MOB_SUMMONED);
 
             if (buglin != null) {
                 
@@ -685,8 +572,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                         pos.getY() + offsetY,
                         pos.getZ() + 0.5 + offsetZ
                 );
-
-                
                 if (buglin instanceof LivingEntity) {
                     ((LivingEntity) buglin).setDeltaMovement(
                             (random.nextDouble() - 0.5) * 0.1,
@@ -694,27 +579,17 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                             (random.nextDouble() - 0.5) * 0.1
                     );
                 }
-
-                
                 level.addFreshEntity(buglin);
             }
         }
     }
-
-    
     private static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
-        if (level.isClientSide || deathPos == null) return;
+        if (level.isClientSide() || deathPos == null) return;
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-
-        
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_LARGE.get().defaultBlockState(), 1);
-
-        
         int mediumCount = rand.nextInt(3) + 2;
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_MEDIUM.get().defaultBlockState(), mediumCount);
-
-        
         int smallCount = rand.nextInt(3) + 2;
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_SMALL.get().defaultBlockState(), smallCount);
     }
@@ -732,14 +607,10 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                     deathPos.getY()+1 + offsetY,
                     deathPos.getZ() + offsetZ
             );
-
-            
             if (level.isEmptyBlock(pos)) {
                 
                 BlockPos below = pos.below();
                 BlockState belowState = level.getBlockState(below);
-
-                
                 if (belowState.isFaceSturdy(level, below, Direction.UP)) {
                     level.setBlock(pos, state, 3);
                 }
@@ -748,21 +619,19 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_VARIANT, InfestedFox.Variant.DEFAULT.ordinal());
-        this.entityData.define(DATA_IS_FAKING_DEATH, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_VARIANT, InfestedFox.Variant.DEFAULT.ordinal());
+        entityData.define(DATA_IS_FAKING_DEATH, false);
         
-        this.entityData.define(DATA_IS_INVULNERABLE, false);
+        entityData.define(DATA_IS_INVULNERABLE, false);
         
-        this.entityData.define(DATA_IS_RUNNING, false);
-        this.entityData.define(DATA_IS_WALKING, false);
-        this.entityData.define(DATA_IS_POUNCING, false);
-        this.entityData.define(DATA_POUNCE_TARGET_ID, -1);
-        this.entityData.define(DATA_IDLE_ANIM_TYPE, IdleAnimType.IDLE.ordinal());
+        entityData.define(DATA_IS_RUNNING, false);
+        entityData.define(DATA_IS_WALKING, false);
+        entityData.define(DATA_IS_POUNCING, false);
+        entityData.define(DATA_POUNCE_TARGET_ID, -1);
+        entityData.define(DATA_IDLE_ANIM_TYPE, IdleAnimType.IDLE.ordinal());
     }
-
-    
     public boolean isRunning() {
         return this.entityData.get(DATA_IS_RUNNING);
     }
@@ -770,8 +639,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     public boolean isWalking() {
         return this.entityData.get(DATA_IS_WALKING);
     }
-
-    
     private void setRunning(boolean running) {
         this.entityData.set(DATA_IS_RUNNING, running);
     }
@@ -793,10 +660,10 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     private void setPounceTargetId(int id) { this.entityData.set(DATA_POUNCE_TARGET_ID, id); }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("Variant", 8)) {
-            String variantName = tag.getString("Variant");
+        if (tag.getString("Variant").isPresent()) {
+            String variantName = tag.getStringOr("Variant", "");
             try {
                 this.setVariant(InfestedFox.Variant.valueOf(variantName));
             } catch (IllegalArgumentException e) {
@@ -807,22 +674,20 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         
         tag.putString("Variant", this.getVariant().name());
     }
 
-    public ResourceLocation getTextureResource() {
+    public Identifier getTextureResource() {
         switch (getVariant()) {
             case SNOW:
-                return new ResourceLocation("epca", "textures/entity/infested_snow_fox.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_snow_fox.png");
             default:
-                return new ResourceLocation("epca", "textures/entity/infested_fox.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_fox.png");
         }
     }
-
-    
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
@@ -834,14 +699,10 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             super.travel(travelVector);
         }
     }
-
-    
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
-
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
@@ -859,24 +720,17 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         public boolean canUse() {
             target = fox.getTarget();
             if (target == null || !target.isAlive()) return false;
-
-            
-            
             BlockPos belowPos = fox.blockPosition().below();
             BlockState belowState = fox.level().getBlockState(belowPos);
             if (!belowState.isCollisionShapeFullBlock(fox.level(), belowPos)) {
                 return false;
             }
-
-            
             double dx = fox.getX() - target.getX();
             double dz = fox.getZ() - target.getZ();
             double horizDistSq = dx * dx + dz * dz;
             if (horizDistSq > 3.5 * 3.5) return false; 
 
             double dy = target.getY() - fox.getY();
-
-            
             if (dy > 1.0 && dy < 7.0) {
                 boolean blocked = false;
                 for (int y = 1; y <= 8; y++) {
@@ -892,11 +746,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                     return true; 
                 }
             }
-
-            
             forceMaxHeight = false; 
-
-            
             for (int y = 1; y <= POUNCE_CHECK_HEIGHT; y++) {
                 BlockPos checkPos = fox.blockPosition().above(y);
                 BlockState state = fox.level().getBlockState(checkPos);
@@ -906,8 +756,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                     return false;
                 }
             }
-
-            
             if (dy > 2.0 && horizDistSq < 100.0) {
                 if (fox.random.nextFloat() < 0.6f) {
                     return fox.getSensing().hasLineOfSight(target);
@@ -915,8 +763,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                     return false;
                 }
             }
-
-            
             return fox.getSensing().hasLineOfSight(target);
         }
 
@@ -943,8 +789,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                     double vz = (dz / horizontalDist) * horizontalSpeed;
                     fox.setDeltaMovement(vx, 0, vz);
                 }
-
-                
                 double height;
                 if (forceMaxHeight) {
                     height = 8.0; 
@@ -959,7 +803,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                 double vy = Math.sqrt(2 * 0.08 * height);
                 Vec3 currentMotion = fox.getDeltaMovement();
                 fox.setDeltaMovement(currentMotion.x, vy, currentMotion.z);
-                fox.hasImpulse = true;
+                fox.hurtMarked = true;
                 fox.setPounceTargetId(target.getId());
             }
         }
@@ -1002,9 +846,9 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         }
 
         @Override
-        protected void checkAndPerformAttack(LivingEntity target, double distance) {
-            double d0 = this.getAttackReachSqr(target);
-            if (distance <= d0 && this.isTimeToAttack() && fox.attackCooldownTimer == 0) {
+        protected void checkAndPerformAttack(LivingEntity target) {
+            // 26.1.2: MeleeAttackGoal#getAttackReachSqr was replaced by canPerformAttack(target).
+            if (this.canPerformAttack(target) && this.isTimeToAttack() && fox.attackCooldownTimer == 0) {
                 if (attackDelay == 0) {
                     attackDelay = 3; 
                     fox.pendingAttackTarget = target;
@@ -1022,8 +866,6 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                 if (attackDelay == 0 && fox.pendingAttackTarget != null) {
                     fox.doNormalAttack(fox.pendingAttackTarget);
                     fox.pendingAttackTarget = null;
-                    
-
                     fox.setPouncing(false);
                     fox.attackCooldownTimer = 12;
                 }
@@ -1038,7 +880,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             
             target.setTicksFrozen(180);
         }
-        target.hurt(damageSources().mobAttack(this), damage);
+        target.hurtOrSimulate(damageSources().mobAttack(this), damage);
         this.playSound(ModSoundEvents.INFESTED_FOX_BITE.get());
     }
 
@@ -1047,19 +889,19 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         if (this.getVariant() == Variant.SNOW) {
             target.setTicksFrozen(180);
         }
-        target.hurt(damageSources().mobAttack(this), damage);
+        target.hurtOrSimulate(damageSources().mobAttack(this), damage);
         this.playSound(ModSoundEvents.INFESTED_FOX_BITE.get());
     }
 
     @Override
-    public boolean causeFallDamage(float fallDistance, float damageMultiplier, DamageSource source) {
+    public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource source) {
         if (fallDistance <= 9.0f) {
             return false; 
         }
         
-        float reducedDamage = (fallDistance - 9.0f) * 0.05f;
+        float reducedDamage = (float) ((fallDistance - 9.0) * 0.05);
         if (reducedDamage > 0) {
-            this.hurt(source, reducedDamage);
+            this.hurtOrSimulate(source, reducedDamage);
         }
         return false; 
     }

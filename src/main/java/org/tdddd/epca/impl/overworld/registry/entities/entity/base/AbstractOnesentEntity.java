@@ -3,6 +3,7 @@ package org.tdddd.epca.impl.overworld.registry.entities.entity.base;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
@@ -29,13 +30,17 @@ public abstract class AbstractOnesentEntity extends AbstractEpcaEntity implement
 
     protected AbstractOnesentEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
-        this.setMaxUpStep(0.5F);
+        // 26.1.2: Entity#setMaxUpStep is gone; the step height is the STEP_HEIGHT attribute.
+        var stepHeight = this.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) stepHeight.setBaseValue(0.5F);
     }
 
     protected AbstractOnesentEntity(EntityType<? extends PathfinderMob> entityType, Level level,
                                      Consumer<AbstractEpcaEntity> configurer) {
         super(entityType, level, configurer);
-        this.setMaxUpStep(0.5F);
+        // 26.1.2: Entity#setMaxUpStep is gone; the step height is the STEP_HEIGHT attribute.
+        var stepHeight = this.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) stepHeight.setBaseValue(0.5F);
     }
 
     // ────────── Evolution stage ──────────
@@ -57,7 +62,7 @@ public abstract class AbstractOnesentEntity extends AbstractEpcaEntity implement
      * Returns true if a step sound was played this tick.
      */
     protected boolean tickStepSounds(net.minecraft.sounds.SoundEvent stepSound) {
-        if (!this.level().isClientSide && this.onGround() && isMoving()) {
+        if (!this.level().isClientSide() && this.onGround() && isMoving()) {
             if (this.stepSoundDelay <= 0) {
                 this.playSound(stepSound, 0.8F, 1.0F);
                 this.stepSoundDelay = 10 + this.random.nextInt(6);

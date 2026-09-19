@@ -2,20 +2,20 @@ package org.tdddd.epca.impl.events;
 
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.effects.buff.SoulProtectionEffect;
 import org.tdddd.epca.impl.utils.ShieldProtectionHelper;
-import net.minecraftforge.event.entity.living.MobEffectEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class ShieldEventHandler {
 
     @SubscribeEvent
-    public static void onLivingHurt(LivingDamageEvent event) {
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
         LivingEntity entity = event.getEntity();
-        if (entity.level().isClientSide) return;
+        if (entity.level().isClientSide()) return;
         float original = event.getAmount();
         if (original <= 0) return;
 
@@ -31,15 +31,13 @@ public class ShieldEventHandler {
     public static void onEffectAdded(MobEffectEvent.Added event) {
         MobEffectInstance instance = event.getEffectInstance();
         if (instance == null) return;
-        if (!(instance.getEffect() instanceof SoulProtectionEffect)) return;
+        if (!(instance.getEffect().value() instanceof SoulProtectionEffect)) return;
 
         LivingEntity entity = event.getEntity();
-        if (entity.level().isClientSide) return;
+        if (entity.level().isClientSide()) return;
 
         float totalShield = computeShieldForEntity(entity, instance.getAmplifier());
-        entity.getCapability(ShieldCapabilityHandler.SHIELD_CAP).ifPresent(cap -> {
-            cap.setShield(totalShield);
-        });
+        entity.getData(ShieldCapabilityHandler.SHIELD_CAP).setShield(totalShield);
     }
 
     
@@ -47,11 +45,11 @@ public class ShieldEventHandler {
     public static void onEffectExpired(MobEffectEvent.Expired event) {
         MobEffectInstance instance = event.getEffectInstance();
         if (instance == null) return;
-        if (!(instance.getEffect() instanceof SoulProtectionEffect)) return;
+        if (!(instance.getEffect().value() instanceof SoulProtectionEffect)) return;
 
         LivingEntity entity = event.getEntity();
-        if (entity.level().isClientSide) return;
-        entity.getCapability(ShieldCapabilityHandler.SHIELD_CAP).ifPresent(cap -> cap.setShield(0));
+        if (entity.level().isClientSide()) return;
+        entity.getData(ShieldCapabilityHandler.SHIELD_CAP).setShield(0);
     }
 
     
@@ -59,11 +57,11 @@ public class ShieldEventHandler {
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         MobEffectInstance instance = event.getEffectInstance();
         if (instance == null) return;
-        if (!(instance.getEffect() instanceof SoulProtectionEffect)) return;
+        if (!(instance.getEffect().value() instanceof SoulProtectionEffect)) return;
 
         LivingEntity entity = event.getEntity();
-        if (entity.level().isClientSide) return;
-        entity.getCapability(ShieldCapabilityHandler.SHIELD_CAP).ifPresent(cap -> cap.setShield(0));
+        if (entity.level().isClientSide()) return;
+        entity.getData(ShieldCapabilityHandler.SHIELD_CAP).setShield(0);
     }
 
     

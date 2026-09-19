@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "minecraft:netherite_ingot",
+  "base": "epca:diamond_spear",
+  "result": {
+    "id": "epca:netherite_spear"
+  },
+  "template": "minecraft:netherite_upgrade_smithing_template"
+}

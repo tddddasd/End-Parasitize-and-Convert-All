@@ -1,32 +1,51 @@
 package org.tdddd.epca.impl.network.packet.s2c;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.ClientEvolutionData;
+import org.tdddd.epca.impl.network.ModNetwork;
 
-import java.util.function.Supplier;
+/**
+ * 服务端 → 客户端：维度进化阶段。
+ *
+ * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}；
+ * {@code writeResourceLocation/readResourceLocation} → {@code writeIdentifier/readIdentifier}。
+ * <b>线上字段与顺序不变</b>：{@code Identifier dimension} + {@code int stage}。
+ */
+public class SyncEvolutionStagePacket implements CustomPacketPayload {
 
-public class SyncEvolutionStagePacket {
-    private final ResourceLocation dimension;
+    public static final CustomPacketPayload.Type<SyncEvolutionStagePacket> TYPE =
+            new CustomPacketPayload.Type<>(ModNetwork.id("sync_evolution_stage"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncEvolutionStagePacket> STREAM_CODEC =
+            CustomPacketPayload.codec(SyncEvolutionStagePacket::encode, SyncEvolutionStagePacket::decode);
+
+    private final Identifier dimension;
     private final int stage;
 
-    public SyncEvolutionStagePacket(ResourceLocation dimension, int stage) {
+    public SyncEvolutionStagePacket(Identifier dimension, int stage) {
         this.dimension = dimension;
         this.stage = stage;
     }
 
-    public static void encode(SyncEvolutionStagePacket msg, FriendlyByteBuf buf) {
-        buf.writeResourceLocation(msg.dimension);
+    public static void encode(SyncEvolutionStagePacket msg, RegistryFriendlyByteBuf buf) {
+        buf.writeIdentifier(msg.dimension);
         buf.writeInt(msg.stage);
     }
 
-    public static SyncEvolutionStagePacket decode(FriendlyByteBuf buf) {
-        return new SyncEvolutionStagePacket(buf.readResourceLocation(), buf.readInt());
+    public static SyncEvolutionStagePacket decode(RegistryFriendlyByteBuf buf) {
+        return new SyncEvolutionStagePacket(buf.readIdentifier(), buf.readInt());
     }
 
-    public static void handle(SyncEvolutionStagePacket msg, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> ClientEvolutionData.updateStage(msg.dimension, msg.stage));
-        ctx.get().setPacketHandled(true);
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(SyncEvolutionStagePacket msg, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> ClientEvolutionData.updateStage(msg.dimension, msg.stage));
     }
 }

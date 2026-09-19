@@ -1,25 +1,27 @@
 package org.tdddd.epca.impl.events;
 
+import net.minecraft.world.entity.EquipmentSlot;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class ItemEffectHandler {
 
     private static final int EFFECT_DURATION = 600; 
     private static final int CHECK_INTERVAL = 300;
 
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
-        LivingEntity entity = event.getEntity();
-        if (entity.level().isClientSide) return;
+    public static void onLivingTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+        if (entity.level().isClientSide()) return;
         if (entity.tickCount % CHECK_INTERVAL != 0) return;
 
         checkAndApplyEffects(entity);
@@ -30,7 +32,7 @@ public class ItemEffectHandler {
 
         if (entity instanceof Player player) {
             // 玩家检查整个背包
-            for (ItemStack stack : player.getInventory().items) {
+            for (ItemStack stack : player.getInventory()) {
                 if (!stack.isEmpty() && isInfestedItem(stack)) {
                     hasInfested = true;
                     break;
@@ -38,7 +40,8 @@ public class ItemEffectHandler {
             }
         } else {
             // 非玩家生物检查主手、副手、盔甲栏
-            for (ItemStack stack : entity.getArmorSlots()) {
+            for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+            ItemStack stack = entity.getItemBySlot(slot);
                 if (!stack.isEmpty() && isInfestedItem(stack)) {
                     hasInfested = true;
                     break;
@@ -209,10 +212,10 @@ public class ItemEffectHandler {
     }
 
     private static void applyCOTHEffect(LivingEntity entity) {
-        MobEffectInstance current = entity.getEffect(ModEffects.COTH.get());
+        MobEffectInstance current = entity.getEffect(ModEffects.COTH);
         if (current == null) {
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     EFFECT_DURATION,
                     0,
                     false,

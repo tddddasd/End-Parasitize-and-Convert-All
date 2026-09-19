@@ -2,7 +2,7 @@ package org.tdddd.epca.impl.overworld.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,17 +10,17 @@ import java.util.List;
 public class CarryConfig {
     public static final Codec<CarryConfig> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    Codec.list(ResourceLocation.CODEC).fieldOf("carryable").forGetter(CarryConfig::getCarryable)
+                    Codec.list(Identifier.CODEC).fieldOf("carryable").forGetter(CarryConfig::getCarryable)
             ).apply(instance, CarryConfig::new)
     );
 
-    private final List<ResourceLocation> carryable;
+    private final List<Identifier> carryable;
 
-    public CarryConfig(List<ResourceLocation> carryable) {
+    public CarryConfig(List<Identifier> carryable) {
         this.carryable = carryable != null ? carryable : Collections.emptyList();
     }
 
-    public List<ResourceLocation> getCarryable() {
+    public List<Identifier> getCarryable() {
         return carryable;
     }
 }

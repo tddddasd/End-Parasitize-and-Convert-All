@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry;
 
+import java.util.function.Supplier;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -7,309 +9,416 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.fluid.AcidSolutionBlock;
 import org.tdddd.epca.impl.fluid.ModFluids;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.*;
 
 public class ModBlocks {
-    public static final DeferredRegister<Block> BLOCKS =
-            DeferredRegister.create(ForgeRegistries.BLOCKS, epca.MODID);
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(epca.MODID);
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);
     }
 
-    public static final RegistryObject<Block> INFESTED_DIRT = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_DIRT = BLOCKS.registerBlock(
             "infested_dirt",
-            () -> new InfestedDirt(Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.BLACK))
+            InfestedDirt::new,
+            () -> Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.BLACK)
     );
 
-    public static final RegistryObject<Block> INFESTED_SAND = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SAND = BLOCKS.registerBlock(
             "infested_sand",
-            () -> new InfestedSand(Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.WHITE))
+            InfestedSand::new,
+            () -> Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.WHITE)
     );
 
-    public static final RegistryObject<Block> INFESTED_LOG = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_LOG = BLOCKS.registerBlock(
             "infested_log",
-            () -> new InfestedLog(Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava())
+            InfestedLog::new,
+            () -> Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_WOOD = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_WOOD = BLOCKS.registerBlock(
             "infested_wood",
-            () -> new InfestedWood(Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava())
+            InfestedWood::new,
+            () -> Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_STRIPPED_LOG = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STRIPPED_LOG = BLOCKS.registerBlock(
             "infested_stripped_log",
-            () -> new InfestedStrippedLog(Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava())
+            InfestedStrippedLog::new,
+            () -> Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_STRIPPED_WOOD = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STRIPPED_WOOD = BLOCKS.registerBlock(
             "infested_stripped_wood",
-            () -> new InfestedStrippedWood(Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava())
+            InfestedStrippedWood::new,
+            () -> Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_PLANKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_PLANKS = BLOCKS.registerBlock(
             "infested_planks",
-            () -> new InfestedPlanks(Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava())
+            InfestedPlanks::new,
+            () -> Block.Properties.of().strength(1.0f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_PLANKS_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_PLANKS_SLAB = BLOCKS.registerBlock(
             "infested_planks_slab",
-            () -> new InfestedPlanksSlab(Block.Properties.of().strength(1.0f, 2.0f).noOcclusion().randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava())
+            InfestedPlanksSlab::new,
+            () -> Block.Properties.of().strength(1.0f, 2.0f).noOcclusion().randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_PLANKS_FENCE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_PLANKS_FENCE = BLOCKS.registerBlock(
             "infested_planks_fence",
-            () -> new InfestedPlanksFence(Block.Properties.of().strength(1.0f, 2.0f).noOcclusion().randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava())
+            InfestedPlanksFence::new,
+            () -> Block.Properties.of().strength(1.0f, 2.0f).noOcclusion().randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_PLANKS_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_PLANKS_STAIRS = BLOCKS.registerBlock(
             "infested_planks_stairs",
-            () -> new InfestedPlanksStairs(Block.Properties.of().strength(1.0f, 2.0f).noOcclusion().randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava())
+            InfestedPlanksStairs::new,
+            () -> Block.Properties.of().strength(1.0f, 2.0f).noOcclusion().randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_STONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STONE = BLOCKS.registerBlock(
             "infested_stone",
-            () -> new InfestedStone(Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedStone::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_STONE_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STONE_SLAB = BLOCKS.registerBlock(
             "infested_stone_slab",
-            () -> new InfestedStoneSlab(Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedStoneSlab::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_STONE_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STONE_STAIRS = BLOCKS.registerBlock(
             "infested_stone_stairs",
-            () -> new InfestedStoneStairs(Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedStoneStairs::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_STONE_WALL = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STONE_WALL = BLOCKS.registerBlock(
             "infested_stone_wall",
-            () -> new InfestedStoneWall(Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops().dynamicShape())
+            InfestedStoneWall::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops().dynamicShape()
     );
 
-    public static final RegistryObject<Block> INFESTED_COBBLESTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_COBBLESTONE = BLOCKS.registerBlock(
             "infested_cobblestone",
-            () -> new InfestedCobblestone(Block.Properties.of().strength(2.0f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedCobblestone::new,
+            () -> Block.Properties.of().strength(2.0f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_COBBLESTONE_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_COBBLESTONE_SLAB = BLOCKS.registerBlock(
             "infested_cobblestone_slab",
-            () -> new InfestedCobblestoneSlab(Block.Properties.of().strength(2.0f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedCobblestoneSlab::new,
+            () -> Block.Properties.of().strength(2.0f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_COBBLESTONE_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_COBBLESTONE_STAIRS = BLOCKS.registerBlock(
             "infested_cobblestone_stairs",
-            () -> new InfestedCobblestoneStairs(Block.Properties.of().strength(2.0f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedCobblestoneStairs::new,
+            () -> Block.Properties.of().strength(2.0f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_COBBLESTONE_WALL = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_COBBLESTONE_WALL = BLOCKS.registerBlock(
             "infested_cobblestone_wall",
-            () -> new InfestedCobblestoneWall(Block.Properties.of().strength(2.0f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops().dynamicShape())
+            InfestedCobblestoneWall::new,
+            () -> Block.Properties.of().strength(2.0f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops().dynamicShape()
     );
 
-    public static final RegistryObject<Block> INFESTED_STONE_BRICKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STONE_BRICKS = BLOCKS.registerBlock(
             "infested_stone_bricks",
-            () -> new InfestedStoneBricks(Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedStoneBricks::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_STONE_BRICKS_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STONE_BRICKS_SLAB = BLOCKS.registerBlock(
             "infested_stone_bricks_slab",
-            () -> new InfestedStoneBricksSlab(Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedStoneBricksSlab::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_STONE_BRICKS_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STONE_BRICKS_STAIRS = BLOCKS.registerBlock(
             "infested_stone_bricks_stairs",
-            () -> new InfestedStoneBricksStairs(Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedStoneBricksStairs::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_STONE_BRICKS_WALL = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_STONE_BRICKS_WALL = BLOCKS.registerBlock(
             "infested_stone_bricks_wall",
-            () -> new InfestedStoneBricksWall(Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops().dynamicShape())
+            InfestedStoneBricksWall::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops().dynamicShape()
     );
 
-    public static final RegistryObject<Block> INFESTED_CRACKED_STONE_BRICKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CRACKED_STONE_BRICKS = BLOCKS.registerBlock(
             "infested_cracked_stone_bricks",
-            () -> new InfestedCrackedStoneBricks(Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedCrackedStoneBricks::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_CHISELED_STONE_BRICKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CHISELED_STONE_BRICKS = BLOCKS.registerBlock(
             "infested_chiseled_stone_bricks",
-            () -> new InfestedChiseledStoneBricks(Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedChiseledStoneBricks::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_POLISHED_STONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_POLISHED_STONE = BLOCKS.registerBlock(
             "infested_polished_stone",
-            () -> new InfestedPolishedStone(Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedPolishedStone::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_POLISHED_STONE_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_POLISHED_STONE_SLAB = BLOCKS.registerBlock(
             "infested_polished_stone_slab",
-            () -> new InfestedPolishedStoneSlab(Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedPolishedStoneSlab::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_POLISHED_STONE_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_POLISHED_STONE_STAIRS = BLOCKS.registerBlock(
             "infested_polished_stone_stairs",
-            () -> new InfestedPolishedStoneStairs(Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops())
+            InfestedPolishedStoneStairs::new,
+            () -> Block.Properties.of().strength(1.5f, 6.0f).noOcclusion().randomTicks().mapColor(DyeColor.LIGHT_GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SANDSTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SANDSTONE = BLOCKS.registerBlock(
             "infested_sandstone",
-            () -> new InfestedSandstone(Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedSandstone::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SANDSTONE_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SANDSTONE_SLAB = BLOCKS.registerBlock(
             "infested_sandstone_slab",
-            () -> new InfestedSandstoneSlab(Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedSandstoneSlab::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SANDSTONE_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SANDSTONE_STAIRS = BLOCKS.registerBlock(
             "infested_sandstone_stairs",
-            () -> new InfestedSandstoneStairs(Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedSandstoneStairs::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SANDSTONE_WALL = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SANDSTONE_WALL = BLOCKS.registerBlock(
             "infested_sandstone_wall",
-            () -> new InfestedSandstoneWall(Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops().dynamicShape())
+            InfestedSandstoneWall::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops().dynamicShape()
     );
 
-    public static final RegistryObject<Block> INFESTED_CHISELED_RED_SANDSTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CHISELED_RED_SANDSTONE = BLOCKS.registerBlock(
             "infested_chiseled_red_sandstone",
-            () -> new InfestedChiseledRedSandstone(Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedChiseledRedSandstone::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_CHISELED_SANDSTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CHISELED_SANDSTONE = BLOCKS.registerBlock(
             "infested_chiseled_sandstone",
-            () -> new InfestedChiseledSandstone(Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedChiseledSandstone::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SMOOTH_SANDSTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SMOOTH_SANDSTONE = BLOCKS.registerBlock(
             "infested_smooth_sandstone",
-            () -> new InfestedSmoothSandstone(Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedSmoothSandstone::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SMOOTH_SANDSTONE_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SMOOTH_SANDSTONE_SLAB = BLOCKS.registerBlock(
             "infested_smooth_sandstone_slab",
-            () -> new InfestedSmoothSandstoneSlab(Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedSmoothSandstoneSlab::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SMOOTH_SANDSTONE_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SMOOTH_SANDSTONE_STAIRS = BLOCKS.registerBlock(
             "infested_smooth_sandstone_stairs",
-            () -> new InfestedSmoothSandstoneStairs(Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedSmoothSandstoneStairs::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_CUT_SANDSTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CUT_SANDSTONE = BLOCKS.registerBlock(
             "infested_cut_sandstone",
-            () -> new InfestedCutSandstone(Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedCutSandstone::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_CUT_SANDSTONE_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CUT_SANDSTONE_SLAB = BLOCKS.registerBlock(
             "infested_cut_sandstone_slab",
-            () -> new InfestedCutSandstoneSlab(Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedCutSandstoneSlab::new,
+            () -> Block.Properties.of().strength(0.8f, 0.8f).noOcclusion().randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_COAL_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_COAL_ORE = BLOCKS.registerBlock(
             "infested_coal_ore",
-            () -> new InfestedCoalOre(Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.BLACK).requiresCorrectToolForDrops())
+            InfestedCoalOre::new,
+            () -> Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.BLACK).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_COPPER_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_COPPER_ORE = BLOCKS.registerBlock(
             "infested_copper_ore",
-            () -> new InfestedCopperOre(Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.ORANGE).requiresCorrectToolForDrops())
+            InfestedCopperOre::new,
+            () -> Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.ORANGE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_IRON_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_IRON_ORE = BLOCKS.registerBlock(
             "infested_iron_ore",
-            () -> new InfestedIronOre(Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedIronOre::new,
+            () -> Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_GOLD_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_GOLD_ORE = BLOCKS.registerBlock(
             "infested_gold_ore",
-            () -> new InfestedGoldOre(Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.YELLOW).requiresCorrectToolForDrops())
+            InfestedGoldOre::new,
+            () -> Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.YELLOW).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_LAPIS_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_LAPIS_ORE = BLOCKS.registerBlock(
             "infested_lapis_ore",
-            () -> new InfestedLapisOre(Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.BLUE).requiresCorrectToolForDrops())
+            InfestedLapisOre::new,
+            () -> Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.BLUE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_REDSTONE_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_REDSTONE_ORE = BLOCKS.registerBlock(
             "infested_redstone_ore",
-            () -> new InfestedRedstoneOre(Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.RED).requiresCorrectToolForDrops())
+            InfestedRedstoneOre::new,
+            () -> Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.RED).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_EMERALD_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_EMERALD_ORE = BLOCKS.registerBlock(
             "infested_emerald_ore",
-            () -> new InfestedEmeraldOre(Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.GREEN).requiresCorrectToolForDrops())
+            InfestedEmeraldOre::new,
+            () -> Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.GREEN).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_DIAMOND_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_DIAMOND_ORE = BLOCKS.registerBlock(
             "infested_diamond_ore",
-            () -> new InfestedDiamondOre(Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.CYAN).requiresCorrectToolForDrops())
+            InfestedDiamondOre::new,
+            () -> Block.Properties.of().strength(3.0f, 3.0f).randomTicks().mapColor(DyeColor.CYAN).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SNOW = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SNOW = BLOCKS.registerBlock(
             "infested_snow",
-            () -> new InfestedSnow(Block.Properties.of().strength(0.1f, 0.1f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedSnow::new,
+            () -> Block.Properties.of().strength(0.1f, 0.1f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_SNOW_BLOCK = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SNOW_BLOCK = BLOCKS.registerBlock(
             "infested_snow_block",
-            () -> new InfestedSnowBlock(Block.Properties.of().strength(0.1f, 0.1f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedSnowBlock::new,
+            () -> Block.Properties.of().strength(0.1f, 0.1f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_GRASS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_GRASS = BLOCKS.registerBlock(
             "infested_grass",
-            () -> new InfestedGrass(Block.Properties.copy(Blocks.GRASS).ignitedByLava())
+            InfestedGrass::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SHORT_GRASS).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_FERN = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_FERN = BLOCKS.registerBlock(
             "infested_fern",
-            () -> new InfestedFern(Block.Properties.copy(Blocks.FERN).ignitedByLava())
+            InfestedFern::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.FERN).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_SWEET_BERRY_BUSH = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SWEET_BERRY_BUSH = BLOCKS.registerBlock(
             "infested_sweet_berry_bush",
-            () -> new InfestedSweetBerryBush(Block.Properties.copy(Blocks.SWEET_BERRY_BUSH).ignitedByLava())
+            InfestedSweetBerryBush::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SWEET_BERRY_BUSH).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_REMAINS_SMALL = BLOCKS.register(
+    // 26.1.2: these six blocks must be registered through BLOCKS.registerBlock(name, Function<Properties,B>),
+    // which is the only overload that calls Properties#setId(...). Registering them through the inherited
+    // register(String, Supplier) overload compiles fine and then aborts the whole block registry event at
+    // runtime with "NullPointerException: Block id not set" (observed for mod eej), cascading into
+    // "Trying to access unbound value: ResourceKey[.../block/...]" for every later registry.
+    // The Properties bodies reproduce what each class's own no-arg constructor used to build.
+    public static final DeferredBlock<Block> INFESTED_REMAINS_SMALL = BLOCKS.registerBlock(
             "infested_remains_small",
-            InfestedRemainsSmall::new
+            InfestedRemainsSmall::new,
+            () -> BlockBehaviour.Properties.of()
+                    .noOcclusion()
+                    .strength(0.0f)
+                    .sound(SoundType.NETHER_WART)
+                    .isViewBlocking((state, world, pos) -> false)
+                    .isSuffocating((state, world, pos) -> false)
+                    .instabreak()
+                    .pushReaction(PushReaction.DESTROY)
     );
 
-    public static final RegistryObject<Block> INFESTED_REMAINS_MEDIUM = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_REMAINS_MEDIUM = BLOCKS.registerBlock(
             "infested_remains_medium",
-            InfestedRemainsMedium::new
+            InfestedRemainsMedium::new,
+            () -> BlockBehaviour.Properties.of()
+                    .noOcclusion()
+                    .strength(0.0f)
+                    .sound(SoundType.NETHER_WART)
+                    .isViewBlocking((state, world, pos) -> false)
+                    .isSuffocating((state, world, pos) -> false)
+                    .instabreak()
+                    .pushReaction(PushReaction.DESTROY)
     );
 
-    public static final RegistryObject<Block> INFESTED_REMAINS_LARGE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_REMAINS_LARGE = BLOCKS.registerBlock(
             "infested_remains_large",
-            InfestedRemainsLarge::new
+            InfestedRemainsLarge::new,
+            () -> BlockBehaviour.Properties.of()
+                    .noOcclusion()
+                    .strength(0.0f)
+                    .sound(SoundType.NETHER_WART)
+                    .isViewBlocking((state, world, pos) -> false)
+                    .isSuffocating((state, world, pos) -> false)
+                    .instabreak()
+                    .pushReaction(PushReaction.DESTROY)
     );
 
-    public static final RegistryObject<Block> INFESTED_RESIDUE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_RESIDUE = BLOCKS.registerBlock(
             "infested_residue",
-            InfestedResidue::new
+            InfestedResidue::new,
+            () -> BlockBehaviour.Properties.of()
+                    .noOcclusion()
+                    .strength(0.0f)
+                    .sound(SoundType.NETHER_WART)
+                    .isViewBlocking((state, world, pos) -> false)
+                    .isSuffocating((state, world, pos) -> false)
+                    .instabreak()
+                    .pushReaction(PushReaction.DESTROY)
+                    .requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_VINE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_VINE = BLOCKS.registerBlock(
             "infested_vine",
-            InfestedVine::new);
+            InfestedVine::new,
+            () -> BlockBehaviour.Properties.of()
+                    .noCollision()
+                    .randomTicks()
+                    .strength(0.2F)
+                    .sound(SoundType.VINE)
+                    .noOcclusion()
+                    .ignitedByLava()
+    );
 
-    public static final RegistryObject<Block> SWALLOW_CYST = BLOCKS.register(
+    public static final DeferredBlock<Block> SWALLOW_CYST = BLOCKS.registerBlock(
             "swallow_cyst",
-            SwallowCyst::new
+            SwallowCyst::new,
+            () -> BlockBehaviour.Properties.of()
+                    .noOcclusion()
+                    .strength(0.9f, 0.9f)
+                    .sound(SoundType.SLIME_BLOCK)
+                    .isViewBlocking((state, world, pos) -> false)
+                    .isSuffocating((state, world, pos) -> false)
+                    .pushReaction(PushReaction.DESTROY)
+                    .mapColor(DyeColor.RED)
+                    .randomTicks()
     );
 
-    public static final RegistryObject<Block> INFESTED_LEAVES = BLOCKS.register("infested_leaves",
-            () -> new InfestedLeaves(Block.Properties.copy(Blocks.SPRUCE_LEAVES)
+    public static final DeferredBlock<Block> INFESTED_LEAVES = BLOCKS.registerBlock(
+            "infested_leaves",
+            InfestedLeaves::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SPRUCE_LEAVES)
                     .strength(0.2F)
                     .sound(SoundType.GRASS)
                     .noOcclusion()
@@ -317,10 +426,13 @@ public class ModBlocks {
                     .isSuffocating((state, level, pos) -> false)
                     .isViewBlocking((state, level, pos) -> false)
                     .mapColor(DyeColor.PINK)
-                    .ignitedByLava()));
+                    .ignitedByLava()
+    );
 
-    public static final RegistryObject<Block> INFESTED_FLOWERING_LEAVES = BLOCKS.register("infested_flowering_leaves",
-            () -> new InfestedFloweringLeaves(Block.Properties.copy(Blocks.SPRUCE_LEAVES)
+    public static final DeferredBlock<Block> INFESTED_FLOWERING_LEAVES = BLOCKS.registerBlock(
+            "infested_flowering_leaves",
+            InfestedFloweringLeaves::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SPRUCE_LEAVES)
                     .strength(0.2F)
                     .sound(SoundType.GRASS)
                     .noOcclusion()
@@ -328,287 +440,358 @@ public class ModBlocks {
                     .isSuffocating((state, level, pos) -> false)
                     .isViewBlocking((state, level, pos) -> false)
                     .mapColor(DyeColor.PINK)
-                    .ignitedByLava()));
+                    .ignitedByLava()
+    );
 
-    public static final RegistryObject<LiquidBlock> ACID_SOLUTION_BLOCK = BLOCKS.register(
+    public static final DeferredBlock<LiquidBlock> ACID_SOLUTION_BLOCK = BLOCKS.registerBlock(
             "acid_solution",
-            () -> new AcidSolutionBlock(
-                    ModFluids.ACID_SOLUTION,
-                    BlockBehaviour.Properties.copy(Blocks.LAVA)
-                            .mapColor(net.minecraft.world.level.material.MapColor.COLOR_GREEN)
-                            .lightLevel(state -> 0)
-            )
+            properties -> new AcidSolutionBlock(() -> ModFluids.ACID_SOLUTION.get(), properties),
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.LAVA)
+                    .mapColor(net.minecraft.world.level.material.MapColor.COLOR_GREEN)
+                    .lightLevel(state -> 0)
     );
 
-    public static final RegistryObject<Block> INFESTED_INFESTED_COBBLESTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_INFESTED_COBBLESTONE = BLOCKS.registerBlock(
             "infested_infested_cobblestone",
-            () -> new InfestedInfestedCobblestone(Block.Properties.of().strength(1.0f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY))
+            InfestedInfestedCobblestone::new,
+            () -> Block.Properties.of().strength(1.0f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY)
     );
 
-    public static final RegistryObject<Block> INFESTED_INFESTED_STONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_INFESTED_STONE = BLOCKS.registerBlock(
             "infested_infested_stone",
-            () -> new InfestedInfestedStone(Block.Properties.of().strength(0.75f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY))
+            InfestedInfestedStone::new,
+            () -> Block.Properties.of().strength(0.75f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY)
     );
 
-    public static final RegistryObject<Block> INFESTED_INFESTED_STONE_BRICKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_INFESTED_STONE_BRICKS = BLOCKS.registerBlock(
             "infested_infested_stone_bricks",
-            () -> new InfestedInfestedStoneBricks(Block.Properties.of().strength(0.75f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY))
+            InfestedInfestedStoneBricks::new,
+            () -> Block.Properties.of().strength(0.75f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY)
     );
 
-    public static final RegistryObject<Block> INFESTED_INFESTED_CRACKED_STONE_BRICKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_INFESTED_CRACKED_STONE_BRICKS = BLOCKS.registerBlock(
             "infested_infested_cracked_stone_bricks",
-            () -> new InfestedInfestedCrackedStoneBricks(Block.Properties.of().strength(0.75f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY))
+            InfestedInfestedCrackedStoneBricks::new,
+            () -> Block.Properties.of().strength(0.75f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY)
     );
 
-    public static final RegistryObject<Block> INFESTED_INFESTED_CHISELED_STONE_BRICKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_INFESTED_CHISELED_STONE_BRICKS = BLOCKS.registerBlock(
             "infested_infested_chiseled_stone_bricks",
-            () -> new InfestedInfestedChiseledStoneBricks(Block.Properties.of().strength(0.75f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY))
+            InfestedInfestedChiseledStoneBricks::new,
+            () -> Block.Properties.of().strength(0.75f, 0.75f).randomTicks().mapColor(DyeColor.LIGHT_GRAY)
     );
 
-    public static final RegistryObject<Block> INFESTED_NETHERSEA_BRAND_GROWN = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_NETHERSEA_BRAND_GROWN = BLOCKS.registerBlock(
             "infested_nethersea_brand_grown",
-            () -> new InfestedNetherseaBrandGrown(Block.Properties.of().strength(0.75f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).pushReaction(PushReaction.DESTROY).noOcclusion())
+            InfestedNetherseaBrandGrown::new,
+            () -> Block.Properties.of().strength(0.75f, 2.0f).randomTicks().mapColor(DyeColor.PURPLE).pushReaction(PushReaction.DESTROY).noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_NETHERSEA_BRAND_SOLID = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_NETHERSEA_BRAND_SOLID = BLOCKS.registerBlock(
             "infested_nethersea_brand_solid",
-            () -> new InfestedNetherseaBrandSolid(Block.Properties.of().strength(2.0f, 5.0f).randomTicks().mapColor(DyeColor.PURPLE))
+            InfestedNetherseaBrandSolid::new,
+            () -> Block.Properties.of().strength(2.0f, 5.0f).randomTicks().mapColor(DyeColor.PURPLE)
     );
 
-    public static final RegistryObject<Block> INFESTED_POINTED_DRIPSTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_POINTED_DRIPSTONE = BLOCKS.registerBlock(
             "infested_pointed_dripstone",
-            () -> new InfestedPointedDripstone(BlockBehaviour.Properties.copy(Blocks.POINTED_DRIPSTONE).mapColor(DyeColor.LIGHT_GRAY))
+            InfestedPointedDripstone::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.POINTED_DRIPSTONE).mapColor(DyeColor.LIGHT_GRAY)
     );
 
     // 祭坛方块（packed_mud_pedestal / packed_mud_altar_stone）已分离到前置模组 eej。
 
-    public static final RegistryObject<Block> BECKON_CORE = BLOCKS.register(
+    public static final DeferredBlock<Block> BECKON_CORE = BLOCKS.registerBlock(
             "beckon_core",
-            () -> new BeckonCore(BlockBehaviour.Properties.of().strength(4.0F, 6.0F).sound(SoundType.MUDDY_MANGROVE_ROOTS).mapColor(DyeColor.GREEN)));
+            BeckonCore::new,
+            () -> BlockBehaviour.Properties.of().strength(4.0F, 6.0F).sound(SoundType.MUDDY_MANGROVE_ROOTS).mapColor(DyeColor.GREEN)
+    );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_STONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_STONE = BLOCKS.registerBlock(
             "infested_heavy_stone",
-            () -> new InfestedHeavyStone(Block.Properties.of().strength(3.0f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+            InfestedHeavyStone::new,
+            () -> Block.Properties.of().strength(3.0f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_INFESTED_HEAVY_STONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_INFESTED_HEAVY_STONE = BLOCKS.registerBlock(
             "infested_infested_heavy_stone",
-            () -> new InfestedInfestedHeavyStone(Block.Properties.of().strength(1.5f, 0.75f).randomTicks().mapColor(DyeColor.GRAY))
+            InfestedInfestedHeavyStone::new,
+            () -> Block.Properties.of().strength(1.5f, 0.75f).randomTicks().mapColor(DyeColor.GRAY)
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_COAL_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_COAL_ORE = BLOCKS.registerBlock(
             "infested_heavy_coal_ore",
-            () -> new InfestedHeavyCoalOre(Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.BLACK).requiresCorrectToolForDrops())
+            InfestedHeavyCoalOre::new,
+            () -> Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.BLACK).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_COPPER_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_COPPER_ORE = BLOCKS.registerBlock(
             "infested_heavy_copper_ore",
-            () -> new InfestedHeavyCopperOre(Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.ORANGE).requiresCorrectToolForDrops())
+            InfestedHeavyCopperOre::new,
+            () -> Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.ORANGE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_IRON_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_IRON_ORE = BLOCKS.registerBlock(
             "infested_heavy_iron_ore",
-            () -> new InfestedHeavyIronOre(Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops())
+            InfestedHeavyIronOre::new,
+            () -> Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.WHITE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_GOLD_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_GOLD_ORE = BLOCKS.registerBlock(
             "infested_heavy_gold_ore",
-            () -> new InfestedHeavyGoldOre(Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.YELLOW).requiresCorrectToolForDrops())
+            InfestedHeavyGoldOre::new,
+            () -> Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.YELLOW).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_LAPIS_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_LAPIS_ORE = BLOCKS.registerBlock(
             "infested_heavy_lapis_ore",
-            () -> new InfestedHeavyLapisOre(Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.BLUE).requiresCorrectToolForDrops())
+            InfestedHeavyLapisOre::new,
+            () -> Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.BLUE).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_REDSTONE_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_REDSTONE_ORE = BLOCKS.registerBlock(
             "infested_heavy_redstone_ore",
-            () -> new InfestedHeavyRedstoneOre(Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.RED).requiresCorrectToolForDrops())
+            InfestedHeavyRedstoneOre::new,
+            () -> Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.RED).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_EMERALD_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_EMERALD_ORE = BLOCKS.registerBlock(
             "infested_heavy_emerald_ore",
-            () -> new InfestedHeavyEmeraldOre(Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.GREEN).requiresCorrectToolForDrops())
+            InfestedHeavyEmeraldOre::new,
+            () -> Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.GREEN).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_DIAMOND_ORE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_DIAMOND_ORE = BLOCKS.registerBlock(
             "infested_heavy_diamond_ore",
-            () -> new InfestedHeavyDiamondOre(Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.CYAN).requiresCorrectToolForDrops())
+            InfestedHeavyDiamondOre::new,
+            () -> Block.Properties.of().strength(4.5f, 3.0f).randomTicks().mapColor(DyeColor.CYAN).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_DUSTLIKE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_DUSTLIKE = BLOCKS.registerBlock(
             "infested_dustlike",
-            () -> new InfestedDustlike(Block.Properties.of().strength(1.0f, 3.0f).randomTicks().mapColor(DyeColor.CYAN))
+            InfestedDustlike::new,
+            () -> Block.Properties.of().strength(1.0f, 3.0f).randomTicks().mapColor(DyeColor.CYAN)
     );
 
-    public static final RegistryObject<Block> INFESTED_PLANKSLIKE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_PLANKSLIKE = BLOCKS.registerBlock(
             "infested_plankslike",
-            () -> new InfestedPlankslike(Block.Properties.of().strength(2.0f, 4.0f).randomTicks().mapColor(DyeColor.GREEN))
+            InfestedPlankslike::new,
+            () -> Block.Properties.of().strength(2.0f, 4.0f).randomTicks().mapColor(DyeColor.GREEN)
     );
 
-    public static final RegistryObject<Block> INFESTED_ROCKLIKE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_ROCKLIKE = BLOCKS.registerBlock(
             "infested_rocklike",
-            () -> new InfestedRocklike(Block.Properties.of().strength(3.0f, 6.0f).randomTicks().mapColor(DyeColor.BLUE))
+            InfestedRocklike::new,
+            () -> Block.Properties.of().strength(3.0f, 6.0f).randomTicks().mapColor(DyeColor.BLUE)
     );
 
-    public static final RegistryObject<Block> INFESTED_METALLIKE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_METALLIKE = BLOCKS.registerBlock(
             "infested_metallike",
-            () -> new InfestedMetallike(Block.Properties.of().strength(10.0f, 12.0f).randomTicks().mapColor(DyeColor.PURPLE))
+            InfestedMetallike::new,
+            () -> Block.Properties.of().strength(10.0f, 12.0f).randomTicks().mapColor(DyeColor.PURPLE)
     );
 
-    public static final RegistryObject<Block> INFESTED_HARDLIKE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HARDLIKE = BLOCKS.registerBlock(
             "infested_hardlike",
-            () -> new InfestedHardlike(Block.Properties.of().strength(60.0f, 1000.0f).randomTicks().mapColor(DyeColor.PURPLE))
+            InfestedHardlike::new,
+            () -> Block.Properties.of().strength(60.0f, 1000.0f).randomTicks().mapColor(DyeColor.PURPLE)
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_COBBLESTONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_COBBLESTONE = BLOCKS.registerBlock(
             "infested_heavy_cobblestone",
-            () -> new InfestedHeavyCobblestone(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+            InfestedHeavyCobblestone::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_COBBLESTONE_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_COBBLESTONE_STAIRS = BLOCKS.registerBlock(
             "infested_heavy_cobblestone_stairs",
-            () -> new InfestedHeavyCobblestoneStairs(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyCobblestoneStairs::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_COBBLESTONE_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_COBBLESTONE_SLAB = BLOCKS.registerBlock(
             "infested_heavy_cobblestone_slab",
-            () -> new InfestedHeavyCobblestoneSlab(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyCobblestoneSlab::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_COBBLESTONE_WALL = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_COBBLESTONE_WALL = BLOCKS.registerBlock(
             "infested_heavy_cobblestone_wall",
-            () -> new InfestedHeavyCobblestoneWall(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyCobblestoneWall::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_CHISELED_DEEPSLATE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CHISELED_DEEPSLATE = BLOCKS.registerBlock(
             "infested_chiseled_deepslate",
-            () -> new InfestedChiseledDeepslate(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+            InfestedChiseledDeepslate::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_POLISHED_HEAVY_STONE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_POLISHED_HEAVY_STONE = BLOCKS.registerBlock(
             "infested_polished_heavy_stone",
-            () -> new InfestedPolishedHeavyStone(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+            InfestedPolishedHeavyStone::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_POLISHED_HEAVY_STONE_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_POLISHED_HEAVY_STONE_STAIRS = BLOCKS.registerBlock(
             "infested_polished_heavy_stone_stairs",
-            () -> new InfestedPolishedHeavyStoneStairs(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedPolishedHeavyStoneStairs::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_POLISHED_HEAVY_STONE_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_POLISHED_HEAVY_STONE_SLAB = BLOCKS.registerBlock(
             "infested_polished_heavy_stone_slab",
-            () -> new InfestedPolishedHeavyStoneSlab(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedPolishedHeavyStoneSlab::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_POLISHED_HEAVY_STONE_WALL = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_POLISHED_HEAVY_STONE_WALL = BLOCKS.registerBlock(
             "infested_polished_heavy_stone_wall",
-            () -> new InfestedPolishedHeavyStoneWall(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedPolishedHeavyStoneWall::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_LILY_PAD = BLOCKS.register("infested_lily_pad",
-            () -> new InfestedLilyPad(BlockBehaviour.Properties.copy(Blocks.LILY_PAD).instabreak().pushReaction(PushReaction.DESTROY).randomTicks().noOcclusion().mapColor(DyeColor.LIGHT_GRAY)));
+    public static final DeferredBlock<Block> INFESTED_LILY_PAD = BLOCKS.registerBlock(
+            "infested_lily_pad",
+            InfestedLilyPad::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.LILY_PAD).instabreak().pushReaction(PushReaction.DESTROY).randomTicks().noOcclusion().mapColor(DyeColor.LIGHT_GRAY)
+    );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_BRICKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_BRICKS = BLOCKS.registerBlock(
             "infested_heavy_bricks",
-            () -> new InfestedHeavyBricks(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+            InfestedHeavyBricks::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_CRACKED_HEAVY_BRICKS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CRACKED_HEAVY_BRICKS = BLOCKS.registerBlock(
             "infested_cracked_heavy_bricks",
-            () -> new InfestedCrackedHeavyBricks(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+            InfestedCrackedHeavyBricks::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_BRICKS_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_BRICKS_STAIRS = BLOCKS.registerBlock(
             "infested_heavy_bricks_stairs",
-            () -> new InfestedHeavyBricksStairs(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyBricksStairs::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_BRICKS_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_BRICKS_SLAB = BLOCKS.registerBlock(
             "infested_heavy_bricks_slab",
-            () -> new InfestedHeavyBricksSlab(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyBricksSlab::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_BRICKS_WALL = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_BRICKS_WALL = BLOCKS.registerBlock(
             "infested_heavy_bricks_wall",
-            () -> new InfestedHeavyBricksWall(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyBricksWall::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_CARVED_PUMPKIN = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CARVED_PUMPKIN = BLOCKS.registerBlock(
             "infested_carved_pumpkin",
-            () -> new InfestedCarvedPumpkin(Block.Properties.of().strength(1.0f, 1.0f).randomTicks().mapColor(DyeColor.BLUE).ignitedByLava())
+            InfestedCarvedPumpkin::new,
+            () -> Block.Properties.of().strength(1.0f, 1.0f).randomTicks().mapColor(DyeColor.BLUE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_PUMPKIN = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_PUMPKIN = BLOCKS.registerBlock(
             "infested_pumpkin",
-            () -> new InfestedPumpkin(Block.Properties.of().strength(1.0f, 1.0f).randomTicks().mapColor(DyeColor.BLUE).ignitedByLava())
+            InfestedPumpkin::new,
+            () -> Block.Properties.of().strength(1.0f, 1.0f).randomTicks().mapColor(DyeColor.BLUE).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_MUDDY_MANGROVE_ROOTS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_MUDDY_MANGROVE_ROOTS = BLOCKS.registerBlock(
             "infested_muddy_mangrove_roots",
-            () -> new InfestedMuddyMangroveRoots(Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.PURPLE))
+            InfestedMuddyMangroveRoots::new,
+            () -> Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.PURPLE)
     );
 
-    public static final RegistryObject<Block> INFESTED_TALL_GRASS = BLOCKS.register("infested_tall_grass", () -> new InfestedDoublePlantBlock(BlockBehaviour.Properties.copy(Blocks.LARGE_FERN).sound(Blocks.GRASS.defaultBlockState().getSoundType())));
+    public static final DeferredBlock<Block> INFESTED_TALL_GRASS = BLOCKS.registerBlock(
+            "infested_tall_grass",
+            InfestedDoublePlantBlock::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.LARGE_FERN).sound(Blocks.SHORT_GRASS.defaultBlockState().getSoundType())
+    );
 
-    public static final RegistryObject<Block> INFESTED_TALL_FERN = BLOCKS.register("infested_tall_fern", () -> new InfestedDoublePlantBlock(BlockBehaviour.Properties.copy(Blocks.LARGE_FERN).sound(Blocks.GRASS.defaultBlockState().getSoundType())));
+    public static final DeferredBlock<Block> INFESTED_TALL_FERN = BLOCKS.registerBlock(
+            "infested_tall_fern",
+            InfestedDoublePlantBlock::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.LARGE_FERN).sound(Blocks.SHORT_GRASS.defaultBlockState().getSoundType())
+    );
 
-    public static final RegistryObject<Block> INFESTED_SHORT_GRASS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SHORT_GRASS = BLOCKS.registerBlock(
             "infested_short_grass",
-            () -> new InfestedShortGrass(Block.Properties.copy(Blocks.GRASS).ignitedByLava())
+            InfestedShortGrass::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SHORT_GRASS).ignitedByLava()
     );
 
-    public static final RegistryObject<Block> INFESTED_CACTUS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CACTUS = BLOCKS.registerBlock(
             "infested_cactus",
-            () -> new InfestedCactus(Block.Properties.copy(Blocks.CACTUS).strength(0.4f, 0.4f).randomTicks().mapColor(DyeColor.PURPLE).noOcclusion())
+            InfestedCactus::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CACTUS).strength(0.4f, 0.4f).randomTicks().mapColor(DyeColor.PURPLE).noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_SUGAR_CANE = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_SUGAR_CANE = BLOCKS.registerBlock(
             "infested_sugar_cane",
-            () -> new InfestedSugarCane(Block.Properties.of().instabreak().randomTicks().mapColor(DyeColor.PURPLE).noOcclusion().ignitedByLava())
+            InfestedSugarCane::new,
+            () -> Block.Properties.of().instabreak().randomTicks().mapColor(DyeColor.PURPLE).noOcclusion().ignitedByLava()
     );
 
-    public static final RegistryObject<InfestedSpiderWeb> INFESTED_SPIDER_WEB = BLOCKS.register("infested_spider_web",
-            () -> new InfestedSpiderWeb(BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.GREEN).noOcclusion().noCollission().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()));
+    public static final DeferredBlock<InfestedSpiderWeb> INFESTED_SPIDER_WEB = BLOCKS.registerBlock(
+            "infested_spider_web",
+            InfestedSpiderWeb::new,
+            () -> BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.GREEN).noOcclusion().noCollision().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()
+    );
 
-    public static final RegistryObject<InfestedSpiderWebBlood> INFESTED_SPIDER_WEB_BLOOD = BLOCKS.register("infested_spider_web_blood",
-            () -> new InfestedSpiderWebBlood(BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.RED).noOcclusion().noCollission().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()));
+    public static final DeferredBlock<InfestedSpiderWebBlood> INFESTED_SPIDER_WEB_BLOOD = BLOCKS.registerBlock(
+            "infested_spider_web_blood",
+            InfestedSpiderWebBlood::new,
+            () -> BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.RED).noOcclusion().noCollision().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()
+    );
 
-    public static final RegistryObject<InfestedCaveSpiderWeb> INFESTED_CAVE_SPIDER_WEB = BLOCKS.register("infested_cave_spider_web",
-            () -> new InfestedCaveSpiderWeb(BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.CYAN).noOcclusion().noCollission().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()));
+    public static final DeferredBlock<InfestedCaveSpiderWeb> INFESTED_CAVE_SPIDER_WEB = BLOCKS.registerBlock(
+            "infested_cave_spider_web",
+            InfestedCaveSpiderWeb::new,
+            () -> BlockBehaviour.Properties.of().strength(4.0F, 0.0F).randomTicks().mapColor(DyeColor.CYAN).noOcclusion().noCollision().isRedstoneConductor((s, l, p) -> false).isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false).ignitedByLava()
+    );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_TILES = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_TILES = BLOCKS.registerBlock(
             "infested_heavy_tiles",
-            () -> new InfestedHeavyTiles(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+            InfestedHeavyTiles::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_CRACKED_HEAVY_TILES = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_CRACKED_HEAVY_TILES = BLOCKS.registerBlock(
             "infested_cracked_heavy_tiles",
-            () -> new InfestedCrackedHeavyTiles(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops())
+            InfestedCrackedHeavyTiles::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_TILES_STAIRS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_TILES_STAIRS = BLOCKS.registerBlock(
             "infested_heavy_tiles_stairs",
-            () -> new InfestedHeavyTilesStairs(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyTilesStairs::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_TILES_SLAB = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_TILES_SLAB = BLOCKS.registerBlock(
             "infested_heavy_tiles_slab",
-            () -> new InfestedHeavyTilesSlab(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyTilesSlab::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_HEAVY_TILES_WALL = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_HEAVY_TILES_WALL = BLOCKS.registerBlock(
             "infested_heavy_tiles_wall",
-            () -> new InfestedHeavyTilesWall(Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion())
+            InfestedHeavyTilesWall::new,
+            () -> Block.Properties.of().strength(3.5f, 6.0f).randomTicks().mapColor(DyeColor.GRAY).requiresCorrectToolForDrops().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_MANGROVE_ROOTS = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_MANGROVE_ROOTS = BLOCKS.registerBlock(
             "infested_mangrove_roots",
-            () -> new InfestedMangroveRoots(Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava().noOcclusion())
+            InfestedMangroveRoots::new,
+            () -> Block.Properties.of().strength(0.7f, 0.7f).randomTicks().mapColor(DyeColor.PURPLE).ignitedByLava().noOcclusion()
     );
 
-    public static final RegistryObject<Block> INFESTED_DEAD_BUSH = BLOCKS.register(
+    public static final DeferredBlock<Block> INFESTED_DEAD_BUSH = BLOCKS.registerBlock(
             "infested_dead_bush",
-            () -> new InfestedDeadBush(Block.Properties.copy(Blocks.DEAD_BUSH).ignitedByLava())
+            InfestedDeadBush::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.DEAD_BUSH).ignitedByLava()
     );
 }

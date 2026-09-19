@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.effects.buff;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,9 +18,12 @@ public class CamouflageEffect extends MobEffect implements RemovableEffect {
         super(MobEffectCategory.BENEFICIAL, 0x8B9A46);
     }
 
+    // 26.1.2: applyEffectTick(ServerLevel, LivingEntity, int) returns boolean and only runs server side
+    // (MobEffectInstance#tickServer). The tick body is unchanged; the old "!isClientSide()" guard is now
+    // implied by the ServerLevel parameter.
     @Override
-    public void applyEffectTick(LivingEntity livingEntity, int amplifier) {
-        if (!livingEntity.level().isClientSide && livingEntity.tickCount % 20 == 0) {
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity livingEntity, int amplifier) {
+        if (livingEntity.tickCount % 20 == 0) {
             livingEntity.level().getEntitiesOfClass(Mob.class,
                     livingEntity.getBoundingBox().inflate(30),
                     mob -> mob.getTarget() == livingEntity
@@ -29,6 +33,7 @@ public class CamouflageEffect extends MobEffect implements RemovableEffect {
                 }
             });
         }
+        return true;
     }
 
     
@@ -52,14 +57,16 @@ public class CamouflageEffect extends MobEffect implements RemovableEffect {
         return IParasite.isParasiteByTagOrInterface(entity);
     }
 
+    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
+    // Same "every 20 ticks" gate as 1.20.1.
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        return duration % 20 == 0;
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
+        return tickCount % 20 == 0;
     }
 
     
     public static boolean tryRemoveOnAttack(LivingEntity attacker, LivingEntity target) {
-        if (attacker == null || !attacker.hasEffect(ModEffects.CAMOUFLAGE.get())) {
+        if (attacker == null || !attacker.hasEffect(ModEffects.CAMOUFLAGE)) {
             return false;
         }
 
@@ -80,13 +87,13 @@ public class CamouflageEffect extends MobEffect implements RemovableEffect {
         }
 
         if (shouldRemove) {
-            attacker.removeEffect(ModEffects.CAMOUFLAGE.get());
+            attacker.removeEffect(ModEffects.CAMOUFLAGE);
         }
         return shouldRemove;
     }
 
     public static boolean hasCamouflageEffect(@Nullable LivingEntity entity) {
-        return entity != null && entity.hasEffect(ModEffects.CAMOUFLAGE.get());
+        return entity != null && entity.hasEffect(ModEffects.CAMOUFLAGE);
     }
 
     @Override

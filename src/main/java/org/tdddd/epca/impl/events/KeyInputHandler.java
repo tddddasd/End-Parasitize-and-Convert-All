@@ -1,13 +1,14 @@
 package org.tdddd.epca.impl.events;
 
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+// 26.1.2: removed @EventBusSubscriber -- this class declares no @SubscribeEvent methods,
+// and the loader now throws IllegalArgumentException when such a class is registered.
 public class KeyInputHandler {
     
     private static final Map<UUID, Boolean> spacePressedMap = new HashMap<>();

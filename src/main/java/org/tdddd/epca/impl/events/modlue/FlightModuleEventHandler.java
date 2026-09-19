@@ -1,15 +1,16 @@
 package org.tdddd.epca.impl.events.modlue;
 
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.events.KeyInputHandler;
 import org.tdddd.epca.impl.overworld.registry.items.item.FlightModuleI;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorBox;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class FlightModuleEventHandler {
     private static final float HORIZONTAL_SPEED = 0.2F;
     private static final float HOVER_HORIZONTAL_SPEED = 0.1F;
@@ -38,12 +39,8 @@ public class FlightModuleEventHandler {
     private static final Map<UUID, Boolean> lastSpacePressed = new HashMap<>();
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        Player player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
         UUID playerId = player.getUUID();
 
         
@@ -262,7 +259,7 @@ public class FlightModuleEventHandler {
     
     private static void ensureBiomassInitialized(LivingArmorBox boxItem, ItemStack boxStack) {
         
-        if (!boxStack.hasTag() || !boxStack.getTag().contains("Biomass")) {
+        if (!boxStack.has(DataComponents.CUSTOM_DATA) || !boxStack.get(DataComponents.CUSTOM_DATA).contains("Biomass")) {
             
             boxItem.setBiomass(boxStack, 0);
         }
@@ -351,7 +348,7 @@ public class FlightModuleEventHandler {
         BlockPos groundPos = playerPos;
 
         
-        int minY = player.level().getMinBuildHeight();
+        int minY = player.level().getMinY();
         int searchDepth = 0;
 
         while (groundPos.getY() > minY && searchDepth < 100) {

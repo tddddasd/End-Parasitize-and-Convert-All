@@ -10,7 +10,7 @@ public class EffectApplicationInterceptor {
     
     public static boolean canApplyEffect(LivingEntity target, MobEffectInstance effect) {
         
-        if (effect.getEffect() != ModEffects.COTH.get()) {
+        if (effect.getEffect() != ModEffects.COTH) {
             return true;
         }
 

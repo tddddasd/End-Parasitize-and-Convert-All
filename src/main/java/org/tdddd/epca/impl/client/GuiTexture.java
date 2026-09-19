@@ -1,10 +1,9 @@
 package org.tdddd.epca.impl.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
 import org.tdddd.epca.impl.epca;
 
 public enum GuiTexture implements IGuiTexture {
@@ -13,7 +12,7 @@ public enum GuiTexture implements IGuiTexture {
     CREATIVE_MODE_TAB_BLANK_ROW_MATERIALS("creative_inventory_materials", 0, 0, 162, 18),   
     CREATIVE_MODE_TAB_BLANK_ROW_SPAWN("creative_inventory_spawn", 0, 0, 162, 18),          
     CREATIVE_MODE_TAB_BLANK_ROW_BLOCKS("creative_inventory_blocks", 0, 0, 162, 18);        
-    public final ResourceLocation location;
+    public final Identifier location;
     public final int width, height, startX, startY, textureWidth, textureHeight;
 
     private GuiTexture(String location, int width, int height) {
@@ -34,19 +33,22 @@ public enum GuiTexture implements IGuiTexture {
         this.textureHeight = textureHeight;
     };
 
-    @OnlyIn(Dist.CLIENT)
+    // 26.1.2: RenderSystem#setShaderTexture was removed. GuiGraphicsExtractor binds the texture through the
+    // RenderPipeline passed to blit(), so nothing is left for bind() to do; kept as a no-op to preserve the
+    // IGuiTexture contract.
     @Override
     public void bind() {
-        RenderSystem.setShaderTexture(0, location);
     };
 
-    @OnlyIn(Dist.CLIENT)
-    public void render(GuiGraphics graphics, int x, int y) {
-        graphics.blit(location, x, y, startX, startY, width, height, textureWidth, textureHeight);
+    /**
+     * 26.1.2: GuiGraphics -> GuiGraphicsExtractor and {@code blit(...)} gained a leading RenderPipeline argument.
+     */
+    public void render(GuiGraphicsExtractor graphics, int x, int y) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, location, x, y, startX, startY, width, height, textureWidth, textureHeight);
     };
 
     @Override
-    public ResourceLocation getLocation() {
+    public Identifier getLocation() {
         return location;
     };
 

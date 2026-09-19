@@ -1,17 +1,19 @@
 package org.tdddd.epca.impl.events;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.Cancelable;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
 import java.util.UUID;
 
 /**
  * 当寄生虫的跟随目标发生变化时触发。
  * 可取消：取消后不会改变跟随目标。
+ *
+ * <p>26.1.2: {@code @Cancelable} 已被删除；可取消性改由
+ * {@link ICancellableEvent} 标记接口表达（{@code IParasite.java:39} 会调用 {@code isCanceled()}）。
  */
-@Cancelable
-public class ParasiteFollowEvent extends LivingEvent {
+public class ParasiteFollowEvent extends LivingEvent implements ICancellableEvent {
     private final UUID oldTarget;
     private final UUID newTarget;
 

@@ -2,8 +2,6 @@
   "required": true,
   "minVersion": "0.8",
   "package": "org.tdddd.epca.impl.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "refmap": "epca.refmap.json",
   "mixins": [
     "common.AbstractVillagerMixin",
     "common.BeaconBlockEntityMixin",
@@ -12,18 +10,15 @@
     "common.EnchantmentMenuMixin",
     "common.LightningRodBlockMixin",
     "common.LivingEntityMixin",
-    "common.MerchantOfferMixin",
     "common.MobMixin",
     "common.PlayerMixin",
     "common.PointedDripstoneBlockMixin",
     "common.SugarCaneBlockMixin"
   ],
   "client": [
-    "client.BeaconRendererMixin",
-    "client.BiomeColorsMixin",
-    "client.BlockColorsMixin",
     "client.CreateWorldScreenMixin",
-    "client.LightningBoltRendererMixin"
+    "client.LightningBoltRendererMixin",
+    "client.LightningBoltRenderStateMixin"
   ],
   "injectors": {
     "defaultRequire": 1

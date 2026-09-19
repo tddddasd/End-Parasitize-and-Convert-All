@@ -2,39 +2,50 @@ package org.tdddd.epca.impl.overworld.registry.gui.menus;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.FormattedCharSequence;
 import org.tdddd.epca.impl.overworld.data.EPCANoteTabData;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.AdvancementEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 import org.tdddd.epca.impl.epca;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@OnlyIn(Dist.CLIENT)
+/**
+ * 26.1.2 渲染/GUI 迁移说明：
+ * <ul>
+ *   <li>{@code Screen#render(GuiGraphics, ...)} 改为 {@code extractRenderState(GuiGraphicsExtractor, ...)}
+ *       （GUI 改成「抽取」模型，真正的绘制由 GuiRenderState 完成）；</li>
+ *   <li>{@code GuiGraphics#drawString} → {@code GuiGraphicsExtractor#text}；</li>
+ *   <li>{@code RenderSystem#setShaderTexture} 被删除：贴图由 blit 的 RenderPipeline 绑定；</li>
+ *   <li>{@code PoseStack} → {@code Matrix3x2fStack}（2D：pushMatrix/popMatrix/translate(x,y)/scale(x,y)）；</li>
+ *   <li>鼠标事件参数由 (double x, double y, int button) 改为 {@code MouseButtonEvent}；</li>
+ *   <li>{@code AbstractButton#renderWidget} → {@code extractContents}。</li>
+ * </ul>
+ */
 public class EPCANoteScreen extends Screen {
 
     // 只有内页贴图随模组一起提供；封面与选项卡改为用 inner_frame.png 的同色系程序化绘制，
     // 避免引用不存在的 outer_frame.png / parent_tab.png / child_tab.png 而每帧报警并画出空白。
-    private static final ResourceLocation INNER_FRAME = new ResourceLocation(epca.MODID, "textures/gui/epca_note/inner_frame.png");
-    private static final ResourceLocation BTN_UP = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_up.png");
-    private static final ResourceLocation BTN_DOWN = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_down.png");
-    private static final ResourceLocation BTN_LEFT = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_left.png");
-    private static final ResourceLocation BTN_RIGHT = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_right.png");
-    private static final ResourceLocation PAGE_BTN_LEFT = new ResourceLocation(epca.MODID, "textures/gui/epca_note/page_btn_left.png");
-    private static final ResourceLocation PAGE_BTN_RIGHT = new ResourceLocation(epca.MODID, "textures/gui/epca_note/page_btn_right.png");
+    private static final Identifier INNER_FRAME = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/inner_frame.png");
+    private static final Identifier BTN_UP = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/button_up.png");
+    private static final Identifier BTN_DOWN = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/button_down.png");
+    private static final Identifier BTN_LEFT = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/button_left.png");
+    private static final Identifier BTN_RIGHT = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/button_right.png");
+    private static final Identifier PAGE_BTN_LEFT = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/page_btn_left.png");
+    private static final Identifier PAGE_BTN_RIGHT = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/page_btn_right.png");
 
     private static final int OUTER_W = 540;
     private static final int OUTER_H = 360;
@@ -125,7 +136,7 @@ public class EPCANoteScreen extends Screen {
     public EPCANoteScreen() {
         super(Component.translatable("epca.note.title"));
 
-        MinecraftForge.EVENT_BUS.register(eventListener);
+        NeoForge.EVENT_BUS.register(eventListener);
         refreshTabData();
     }
 
@@ -345,7 +356,7 @@ public class EPCANoteScreen extends Screen {
                     size = Math.min(128, Math.max(16, size));
                     displaySize = (int)(size * 1.5);
                 }
-                elements.add(new ImageElement(new ResourceLocation(path), displaySize, displaySize));
+                elements.add(new ImageElement(Identifier.parse(path), displaySize, displaySize));
             } else {
                 elements.add(new PageBreakElement());
             }
@@ -471,19 +482,19 @@ public class EPCANoteScreen extends Screen {
 
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         float scale = getScaleFactor();
         var pose = guiGraphics.pose();
-        pose.pushPose();
+        pose.pushMatrix();
 
-        // 计算转换后的鼠标坐标（用于可能传递给 super.render 的 tooltip 等）
+        // 计算转换后的鼠标坐标（用于传递给 super.extractRenderState 的 tooltip 等）
         double layoutX = convertMouseX(mouseX);
         double layoutY = convertMouseY(mouseY);
 
         if (scale != 1.0f) {
-            pose.translate(width / 2.0f, height / 2.0f, 0);
-            pose.scale(scale, scale, 1.0f);
-            pose.translate(-width / 2.0f, -height / 2.0f, 0);
+            pose.translate(width / 2.0f, height / 2.0f);
+            pose.scale(scale, scale);
+            pose.translate(-width / 2.0f, -height / 2.0f);
         }
 
         // 悬停检测（画选项卡高亮 + 底部显示完整名称）
@@ -493,8 +504,7 @@ public class EPCANoteScreen extends Screen {
         drawCover(guiGraphics);
 
 
-        RenderSystem.setShaderTexture(0, INNER_FRAME);
-        guiGraphics.blit(INNER_FRAME, innerX, innerY, 0, 0, INNER_W, INNER_H, INNER_TEX_W, INNER_TEX_H);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INNER_FRAME, innerX, innerY, 0.0F, 0.0F, INNER_W, INNER_H, INNER_TEX_W, INNER_TEX_H);
 
 
         for (int i = 0; i < MAX_PARENT_VISIBLE; i++) {
@@ -506,7 +516,7 @@ public class EPCANoteScreen extends Screen {
             drawTab(guiGraphics, parentListStartX, y, PARENT_TAB_W, PARENT_TAB_H, selected, hoveredParent == idx);
             String displayName = fit(font, translateName(tab.name), PARENT_TAB_W - 8);
             int textWidth = font.width(displayName);
-            guiGraphics.drawString(font, displayName,
+            guiGraphics.text(font, displayName,
                     parentListStartX + (PARENT_TAB_W - textWidth) / 2,
                     y + (PARENT_TAB_H - font.lineHeight) / 2,
                     selected ? TAB_TEXT_SELECTED : TAB_TEXT);
@@ -524,7 +534,7 @@ public class EPCANoteScreen extends Screen {
             drawTab(guiGraphics, x, childListStartY, CHILD_TAB_W, CHILD_TAB_H, selected, hoveredChild == idx);
             String displayName = fit(font, translateName(child.name), CHILD_TAB_W - 4);
             int textWidth = font.width(displayName);
-            guiGraphics.drawString(font, displayName,
+            guiGraphics.text(font, displayName,
                     x + (CHILD_TAB_W - textWidth) / 2,
                     childListStartY + 6,
                     selected ? TAB_TEXT_SELECTED : TAB_TEXT);
@@ -536,9 +546,9 @@ public class EPCANoteScreen extends Screen {
 
         drawFooter(guiGraphics, hoveredParent, hoveredChild);
 
-        super.render(guiGraphics, (int) layoutX, (int) layoutY, partialTick);
+        super.extractRenderState(guiGraphics, (int) layoutX, (int) layoutY, partialTick);
 
-        pose.popPose();
+        pose.popMatrix();
     }
 
     private double convertMouseX(double mouseX) {
@@ -554,9 +564,9 @@ public class EPCANoteScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        double layoutX = convertMouseX(mouseX);
-        double layoutY = convertMouseY(mouseY);
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double layoutX = convertMouseX(event.x());
+        double layoutY = convertMouseY(event.y());
 
         // 自己的点击检测（父标签/子标签）
         int clickedParent = getClickedParentIndex((int) layoutX, (int) layoutY);
@@ -573,8 +583,8 @@ public class EPCANoteScreen extends Screen {
             return true;
         }
 
-        // 传递给父类以处理按钮等组件
-        return super.mouseClicked(layoutX, layoutY, button);
+        // 传递给父类以处理按钮等组件（26.1.2: 事件对象携带 x/y 与按键信息）
+        return super.mouseClicked(new MouseButtonEvent(layoutX, layoutY, event.buttonInfo()), doubleClick);
     }
 
     @Override
@@ -585,29 +595,28 @@ public class EPCANoteScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        double layoutX = convertMouseX(mouseX);
-        double layoutY = convertMouseY(mouseY);
-        return super.mouseDragged(layoutX, layoutY, button, dragX, dragY);
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        double layoutX = convertMouseX(event.x());
+        double layoutY = convertMouseY(event.y());
+        return super.mouseDragged(new MouseButtonEvent(layoutX, layoutY, event.buttonInfo()), dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        double layoutX = convertMouseX(mouseX);
-        double layoutY = convertMouseY(mouseY);
-        return super.mouseReleased(layoutX, layoutY, button);
+    public boolean mouseReleased(MouseButtonEvent event) {
+        double layoutX = convertMouseX(event.x());
+        double layoutY = convertMouseY(event.y());
+        return super.mouseReleased(new MouseButtonEvent(layoutX, layoutY, event.buttonInfo()));
     }
 
     /** 封面：皮革底 + 米色描边 + 内页凹槽（书页像嵌在封面里） */
-    private void drawCover(GuiGraphics guiGraphics) {
+    private void drawCover(GuiGraphicsExtractor guiGraphics) {
         guiGraphics.fill(outerX - 2, outerY - 2, outerX + OUTER_W + 2, outerY + OUTER_H + 2, COVER_SHADOW);
         guiGraphics.fill(outerX, outerY, outerX + OUTER_W, outerY + OUTER_H, COVER_DARK);
         guiGraphics.fill(outerX + 3, outerY + 3, outerX + OUTER_W - 3, outerY + OUTER_H - 3, COVER);
         guiGraphics.fill(outerX + 6, outerY + 6, outerX + OUTER_W - 6, outerY + OUTER_H - 6, COVER_LIGHT);
         guiGraphics.fill(outerX + 10, outerY + 10, outerX + OUTER_W - 10, outerY + OUTER_H - 10, COVER);
-        // 1.20.1 没有 GuiGraphics#outline，对应的是 renderOutline(x, y, width, height, color)
-        guiGraphics.renderOutline(outerX, outerY, OUTER_W, OUTER_H, COVER_EDGE);
-        guiGraphics.renderOutline(outerX + 6, outerY + 6, OUTER_W - 12, OUTER_H - 12, COVER_LINE);
+        guiGraphics.outline(outerX, outerY, OUTER_W, OUTER_H, COVER_EDGE);
+        guiGraphics.outline(outerX + 6, outerY + 6, OUTER_W - 12, OUTER_H - 12, COVER_LINE);
 
         int g = PAGE_GROOVE;
         int left = innerX - g;
@@ -622,7 +631,7 @@ public class EPCANoteScreen extends Screen {
     }
 
     /** 选项卡：底色 + 高光/阴影立体边 + 米色描边；选中用羊皮纸色，悬停提亮 */
-    private void drawTab(GuiGraphics guiGraphics, int x, int y, int w, int h,
+    private void drawTab(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h,
                          boolean selected, boolean hovered) {
         int bg = selected ? TAB_BG_SELECTED : (hovered ? TAB_BG_HOVER : TAB_BG);
         int hi = selected ? TAB_HI_SELECTED : TAB_HI;
@@ -634,12 +643,12 @@ public class EPCANoteScreen extends Screen {
         guiGraphics.fill(x + 1, y + h - 3, x + w - 1, y + h - 1, lo);
         guiGraphics.fill(x + w - 3, y + 1, x + w - 1, y + h - 1, lo);
         if (selected) {
-            guiGraphics.renderOutline(x, y, w, h, COVER_EDGE);
+            guiGraphics.outline(x, y, w, h, COVER_EDGE);
         }
     }
 
     /** 书页内容：左右两页分别绘制，并用裁剪框住溢出内页的文字/图片 */
-    private void drawPages(GuiGraphics guiGraphics) {
+    private void drawPages(GuiGraphicsExtractor guiGraphics) {
         if (pages.isEmpty()) return;
         PageContent page = pages.get(currentPage);
         if (!page.leftElements.isEmpty()) {
@@ -655,7 +664,7 @@ public class EPCANoteScreen extends Screen {
     }
 
     /** 封面底部：默认显示笔记标题，悬停选项卡时显示该选项卡全名；内页底部居中显示页码 */
-    private void drawFooter(GuiGraphics guiGraphics, int hoveredParent, int hoveredChild) {
+    private void drawFooter(GuiGraphicsExtractor guiGraphics, int hoveredParent, int hoveredChild) {
         String hovered = null;
         if (hoveredChild >= 0 && hoveredChild < currentChildTabs.size()) {
             hovered = translateName(currentChildTabs.get(hoveredChild).name);
@@ -668,11 +677,11 @@ public class EPCANoteScreen extends Screen {
 
         int lineY = innerY + INNER_H + 12;
         guiGraphics.fill(outerX + 24, lineY - 5, outerX + OUTER_W - 24, lineY - 4, COVER_LINE);
-        guiGraphics.drawCenteredString(font, fit(font, titleText, OUTER_W - 80), outerX + OUTER_W / 2, lineY, TITLE_TEXT);
+        guiGraphics.centeredText(font, fit(font, titleText, OUTER_W - 80), outerX + OUTER_W / 2, lineY, TITLE_TEXT);
 
         if (!pages.isEmpty()) {
             String pageStr = (currentPage + 1) + "/" + pages.size();
-            guiGraphics.drawCenteredString(font, pageStr, innerX + INNER_W / 2,
+            guiGraphics.centeredText(font, pageStr, innerX + INNER_W / 2,
                     innerY + INNER_H - font.lineHeight - 3, PAGE_TEXT_DIM);
         }
     }
@@ -684,30 +693,29 @@ public class EPCANoteScreen extends Screen {
         return font.plainSubstrByWidth(text, Math.max(0, maxWidth - 6)) + "…";
     }
 
-    private void renderElements(GuiGraphics guiGraphics, List<RenderElement> elements, int baseX, int baseY, int areaWidth) {
+    private void renderElements(GuiGraphicsExtractor guiGraphics, List<RenderElement> elements, int baseX, int baseY, int areaWidth) {
         int yOffset = 0;
         for (RenderElement e : elements) {
             if (e instanceof TextLine text) {
                 // 书页是浅色羊皮纸：正文用深色墨水，字符串里的 §0 等颜色代码仍然生效
-                guiGraphics.drawString(font, text.formatted, baseX, baseY + yOffset, PAGE_TEXT);
+                guiGraphics.text(font, text.formatted, baseX, baseY + yOffset, PAGE_TEXT);
                 yOffset += font.lineHeight;
             } else if (e instanceof ImageElement img) {
-                ResourceLocation tex = img.texture;
+                Identifier tex = img.texture;
                 int drawW = Math.max(1, Math.min(img.width, areaWidth));
                 int drawH = img.width <= 0 ? img.height : Math.max(1, img.height * drawW / img.width);
                 boolean valid = false;
                 try {
                     Optional<Resource> resource = Minecraft.getInstance().getResourceManager().getResource(tex);
                     if (resource.isPresent()) {
-                        RenderSystem.setShaderTexture(0, tex);
-                        guiGraphics.blit(tex,
-                                baseX + (areaWidth - drawW) / 2, baseY + yOffset, 0, 0,
+                        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, tex,
+                                baseX + (areaWidth - drawW) / 2, baseY + yOffset, 0.0F, 0.0F,
                                 drawW, drawH, img.width, img.height);
                         valid = true;
                     }
                 } catch (Exception ignored) {}
                 if (!valid) {
-                    guiGraphics.drawString(font, "Texture missing", baseX, baseY + yOffset, PAGE_TEXT_WARN);
+                    guiGraphics.text(font, "Texture missing", baseX, baseY + yOffset, PAGE_TEXT_WARN);
                 }
                 yOffset += drawH;
             }
@@ -722,7 +730,7 @@ public class EPCANoteScreen extends Screen {
     @Override
     public void removed() {
 
-        MinecraftForge.EVENT_BUS.unregister(eventListener);
+        NeoForge.EVENT_BUS.unregister(eventListener);
         super.removed();
     }
 
@@ -739,9 +747,9 @@ public class EPCANoteScreen extends Screen {
     }
 
     private static class ImageElement implements RenderElement {
-        final ResourceLocation texture;
+        final Identifier texture;
         final int width, height;
-        ImageElement(ResourceLocation tex, int w, int h) { this.texture = tex; this.width = w; this.height = h; }
+        ImageElement(Identifier tex, int w, int h) { this.texture = tex; this.width = w; this.height = h; }
         @Override
         public int getHeight(Font font) { return height; }
     }
@@ -759,11 +767,11 @@ public class EPCANoteScreen extends Screen {
     }
 
     private static class ImageButton extends Button {
-        private final ResourceLocation texture;
+        private final Identifier texture;
         private final int texWidth, texHeight;
 
         public ImageButton(int x, int y, int width, int height,
-                           ResourceLocation texture, int texWidth, int texHeight,
+                           Identifier texture, int texWidth, int texHeight,
                            OnPress onPress) {
             super(x, y, width, height, Component.empty(), onPress, DEFAULT_NARRATION);
             this.texture = texture;
@@ -771,10 +779,10 @@ public class EPCANoteScreen extends Screen {
             this.texHeight = texHeight;
         }
 
+        // 26.1.2: AbstractButton#renderWidget was replaced by the extraction hook extractContents.
         @Override
-        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            RenderSystem.setShaderTexture(0, texture);
-            guiGraphics.blit(texture, getX(), getY(), 0, 0, width, height, texWidth, texHeight);
+        protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, getX(), getY(), 0.0F, 0.0F, width, height, texWidth, texHeight);
         }
     }
 }

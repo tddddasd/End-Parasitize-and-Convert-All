@@ -29,8 +29,8 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -40,13 +40,9 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -54,7 +50,7 @@ import org.tdddd.epca.impl.overworld.registry.*;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
-import software.bernie.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.GeoEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.SwallowCyst;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
@@ -63,13 +59,13 @@ import org.tdddd.epca.impl.overworld.registry.entities.IReshape;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
@@ -77,16 +73,10 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_INVULNERABLE = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_ATTACKING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_ATTACK_TYPE = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.INT);
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_SHOCKWAVE_ATTACKING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_SHOCKWAVE_TIMER = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.INT);
 
@@ -113,8 +103,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     private int ceilingBreakCooldown = 0;
     private int shockwaveCooldownTimer = 0;
     private List<LivingEntity> previousTargets = new ArrayList<>();
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_STOMPING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_STOMP_TYPE = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_STOMP_TIMER = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.INT);
@@ -133,7 +121,8 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     public ReshapeLongarms(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 45;
-        this.setMaxUpStep(1.6F);
+        var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
+        if (epcaStepHeight != null) epcaStepHeight.setBaseValue(1.6F);
         this.navigation = new GroundPathNavigation(this, level);
 
         if (!level.isClientSide()) {
@@ -149,15 +138,15 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         }
     }
 
-    @Override
-    protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 3.6F;
-    }
+    // 26.1.2: Entity#getEyeHeight(Pose) is final (Entity.java:3381) and returns
+    // getDimensions(pose).eyeHeight(), so the 3.6 eye height has to be declared on the EntityType
+    // EntityDimensions#withEyeHeight (see the shared change request against the registry owner).
 
-    @Override
-    public EntityDimensions getDimensions(Pose pose) {
-        return EntityDimensions.fixed(2.0F, 4.0F);
-    }
+    // 26.1.2: LivingEntity#getDimensions(Pose) is final (LivingEntity.java:3791), so the longarms'
+    // body size has to come from the EntityType - ModEntities.RESHAPE_LONGARMS must be 2.0 x 4.0
+    // (currently 2.0 x 3.9), recorded in the shared change request against the registry owner.
+    // Note Entity#getDimensions(Pose) itself is NOT final (Entity.java:3622), which is why
+    // ReshapeLongarms.CustomPart below can still override it.
 
     @Override
     public boolean canPassThroughInfestedLeaves() {
@@ -165,17 +154,13 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
-
-        
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
         if (stompCooldown > 0) stompCooldown--;
         if (stompEndCooldown > 0) stompEndCooldown--;
         if (idleAfterStomp > 0) idleAfterStomp--;
-
-
         // 原有触发代码（大约在 customServerAiStep 开头附近）
-        if (!this.level().isClientSide && shouldCheckGassing && !isGassing() && !isAttacking() && !isShockwaveAttacking() && !isStomping()) {
+        if (!this.level().isClientSide() && shouldCheckGassing && !isGassing() && !isAttacking() && !isShockwaveAttacking() && !isStomping()) {
             if (this.random.nextFloat() < 0.004f) {
                 // 如果后部部件已被移除，则禁止使用喷气
                 if (!backPartRemoved) {
@@ -209,14 +194,10 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 }
             }
         }
-
-        
         if (isStomping()) {
             
             this.setYRot(stompStartYaw);
             this.setXRot(stompStartPitch);
-
-            
             Vec3 motion = this.getDeltaMovement();
             this.setDeltaMovement(0, motion.y, 0);
 
@@ -241,9 +222,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 }
             }
         }
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (jumpCooldown > 0) jumpCooldown--;
             if (ceilingBreakCooldown > 0) ceilingBreakCooldown--;
             if (shockwaveCooldownTimer > 0) shockwaveCooldownTimer--;
@@ -360,7 +339,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         }
 
         // 更新部件位置（服务端执行）
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             // 计算水平朝向向量（忽略俯仰）
             float yaw = this.getYRot();
             double forwardX = -Math.sin(Math.toRadians(yaw));
@@ -384,7 +363,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         }
 
         // 后部被移除后的气体喷发（每秒一次）
-        if (!this.level().isClientSide && backPartRemoved) {
+        if (!this.level().isClientSide() && backPartRemoved) {
             gasEmitTimer++;
             if (gasEmitTimer >= 20) { // 20 ticks = 1 秒
                 emitGasAfterBackRemoved();
@@ -394,7 +373,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private void emitGasAfterBackRemoved() {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
         ServerLevel serverLevel = (ServerLevel) this.level();
         BlockPos center = this.blockPosition();
         int radius = 3; // 7×7×7
@@ -408,10 +387,10 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         for (LivingEntity entity : entities) {
             if (IParasite.isParasiteByTagOrInterface(entity)) {
                 // 寄生体：15秒力量I (300 ticks, 等级0)
-                entity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 300, 0, false, true, true));
+                entity.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 300, 0, false, true, true));
             } else {
                 // 非寄生体：30秒COTH II、15秒虚弱I、15秒饥饿I
-                entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 1, false, true, true));
+                entity.addEffect(new MobEffectInstance(ModEffects.COTH, 600, 1, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 300, 0, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 300, 0, false, true, true));
             }
@@ -447,8 +426,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     private void setStompTimer(int timer) {
         this.entityData.set(DATA_STOMP_TIMER, timer);
     }
-
-    
     private int getTargetSide(LivingEntity target) {
         Vec3 toTarget = target.position().subtract(this.position()).normalize();
         Vec3 forward = this.getLookAngle();
@@ -457,13 +434,9 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         if (cross < 0) return 2;
         return 0;
     }
-
-    
     private void startStompAttack(LivingEntity target) {
         if (isStomping() || isAttacking() || isShockwaveAttacking() || isGassing()) return;
         this.stompTarget = target;
-
-        
         this.stompStartYaw = this.getYRot();
         this.stompStartPitch = this.getXRot();
 
@@ -475,39 +448,31 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
 
         setStomping(true, stompType);
         setStompTimer(STOMP_DURATION);
-
-        
         this.getNavigation().stop();
         if (target != null) {
             this.getLookControl().setLookAt(target, 30.0F, 30.0F);
         }
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.HOSTILE, 1.2F, 0.7F + this.random.nextFloat() * 0.3F);
         }
     }
-
-    
     private void performStompDamage() {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
         if (stompTarget != null && stompTarget.isAlive()) {
             float damage = this.onGround() ? 45.0F : 25.0F;
-            boolean hurt = stompTarget.hurt(this.damageSources().mobAttack(this), damage);
+            boolean hurt = stompTarget.hurtOrSimulate(this.damageSources().mobAttack(this), damage);
             if (hurt && damage >= 30.0F) {
                 Vec3 lookAngle = this.getLookAngle();
                 stompTarget.setDeltaMovement(stompTarget.getDeltaMovement().add(lookAngle.x * 0.5, 0.2, lookAngle.z * 0.5));
             }
         }
     }
-
-    
     private void performStompAreaEffect() {
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+        if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
             BlockPos startPos = this.blockPosition();
             BlockPos surfacePos = findFirstSolidSurfaceBelow(serverLevel, startPos, 3);
-
-            
             double spawnX, spawnY, spawnZ;
             if (surfacePos != null) {
                 spawnX = surfacePos.getX() + 0.5;
@@ -519,36 +484,29 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 spawnY = this.getY() + 0.1;
                 spawnZ = this.getZ();
             }
-
-            
-            
-            if (ModParticles.WAVE_SMALL.isPresent()) {
+            if (ModParticles.WAVE_SMALL.isBound()) {
                 serverLevel.sendParticles(ModParticles.WAVE_SMALL.get(), spawnX, spawnY, spawnZ, 1, 0, 0, 0, 0.0);
             }
 
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                         ModSoundEvents.SLAM.get(), SoundSource.HOSTILE, 0.9F, 1.0F);
             }
-
-            
             AABB area = new AABB(this.blockPosition()).inflate(1.0);
             List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, area,
                     e -> e != this && !IParasite.isParasiteByTagOrInterface(e) && e.isAlive() &&
                             !(e instanceof Player && (((Player) e).isCreative() || ((Player) e).isSpectator())));
             for (LivingEntity entity : entities) {
-                entity.hurt(this.damageSources().mobAttack(this), 15.0F);
+                entity.hurtOrSimulate(this.damageSources().mobAttack(this), 15.0F);
             }
         }
     }
-
-    
     private BlockPos findFirstSolidSurfaceBelow(ServerLevel level, BlockPos startPos, int maxDistance) {
         BlockPos.MutableBlockPos pos = startPos.mutable();
         for (int i = 0; i <= maxDistance; i++) {
             pos.set(startPos.getX(), startPos.getY() - i, startPos.getZ());
             BlockState state = level.getBlockState(pos);
-            if (!state.isAir() && state.isSolidRender(level, pos)) {
+            if (!state.isAir() && state.isSolidRender()) {
                 BlockPos above = pos.above();
                 if (level.isEmptyBlock(above) || level.getBlockState(above).canBeReplaced()) {
                     return pos;
@@ -579,7 +537,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private void spawnMovingInfestiveGasParticles() {
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+        if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
             double spawnX = this.getX();
             double spawnY = this.getY() + 2.0;
             double spawnZ = this.getZ();
@@ -597,7 +555,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private void spawnStaticInfestiveGasFadingParticles() {
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+        if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
             int particleCount = 4 + this.random.nextInt(5);
             double minX = this.getX() - 3.5, maxX = this.getX() + 3.5;
             double minY = this.getY() - 3.5, maxY = this.getY() + 3.5;
@@ -612,7 +570,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private void applyEffectsToNearbyEntities() {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
         AABB area = new AABB(this.getX() - 3.5, this.getY() - 3.5, this.getZ() - 3.5,
                 this.getX() + 3.5, this.getY() + 3.5, this.getZ() + 3.5);
 
@@ -621,7 +579,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         for (LivingEntity entity : parasiteEntities) {
             UUID entityId = entity.getUUID();
             if (!affectedEntities.contains(entityId)) {
-                entity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 300, 0, false, true, true));
+                entity.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 300, 0, false, true, true));
                 affectedEntities.add(entityId);
             }
         }
@@ -631,8 +589,8 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         for (LivingEntity entity : entities) {
             UUID entityId = entity.getUUID();
             if (!affectedEntities.contains(entityId)) {
-                entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 200, 2, false, true, true));
-                entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 300, 1, false, true, true));
+                entity.addEffect(new MobEffectInstance(ModEffects.COTH, 200, 2, false, true, true));
+                entity.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 300, 1, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 300, 1, false, true, true));
                 affectedEntities.add(entityId);
             }
@@ -640,7 +598,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private int getEnemyCountInCube(float halfSide) {
-        if (this.level().isClientSide) return 0;
+        if (this.level().isClientSide()) return 0;
         Vec3 center = this.position();
         AABB cubeArea = new AABB(center.x - halfSide, center.y - halfSide, center.z - halfSide,
                 center.x + halfSide, center.y + halfSide, center.z + halfSide);
@@ -673,14 +631,14 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         this.setNoAi(true);
         LivingEntity target = this.getTarget();
         if (target != null) this.getLookControl().setLookAt(target, 30.0F, 30.0F);
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.SLAM.get(), SoundSource.HOSTILE, 0.9F, 1.0F);
         }
     }
 
     private void performShockwaveMainDamage() {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             LivingEntity target = this.getTarget();
             if (target != null && target.isAlive()) {
                 
@@ -689,7 +647,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                     return;
                 }
                 float damageAmount = 30.0f;
-                boolean damageApplied = target.hurt(this.damageSources().mobAttack(this), damageAmount);
+                boolean damageApplied = target.hurtOrSimulate(this.damageSources().mobAttack(this), damageAmount);
                 if (damageApplied) {
                     Vec3 lookAngle = this.getLookAngle();
                     target.setDeltaMovement(target.getDeltaMovement().add(lookAngle.x * 0.5, 0.3, lookAngle.z * 0.5));
@@ -701,7 +659,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private void performShockwaveAreaDamage() {
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+        if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
             Vec3 center = this.position();
             double radius = 4.5;
             AABB area = new AABB(center.x - radius, center.y - radius, center.z - radius,
@@ -711,7 +669,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                             (entity.onGround() || entity.isInWater() || entity.isInLava()) &&
                             !(entity instanceof Player && (((Player) entity).isCreative() || ((Player) entity).isSpectator())));
             for (LivingEntity entity : entities) {
-                entity.hurt(this.damageSources().mobAttack(this), 20.0f);
+                entity.hurtOrSimulate(this.damageSources().mobAttack(this), 20.0f);
                 Vec3 toEntity = entity.position().subtract(center).normalize();
                 entity.setDeltaMovement(entity.getDeltaMovement().add(toEntity.x, 0.6, toEntity.z));
             }
@@ -770,7 +728,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             BlockState blockState = level.getBlockState(checkPos);
             BlockPos belowPos = checkPos.below();
             BlockState belowState = level.getBlockState(belowPos);
-            if (blockState.isAir() && !belowState.isAir() && belowState.isSolidRender(level, belowPos)) {
+            if (blockState.isAir() && !belowState.isAir() && belowState.isSolidRender()) {
                 return belowPos;
             }
         }
@@ -779,7 +737,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             BlockState blockState = level.getBlockState(checkPos);
             BlockPos abovePos = checkPos.above();
             BlockState aboveState = level.getBlockState(abovePos);
-            if (!blockState.isAir() && blockState.isSolidRender(level, checkPos) && aboveState.isAir()) {
+            if (!blockState.isAir() && blockState.isSolidRender() && aboveState.isAir()) {
                 return checkPos;
             }
         }
@@ -859,7 +817,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         this.getNavigation().stop();
         LivingEntity target = this.getTarget();
         if (target != null) this.getLookControl().setLookAt(target, 30.0F, 30.0F);
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             float pitch = 0.8F + this.random.nextFloat() * 0.4F;
             if (attackType == 3) this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.HOSTILE, 1.2F, pitch);
@@ -869,7 +827,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     public void performAttackDamage() {
-        if (!this.level().isClientSide && isAttacking()) {
+        if (!this.level().isClientSide() && isAttacking()) {
             LivingEntity target = this.getTarget();
             if (target != null) {
                 int attackType = getAttackType();
@@ -877,7 +835,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 else if (attackType == 2) incrementRightAttackCount();
                 if (attackType == 3) {
                     float damageAmount = 35.0f;
-                    boolean damageApplied = target.hurt(this.damageSources().mobAttack(this), damageAmount);
+                    boolean damageApplied = target.hurtOrSimulate(this.damageSources().mobAttack(this), damageAmount);
                     if (damageApplied) {
                         Vec3 lookAngle = this.getLookAngle();
                         target.setDeltaMovement(target.getDeltaMovement().add(lookAngle.x * 0.3, 0.15, lookAngle.z * 0.3));
@@ -887,7 +845,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                     double attackRange = 3.5;
                     if (distance <= attackRange && this.hasLineOfSight(target) && target.isAlive() && !target.isInvulnerable()) {
                         float damageAmount = 25.0f;
-                        boolean damageApplied = target.hurt(this.damageSources().mobAttack(this), damageAmount);
+                        boolean damageApplied = target.hurtOrSimulate(this.damageSources().mobAttack(this), damageAmount);
                         if (damageApplied) {
                             Vec3 lookAngle = this.getLookAngle();
                             target.setDeltaMovement(target.getDeltaMovement().add(lookAngle.x * 0.3, 0.15, lookAngle.z * 0.3));
@@ -939,8 +897,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         int minX = (int) Math.floor(aabb.minX), maxX = (int) Math.ceil(aabb.maxX);
         int minZ = (int) Math.floor(aabb.minZ), maxZ = (int) Math.ceil(aabb.maxZ);
         int minY = (int) Math.floor(aabb.minY), maxY = (int) Math.ceil(aabb.maxY);
-
-        
         int xEast = (int) Math.ceil(aabb.maxX);
         for (int y = minY; y <= maxY; y++) for (int z = minZ; z <= maxZ; z++) {
             BlockPos pos = new BlockPos(xEast, y, z);
@@ -961,8 +917,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             BlockPos pos = new BlockPos(x, y, zNorth);
             if (isBreakableBlock(pos)) toDestroy.add(pos);
         }
-
-        
         int topY = (int) Math.ceil(aabb.maxY);
         for (int y = topY; y <= topY + 2; y++) {
             for (int x = minX; x <= maxX; x++) {
@@ -972,8 +926,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 }
             }
         }
-
-        
         if (target != null && (target.getY() + target.getEyeHeight()) < this.getY()) {
             int startY = (int) Math.floor(this.getY()) - 1; 
             for (int y = startY; y >= startY - 2; y--) {
@@ -1088,7 +1040,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     @Override
     public void tick() {
         super.tick();
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (isShockwaveAttacking() && getShockwaveTimer() <= 0) { setShockwaveAttacking(false); this.setNoAi(false); }
             if (shockwaveCooldownTimer <= 0 && this.isNoAi() && !isStomping()) this.setNoAi(false);
             updateMovementState();
@@ -1098,7 +1050,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             super.tick();
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.BIG_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
@@ -1109,10 +1061,10 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                         BlockPos deathPos = this.deathPosition;
                         long seed = this.random.nextLong();
                         int delay = this.random.nextInt(30) + 40;
-                        serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount() + delay, () -> spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed))));
+                        serverLevel.getServer().schedule(new TickTask(serverLevel.getServer().getTickCount() + delay, () -> spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed))));
                         AreaEffectCloud cloud = new AreaEffectCloud(serverLevel, deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
                         cloud.setRadius(1.5F); cloud.setDuration(60); cloud.setRadiusPerTick(0); cloud.setWaitTime(0);
-                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 1, false, true));
                         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
                         serverLevel.addFreshEntity(cloud);
                     }
@@ -1136,9 +1088,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             } else if (!isAttacking) movementAttribute.setBaseValue(0.28D);
             else movementAttribute.setBaseValue(0.0D);
         }
-
-        
-        if (!this.level().isClientSide && this.onGround() && this.isMoving()) {
+        if (!this.level().isClientSide() && this.onGround() && this.isMoving()) {
             if (this.stepSoundDelay <= 0) {
                 this.playSound(ModSoundEvents.RESHAPE_STEP.get(), 1.0F, 1.0F);
                 
@@ -1150,9 +1100,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             
             if (this.stepSoundDelay > 0) this.stepSoundDelay--;
         }
-
-        
-        if (this.level().isClientSide && isAttacking() && (getAttackType() == 1 || getAttackType() == 2)) {
+        if (this.level().isClientSide() && isAttacking() && (getAttackType() == 1 || getAttackType() == 2)) {
             int elapsed = ATTACK_DURATION - attackTimer; 
             if (elapsed >= 4 && elapsed <= 14) {
                 int particleCount = 8 + this.random.nextInt(5); 
@@ -1181,7 +1129,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     private Vec3 getLocatorWorldPosition(String locatorName) {
         
         float yawRad = (float) Math.toRadians(this.getYRot());
@@ -1217,10 +1164,10 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         return horizontalDistance <= 3.5 && verticalDistance <= 0.5 && !isAttacking() && stopAttackDelay <= 0;
     }
 
-    @Override public boolean causeFallDamage(float fallDistance, float multiplier, DamageSource source) { return false; }
+    @Override public boolean causeFallDamage(double fallDistance, float multiplier, DamageSource source) { return false; }
     @Override
     public void travel(Vec3 travelVector) {
-        if (isStomping() && !this.level().isClientSide) {
+        if (isStomping() && !this.level().isClientSide()) {
             
             super.travel(new Vec3(0, travelVector.y, 0));
         } else {
@@ -1228,7 +1175,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         }
     }
     @Override public boolean canBreatheUnderwater() { return true; }
-    @Override protected void jumpFromGround() {
+    @Override public void jumpFromGround() {
         if (isShockwaveAttacking() || shockwaveCooldownTimer > 0 || isGassing() || isStomping()) return;
         super.jumpFromGround();
         this.setDeltaMovement(this.getDeltaMovement().x, 1.0D, this.getDeltaMovement().z);
@@ -1240,7 +1187,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             }
         }
     }
-    @Override protected int calculateFallDamage(float distance, float damageMultiplier) { return 0; }
+    @Override protected int calculateFallDamage(double distance, float damageMultiplier) { return 0; }
     @Override protected SoundEvent getHurtSound(DamageSource source) {
         return ModSoundEvents.RESHAPE_LONGARMS_HURT.get();
     }
@@ -1257,9 +1204,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         RandomSoundGoal(ReshapeLongarms reshapeLongarms) {
             this.reshapeLongarms = reshapeLongarms;
         }
-
-        
-
         @Override
         public boolean canUse() {
             return reshapeLongarms.isAlive() && !reshapeLongarms.isAggressive();
@@ -1284,16 +1228,16 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker && shouldIgnoreDamageFrom(attacker)) return false;
         if (isFakingDeath() || isInvulnerable()) return false;
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) this.onAttacked(attacker);
-        return super.hurt(source, amount);
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) this.onAttacked(attacker);
+        return super.hurtServer(level, source, amount);
     }
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             IParasite.super.onKillEntity(killedEntity);
             this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0, false, false, true));
         }
@@ -1301,35 +1245,35 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::playState));
+        controllers.add(new AnimationController<>("controller", 4, this::playState));
     }
 
-    private PlayState playState(AnimationState<ReshapeLongarms> event) {
+    private PlayState playState(AnimationTest<ReshapeLongarms> event) {
         if (this.isRemoved() || !this.isAlive()) return PlayState.STOP;
-        if (this.isFakingDeath()) event.getController().setAnimation(RawAnimation.begin().thenLoop("dead"));
-        else if (this.isGassing()) event.getController().setAnimation(RawAnimation.begin().thenLoop("gassing"));
-        else if (this.isShockwaveAttacking()) event.getController().setAnimation(RawAnimation.begin().thenPlay("shockwave_big"));
+        if (this.isFakingDeath()) event.setAnimation(RawAnimation.begin().thenLoop("dead"));
+        else if (this.isGassing()) event.setAnimation(RawAnimation.begin().thenLoop("gassing"));
+        else if (this.isShockwaveAttacking()) event.setAnimation(RawAnimation.begin().thenPlay("shockwave_big"));
         else if (this.isStomping()) {
             int type = getStompType();
-            if (type == 1) event.getController().setAnimation(RawAnimation.begin().thenPlay("shockwave_small_right"));
-            else if (type == 2) event.getController().setAnimation(RawAnimation.begin().thenPlay("shockwave_small_left"));
-            else event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+            if (type == 1) event.setAnimation(RawAnimation.begin().thenPlay("shockwave_small_right"));
+            else if (type == 2) event.setAnimation(RawAnimation.begin().thenPlay("shockwave_small_left"));
+            else event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         } else if (this.isAttacking()) {
             int attackType = getAttackType();
             switch (attackType) {
-                case 1: event.getController().setAnimation(RawAnimation.begin().thenLoop("attack_leftarm")); break;
-                case 2: event.getController().setAnimation(RawAnimation.begin().thenLoop("attack_rightarm")); break;
-                case 3: event.getController().setAnimation(RawAnimation.begin().thenPlay("attack_dblarm")); break;
-                default: event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+                case 1: event.setAnimation(RawAnimation.begin().thenLoop("attack_leftarm")); break;
+                case 2: event.setAnimation(RawAnimation.begin().thenLoop("attack_rightarm")); break;
+                case 3: event.setAnimation(RawAnimation.begin().thenPlay("attack_dblarm")); break;
+                default: event.setAnimation(RawAnimation.begin().thenLoop("idle"));
             }
-        } else if (this.isRunning()) event.getController().setAnimation(RawAnimation.begin().thenLoop("run"));
-        else if (this.isWalking()) event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
-        else event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+        } else if (this.isRunning()) event.setAnimation(RawAnimation.begin().thenLoop("run"));
+        else if (this.isWalking()) event.setAnimation(RawAnimation.begin().thenLoop("walk"));
+        else event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         return PlayState.CONTINUE;
     }
 
-    public static boolean checkReshapeLongarmsSpawnRules(EntityType<ReshapeLongarms> entityType, ServerLevelAccessor levelAccessor, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+    public static boolean checkReshapeLongarmsSpawnRules(EntityType<ReshapeLongarms> entityType, ServerLevelAccessor levelAccessor, EntitySpawnReason spawnType, BlockPos pos, RandomSource random) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
             return stage >= 4 && stage <= 6;
         }
@@ -1348,7 +1292,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 if (currentDeaths < minKills) {
                     DamageAdaptation.recordDeath(this);
                     this.setHealth(this.getMaxHealth());
-                    if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+                    if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
                         RandomSource random = this.getRandom();
                         int particleCount = 7 + random.nextInt(6);
                         AABB bb = this.getBoundingBox();
@@ -1356,7 +1300,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                             double x = bb.minX + random.nextDouble() * (bb.maxX - bb.minX);
                             double y = bb.minY + random.nextDouble() * (bb.maxY - bb.minY);
                             double z = bb.minZ + random.nextDouble() * (bb.maxZ - bb.minZ);
-                            DustParticleOptions dust = new DustParticleOptions(new Vector3f(0.2F, 1.0F, 0.2F), 1.0F);
+                            DustParticleOptions dust = new DustParticleOptions(3407667, 1.0F);
                             serverLevel.sendParticles(dust, x, y, z, 1, 0, 0, 0, 0.1);
                         }
                     }
@@ -1372,32 +1316,30 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             return;
         }
 
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) { triggerFakeDeath(source); this.onDeath(source); }
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) { triggerFakeDeath(source); this.onDeath(source); }
         else { super.die(source); this.onDeath(source); }
     }
 
     private boolean isInventoryEmpty() { for (int i = 0; i < inventory.getSlots(); i++) if (!inventory.getStackInSlot(i).isEmpty()) return false; return true; }
-    @Override public void addAdditionalSaveData(CompoundTag tag) { super.addAdditionalSaveData(tag); tag.put("Inventory", inventory.serializeNBT()); }
-    @Override public void readAdditionalSaveData(CompoundTag tag) { super.readAdditionalSaveData(tag); if (tag.contains("Inventory")) inventory.deserializeNBT(tag.getCompound("Inventory")); }
-    @Override public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) { if (cap == ForgeCapabilities.ITEM_HANDLER) return itemHandler.cast(); return super.getCapability(cap, side); }
-    @Override public void invalidateCaps() { super.invalidateCaps(); itemHandler.invalidate(); }
+    @Override public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) { super.addAdditionalSaveData(tag); inventory.serialize(tag.child("Inventory")); }
+    @Override public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) { super.readAdditionalSaveData(tag); if (tag.child("Inventory").isPresent()) inventory.deserialize(tag.childOrEmpty("Inventory")); }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_FAKING_DEATH, false);
-        this.entityData.define(DATA_IS_INVULNERABLE, false);
-        this.entityData.define(DATA_IS_RUNNING, false);
-        this.entityData.define(DATA_IS_WALKING, false);
-        this.entityData.define(DATA_IS_ATTACKING, false);
-        this.entityData.define(DATA_ATTACK_TYPE, 0);
-        this.entityData.define(DATA_IS_SHOCKWAVE_ATTACKING, false);
-        this.entityData.define(DATA_SHOCKWAVE_TIMER, 0);
-        this.entityData.define(DATA_IS_GASSING, false);
-        this.entityData.define(DATA_GASSING_TIMER, 0);
-        this.entityData.define(DATA_IS_STOMPING, false);
-        this.entityData.define(DATA_STOMP_TYPE, 0);
-        this.entityData.define(DATA_STOMP_TIMER, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_FAKING_DEATH, false);
+        entityData.define(DATA_IS_INVULNERABLE, false);
+        entityData.define(DATA_IS_RUNNING, false);
+        entityData.define(DATA_IS_WALKING, false);
+        entityData.define(DATA_IS_ATTACKING, false);
+        entityData.define(DATA_ATTACK_TYPE, 0);
+        entityData.define(DATA_IS_SHOCKWAVE_ATTACKING, false);
+        entityData.define(DATA_SHOCKWAVE_TIMER, 0);
+        entityData.define(DATA_IS_GASSING, false);
+        entityData.define(DATA_GASSING_TIMER, 0);
+        entityData.define(DATA_IS_STOMPING, false);
+        entityData.define(DATA_STOMP_TYPE, 0);
+        entityData.define(DATA_STOMP_TIMER, 0);
     }
 
     public boolean isRunning() { return this.entityData.get(DATA_IS_RUNNING); }
@@ -1421,7 +1363,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
-        if (level.isClientSide || deathPos == null) return;
+        if (level.isClientSide() || deathPos == null) return;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_LARGE.get().defaultBlockState(), 1);
         int mediumCount = rand.nextInt(3) + 2;
@@ -1443,13 +1385,12 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         }
     }
 
-    @Override public boolean startRiding(Entity vehicle, boolean force) { if (vehicle instanceof Boat || vehicle instanceof Minecart) return false; return super.startRiding(vehicle, force); }
+    @Override public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) { if (vehicle instanceof Boat || vehicle instanceof Minecart) return false; return super.startRiding(vehicle, force, sendEventAndTriggers); }
     @Override protected boolean canRide(Entity entity) { if (entity instanceof Boat || entity instanceof Minecart) return false; return super.canRide(entity); }
     @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return factory; }
     @Override public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) { return false; }
 
     private final ItemStackHandler inventory = new ItemStackHandler(27) { @Override protected void onContentsChanged(int slot) {} };
-    private LazyOptional<IItemHandler> itemHandler = LazyOptional.of(() -> inventory);
 
     private ItemStack addItemToInventory(ItemStack stack) {
         if (stack.isEmpty()) return ItemStack.EMPTY;
@@ -1459,7 +1400,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             remaining = insertItemIntoInventory(stack);
             if (remaining.isEmpty()) return ItemStack.EMPTY;
         }
-        if (!level().isClientSide) Containers.dropItemStack(level(), getX(), getY(), getZ(), remaining);
+        if (!level().isClientSide()) Containers.dropItemStack(level(), getX(), getY(), getZ(), remaining);
         return ItemStack.EMPTY;
     }
 
@@ -1470,7 +1411,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private boolean tryPlaceCystAndTransfer() {
-        if (level().isClientSide) return false;
+        if (level().isClientSide()) return false;
         boolean hasItems = false;
         for (int i = 0; i < inventory.getSlots(); i++) if (!inventory.getStackInSlot(i).isEmpty()) { hasItems = true; break; }
         if (!hasItems) return false;
@@ -1524,7 +1465,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
 
     @Override
     public void remove(RemovalReason reason) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (frontPart != null) {
                 frontPart.discard();
                 frontPart = null;
@@ -1575,32 +1516,36 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         }
 
         @Override
-        protected void defineSynchedData() {
-            this.entityData.define(DATA_PARENT_ID, 0);
-            this.entityData.define(DATA_IS_BACK, false);
-            this.entityData.define(DATA_WIDTH, 1.0F);
-            this.entityData.define(DATA_HEIGHT, 1.0F);
+        protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+            entityData.define(DATA_PARENT_ID, 0);
+            entityData.define(DATA_IS_BACK, false);
+            entityData.define(DATA_WIDTH, 1.0F);
+            entityData.define(DATA_HEIGHT, 1.0F);
         }
 
+        // 26.1.2: CustomPart extends Entity, and Entity#getDimensions(Pose) is NOT final
+        // (Entity.java:3622 - only LivingEntity's override is final at LivingEntity.java:3791),
+        // so the part keeps its independent synced width/height. refreshDimensions() is called
+        // whenever those fields change, which re-reads this method.
         @Override
         public EntityDimensions getDimensions(Pose pose) {
             return EntityDimensions.fixed(this.partWidth, this.partHeight);
         }
 
         @Override
-        protected void readAdditionalSaveData(CompoundTag tag) {
+        protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
             // 空实现（部件不保存）
         }
 
         @Override
-        protected void addAdditionalSaveData(CompoundTag tag) {
+        protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
             // 空实现（部件不保存）
         }
 
         @Override
         public void tick() {
             // ========== 客户端逻辑 ==========
-            if (this.level().isClientSide) {
+            if (this.level().isClientSide()) {
                 // 1. 同步尺寸和类型
                 this.partIsBack = this.entityData.get(DATA_IS_BACK);
                 float w = this.entityData.get(DATA_WIDTH);
@@ -1653,13 +1598,13 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         }
 
         @Override
-        public boolean hurt(DamageSource source, float amount) {
+        public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
             if (parent == null || parent.isRemoved() || parent.isFakingDeath())
                 return false;
 
             float multiplier = partIsBack ? 2.0F : 1.5F;
             float finalDamage = amount * multiplier;
-            boolean hurtResult = parent.hurt(source, finalDamage);
+            boolean hurtResult = parent.hurtOrSimulate(source, finalDamage);
 
             if (partIsBack && hurtResult && finalDamage > 7.0F && !parent.isBackPartRemoved()) {
                 parent.removeBackPart();
@@ -1674,7 +1619,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     public void removeBackPart() {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
         if (backPart != null && !backPart.isRemoved()) {
             backPart.discard();
             backPart = null;

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "epca:infested_pig",
+    "epca:infested_sheep",
+    "epca:infested_chicken",
+    "epca:infested_fox",
+    "epca:infested_wolf"
+  ]
+}

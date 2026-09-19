@@ -3,14 +3,14 @@ package org.tdddd.epca.impl.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.items.CustomTab;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public class CustomTabRenderer {
 
     @SubscribeEvent
@@ -29,7 +29,8 @@ public class CustomTabRenderer {
         var graphics = event.getGuiGraphics();
         int mouseX = (int) mc.mouseHandler.xpos();
         int mouseY = (int) mc.mouseHandler.ypos();
-        float partialTick = event.getPartialTick();
+        // 26.1.2: RenderGuiEvent#getPartialTick() returns a DeltaTracker, not a float.
+        float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
 
         int leftPos = creativeScreen.width;
         int topPos = creativeScreen.height;

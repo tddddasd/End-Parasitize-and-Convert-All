@@ -2,7 +2,7 @@ package org.tdddd.epca.impl.utils;
 
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import org.tdddd.epca.impl.overworld.registry.capability.IShieldCapability;
+import org.tdddd.epca.impl.overworld.registry.capability.ShieldCapability;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.events.ShieldCapabilityHandler;
 
@@ -11,7 +11,7 @@ public class ShieldProtectionHelper {
     
     public static float applyShieldProtection(LivingEntity entity, float incomingDamage) {
         if (incomingDamage <= 0) return 0;
-        MobEffectInstance effect = entity.getEffect(ModEffects.SOUL_PROTECTION.get());
+        MobEffectInstance effect = entity.getEffect(ModEffects.SOUL_PROTECTION);
         if (effect == null) return incomingDamage;
 
         int amplifier = effect.getAmplifier();
@@ -19,7 +19,7 @@ public class ShieldProtectionHelper {
         if (incomingDamage <= threshold) return 0;
 
         float damageAfterThreshold = incomingDamage - threshold;
-        IShieldCapability shieldCap = entity.getCapability(ShieldCapabilityHandler.SHIELD_CAP).orElse(null);
+        ShieldCapability shieldCap = entity.getExistingDataOrNull(ShieldCapabilityHandler.SHIELD_CAP);
         if (shieldCap == null) return damageAfterThreshold;
 
         float currentShield = shieldCap.getShield();
@@ -45,24 +45,24 @@ public class ShieldProtectionHelper {
             }
         }
 
-        IShieldCapability shieldCap = entity.getCapability(ShieldCapabilityHandler.SHIELD_CAP).orElse(null);
+        ShieldCapability shieldCap = entity.getExistingDataOrNull(ShieldCapabilityHandler.SHIELD_CAP);
         if (shieldCap == null) return;
 
         float currentShield = shieldCap.getShield();
         int newDuration = (int) (currentShield / 0.05f);
 
-        MobEffectInstance effect = entity.getEffect(ModEffects.SOUL_PROTECTION.get());
+        MobEffectInstance effect = entity.getEffect(ModEffects.SOUL_PROTECTION);
         if (effect == null) {
             if (currentShield > 0) shieldCap.setShield(0);
             return;
         }
 
         if (newDuration <= 0) {
-            entity.removeEffect(ModEffects.SOUL_PROTECTION.get());
+            entity.removeEffect(ModEffects.SOUL_PROTECTION);
             shieldCap.setShield(0);
         } else {
             MobEffectInstance newEffect = new MobEffectInstance(
-                    ModEffects.SOUL_PROTECTION.get(),
+                    ModEffects.SOUL_PROTECTION,
                     newDuration,
                     effect.getAmplifier(),
                     effect.isAmbient(),

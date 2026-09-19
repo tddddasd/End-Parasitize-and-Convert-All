@@ -31,7 +31,7 @@ public class InfestedPolishedHeavyStoneStairs extends StairBlock implements Infe
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedPolishedHeavyStoneStairs(Properties properties) {
-        super(() -> Blocks.DEEPSLATE.defaultBlockState(), properties);
+        super(Blocks.DEEPSLATE.defaultBlockState(), properties);
         
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(NATURAL_SPAWN, true)

@@ -29,8 +29,17 @@ import net.minecraft.world.entity.item.FallingBlockEntity;
 public class InfestedResidue extends FallingBlock implements InfestedBlockInterface {
     public static final IntegerProperty LAYERS = IntegerProperty.create("layers", 1, 8);
 
+    /**
+     * 26.1.2: id-bearing constructor for {@code DeferredRegister.Blocks#registerBlock}.
+     */
+    public InfestedResidue(Properties properties) {
+        super(properties);
+        this.registerDefaultState(this.stateDefinition.any().setValue(LAYERS, 1));
+    }
+
+    /** Kept for {@code simpleCodec} / hand construction with the original defaults. */
     public InfestedResidue() {
-        super(Properties.of()
+        this(Properties.of()
                 .noOcclusion()
                 .strength(0.0f)
                 .sound(SoundType.NETHER_WART)
@@ -40,7 +49,17 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
                 .pushReaction(PushReaction.DESTROY)
                 .requiresCorrectToolForDrops()
         );
-        this.registerDefaultState(this.stateDefinition.any().setValue(LAYERS, 1));
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.block.FallingBlock> codec() {
+        return simpleCodec(InfestedResidue::new);
+    }
+
+    /** 26.1.2: {@code FallingBlock#getDustColor} is abstract (FALLING_DUST particle colour). */
+    @Override
+    public int getDustColor(BlockState state, BlockGetter level, BlockPos pos) {
+        return 0x8C6B4A;
     }
 
     @Override
@@ -60,12 +79,12 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
         return Block.box(0.0D, 0.0D, 0.0D, 16.0D, layers * 2.0D - 1.9D, 16.0D);
     }
 
+    // 26.1.2: {@code Block#use} was split into {@code useItemOn} / {@code useWithoutItem}.
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
-                                 InteractionHand hand, BlockHitResult hit) {
-        if (level.isClientSide) return InteractionResult.SUCCESS;
+    protected InteractionResult useItemOn(ItemStack held, BlockState state, Level level, BlockPos pos, Player player,
+                                          InteractionHand hand, BlockHitResult hit) {
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
 
-        ItemStack held = player.getItemInHand(hand);
         if (held.getItem() == this.asItem()) {
             if (state.getValue(LAYERS) == 8) {
                 BlockPos abovePos = pos.above();
@@ -84,13 +103,14 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
     }
 
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        if (!level.isClientSide && entity instanceof LivingEntity living) {
-            if (!living.hasEffect(ModEffects.COTH.get())) {
-                living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 0, false, true, true));
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+        if (!level.isClientSide() && entity instanceof LivingEntity living) {
+            if (!living.hasEffect(ModEffects.COTH)) {
+                living.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 0, false, true, true));
             }
         }
-        super.entityInside(state, level, pos, entity);
+        super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
     }
 
     @Override
@@ -100,7 +120,7 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
 
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        if (level instanceof Level world && !world.isClientSide) {
+        if (level instanceof Level world && !world.isClientSide()) {
             BlockPos belowPos = pos.below();
             BlockState belowState = world.getBlockState(belowPos);
             if (belowState.getBlock() instanceof InfestedResidue) {
@@ -132,7 +152,7 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
     @Override
     public void onLand(Level level, BlockPos pos, BlockState state, BlockState landedState, FallingBlockEntity fallingBlockEntity) {
         super.onLand(level, pos, state, landedState, fallingBlockEntity);
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         if (landedState.getBlock() instanceof InfestedResidue) {
             int fallingLayers = state.getValue(LAYERS);
@@ -182,7 +202,7 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
                     }
                 } else {
                     targetPos = targetPos.above();
-                    if (targetPos.getY() > level.getMaxBuildHeight() || targetPos.getY() < level.getMinBuildHeight()) {
+                    if (targetPos.getY() > level.getMaxY() || targetPos.getY() < level.getMinY()) {
                         BlockState newState = existingState.getBlock().defaultBlockState().setValue(LAYERS, remaining);
                         level.setBlock(targetPos, newState, Block.UPDATE_ALL);
                         level.updateNeighborsAt(targetPos, newState.getBlock());

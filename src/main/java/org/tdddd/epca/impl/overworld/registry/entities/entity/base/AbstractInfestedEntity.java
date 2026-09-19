@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.base;
 
+import org.tdddd.epca.impl.epca;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.TickTask;
@@ -47,9 +49,9 @@ import java.util.function.Consumer;
 public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implements IInfested, Enemy {
 
     // ────────── Wander speed modifier (shared by all infested) ──────────
-    protected static final UUID WANDER_SPEED_ID = UUID.fromString("A3766B59-7066-4402-AD81-0E3B7B6C2B9B");
+    protected static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath(epca.MODID, "wander_speed_reduction");
     protected static final AttributeModifier WANDER_SPEED_REDUCTION =
-            new AttributeModifier(WANDER_SPEED_ID, "Wander speed reduction", -0.35, AttributeModifier.Operation.MULTIPLY_TOTAL);
+            new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
     // ────────── Movement speeds ──────────
     protected double baseSpeed = 0.27D;
@@ -67,7 +69,8 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         super(entityType, level);
         this.fakeDeathEnabled = true;
         this.fakeDeathChance = 40;       // 40% chance
-        this.setMaxUpStep(0.5F);
+        AttributeInstance stepHeight = this.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) stepHeight.setBaseValue(0.5F);
     }
 
     protected AbstractInfestedEntity(EntityType<? extends PathfinderMob> entityType, Level level,
@@ -75,7 +78,8 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         super(entityType, level, configurer);
         this.fakeDeathEnabled = true;
         this.fakeDeathChance = 40;
-        this.setMaxUpStep(0.5F);
+        AttributeInstance stepHeight = this.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) stepHeight.setBaseValue(0.5F);
     }
 
     // ────────── Fake death burst ──────────
@@ -115,7 +119,14 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         BlockPos deathPos = burstPos;
         long seed = this.random.nextLong();
         int delay = this.random.nextInt(30) + 40;
-        serverLevel.getServer().tell(new TickTask(
+        // 26.1.2: MinecraftServer#tell(TickTask) is gone. A transient TickTask handed to the
+        // server event loop is the replacement (same shape as vanilla SkeletonTrapGoal); the
+        // loop's shouldRun() gate means it runs as soon as the server has time, exactly like the
+        // removed tell(), so the nominal offset is retained but not enforced.
+        // TimerQueue#schedule is not usable here: TimerCallbacks.SERVER_CALLBACKS only knows the
+        // vanilla minecraft:function/function_tag callbacks, so a mod callback could not be
+        // serialised and would break the world save.
+        serverLevel.getServer().schedule(new TickTask(
                 serverLevel.getServer().getTickCount() + delay,
                 () -> spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed))
         ));
@@ -127,7 +138,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         cloud.setDuration(60);
         cloud.setRadiusPerTick(0);
         cloud.setWaitTime(0);
-        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 0, false, true));
+        cloud.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 0, false, true));
         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
         serverLevel.addFreshEntity(cloud);
     }
@@ -138,7 +149,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
      * Spawn remains blocks (large, medium, small) around a death position.
      */
     protected static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
-        if (level.isClientSide || deathPos == null) return;
+        if (level.isClientSide() || deathPos == null) return;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         placeRemainsBlock(level, deathPos, pos, rand,
@@ -207,9 +218,9 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
     // ────────── hurt() ──────────
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource source, float amount) {
         if (isInvulnerable()) return false;
-        return super.hurt(source, amount); // AbstractEpcaEntity handles the rest
+        return super.hurtServer(serverLevel, source, amount); // AbstractEpcaEntity handles the rest
     }
 
     // ────────── die() ──────────
@@ -244,7 +255,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         }
 
         // Try fake death, else normal death
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < fakeDeathBurstChance) {
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < fakeDeathBurstChance) {
             onTriggerFakeDeath(source);
             this.onDeath(source);
         } else {
@@ -275,7 +286,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (this.level() instanceof ServerLevel serverLevel) {
                 EvolutionManager.forDimension(serverLevel).addPoints(1);
             }

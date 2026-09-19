@@ -2,13 +2,13 @@ package org.tdddd.epca.impl.events;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.ContaminatedWater;
 
-@Mod.EventBusSubscriber(modid = epca.MODID)
+@EventBusSubscriber(modid = epca.MODID)
 public class ContaminatedWaterLimitHandler {
     private static final int MAX_CONTAMINATED_WATER = 24;
     @SubscribeEvent

@@ -33,8 +33,8 @@ public abstract class PlayerMixin implements IParasite {
         ((Player)(Object)this).addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0));
     }
 
-    @ModifyVariable(method = "hurt", at = @At("HEAD"), argsOnly = true)
-    private float epca$applyDamageAdaptation(float amount, DamageSource source) {
+    @ModifyVariable(method = "hurtServer", at = @At("HEAD"), argsOnly = true)
+    private float epca$applyDamageAdaptation(float amount, ServerLevel level, DamageSource source) {
         if (epca$isNestLeader()) {
             return NestLeaderDamageAdaptation.applyAdaptation((Player)(Object)this, source, amount);
         }

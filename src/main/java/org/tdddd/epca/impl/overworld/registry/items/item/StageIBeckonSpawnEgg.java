@@ -12,25 +12,25 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeSpawnEggItem;
+import net.minecraft.world.item.SpawnEggItem;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon;
 
-public class StageIBeckonSpawnEgg extends ForgeSpawnEggItem {
+public class StageIBeckonSpawnEgg extends SpawnEggItem {
 
     private static final String LAST_FAIL_TIME_KEY = "epca_beckon_last_fail_time";
     private static final String FAIL_COUNT_KEY = "epca_beckon_fail_count";
     private static final long RESET_INTERVAL_MS = 5000;
 
     public StageIBeckonSpawnEgg(Properties properties) {
-        super(() -> ModEntities.STAGE_I_BECKON.get(), -1, -1, properties);
+        super(properties.spawnEgg(ModEntities.STAGE_I_BECKON.get()));
     }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
         if (!(level instanceof ServerLevel serverLevel)) {
@@ -50,8 +50,8 @@ public class StageIBeckonSpawnEgg extends ForgeSpawnEggItem {
         if (stage < 3) {
             
             long now = System.currentTimeMillis();
-            long lastFail = persistentData.getLong(LAST_FAIL_TIME_KEY);
-            int failCount = persistentData.getInt(FAIL_COUNT_KEY);
+            long lastFail = persistentData.getLong(LAST_FAIL_TIME_KEY).orElse(0L);
+            int failCount = persistentData.getInt(FAIL_COUNT_KEY).orElse(0);
 
             
             if (now - lastFail > RESET_INTERVAL_MS) {
@@ -70,7 +70,11 @@ public class StageIBeckonSpawnEgg extends ForgeSpawnEggItem {
 
             Component message = Component.translatable("epca.message.stage_too_low")
                     .withStyle(style -> style.withColor(color));
-            player.displayClientMessage(message, true);
+            // 26.1.2: Player#displayClientMessage(Component, boolean overlay) is gone; the
+            // overlay variant now lives on ServerPlayer#sendSystemMessage(Component, boolean).
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                serverPlayer.sendSystemMessage(message, true);
+            }
 
             return InteractionResult.FAIL;
         }
@@ -85,7 +89,7 @@ public class StageIBeckonSpawnEgg extends ForgeSpawnEggItem {
         double spawnZ = blockPos.getZ() + 0.5 + direction.getStepZ() * 0.5;
         Vec3 targetPosition = new Vec3(spawnX, spawnY, spawnZ);
 
-        Entity beckon = ModEntities.STAGE_I_BECKON.get().create(serverLevel);
+        Entity beckon = ModEntities.STAGE_I_BECKON.get().create(serverLevel, net.minecraft.world.entity.EntitySpawnReason.CONVERSION);
         if (beckon != null && beckon instanceof StageIBeckon stageIBeckon) {
             stageIBeckon.setRiseTarget(targetPosition);
             serverLevel.addFreshEntity(stageIBeckon);

@@ -2,14 +2,14 @@ package org.tdddd.epca.impl.events;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.epca;
 
-@Mod.EventBusSubscriber(modid = epca.MODID)
+@EventBusSubscriber(modid = epca.MODID)
 public class VillagerSpawnEventHandler {
 
     @SubscribeEvent

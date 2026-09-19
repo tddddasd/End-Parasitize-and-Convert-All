@@ -5,8 +5,8 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.entity.EntityType;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 
@@ -34,7 +34,7 @@ public class CustomDataProviders {
 
     /** 获取实体 → "modid:name" 字符串 */
     private static String regName(EntityType<?> type) {
-        return Objects.requireNonNull(ForgeRegistries.ENTITY_TYPES.getKey(type)).toString();
+        return Objects.requireNonNull(BuiltInRegistries.ENTITY_TYPE.getKey(type)).toString();
     }
 
     // ═══════════════════ 1. Entity Conversions ═══════════════════
@@ -109,16 +109,16 @@ public class CustomDataProviders {
 
         // ——— 简写方法 ———
 
-        /** from=EntityType, to=RegistryObject */
+        /** from=EntityType, to=DeferredHolder */
         private void conv(CachedOutput c, List<CompletableFuture<?>> tasks,
-                          String file, EntityType<?> from, RegistryObject<? extends EntityType<?>> to,
+                          String file, EntityType<?> from, DeferredHolder<EntityType<?>, ? extends EntityType<?>> to,
                           boolean smallPrio, int prio) {
             tasks.add(write(c, file, regName(from), regName(to.get()), smallPrio, prio, null));
         }
-        /** from=RegistryObject, to=RegistryObject (受染→walking_head) */
+        /** from=DeferredHolder, to=DeferredHolder (受染→walking_head) */
         private void conv(CachedOutput c, List<CompletableFuture<?>> tasks,
-                          String file, RegistryObject<? extends EntityType<?>> from,
-                          RegistryObject<? extends EntityType<?>> to,
+                          String file, DeferredHolder<EntityType<?>, ? extends EntityType<?>> from,
+                          DeferredHolder<EntityType<?>, ? extends EntityType<?>> to,
                           boolean smallPrio, int prio) {
             tasks.add(write(c, file, regName(from.get()), regName(to.get()), smallPrio, prio, null));
         }
@@ -129,7 +129,7 @@ public class CustomDataProviders {
         }
         /** 带 nbt_conditions */
         private void convNbt(CachedOutput c, List<CompletableFuture<?>> tasks,
-                             String file, EntityType<?> from, RegistryObject<? extends EntityType<?>> to,
+                             String file, EntityType<?> from, DeferredHolder<EntityType<?>, ? extends EntityType<?>> to,
                              boolean smallPrio, int prio, Map<String, Object> nbt) {
             tasks.add(write(c, file, regName(from), regName(to.get()), smallPrio, prio, nbt));
         }
@@ -213,7 +213,7 @@ public class CustomDataProviders {
             );
         }
         @SafeVarargs
-        private List<String> names(RegistryObject<? extends EntityType<?>>... entities) {
+        private List<String> names(DeferredHolder<EntityType<?>, ? extends EntityType<?>>... entities) {
             List<String> list = new ArrayList<>();
             for (var e : entities) list.add(regName(e.get()));
             return list;
@@ -424,26 +424,26 @@ public class CustomDataProviders {
             put(general, "minecraft:lily_pad", "epca:infested_lily_pad");
             put(general, "minecraft:deepslate_bricks", "epca:infested_heavy_bricks");
             put(general, "minecraft:cracked_deepslate_bricks", "epca:infested_cracked_heavy_bricks");
-            put(general, "minecraft:deepslate_bricks_slab", "epca:infested_heavy_bricks_slab");
-            put(general, "minecraft:deepslate_bricks_stairs", "epca:infested_heavy_bricks_stairs");
-            put(general, "minecraft:deepslate_bricks_wall", "epca:infested_heavy_bricks_wall");
+            put(general, "minecraft:deepslate_brick_slab", "epca:infested_heavy_bricks_slab");
+            put(general, "minecraft:deepslate_brick_stairs", "epca:infested_heavy_bricks_stairs");
+            put(general, "minecraft:deepslate_brick_wall", "epca:infested_heavy_bricks_wall");
             put(general, "minecraft:carved_pumpkin", "epca:infested_carved_pumpkin");
             put(general, "minecraft:jack_o_lantern", "epca:infested_carved_pumpkin");
             put(general, "minecraft:pumpkin", "epca:infested_pumpkin");
             put(general, "minecraft:cactus", "epca:infested_cactus");
             put(general, "minecraft:sugar_cane", "epca:infested_sugar_cane");
-            put(general, "minecraft:web", "epca:infested_spider_web");
+            put(general, "minecraft:cobweb", "epca:infested_spider_web");
             put(general, "minecraft:deepslate_tiles", "epca:infested_heavy_tiles");
             put(general, "minecraft:cracked_deepslate_tiles", "epca:infested_cracked_heavy_tiles");
-            put(general, "minecraft:deepslate_tiles_slab", "epca:infested_heavy_tiles_slab");
-            put(general, "minecraft:deepslate_tiles_stairs", "epca:infested_heavy_tiles_stairs");
-            put(general, "minecraft:deepslate_tiles_wall", "epca:infested_heavy_tiles_wall");
+            put(general, "minecraft:deepslate_tile_slab", "epca:infested_heavy_tiles_slab");
+            put(general, "minecraft:deepslate_tile_stairs", "epca:infested_heavy_tiles_stairs");
+            put(general, "minecraft:deepslate_tile_wall", "epca:infested_heavy_tiles_wall");
             put(general, "minecraft:mangrove_roots", "epca:infested_mangrove_roots");
-            put(general, "minecraft:grass", "epca:infested_grass");
+            put(general, "minecraft:short_grass", "epca:infested_grass");
             put(general, "minecraft:dead_bush", "epca:infested_dead_bush");
             put(general, "minecraft:fern", "epca:infested_fern");
             put(general, "minecraft:tall_grass", "epca:infested_tall_grass");
-            put(general, "minecraft:large_fern", "epca:infested_lager_fern");
+            put(general, "minecraft:large_fern", "epca:infested_tall_fern");
             put(general, "minecraft:chiseled_deepslate", "epca:infested_chiseled_deepslate");
 
             // beckon — 同 general
@@ -520,7 +520,7 @@ public class CustomDataProviders {
             return saveStable(c, JsonParser.parseString(GSON.toJson(data)),
                     dataPath(out, "biomass_spawns", file));
         }
-        private SpawnEntry e(RegistryObject<? extends EntityType<?>> entity, int weight, int min, int max) {
+        private SpawnEntry e(DeferredHolder<EntityType<?>, ? extends EntityType<?>> entity, int weight, int min, int max) {
             SpawnEntry entry = new SpawnEntry();
             entry.entity = regName(entity.get());
             entry.weight = weight;

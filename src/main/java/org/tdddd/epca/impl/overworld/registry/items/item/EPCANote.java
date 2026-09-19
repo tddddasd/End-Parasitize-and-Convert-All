@@ -1,7 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.items.item;
 
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -13,9 +13,9 @@ public class EPCANote extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             try {
                 
                 Class<?> utilClass = Class.forName("org.tdddd.epca.impl.utils.ClientScreenUtil");
@@ -26,6 +26,6 @@ public class EPCANote extends Item {
                 e.printStackTrace();
             }
         }
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS;
     }
 }

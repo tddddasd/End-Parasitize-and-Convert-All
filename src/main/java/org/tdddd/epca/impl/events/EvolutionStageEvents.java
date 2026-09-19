@@ -7,12 +7,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.ItemFishedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -22,7 +22,7 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.Fins;
 import java.lang.reflect.Method;
 import java.util.*;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class EvolutionStageEvents {
     private static final Random RANDOM = new Random();
     
@@ -36,7 +36,7 @@ public class EvolutionStageEvents {
 
     
     public static void applyCothEffect(LivingEntity entity) {
-        entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 0)); 
+        entity.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 0)); 
     }
 
     
@@ -46,7 +46,7 @@ public class EvolutionStageEvents {
         Level level = entity.level();
         int stage = EvolutionManager.getStageForDimension(level);
 
-        if (stage >= 3 && entity.hasEffect(ModEffects.COTH.get())) {
+        if (stage >= 3 && entity.hasEffect(ModEffects.COTH)) {
             event.setCanceled(true); 
         }
     }
@@ -56,7 +56,7 @@ public class EvolutionStageEvents {
     public static void onItemFished(ItemFishedEvent event) {
         Player player = event.getEntity();
         Level level = player.level();
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         int stage = EvolutionManager.getStageForDimension(level);
 
@@ -159,7 +159,7 @@ public class EvolutionStageEvents {
         } else if (stage == 13) {
             effectLevel = 3; 
         }
-        entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, effectLevel));
+        entity.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, effectLevel));
     }
 
     
@@ -173,7 +173,7 @@ public class EvolutionStageEvents {
 
     
     @SubscribeEvent
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
         Entity source = event.getSource().getEntity();
         if (source != null && IParasite.isParasiteNoLivingByTagOrInterface(source)) {
             ServerLevel level = (ServerLevel) source.level();

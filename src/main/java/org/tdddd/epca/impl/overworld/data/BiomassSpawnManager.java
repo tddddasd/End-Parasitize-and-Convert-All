@@ -3,11 +3,11 @@ package org.tdddd.epca.impl.overworld.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.EntityType;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -30,7 +30,7 @@ public class BiomassSpawnManager implements ResourceManagerReloadListener {
 
                         String fileName = location.getPath().substring(location.getPath().lastIndexOf('/') + 1);
                         String entityId = fileName.substring(0, fileName.length() - 5);
-                        String fullEntityId = new ResourceLocation("epca", entityId).toString();
+                        String fullEntityId = Identifier.fromNamespaceAndPath("epca", entityId).toString();
                         CONFIGS.put(fullEntityId, config);
                     } catch (Exception e) {
                     }
@@ -38,7 +38,7 @@ public class BiomassSpawnManager implements ResourceManagerReloadListener {
     }
 
     public static BiomassSpawnConfig getConfig(EntityType<?> entityType) {
-        ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(entityType);
+        Identifier key = BuiltInRegistries.ENTITY_TYPE.getKey(entityType);
         return key != null ? CONFIGS.get(key.toString()) : null;
     }
 }

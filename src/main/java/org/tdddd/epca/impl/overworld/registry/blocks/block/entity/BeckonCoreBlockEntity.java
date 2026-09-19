@@ -23,6 +23,8 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIIBeckon
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 
 import java.util.List;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class BeckonCoreBlockEntity extends BlockEntity {
     private static final String KILL_COUNT_KEY = "killCount";
@@ -52,20 +54,22 @@ public class BeckonCoreBlockEntity extends BlockEntity {
         return killCount;
     }
 
+    /** 26.1.2: {@code BlockEntity#load(CompoundTag)} became {@code loadAdditional(ValueInput)}. */
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        this.killCount = tag.getInt(KILL_COUNT_KEY);
-        this.generationTimer = tag.getInt(GENERATION_TIMER_KEY);
-        this.isGenerating = tag.getBoolean(IS_GENERATING_KEY);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.killCount = input.getIntOr(KILL_COUNT_KEY, 0);
+        this.generationTimer = input.getIntOr(GENERATION_TIMER_KEY, 0);
+        this.isGenerating = input.getBooleanOr(IS_GENERATING_KEY, false);
     }
 
+    /** 26.1.2: {@code BlockEntity#saveAdditional} takes a {@code ValueOutput}, not a {@code CompoundTag}. */
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.putInt(KILL_COUNT_KEY, this.killCount);
-        tag.putInt(GENERATION_TIMER_KEY, this.generationTimer);
-        tag.putBoolean(IS_GENERATING_KEY, this.isGenerating);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt(KILL_COUNT_KEY, this.killCount);
+        output.putInt(GENERATION_TIMER_KEY, this.generationTimer);
+        output.putBoolean(IS_GENERATING_KEY, this.isGenerating);
     }
 
     
@@ -90,7 +94,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, BeckonCoreBlockEntity be) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
         ServerLevel serverLevel = (ServerLevel) level;
 
         
@@ -136,7 +140,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
         LivingEntity beckon = null;
 
         if (isStageII) {
-            StageIIBeckon stageII = ModEntities.STAGE_II_BECKON.get().create(level);
+            StageIIBeckon stageII = ModEntities.STAGE_II_BECKON.get().create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
             if (stageII != null) {
                 stageII.setRiseTarget(new Vec3(above.getX() + 0.5, above.getY(), above.getZ() + 0.5));
                 level.addFreshEntity(stageII);
@@ -150,7 +154,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
                 }
             }
         } else {
-            StageIBeckon stageI = ModEntities.STAGE_I_BECKON.get().create(level);
+            StageIBeckon stageI = ModEntities.STAGE_I_BECKON.get().create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
             if (stageI != null) {
                 stageI.setRiseTarget(new Vec3(above.getX() + 0.5, above.getY(), above.getZ() + 0.5));
                 level.addFreshEntity(stageI);
@@ -206,13 +210,13 @@ public class BeckonCoreBlockEntity extends BlockEntity {
                     }
                     
                     else if (euclideanSqr <= HIGH_SQR) {
-                        if (level.random.nextFloat() < CHANCE_HIGH) {
+                        if (level.getRandom().nextFloat() < CHANCE_HIGH) {
                             shouldConvert = true;
                         }
                     }
                     
                     else if (euclideanSqr <= LOW_SQR) {
-                        if (level.random.nextFloat() < CHANCE_LOW) {
+                        if (level.getRandom().nextFloat() < CHANCE_LOW) {
                             shouldConvert = true;
                         }
                     }

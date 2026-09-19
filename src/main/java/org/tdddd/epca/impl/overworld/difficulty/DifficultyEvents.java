@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.difficulty;
 
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -8,11 +9,10 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class DifficultyEvents {
     // ===== 定时刷新 Buff =====
     private static final Map<UUID, Long> lastApplyTick = new ConcurrentHashMap<>();
@@ -49,7 +49,7 @@ public class DifficultyEvents {
             if (DifficultyEffects.isRewardEnabled(level)) {
                 
                 float extraChance = DifficultyEffects.getExtraLootChance(level);
-                if (extraChance > 0 && level.random.nextFloat() < extraChance) {
+                if (extraChance > 0 && level.getRandom().nextFloat() < extraChance) {
                     List<ItemEntity> extraDrops = new ArrayList<>();
                     for (ItemEntity drop : event.getDrops()) {
                         ItemStack stack = drop.getItem().copy();
@@ -73,7 +73,7 @@ public class DifficultyEvents {
         }
         // ===== 传说难度：额外掉落两份掉落物（非玩家实体） =====
         Level level = event.getEntity().level();
-        if (!level.isClientSide && DifficultyEffects.isLegendary(level)) {
+        if (!level.isClientSide() && DifficultyEffects.isLegendary(level)) {
             LivingEntity entity = event.getEntity();
             // 排除玩家
             if (entity instanceof Player) return;
@@ -98,9 +98,8 @@ public class DifficultyEvents {
 
     // 玩家tick事件，定期刷新buff
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        Player player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
         Level level = player.level();
         if (level.isClientSide()) return;
         if (!DifficultyEffects.isCothEffectEnabled(level)) return;
@@ -118,6 +117,6 @@ public class DifficultyEvents {
         // 幸运 II（amplifier=1）
         player.addEffect(new MobEffectInstance(MobEffects.LUCK, BUFF_DURATION, 1, false, false, true));
         // SoulProtection II（amplifier=1）
-        player.addEffect(new MobEffectInstance(ModEffects.SOUL_PROTECTION.get(), BUFF_DURATION, 1, false, false, true));
+        player.addEffect(new MobEffectInstance(ModEffects.SOUL_PROTECTION, BUFF_DURATION, 1, false, false, true));
     }
 }

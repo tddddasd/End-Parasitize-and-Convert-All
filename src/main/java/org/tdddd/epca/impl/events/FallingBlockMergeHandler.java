@@ -1,12 +1,12 @@
 package org.tdddd.epca.impl.events;
 
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedResidue;
 import net.minecraft.world.entity.player.Player;
@@ -16,18 +16,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Mod.EventBusSubscriber(modid = epca.MODID)
+@EventBusSubscriber(modid = epca.MODID)
 public class FallingBlockMergeHandler {
 
     private static final double SEARCH_RADIUS = 64.0; // 搜索半径（格）
 
     @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
+    public static void onLevelTick(LevelTickEvent.Post event) {
         // 只在服务端且 Phase.END 阶段执行
-        if (event.side.isClient()) return;
-        if (event.phase != TickEvent.Phase.END) return;
 
-        Level level = event.level;
+        Level level = event.getLevel();
         if (level == null) return;
 
         // 获取所有玩家

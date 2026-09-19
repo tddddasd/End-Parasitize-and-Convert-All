@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -19,8 +20,8 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
@@ -35,14 +36,14 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,25 +51,19 @@ import java.util.List;
 
 public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-
-    
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
     private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
-
-    
     private int deepSneakCheckCooldown = 0;
     private static final int DEEP_SNEAK_CHECK_INTERVAL = 100; 
-
-    
     private int iceBreakCooldown = 0;
     private static final int ICE_BREAK_COOLDOWN_TICKS = 10; 
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             handleIceTargeting();
         }
@@ -113,8 +108,6 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
-
-        
         this.goalSelector.addGoal(0, new TryFindWaterGoal(this));                
         this.goalSelector.addGoal(2, new RandomSwimmingGoal(this, 1.0D, 30));   
 
@@ -125,25 +118,19 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
     public void tick() {
         super.tick();
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (this.isInWater() && !this.isSwimming()) {
                 this.setSwimming(true);
             } else if (!this.isInWater() && this.isSwimming()) {
                 this.setSwimming(false);
             }
-
-            
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-                    
                     playAmbientSound();
                 }
             }
-
-            
             if (deepSneakCheckCooldown > 0) {
                 deepSneakCheckCooldown--;
             } else {
@@ -153,8 +140,6 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
             }
         }
     }
-
-    
     private void handleIceTargeting() {
         if (iceBreakCooldown > 0) {
             iceBreakCooldown--;
@@ -181,28 +166,20 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
             double dz = target.getZ() - this.getZ();
             double horizontalDistSq = dx * dx + dz * dz;
             if (target.getY() <= this.getY() || horizontalDistSq > 4.0) continue; 
-
-            
             double distToTarget = this.distanceToSqr(target);
             if (distToTarget < closestDist) {
                 closestDist = distToTarget;
                 targetToMove = target;
             }
-
-            
             double distToIceSq = this.distanceToSqr(icePos.getX() + 0.5, icePos.getY(), icePos.getZ() + 0.5);
             if (distToIceSq <= 1.44) {
                 icePositionsToBreak.add(icePos.immutable());
             }
         }
-
-        
         if (targetToMove != null) {
             BlockPos targetBottomPos = targetToMove.blockPosition().below();
             this.getNavigation().moveTo(targetBottomPos.getX() + 0.5, targetBottomPos.getY(), targetBottomPos.getZ() + 0.5, 1.0);
         }
-
-        
         if (!icePositionsToBreak.isEmpty() && iceBreakCooldown == 0) {
             int toBreak = this.random.nextInt(2) + 1; 
             Collections.shuffle(icePositionsToBreak);
@@ -228,29 +205,23 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
         }
         return false;
     }
-
-    
     private void checkAndApplyDeepSneak() {
         
-        if (this.getEffect(ModEffects.DEEP_SNEAK.get()) == null) {
+        if (this.getEffect(ModEffects.DEEP_SNEAK) == null) {
             
             this.addEffect(new MobEffectInstance(
-                    ModEffects.DEEP_SNEAK.get(),
+                    ModEffects.DEEP_SNEAK,
                     Integer.MAX_VALUE, 
                     0,                 
                     false, false, false
             ));
         }
     }
-
-    
     public void playAmbientSound() {
         if (!this.isSilent()) {
             this.playSound(ModSoundEvents.WALKING_HEAD_SAY.get(), 1.0F, 1.0F);
         }
     }
-
-    
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         return ModSoundEvents.WALKING_HEAD_SAY.get();
@@ -261,12 +232,8 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
         
         return ModSoundEvents.WALKING_HEAD_DEATH.get();
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-
-        
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
             
             if (shouldIgnoreDamageFrom(attacker)) {
@@ -274,44 +241,38 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 5, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 5, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<WalkingDrownedHead> event) {
+    private PlayState animationPredicate(AnimationTest<WalkingDrownedHead> event) {
         
         boolean inWater = this.isInWater();
 
         if (inWater) {
             if (event.isMoving()) {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("walk_water"));
+                event.setAnimation(RawAnimation.begin().thenLoop("walk_water"));
             } else {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle_water"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle_water"));
             }
         } else {
             if (event.isMoving()) {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+                event.setAnimation(RawAnimation.begin().thenLoop("walk"));
             } else {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle"));
             }
         }
 
@@ -321,22 +282,18 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
     public static boolean checkWalkingDrownedHeadSpawnRules(
             EntityType<WalkingDrownedHead> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
         
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
-
-            
             if (stage < 2 || stage > 4) {
                 return false;
             }
         }
-
-        
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
 
@@ -350,18 +307,14 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
         super.die(source);
         this.onDeath(source); 
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -380,8 +333,6 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
     public boolean isPushedByFluid() {
         return !this.isSwimming(); 
     }
-
-    
     static class WalkingHeadMoveControl extends MoveControl {
         private final WalkingDrownedHead head;
         private float targetPitch;
@@ -402,22 +353,14 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
                             target.getEyeY() - head.getEyeY(),
                             target.getZ() - head.getZ()
                     );
-
-                    
                     float targetYaw = (float) Math.toDegrees(Math.atan2(toTarget.z, toTarget.x)) - 90.0F;
                     head.setYRot(this.rotlerp(head.getYRot(), targetYaw, 90.0F));
                     head.yBodyRot = head.getYRot();
-
-                    
                     double horizontalDist = Math.sqrt(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
                     float rawPitch = (float) -Math.toDegrees(Math.atan2(toTarget.y, horizontalDist));
                     this.targetPitch = Mth.clamp(rawPitch, -75.0F, 75.0F);
                 }
-
-                
                 head.setXRot(this.rotlerp(head.getXRot(), targetPitch, 20.0F));
-
-                
                 if (target != null) {
                     double dy = target.getY() - this.head.getY();
                     if (Math.abs(dy) > 0.5) {
@@ -431,8 +374,6 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
                     this.head.setSpeed(0.0F);
                     return;
                 }
-
-                
                 double dx = this.wantedX - this.head.getX();
                 double dy = this.wantedY - this.head.getY();
                 double dz = this.wantedZ - this.head.getZ();
@@ -445,8 +386,6 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
                 }
                 float adjustedSpeed = Mth.lerp(0.125F, this.head.getSpeed(), baseSpeed);
                 this.head.setSpeed(adjustedSpeed);
-
-                
                 this.head.setDeltaMovement(
                         this.head.getDeltaMovement().add(
                                 (double) adjustedSpeed * dx * 0.005D,
@@ -460,8 +399,6 @@ public class WalkingDrownedHead extends PathfinderMob implements GeoEntity, IPar
             }
         }
     }
-
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;

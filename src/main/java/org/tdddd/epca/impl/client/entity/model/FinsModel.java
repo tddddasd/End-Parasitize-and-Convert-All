@@ -1,23 +1,27 @@
 package org.tdddd.epca.impl.client.entity.model;
 
-import net.minecraft.resources.ResourceLocation;
+import org.tdddd.epca.impl.client.entity.EpcaGeoModel;
+import com.geckolib.renderer.base.GeoRenderState;
+
+import net.minecraft.resources.Identifier;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.Fins;
-import software.bernie.geckolib.model.GeoModel;
+import com.geckolib.model.GeoModel;
 
 public class FinsModel extends GeoModel<Fins> {
     @Override
-    public ResourceLocation getModelResource(Fins entity) {
-        return new ResourceLocation(epca.MODID, "geo/entity/fins.geo.json");
+    public Identifier getModelResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "entity/fins");
     }
 
     @Override
-    public ResourceLocation getTextureResource(Fins entity) {
-        return entity.getTextureResource();
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        Fins entity = EpcaGeoModel.entityOf(renderState, Fins.class);
+        return entity == null ? null : entity.getTextureResource();
     }
 
     @Override
-    public ResourceLocation getAnimationResource(Fins entity) {
-        return new ResourceLocation(epca.MODID, "animations/fins.animation.json");
+    public Identifier getAnimationResource(Fins entity) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "fins");
     }
 }

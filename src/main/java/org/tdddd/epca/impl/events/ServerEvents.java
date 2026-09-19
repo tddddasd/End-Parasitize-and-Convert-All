@@ -3,15 +3,15 @@ package org.tdddd.epca.impl.events;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.InfestedSourcePacket;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class ServerEvents {
 
     @SubscribeEvent
@@ -36,7 +36,7 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
-    public static void onBlockBroken(BlockEvent.BreakEvent event) {
+    public static void onBlockBroken(net.neoforged.neoforge.event.level.block.BreakBlockEvent event) {
         if (event.getLevel().isClientSide()) return;
 
         BlockState state = event.getState();
@@ -48,15 +48,13 @@ public class ServerEvents {
     // 发送添加包（仅服务端调用）
     private static void sendAddPacket(Level level, BlockPos pos) {
         if (level.isClientSide()) return;
-        ModNetwork.INSTANCE.send(net.minecraftforge.network.PacketDistributor.ALL.noArg(),
-                new InfestedSourcePacket.AddInfestedSourcePacket(pos));
-        // 若想优化范围，可使用 PacketDistributor.NEAR
+        ModNetwork.sendToAll(new InfestedSourcePacket.AddInfestedSourcePacket(pos));
+        // 若想优化范围，可使用 PacketDistributor.sendToPlayersNear
     }
 
     // 发送移除包
     private static void sendRemovePacket(Level level, BlockPos pos) {
         if (level.isClientSide()) return;
-        ModNetwork.INSTANCE.send(net.minecraftforge.network.PacketDistributor.ALL.noArg(),
-                new InfestedSourcePacket.RemoveInfestedSourcePacket(pos));
+        ModNetwork.sendToAll(new InfestedSourcePacket.RemoveInfestedSourcePacket(pos));
     }
 }

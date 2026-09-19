@@ -18,11 +18,11 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractInfestedEntity;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 
 public class WalkingZombieHead extends AbstractInfestedEntity {
 
@@ -87,15 +87,15 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 5, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 5, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<WalkingZombieHead> event) {
+    private PlayState animationPredicate(AnimationTest<WalkingZombieHead> event) {
         boolean inWater = this.isInWater();
         if (inWater) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop(event.isMoving() ? "walk_water" : "idle_water"));
+            event.setAnimation(RawAnimation.begin().thenLoop(event.isMoving() ? "walk_water" : "idle_water"));
         } else {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop(event.isMoving() ? "walk" : "idle"));
+            event.setAnimation(RawAnimation.begin().thenLoop(event.isMoving() ? "walk" : "idle"));
         }
         return PlayState.CONTINUE;
     }
@@ -104,8 +104,8 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
 
     public static boolean checkWalkingZombieHeadSpawnRules(
             EntityType<WalkingZombieHead> entityType, ServerLevelAccessor level,
-            MobSpawnType spawnType, BlockPos pos, RandomSource random) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+            EntitySpawnReason spawnType, BlockPos pos, RandomSource random) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 2 || stage > 4) return false;
         }

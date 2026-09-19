@@ -59,7 +59,7 @@ public class InfestedPlanksSlab extends SlabBlock implements InfestedBlockInterf
         }
 
         @Override
-        public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
+        public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType, net.minecraft.world.level.block.entity.FuelValues fuelValues) {
             return 150;
         }
     }

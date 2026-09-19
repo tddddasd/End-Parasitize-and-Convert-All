@@ -8,18 +8,17 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.network.NetworkHooks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.Random;
 
@@ -37,7 +36,9 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
     }
 
     public BoneArrow(Level level, LivingEntity shooter) {
-        super(ModEntities.BONE_ARROW.get(), shooter, level);
+        // 26.1.2 AbstractArrow line 99-100: on the server, a non-null but EMPTY firedFromWeapon
+        // throws IllegalArgumentException("Invalid weapon firing an arrow"). null means "no weapon".
+        super(ModEntities.BONE_ARROW.get(), shooter, level, ItemStack.EMPTY, null);
         this.setNoGravity(false);
         this.setBaseDamage(8.0F); 
     }
@@ -46,11 +47,11 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
     public void tick() {
         super.tick();
         age++;
-        if (age >= MAX_AGE && !this.level().isClientSide) {
+        if (age >= MAX_AGE && !this.level().isClientSide()) {
             this.discard();
         }
 
-        if (!this.inGround && age > 1) {
+        if (!this.onGround() && age > 1) {
             Vec3 dm = this.getDeltaMovement();
             double horizontal = dm.horizontalDistance();
             if (dm.lengthSqr() > 1.0E-6D) {
@@ -63,39 +64,27 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
     @Override
     protected void onHitEntity(EntityHitResult hitResult) {
         
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             return;
         }
-
-        
         LivingEntity shooter = this.getOwner() instanceof LivingEntity ? (LivingEntity) this.getOwner() : null;
         var target = hitResult.getEntity();
-
-        
         if (IParasite.isParasiteByTagOrInterface(shooter) && IParasite.isParasiteNoLivingByTagOrInterface(target)) {
             
             return;
         }
-
-        
-        boolean damageApplied = target.hurt(this.damageSources().arrow(this, shooter), 8.0F);
-
-        
+        boolean damageApplied = target.hurtOrSimulate(this.damageSources().arrow(this, shooter), 8.0F);
         if (damageApplied && target instanceof LivingEntity livingTarget) {
             applyCothEffect(livingTarget);
 
-            if (target instanceof LivingEntity living && this.getPersistentData().getBoolean("InfestedFireArrow")) {
+            if (target instanceof LivingEntity living && this.getPersistentData().getBooleanOr("InfestedFireArrow", false)) {
                 living.setRemainingFireTicks(160);  
             }
         }
-
-        
         this.discard();
     }
-
-    
     private void applyCothEffect(LivingEntity target) {
-        var existingEffect = target.getEffect(ModEffects.COTH.get());
+        var existingEffect = target.getEffect(ModEffects.COTH);
 
         if (existingEffect != null) {
             
@@ -106,28 +95,37 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
                 newAmplifier = Math.min(currentAmplifier + 1, 2);
             }
             
-            target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 15 * 20, newAmplifier));
+            target.addEffect(new MobEffectInstance(ModEffects.COTH, 15 * 20, newAmplifier));
         } else {
             
-            target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 15 * 20, 0));
+            target.addEffect(new MobEffectInstance(ModEffects.COTH, 15 * 20, 0));
         }
     }
 
     @Override
-    protected ItemStack getPickupItem() {
+    protected ItemStack getDefaultPickupItem() {
         
         return ItemStack.EMPTY;
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public Packet<ClientGamePacketListener> getAddEntityPacket(net.minecraft.server.level.ServerEntity serverEntity) {
+        return super.getAddEntityPacket(serverEntity);
     }
-
-    
+    /**
+     * Deliberately empty: the bone arrow renders statically.
+     *
+     * <p>There is no {@code assets/epca/geckolib/animations/bone_arrow.animation.json} — not in the
+     * 26.1.2 tree and not in the 1.20.1 baseline either — so a controller's {@code RawAnimation}
+     * stages would all resolve to {@code null} and GeckoLib 5.5.2's
+     * {@code AnimationTimeline.create} would call {@code List#getLast()} on the resulting empty
+     * stage list (non-zero transition ticks), throwing {@code NoSuchElementException} while
+     * extracting the render state. No controller means no timeline; the geo model and texture
+     * still render through {@code EpcaGeoRenderer}/{@code EpcaGeoModel}.</p>
+     */
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        
+        // no controllers: the bone arrow is a static model
     }
 
     @Override

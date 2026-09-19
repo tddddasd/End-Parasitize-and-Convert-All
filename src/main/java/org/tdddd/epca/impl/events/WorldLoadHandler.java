@@ -1,18 +1,18 @@
 package org.tdddd.epca.impl.events;
 
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.tdddd.epca.impl.overworld.data.WorldDifficultyData;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 import org.tdddd.epca.impl.epca;
 
 import java.lang.reflect.Method;
 
-@Mod.EventBusSubscriber(modid = epca.MODID)
+@EventBusSubscriber(modid = epca.MODID)
 public class WorldLoadHandler {
 
     @SubscribeEvent
@@ -22,7 +22,7 @@ public class WorldLoadHandler {
             DifficultyLevel pending = null;
 
 
-            if (FMLEnvironment.dist == Dist.CLIENT) {
+            if (FMLEnvironment.getDist() == Dist.CLIENT) {
                 try {
 
                     Class<?> helperClass = Class.forName("org.tdddd.epca.impl.utils.ClientOnlyHelper");

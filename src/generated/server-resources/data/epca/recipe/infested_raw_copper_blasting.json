@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 100,
+  "experience": 0.1,
+  "group": "smelting_infested_raw_copper",
+  "ingredient": "epca:infested_raw_copper",
+  "result": {
+    "id": "minecraft:copper_nugget"
+  }
+}

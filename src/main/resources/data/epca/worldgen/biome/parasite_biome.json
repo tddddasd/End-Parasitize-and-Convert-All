@@ -3,22 +3,19 @@
   "temperature": 0.5,
   "temperature_modifier": "none",
   "downfall": 0.2,
-  "effects":{
-    "sky_color": 3080192,
-    "fog_color": 3080192,
-    "foliage_color": 10878976,
-    "grass_color": 10878976,
-    "water_color": 10878976,
-    "water_fog_color": 10878976
+  "attributes": {
+    "minecraft:visual/sky_color": "#2f0000",
+    "minecraft:visual/fog_color": "#2f0000",
+    "minecraft:visual/water_fog_color": "#a60000"
   },
-  "carvers": {
-    "air": [
-      "minecraft:cave"
-    ],
-    "liquid": [
-      "minecraft:cave"
-    ]
+  "effects": {
+    "water_color": "#a60000",
+    "foliage_color": "#a60000",
+    "grass_color": "#a60000"
   },
+  "carvers": [
+    "minecraft:cave"
+  ],
   "features": [
     [],
     [],
@@ -62,7 +59,6 @@
       "minecraft:freeze_top_layer"
     ]
   ],
-  "starts": [],
   "creature_spawn_probability": 0.0,
   "spawners": {},
   "spawn_costs": {}

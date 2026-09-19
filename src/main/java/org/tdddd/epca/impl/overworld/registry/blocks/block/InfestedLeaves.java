@@ -18,13 +18,32 @@ import org.tdddd.epca.impl.overworld.registry.blocks.BlockConversionManager;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import net.minecraft.util.RandomSource;
 
 public class InfestedLeaves extends LeavesBlock implements InfestedBlockInterface {
     
     private final BlockConversionManager conversionManager = BlockConversionManager.getInstance();
 
     public InfestedLeaves(Properties properties) {
-        super(properties);
+        super(0.01F, properties);
+    }
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends LeavesBlock> codec() {
+        return simpleCodec(
+InfestedLeaves
+::new);
+    }
+
+    /**
+     * 26.1.2: {@code LeavesBlock} is abstract again (it needs the falling-leaf particle) and its
+     * constructor takes the particle chance first. The original block used the vanilla
+     * spruce-leaf look; the pink cherry-leaf particle restores the 铏煋 tint.
+     */
+    @Override
+    protected void spawnFallingLeavesParticle(Level level, BlockPos pos, RandomSource random) {
+        net.minecraft.util.ParticleUtils.spawnParticleBelow(level, pos, random,
+                net.minecraft.core.particles.ParticleTypes.CHERRY_LEAVES);
     }
 
     @Override
@@ -45,17 +64,17 @@ public class InfestedLeaves extends LeavesBlock implements InfestedBlockInterfac
         super.onPlace(state, level, pos, oldState, isMoving);
 
         
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             checkAndConvertVinesOnSides(level, pos);
         }
     }
 
     
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
+                                   net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
+        super.neighborChanged(state, level, pos, block, orientation, isMoving);
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             
             checkAndConvertVinesOnSides(level, pos);
         }
@@ -92,9 +111,10 @@ public class InfestedLeaves extends LeavesBlock implements InfestedBlockInterfac
     }
 
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         
-        if (!level.isClientSide && entity instanceof LivingEntity livingEntity) {
+        if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
             applyCothEffects(livingEntity, true);
         }
     }
@@ -110,7 +130,7 @@ public class InfestedLeaves extends LeavesBlock implements InfestedBlockInterfac
             
             
             MobEffectInstance cothEffect = new MobEffectInstance(
-                    ModEffects.COTH.get(), 
+                    ModEffects.COTH, 
                     600, 
                     0, 
                     false, 
@@ -119,7 +139,7 @@ public class InfestedLeaves extends LeavesBlock implements InfestedBlockInterfac
             );
 
             MobEffectInstance slownessEffect = new MobEffectInstance(
-                    MobEffects.MOVEMENT_SLOWDOWN, 
+                    MobEffects.SLOWNESS, 
                     4, 
                     0, 
                     false, 
@@ -128,8 +148,8 @@ public class InfestedLeaves extends LeavesBlock implements InfestedBlockInterfac
             );
 
             
-            if (!entity.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) ||
-                    entity.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getAmplifier() == 0) {
+            if (!entity.hasEffect(MobEffects.SLOWNESS) ||
+                    entity.getEffect(MobEffects.SLOWNESS).getAmplifier() == 0) {
                 entity.addEffect(cothEffect);
                 entity.addEffect(slownessEffect);
             }

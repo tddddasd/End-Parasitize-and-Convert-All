@@ -1,33 +1,50 @@
 package org.tdddd.epca.impl.network.packet.c2s;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.tdddd.epca.impl.network.ModNetwork;
 
-import java.util.function.Supplier;
+/**
+ * 客户端 → 服务端：同步 V 键状态（写入玩家的 persistentData）。
+ *
+ * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
+ * <b>线上字段与顺序不变</b>：单个 {@code boolean}。
+ */
+public class VKeyStatePacket implements CustomPacketPayload {
 
-public class VKeyStatePacket {
+    public static final CustomPacketPayload.Type<VKeyStatePacket> TYPE =
+            new CustomPacketPayload.Type<>(ModNetwork.id("vkey_state"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, VKeyStatePacket> STREAM_CODEC =
+            CustomPacketPayload.codec(VKeyStatePacket::encode, VKeyStatePacket::new);
+
     private final boolean pressed;
 
     public VKeyStatePacket(boolean pressed) {
         this.pressed = pressed;
     }
 
-    public VKeyStatePacket(FriendlyByteBuf buf) {
+    public VKeyStatePacket(RegistryFriendlyByteBuf buf) {
         this.pressed = buf.readBoolean();
     }
 
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(RegistryFriendlyByteBuf buf) {
         buf.writeBoolean(pressed);
     }
 
-    public static void handle(VKeyStatePacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer player = ctx.get().getSender();
-            if (player != null) {
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(VKeyStatePacket packet, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (ctx.player() instanceof ServerPlayer player) {
                 player.getPersistentData().putBoolean("VKeyPressed", packet.pressed);
             }
         });
-        ctx.get().setPacketHandled(true);
     }
 }

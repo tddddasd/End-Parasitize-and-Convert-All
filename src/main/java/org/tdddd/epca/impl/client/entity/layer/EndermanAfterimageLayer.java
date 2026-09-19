@@ -1,36 +1,65 @@
 package org.tdddd.epca.impl.client.entity.layer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import com.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.renderer.base.RenderPassInfo;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.client.entity.AfterimageData;
-import org.tdddd.epca.impl.client.entity.AfterimageData.BoneSnapshot;
+import org.tdddd.epca.impl.client.entity.EpcaGeoModel;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
 import org.tdddd.epca.impl.client.entity.IGeoLayerProvider;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedEnderman;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedEndermite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingEndermanHead;
-import software.bernie.geckolib.cache.object.BakedGeoModel;
-import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 
 import java.util.*;
 
 /**
  * Layer provider that renders fading afterimage ghosts behind a moving entity.
- * Each afterimage captures the entity's bone pose at spawn time so it renders
- * frozen at that moment rather than following the current animation.
+ * Each afterimage records the entity's <b>rendered</b> position/yaw at spawn time and is drawn at
+ * that exact world position for its whole lifetime, so the ghost stays where it appeared instead of
+ * following the entity.
  *
  * <p>Movement detection uses the per-tick position delta ({@code getX() - xo}),
  * which is reliable on the client side. Spawning is throttled to once per game tick.</p>
+ *
+ * <h2>Frozen position — the 26.1.2 transform chain</h2>
+ * <p>Vanilla's {@code EntityRenderDispatcher} translates the pose stack by the entity's
+ * <i>interpolated</i> render position ({@code EntityRenderState.x/y/z}) and GeckoLib's
+ * {@code GeoEntityRenderer.applyRotations} then post-multiplies its own rotation, so at layer time
+ * the stack is</p>
+ * <pre>  T(renderPos) · R(180 - bodyYaw) [· living extras]</pre>
+ * <p>A plain {@code translate(delta)} from there is applied <b>inside the entity's rotated frame</b>:
+ * the offset gets rotated by the entity's current yaw, which makes the ghost drift sideways and
+ * appear to follow the entity. The layer therefore resets the current pose to the pass's
+ * <i>pre-render</i> matrix ({@link RenderPassInfo#getPreRenderMatrixPose()}, captured in
+ * {@code RenderPassInfo}'s constructor <b>before</b> GeckoLib's rotation) and rebuilds the ghost's
+ * own transform from world axes:</p>
+ * <pre>  T(renderPos) · T(spawnPos - renderPos) · R(180 - spawnYaw)</pre>
+ * <p>which puts the ghost exactly at its spawn position, facing its spawn direction, for every
+ * frame of its fade — regardless of where the entity has moved or turned since.</p>
+ *
+ * <h2>GeckoLib 4 → 5.5.2 — pose freeze (documented behaviour change)</h2>
+ * <p>GeckoLib 4's layer received the live {@code BakedGeoModel} and could read and write each
+ * {@code CoreGeoBone} transform, so afterimages replayed a <b>frozen per-bone pose</b>.
+ * GeckoLib 5 no longer exposes a mutable bone transform at submission time: the animated pose
+ * only exists inside the render pass's compiled bone snapshots, and re-submitting the model
+ * for an afterimage necessarily uses the <i>current</i> frame's snapshots. The pose freeze is
+ * therefore not reproducible through the public GeckoLib 5 API and afterimages now replay the
+ * spawn-time <b>position, yaw, texture and alpha fade</b> but keep the current animation pose.
+ * Everything else (spawn throttling, movement gate, lifetime, max count, fade curve) is
+ * unchanged.</p>
  */
 public class EndermanAfterimageLayer implements IGeoLayerProvider {
 
@@ -43,13 +72,13 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     private static final Map<UUID, Integer> LAST_SPAWN_TICK = new HashMap<>();
 
     /** Cache: base texture → afterimage texture. */
-    private static final Map<ResourceLocation, ResourceLocation> TEX_CACHE = new HashMap<>();
+    private static final Map<Identifier, Identifier> TEX_CACHE = new HashMap<>();
 
-    /** Derive afterimage texture from the entity type's Forge registry key. */
-    private static ResourceLocation getAfterimageTexture(LivingEntity entity) {
-        ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+    /** Derive afterimage texture from the entity type's registry key. */
+    private static Identifier getAfterimageTexture(LivingEntity entity) {
+        Identifier key = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
 
-        if (key == null) return new ResourceLocation("epca", "textures/entity/none.png");
+        if (key == null) return Identifier.fromNamespaceAndPath("epca", "textures/entity/none.png");
 
         // 判断是否为 InfestedEndermite 的不稳定变种
         boolean isUnstable = false;
@@ -64,8 +93,8 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
 
         // 为防止默认变种与不稳定变种共用缓存，构造不同的缓存键
-        ResourceLocation cacheKey = isUnstable ?
-                new ResourceLocation(key.getNamespace(), key.getPath() + "_unstable") :
+        Identifier cacheKey = isUnstable ?
+                Identifier.fromNamespaceAndPath(key.getNamespace(), key.getPath() + "_unstable") :
                 key;
 
         boolean finalIsUnstable = isUnstable;
@@ -74,112 +103,70 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
             String path = key.getPath();
             // 不稳定变种使用 _unstable_afterimage 后缀
             String suffix = finalIsUnstable ? "_unstable_afterimage" : "_afterimage";
-            return new ResourceLocation(namespace, "textures/entity/" + path + suffix + ".png");
+            return Identifier.fromNamespaceAndPath(namespace, "textures/entity/" + path + suffix + ".png");
         });
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  Extraction phase — spawn / prune
+    // ═══════════════════════════════════════════════════════════════
+
+    @Override
+    public void addLayerData(GeoRenderState renderState, float partialTick) {
+        Entity entity = EpcaGeoModel.entityOf(renderState);
+        if (!(entity instanceof LivingEntity living)) return;
+
+        int currentTick = (int) living.level().getGameTime();
+        trySpawn(living, renderState, partialTick, currentTick);
+
+        List<AfterimageData> afterimages = AFTERIMAGES.get(living.getUUID());
+        if (afterimages != null) {
+            afterimages.removeIf(data -> !data.isAlive(currentTick));
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  Submission phase — draw every live afterimage
+    // ═══════════════════════════════════════════════════════════════
+
     @Override
     @SuppressWarnings("rawtypes")
-    public void renderAdditionalLayer(
-            EpcaGeoRenderer renderer,
-            LivingEntity entity,
-            BakedGeoModel bakedModel,
-            RenderType renderType,
-            MultiBufferSource bufferSource,
-            VertexConsumer buffer,
-            PoseStack poseStack,
-            float partialTick,
-            int packedLight,
-            int packedOverlay
-    ) {
-        int currentTick = (int) entity.level().getGameTime();
+    public void submitLayer(RenderPassInfo passInfo, SubmitNodeCollector collector) {
+        Entity entity = EpcaGeoModel.entityOf(passInfo.renderState());
+        if (!(entity instanceof LivingEntity living)) return;
+        if (!(passInfo.renderer() instanceof EpcaGeoRenderer<?> renderer)) return;
+        if (!(passInfo.renderState() instanceof EntityRenderState renderedState)) return;
 
-        // ── 1. Try spawn (with bone snapshot from current bakedModel) ──
-        trySpawn(entity, bakedModel, currentTick);
-
-        // ── 2. Get active afterimages, prune expired ──
-        List<AfterimageData> afterimages = AFTERIMAGES.get(entity.getUUID());
+        List<AfterimageData> afterimages = AFTERIMAGES.get(living.getUUID());
         if (afterimages == null || afterimages.isEmpty()) return;
-        afterimages.removeIf(data -> !data.isAlive(currentTick));
 
-        // ── 3. Render each afterimage with its frozen bone pose ──
-        ResourceLocation afterimageTex = getAfterimageTexture(entity);
-        RenderType afterimageRenderType = RenderType.entityTranslucent(afterimageTex);
+        int currentTick = (int) living.level().getGameTime();
+        Identifier afterimageTex = getAfterimageTexture(living);
+        RenderType afterimageRenderType = RenderTypes.entityTranslucent(afterimageTex);
+
+        PoseStack poseStack = passInfo.poseStack();
+        int order = 10;
         for (AfterimageData data : afterimages) {
             float fade = data.getAlpha(currentTick);
             if (fade <= 0.0F) continue;
 
             poseStack.pushPose();
 
+            // See the class javadoc: the live pose already contains GeckoLib's entity rotation, so
+            // translate from the pass's pre-render matrix (T(renderPos), world-aligned) instead.
+            poseStack.last().set(passInfo.getPreRenderMatrixPose());
+
             Vec3 afterPos = data.position;
             poseStack.translate(
-                    afterPos.x - entity.getX(),
-                    afterPos.y - entity.getY() + 0.02,
-                    afterPos.z - entity.getZ()
+                    afterPos.x - renderedState.x,
+                    afterPos.y - renderedState.y + 0.02,
+                    afterPos.z - renderedState.z
             );
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - data.yRot));
 
-            // Apply the frozen bone pose, then render
-            Map<String, BoneSnapshot> savedPose = new HashMap<>();
-            walkApply(bakedModel, data.bonePose, savedPose);
-            float alpha = fade * MAX_ALPHA;
-            VertexConsumer buf = bufferSource.getBuffer(afterimageRenderType);
-            renderer.renderModelWithAlpha(poseStack, entity, bakedModel, afterimageRenderType,
-                    bufferSource, buf, partialTick, packedLight,
-                    OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, alpha);
-            walkRestore(bakedModel, savedPose);
+            renderer.submitModelWithAlpha(passInfo, collector, order++, afterimageRenderType, fade * MAX_ALPHA);
 
             poseStack.popPose();
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    //  Bone pose save / apply / restore
-    // ═══════════════════════════════════════════════════════════════
-
-    // ── Bone iteration: walk the baked model's bone tree ──
-
-    /** Find top-level bones (parent == null) from the baked model's bone list. */
-    private static List<CoreGeoBone> topLevelBones(BakedGeoModel model) {
-        List<CoreGeoBone> roots = new ArrayList<>();
-        for (CoreGeoBone bone : model.getBones()) {
-            if (bone.getParent() == null) roots.add(bone);
-        }
-        return roots;
-    }
-
-    /** Walk the bone tree and walk the snapshot + save originals in parallel. */
-    private static void walkApply(BakedGeoModel model,
-                                   Map<String, BoneSnapshot> target,
-                                   Map<String, BoneSnapshot> saved) {
-        for (CoreGeoBone root : topLevelBones(model)) {
-            applyRecursive(root, target, saved);
-        }
-    }
-
-    private static void applyRecursive(CoreGeoBone bone,
-                                        Map<String, BoneSnapshot> target,
-                                        Map<String, BoneSnapshot> saved) {
-        saved.put(bone.getName(), new BoneSnapshot(bone));
-        BoneSnapshot snap = target.get(bone.getName());
-        if (snap != null) snap.applyTo(bone);
-        for (CoreGeoBone child : bone.getChildBones()) {
-            applyRecursive(child, target, saved);
-        }
-    }
-
-    /** Walk the bone tree and restore saved values. */
-    private static void walkRestore(BakedGeoModel model, Map<String, BoneSnapshot> saved) {
-        for (CoreGeoBone root : topLevelBones(model)) {
-            restoreRecursive(root, saved);
-        }
-    }
-
-    private static void restoreRecursive(CoreGeoBone bone, Map<String, BoneSnapshot> saved) {
-        BoneSnapshot snap = saved.get(bone.getName());
-        if (snap != null) snap.applyTo(bone);
-        for (CoreGeoBone child : bone.getChildBones()) {
-            restoreRecursive(child, saved);
         }
     }
 
@@ -187,7 +174,8 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     //  Spawning
     // ═══════════════════════════════════════════════════════════════
 
-    private static void trySpawn(LivingEntity entity, BakedGeoModel bakedModel, int currentTick) {
+    private static void trySpawn(LivingEntity entity, GeoRenderState renderState, float partialTick, int currentTick) {
+        if (!(renderState instanceof EntityRenderState state)) return;
         UUID id = entity.getUUID();
 
         // Throttle: only once per game tick
@@ -204,18 +192,17 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         List<AfterimageData> list = AFTERIMAGES.computeIfAbsent(id, k -> new ArrayList<>());
         list.removeIf(data -> !data.isAlive(currentTick));
 
-        if (list.size() < MAX_AFTERIMAGES && entity.level().random.nextFloat() < SPAWN_CHANCE) {
-            // Capture the current bone pose from the baked model
-            Map<String, BoneSnapshot> bonePose = new HashMap<>();
-            for (CoreGeoBone root : topLevelBones(bakedModel)) {
-                AfterimageData.captureRecursive(root, bonePose);
-            }
+        if (list.size() < MAX_AFTERIMAGES && entity.getRandom().nextFloat() < SPAWN_CHANCE) {
+            // Record the *rendered* transform, not the raw entity transform: EntityRenderState.x/y/z
+            // are the interpolated position the dispatcher translated the pose stack to, and the
+            // yaw GeckoLib rotates by is the interpolated body yaw. Using the same values keeps the
+            // ghost exactly on the spot the entity occupied that frame (no sub-tick drift).
             list.add(new AfterimageData(
-                    entity.position(),
-                    entity.getYRot(),
+                    new Vec3(state.x, state.y, state.z),
+                    Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot),
                     currentTick,
                     AFTERIMAGE_LIFETIME,
-                    bonePose
+                    Map.of()
             ));
         }
     }

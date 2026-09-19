@@ -4,18 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
-import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientAdvancements;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
 
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
@@ -69,10 +68,10 @@ public class EPCANoteTabData {
     
     public static void reloadFromServerResources(MinecraftServer server) {
         ResourceManager resourceManager = server.getResourceManager();
-        Map<ResourceLocation, Resource> resources =
+        Map<Identifier, Resource> resources =
                 resourceManager.listResources("epca_note", loc -> loc.getPath().endsWith(".json"));
 
-        List<ResourceLocation> sorted = new ArrayList<>(resources.keySet());
+        List<Identifier> sorted = new ArrayList<>(resources.keySet());
         sorted.sort((a, b) -> {
             boolean aIsMain = a.getPath().equals("epca_note/main.json");
             boolean bIsMain = b.getPath().equals("epca_note/main.json");
@@ -180,7 +179,6 @@ public class EPCANoteTabData {
     }
 
     
-    @OnlyIn(Dist.CLIENT)
     public static List<ParentTab> getVisibleTabsForPlayer() {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return getCurrentTabs();
@@ -216,19 +214,21 @@ public class EPCANoteTabData {
         return Collections.unmodifiableList(result);
     }
 
-    @OnlyIn(Dist.CLIENT)
     private static boolean isAdvancementCompleted(ClientAdvancements advancements, String advancementId) {
         if (advancementId == null || advancementId.isEmpty()) return true;
-        ResourceLocation id = ResourceLocation.tryParse(advancementId);
+        Identifier id = Identifier.tryParse(advancementId);
         if (id == null) return false;
-        Advancement advancement = advancements.getAdvancements().get(id);
+        AdvancementHolder advancement = advancements.get(id);
         if (advancement == null) return false;
 
         
         try {
-            Field field = ClientAdvancements.class.getDeclaredField("advancements");
+            // 26.1.2: ClientAdvancements holds the progress map in the private field "progress"
+            // (1.20.1 called it "advancements") and exposes no public accessor for it.
+            Field field = ClientAdvancements.class.getDeclaredField("progress");
             field.setAccessible(true);
-            Map<Advancement, AdvancementProgress> progressMap = (Map<Advancement, AdvancementProgress>) field.get(advancements);
+            Map<AdvancementHolder, AdvancementProgress> progressMap =
+                    (Map<AdvancementHolder, AdvancementProgress>) field.get(advancements);
             AdvancementProgress progress = progressMap.get(advancement);
             return progress != null && progress.isDone();
         } catch (Exception e) {

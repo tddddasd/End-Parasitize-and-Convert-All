@@ -72,7 +72,7 @@ public final class EntityMovementUtils {
         if (!isCliffToJump) return false;
 
         entity.setDeltaMovement(dir.x * horizontalSpeed, jumpPower, dir.z * horizontalSpeed);
-        entity.hasImpulse = true;
+        entity.needsSync = true;
         return true;
     }
 

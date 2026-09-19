@@ -16,7 +16,7 @@ public class ParticleHelper {
                 particle.getType() == ModParticles.P_ADAPTATION.get()) {
 
             ClientboundLevelParticlesPacket packet = new ClientboundLevelParticlesPacket(
-                    particle, true, x, y, z,
+                    particle, true, false, x, y, z,
                     (float) xd, (float) yd, (float) zd,
                     (float) speed, count
             );

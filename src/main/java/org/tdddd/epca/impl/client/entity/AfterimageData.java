@@ -1,15 +1,25 @@
 package org.tdddd.epca.impl.client.entity;
 
+import com.geckolib.animation.state.BoneSnapshot;
+import com.geckolib.cache.model.GeoBone;
+import com.geckolib.renderer.base.BoneSnapshots;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Immutable snapshot of an entity's render state at the moment an afterimage is spawned.
- * Records world position, yaw, and the full bone pose so the afterimage renders frozen
- * at its spawn moment regardless of subsequent animation.
+ * Records world position, yaw, and (optionally) the bone pose so the afterimage renders
+ * frozen at its spawn moment regardless of subsequent animation.
+ *
+ * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <p>GeckoLib 4 exposed the live, mutable {@code CoreGeoBone} transform, so the old code could
+ * read {@code getRotX()/getPosX()/getScaleX()} straight off the bone and write them back with
+ * {@code setRotX(...)}. GeckoLib 5 makes bones immutable while rendering: the animated pose
+ * only exists as a {@link BoneSnapshot}, and it can only be written back through a
+ * {@code RenderPassInfo.BoneUpdater}. This class therefore snapshots GeckoLib 5
+ * {@link BoneSnapshot}s and applies them via {@link BoneSnapshot#setRotX}/{@code setTranslation}/
+ * {@code setScale}.</p>
  */
 public class AfterimageData {
     public final Vec3 position;
@@ -41,7 +51,7 @@ public class AfterimageData {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  Bone snapshot — works with CoreGeoBone (GeckoLib interface)
+    //  Bone snapshot — GeckoLib 5 BoneSnapshot adapter
     // ═══════════════════════════════════════════════════════════════
 
     public static class BoneSnapshot {
@@ -49,36 +59,32 @@ public class AfterimageData {
         public final float posX, posY, posZ;
         public final float scaleX, scaleY, scaleZ;
 
-        public BoneSnapshot(CoreGeoBone bone) {
+        public BoneSnapshot(com.geckolib.animation.state.BoneSnapshot bone) {
             this.rotX = bone.getRotX();
             this.rotY = bone.getRotY();
             this.rotZ = bone.getRotZ();
-            this.posX = bone.getPosX();
-            this.posY = bone.getPosY();
-            this.posZ = bone.getPosZ();
+            this.posX = bone.getTranslateX();
+            this.posY = bone.getTranslateY();
+            this.posZ = bone.getTranslateZ();
             this.scaleX = bone.getScaleX();
             this.scaleY = bone.getScaleY();
             this.scaleZ = bone.getScaleZ();
         }
 
-        public void applyTo(CoreGeoBone bone) {
-            bone.setRotX(rotX);
-            bone.setRotY(rotY);
-            bone.setRotZ(rotZ);
-            bone.setPosX(posX);
-            bone.setPosY(posY);
-            bone.setPosZ(posZ);
-            bone.setScaleX(scaleX);
-            bone.setScaleY(scaleY);
-            bone.setScaleZ(scaleZ);
+        public void applyTo(com.geckolib.animation.state.BoneSnapshot bone) {
+            bone.setRotation(rotX, rotY, rotZ);
+            bone.setTranslation(posX, posY, posZ);
+            bone.setScale(scaleX, scaleY, scaleZ);
         }
     }
 
     /** Walk the bone tree recursively and capture every bone's current transform. */
-    public static void captureRecursive(CoreGeoBone bone, Map<String, BoneSnapshot> out) {
-        out.put(bone.getName(), new BoneSnapshot(bone));
-        for (CoreGeoBone child : bone.getChildBones()) {
-            captureRecursive(child, out);
+    public static void captureRecursive(BoneSnapshots snapshots, GeoBone bone,
+                                        Map<String, BoneSnapshot> out) {
+        com.geckolib.animation.state.BoneSnapshot snap = snapshots.get(bone);
+        if (snap != null) out.put(bone.name(), new BoneSnapshot(snap));
+        for (GeoBone child : bone.children()) {
+            captureRecursive(snapshots, child, out);
         }
     }
 }

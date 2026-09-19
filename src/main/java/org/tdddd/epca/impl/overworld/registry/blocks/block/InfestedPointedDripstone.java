@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -10,9 +11,12 @@ import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.PointedDripstoneBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DripstoneThickness;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -21,10 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.state.properties.DripstoneThickness;
 
 public class InfestedPointedDripstone extends PointedDripstoneBlock implements InfestedBlockInterface {
 
@@ -51,22 +51,28 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         return isValidPointedDripstonePlacement(level, pos, tipDir);
     }
 
-    
+    /**
+     * 26.1.2: the neighbour update became
+     * {@code updateShape(state, LevelReader, ScheduledTickAccess, pos, directionToNeighbour,
+     * neighbourPos, neighbourState, random)} — the level is a reader and ticking goes through
+     * {@code ScheduledTickAccess}, so {@code BlockTicks} is no longer reachable from here.
+     */
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
-                                  LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    public BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks,
+                                  BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState,
+                                  RandomSource random) {
         if (direction != Direction.UP && direction != Direction.DOWN) {
             return state;
         }
         Direction tipDir = state.getValue(TIP_DIRECTION);
-        if (tipDir == Direction.DOWN && level.getBlockTicks().hasScheduledTick(pos, this)) {
+        if (tipDir == Direction.DOWN && ticks.getBlockTicks().hasScheduledTick(pos, this)) {
             return state;
         }
         if (direction == tipDir.getOpposite() && !this.canSurvive(state, level, pos)) {
             if (tipDir == Direction.DOWN) {
-                level.scheduleTick(pos, this, 2);
+                ticks.scheduleTick(pos, this, 2);
             } else {
-                level.scheduleTick(pos, this, 1);
+                ticks.scheduleTick(pos, this, 1);
             }
             return state;
         }
@@ -79,7 +85,7 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        LevelAccessor level = context.getLevel();
+        LevelReader level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Direction lookDir = context.getNearestLookingVerticalDirection().getOpposite();
         Direction tipDir = calculateTipDirection(level, pos, lookDir);
@@ -98,7 +104,7 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
     }
 
     @Override
-    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!this.canSurvive(state, level, pos)) {
             Direction dir = state.getValue(TIP_DIRECTION);
             if (dir == Direction.DOWN) {
@@ -111,11 +117,18 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
 
     
     @Override
-    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         
     }
 
-    
+    // ---------------------------------------------------------------------
+    // 26.1.2: PointedDripstoneBlock made every one of its helpers private
+    // (calculateTipDirection, calculateDripstoneThickness,
+    // isValidPointedDripstonePlacement, isStalactite, isTip,
+    // spawnFallingStalactite, isCompatible*), so the infested variant keeps its
+    // own copies with the identical logic, rewritten against the public surface.
+    // ---------------------------------------------------------------------
+
     private static boolean isCompatible(BlockState state) {
         return state.getBlock() instanceof PointedDripstoneBlock;
     }
@@ -124,7 +137,6 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         return isCompatible(state) && state.getValue(TIP_DIRECTION) == direction;
     }
 
-    
     private static boolean isValidPointedDripstonePlacement(LevelReader level, BlockPos pos, Direction direction) {
         BlockPos oppositePos = pos.relative(direction.getOpposite());
         BlockState oppositeState = level.getBlockState(oppositePos);
@@ -132,7 +144,6 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
                 || isCompatibleWithDirection(oppositeState, direction);
     }
 
-    
     @Nullable
     private static Direction calculateTipDirection(LevelReader level, BlockPos pos, Direction preferredDir) {
         if (isValidPointedDripstonePlacement(level, pos, preferredDir)) {
@@ -144,8 +155,6 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         }
     }
 
-    
-    @Nullable
     private static DripstoneThickness calculateDripstoneThickness(LevelReader level, BlockPos pos,
                                                                   Direction tipDir, boolean mergeIfTip) {
         Direction opposite = tipDir.getOpposite();
@@ -173,9 +182,9 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         }
     }
 
-    
+    /** 26.1.2: {@code fallOn} takes a {@code double} fall distance. */
     @Override
-    public void fallOn(Level level, BlockState state, BlockPos pos, Entity entity, float fallDistance) {
+    public void fallOn(Level level, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
         boolean damaged = false;
         
         if (state.getValue(TIP_DIRECTION) == Direction.UP && state.getValue(THICKNESS) == DripstoneThickness.TIP) {
@@ -187,7 +196,7 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
 
         
         if (damaged && entity instanceof LivingEntity living) {
-            living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 30 * 20, 0));
+            living.addEffect(new MobEffectInstance(ModEffects.COTH, 30 * 20, 0));
         }
     }
 
@@ -209,11 +218,13 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
     }
 
     private static boolean isStalactite(BlockState state) {
-        return (state.getBlock() instanceof PointedDripstoneBlock) && state.getValue(TIP_DIRECTION) == Direction.DOWN;
+        return isCompatible(state) && state.getValue(TIP_DIRECTION) == Direction.DOWN;
     }
 
     private static boolean isTip(BlockState state, boolean includeMerge) {
-        if (!(state.getBlock() instanceof PointedDripstoneBlock)) return false;
+        if (!isCompatible(state)) {
+            return false;
+        }
         DripstoneThickness thickness = state.getValue(THICKNESS);
         return thickness == DripstoneThickness.TIP || (includeMerge && thickness == DripstoneThickness.TIP_MERGE);
     }

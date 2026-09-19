@@ -24,16 +24,16 @@ import org.tdddd.epca.impl.overworld.registry.ModItems;
 import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
 import org.tdddd.epca.impl.overworld.registry.entities.IPoverty;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -53,7 +53,8 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
     public LivingFleshSize0(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 0;
-        this.setMaxUpStep(0.5F);
+        var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
+        if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
         
         this.moveControl = new WaterMoveControl(this);
         
@@ -78,22 +79,16 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
     @Override
     public void tick() {
         super.tick();
-
-        
         if (this.isInWater()) {
             
             if (!(this.navigation instanceof WaterBoundPathNavigation)) {
                 this.navigation = new WaterBoundPathNavigation(this, this.level());
             }
-
-            
             Vec3 deltaMovement = this.getDeltaMovement();
             
             if (!this.isNoGravity()) {
                 this.setDeltaMovement(deltaMovement.x * 0.9D, deltaMovement.y * 0.9D + 0.005D, deltaMovement.z * 0.9D);
             }
-
-            
             if (this.getNavigation().isDone()) {
                 
                 this.setDeltaMovement(this.getDeltaMovement().add(
@@ -109,32 +104,22 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
             }
         }
     }
-
-    
     @Override
     public boolean onClimbable() {
         return this.horizontalCollision;
     }
-
-    
     @Override
-    public void onAddedToWorld() {
-        super.onAddedToWorld();
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
         
         this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, Integer.MAX_VALUE, 1, false, false));
-        this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, false, false));
+        this.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, Integer.MAX_VALUE, 0, false, false));
     }
-
-    
     @Override
     public void die(DamageSource damageSource) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             ServerLevel serverLevel = (ServerLevel) this.level();
-
-            
             BlockPos deathPos = this.blockPosition();
-
-            
             int particleCount = 6 + this.random.nextInt(6); 
             for (int i = 0; i < particleCount; i++) {
                 double x = deathPos.getX() + 0.5 + (this.random.nextDouble() - 0.5) * 2.0;
@@ -146,28 +131,18 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
 
                 serverLevel.sendParticles(ModParticles.LIVING_FLESH.get(), x, y, z, 1, dx, dy, dz, 0.1);
             }
-
-            
             AreaEffectCloud areaEffectCloud = new AreaEffectCloud(this.level(), deathPos.getX(), deathPos.getY(), deathPos.getZ());
             areaEffectCloud.setRadius(3.0F); 
             areaEffectCloud.setDuration(100); 
             areaEffectCloud.setWaitTime(0);
             areaEffectCloud.setRadiusPerTick(0.0F);
-
-            
-            areaEffectCloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1)); 
+            areaEffectCloud.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 1)); 
             areaEffectCloud.addEffect(new MobEffectInstance(MobEffects.POISON, 100, 1)); 
-            areaEffectCloud.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 1)); 
-
-            
+            areaEffectCloud.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 200, 1)); 
             this.level().addFreshEntity(areaEffectCloud);
         }
-
-        
         this.remove(RemovalReason.KILLED);
     }
-
-    
     static class FindGroupGoal extends Goal {
         private final LivingFleshSize0 entity;
         private final double speedModifier;
@@ -190,8 +165,6 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
             }
 
             this.cooldown = 100; 
-
-            
             this.target = findNearbyLivingFlesh();
             if (this.target == null) {
                 
@@ -225,8 +198,6 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
             if (this.target != null) {
                 
                 this.entity.getNavigation().moveTo(this.target, this.speedModifier);
-
-                
                 this.entity.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
             }
         }
@@ -271,8 +242,6 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
             return null;
         }
     }
-
-    
     static class AvoidNonParasiteGoal extends Goal {
         private final LivingFleshSize0 entity;
         private final double walkSpeedModifier;
@@ -319,8 +288,6 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
                 
                 Vec3 awayVector = this.entity.position().subtract(this.toAvoid.position()).normalize();
                 Vec3 targetPos = this.entity.position().add(awayVector.scale(6.0D)); 
-
-                
                 this.entity.getNavigation().moveTo(targetPos.x, targetPos.y, targetPos.z, this.walkSpeedModifier);
 
                 this.panicTime--;
@@ -344,13 +311,11 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (source == this.damageSources().fall()) {
             return false;
         }
-
-        
         if (source == this.damageSources().inWall() || source == this.damageSources().drown()) {
             return false;
         }
@@ -362,7 +327,7 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
         }
 
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
@@ -379,7 +344,7 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
     public static boolean checkLivingFleshSize0SpawnRules(
             EntityType<LivingFleshSize0> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
@@ -388,15 +353,11 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<LivingFleshSize0>(this, "controller", 4, this::predicate));
+        controllers.add(new AnimationController<LivingFleshSize0>("controller", 4, this::predicate));
     }
-
-    
-    private PlayState predicate(AnimationState<LivingFleshSize0> event) {
-        AnimationController<LivingFleshSize0> controller = event.getController();
-        LivingFleshSize0 entity = event.getAnimatable();
-
-        
+    private PlayState predicate(AnimationTest<LivingFleshSize0> event) {
+        AnimationController<LivingFleshSize0> controller = event.controller();
+        LivingFleshSize0 entity = event.animatable();
         boolean inWater = entity.isInWater();
         
         boolean isMoving = event.isMoving();
@@ -428,14 +389,10 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.factory;
     }
-
-    
     @Override
     public int getAirSupply() {
         return this.getMaxAirSupply(); 
     }
-
-    
     static class WaterMoveControl extends MoveControl {
         private final LivingFleshSize0 entity;
 
@@ -454,16 +411,10 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
                     this.mob.setSpeed(0.0F);
                     return;
                 }
-
-                
                 float speed = (float)(this.speedModifier * this.entity.getAttributeValue(Attributes.MOVEMENT_SPEED));
                 this.entity.setSpeed(speed);
-
-                
                 vec3 = vec3.normalize();
                 this.entity.setDeltaMovement(this.entity.getDeltaMovement().add(vec3.scale(0.05D)));
-
-                
                 if (d0 > 0.05) {
                     Vec3 lookVec = this.entity.getDeltaMovement().normalize();
                     this.entity.setYRot(-((float)Math.atan2(lookVec.x, lookVec.z)) * (180F / (float)Math.PI));
@@ -474,14 +425,10 @@ public class LivingFleshSize0 extends PathfinderMob implements GeoEntity, IParas
             }
         }
     }
-
-    
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         return ModSoundEvents.INCOMPLETE_FORM_HUNT.get();
     }
-
-    
     @Override
     protected SoundEvent getDeathSound() {
         return ModSoundEvents.INCOMPLETE_FORM_HUNT.get();

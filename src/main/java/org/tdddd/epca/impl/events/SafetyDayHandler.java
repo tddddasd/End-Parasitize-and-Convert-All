@@ -1,23 +1,22 @@
 package org.tdddd.epca.impl.events;
 
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.ModConfig;
 import org.tdddd.epca.impl.overworld.data.SafetyDaySavedData;
 import org.tdddd.epca.impl.epca;
 import net.minecraft.sounds.SoundSource;
 
-@Mod.EventBusSubscriber(modid = epca.MODID)
+@EventBusSubscriber(modid = epca.MODID)
 public class SafetyDayHandler {
 
     
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
+    public static void onServerTick(ServerTickEvent.Post event) {
         for (ServerLevel level : event.getServer().getAllLevels()) {
             if (!ModConfig.isSafetyDayEnabled()) continue;
             SafetyDaySavedData data = SafetyDaySavedData.get(level);
@@ -40,14 +39,14 @@ public class SafetyDayHandler {
     
     @SubscribeEvent
     public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (event.getEntity().level().isClientSide) return;
+        if (event.getEntity().level().isClientSide()) return;
         ServerLevel level = (ServerLevel) event.getEntity().level();
         tryStartSafetyDay(level);
     }
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity().level().isClientSide) return;
+        if (event.getEntity().level().isClientSide()) return;
         ServerLevel level = (ServerLevel) event.getEntity().level();
         tryStartSafetyDay(level);
     }

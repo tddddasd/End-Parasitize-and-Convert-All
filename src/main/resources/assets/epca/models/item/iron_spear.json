@@ -1,33 +1,6 @@
 {
-	"parent": "item/handheld",
-	"loader": "forge:separate_transforms",
-	"base": {
-		"parent": "epca:item/spear",
-		"textures": {
-			"layer0": "epca:item/iron_spear",
-			"particle": "epca:item/iron_spear_item"
-		}
-	},
-	"perspectives": {
-		"gui": {
-			"parent": "minecraft:item/handheld",
-			"textures": {
-				"layer0": "epca:item/iron_spear_item"
-			}
-		},
-		"fixed": {
-			"parent": "minecraft:item/handheld",
-			"textures": {
-				"layer0": "epca:item/iron_spear_item"
-			}
-		}
-	},
-	"overrides": [
-		{
-			"predicate": {
-				"epca:throwing": 1
-			},
-			"model": "epca:item/iron_spear_throwing"
-		}
-	]
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "epca:item/iron_spear_item"
+  }
 }

@@ -51,10 +51,10 @@ public class InfestedSandstoneWall extends WallBlock implements InfestedBlockInt
         
         BlockState baseState = super.defaultBlockState()
                 .setValue(UP, state.getValue(UP))
-                .setValue(NORTH_WALL, state.getValue(NORTH_WALL))
-                .setValue(SOUTH_WALL, state.getValue(SOUTH_WALL))
-                .setValue(EAST_WALL, state.getValue(EAST_WALL))
-                .setValue(WEST_WALL, state.getValue(WEST_WALL))
+                .setValue(NORTH, state.getValue(NORTH))
+                .setValue(SOUTH, state.getValue(SOUTH))
+                .setValue(EAST, state.getValue(EAST))
+                .setValue(WEST, state.getValue(WEST))
                 .setValue(WATERLOGGED, state.getValue(WATERLOGGED));
         VoxelShape shape = super.getCollisionShape(baseState, level, pos, context);
         if (shape == null) shape = Shapes.block();
@@ -70,10 +70,10 @@ public class InfestedSandstoneWall extends WallBlock implements InfestedBlockInt
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         BlockState baseState = super.defaultBlockState()
                 .setValue(UP, state.getValue(UP))
-                .setValue(NORTH_WALL, state.getValue(NORTH_WALL))
-                .setValue(SOUTH_WALL, state.getValue(SOUTH_WALL))
-                .setValue(EAST_WALL, state.getValue(EAST_WALL))
-                .setValue(WEST_WALL, state.getValue(WEST_WALL))
+                .setValue(NORTH, state.getValue(NORTH))
+                .setValue(SOUTH, state.getValue(SOUTH))
+                .setValue(EAST, state.getValue(EAST))
+                .setValue(WEST, state.getValue(WEST))
                 .setValue(WATERLOGGED, state.getValue(WATERLOGGED));
         VoxelShape shape = super.getShape(baseState, level, pos, context);
         return shape != null ? shape : Shapes.block();

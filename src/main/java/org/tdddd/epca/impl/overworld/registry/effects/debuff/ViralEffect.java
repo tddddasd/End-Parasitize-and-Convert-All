@@ -10,10 +10,15 @@ public class ViralEffect extends MobEffect implements RemovableEffect {
         super(MobEffectCategory.BENEFICIAL, 0x00FF00);
     }
 
+    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
+    // tickCount is MobEffectInstance's duration for timed effects (MobEffectInstance#tickServer), so the
+    // 1.20.1 "duration % (1 << amplifier) == 0" condition is reproduced verbatim. The old
+    // "interval > 0 ? ... : true" guard also absorbed a negative/overflowing shift (1 << 31 == Integer.MIN_VALUE);
+    // the same guard is kept so that edge case behaves identically.
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        int interval = 1 << amplifier; 
-        return interval > 0 ? duration % interval == 0 : true;
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
+        int interval = 1 << amplification;
+        return interval > 0 ? tickCount % interval == 0 : true;
     }
 
     @Override

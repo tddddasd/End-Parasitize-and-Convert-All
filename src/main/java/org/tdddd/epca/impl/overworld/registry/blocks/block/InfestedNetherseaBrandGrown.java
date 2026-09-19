@@ -1,9 +1,13 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -77,7 +81,7 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
         
         BlockPos belowPos = pos.below();
         BlockState belowState = level.getBlockState(belowPos);
-        return !belowState.isAir() && belowState.isSolidRender(level, belowPos); 
+        return !belowState.isAir() && belowState.isSolidRender(); 
     }
 
     @Override
@@ -94,12 +98,12 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
-                                  LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
+    public BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos currentPos,
+                                  Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         if (state.getValue(WATERLOGGED)) {
-            level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+            ticks.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
-        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
+        return super.updateShape(state, level, ticks, currentPos, direction, neighborPos, neighborState, random);
     }
 
     @Override
@@ -115,10 +119,10 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             
             if (!state.canSurvive(level, pos)) {
                 level.destroyBlock(pos, false); 
@@ -133,10 +137,10 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
 
     
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        super.entityInside(state, level, pos, entity);
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+        super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
 
-        if (!level.isClientSide && entity instanceof LivingEntity living) {
+        if (!level.isClientSide() && entity instanceof LivingEntity living) {
             
             if (IParasite.isParasiteByTagOrInterface(living)) {
                 return;
@@ -145,17 +149,17 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
             
             TagKey<EntityType<?>> OCEAN_OFFSPRING_TAG = TagKey.create(
                     Registries.ENTITY_TYPE,
-                    new ResourceLocation("caerula_arbor", "oceanoffspring")
+                    Identifier.fromNamespaceAndPath("caerula_arbor", "oceanoffspring")
             );
-            if (living.getType().is(OCEAN_OFFSPRING_TAG)) {
+            if (living.getType().builtInRegistryHolder().is(OCEAN_OFFSPRING_TAG)) {
                 return;
             }
 
             
-            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 10, 0, false, false, false));
+            living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 10, 0, false, false, false));
 
             long currentTick = level.getGameTime();
-            long lastTrigger = living.getPersistentData().getLong(COOLDOWN_KEY);
+            long lastTrigger = living.getPersistentData().getLong(COOLDOWN_KEY).orElse(0L);
 
             if (currentTick - lastTrigger >= 20) {
                 living.getPersistentData().putLong(COOLDOWN_KEY, currentTick);
@@ -172,7 +176,7 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
                 }
 
                 
-                living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0));
+                living.addEffect(new MobEffectInstance(ModEffects.COTH, 600, 0));
             }
         }
     }

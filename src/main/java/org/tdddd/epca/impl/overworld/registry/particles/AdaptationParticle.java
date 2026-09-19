@@ -1,18 +1,17 @@
 package org.tdddd.epca.impl.overworld.registry.particles;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
 
-@OnlyIn(Dist.CLIENT)
-public class AdaptationParticle extends TextureSheetParticle {
+// 26.1.2: TextureSheetParticle -> SingleQuadParticle (see InfestiveGasParticle).
+public class AdaptationParticle extends SingleQuadParticle {
     protected AdaptationParticle(ClientLevel level, double x, double y, double z,
                                  double xSpeed, double ySpeed, double zSpeed,
-                                 SimpleParticleType type) {
-        super(level, x, y, z, xSpeed, ySpeed, zSpeed);
+                                 SimpleParticleType type, TextureAtlasSprite sprite) {
+        super(level, x, y, z, xSpeed, ySpeed, zSpeed, sprite);
         this.xd = xSpeed;
         this.yd = ySpeed;
         this.zd = zSpeed;
@@ -24,13 +23,11 @@ public class AdaptationParticle extends TextureSheetParticle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+    public SingleQuadParticle.Layer getLayer() {
+        // 1.20.1: ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT
+        return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
-    @Override
-    public boolean shouldCull() {
-        
-        return false;
-    }
+    // 26.1.2: Particle#shouldCull() no longer exists; the particle group always frustum-culls by
+    // position. The old override (always render) has no replacement hook and was dropped.
 }

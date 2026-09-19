@@ -17,12 +17,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.InfestedSourcePacket;
@@ -33,18 +32,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class InfestedLilyPadHandler {
     // 记录每个玩家最后所在的虫染睡莲位置
     private static final Map<UUID, BlockPos> PLAYER_LAST_LILY = new ConcurrentHashMap<>();
 
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
+    public static void onServerTick(ServerTickEvent.Post event) {
+        // 26.1.2: TickEvent.Phase 被 Pre/Post 取代，等价于原来的 Phase.END
 
         for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
             Level level = player.level();
-            if (level.isClientSide) continue;
+            if (level.isClientSide()) continue;
 
             UUID uuid = player.getUUID();
             BlockPos lastPos = PLAYER_LAST_LILY.get(uuid);
@@ -79,7 +78,7 @@ public class InfestedLilyPadHandler {
             if (foundLilyPos != null) {
                 if (lastPos == null || !lastPos.equals(foundLilyPos)) {
                     // 首次进入
-                    if (level.random.nextFloat() < 0.5f) {
+                    if (level.getRandom().nextFloat() < 0.5f) {
                         level.destroyBlock(foundLilyPos, false);
                     }
                     PLAYER_LAST_LILY.put(uuid, foundLilyPos);
@@ -96,7 +95,7 @@ public class InfestedLilyPadHandler {
     @SubscribeEvent
     public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
         // 仅在服务端处理
-        if (event.getEntity() == null || event.getEntity().level().isClientSide) return;
+        if (event.getEntity() == null || event.getEntity().level().isClientSide()) return;
         Level level = event.getEntity().level();
         if (!(level instanceof ServerLevel)) return;
 
@@ -206,9 +205,9 @@ public class InfestedLilyPadHandler {
     private static void sendInfestedPacketToClients(ServerLevel level, BlockPos pos, boolean add) {
         if (!level.isClientSide()) {
             if (add) {
-                ModNetwork.INSTANCE.send(PacketDistributor.ALL.noArg(), new InfestedSourcePacket.AddInfestedSourcePacket(pos));
+                ModNetwork.sendToAll(new InfestedSourcePacket.AddInfestedSourcePacket(pos));
             } else {
-                ModNetwork.INSTANCE.send(PacketDistributor.ALL.noArg(), new InfestedSourcePacket.RemoveInfestedSourcePacket(pos));
+                ModNetwork.sendToAll(new InfestedSourcePacket.RemoveInfestedSourcePacket(pos));
             }
         }
     }

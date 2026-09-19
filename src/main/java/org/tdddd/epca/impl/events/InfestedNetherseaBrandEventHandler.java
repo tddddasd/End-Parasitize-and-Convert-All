@@ -1,5 +1,9 @@
 package org.tdddd.epca.impl.events;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.Holder;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -7,10 +11,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedNetherseaBrandGrown;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedNetherseaBrandSolid;
@@ -18,11 +21,11 @@ import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import java.lang.reflect.Method;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraftforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class InfestedNetherseaBrandEventHandler {
     private static boolean sanityAvailable = false;
     private static Method deductMethod = null;
@@ -50,28 +53,28 @@ public class InfestedNetherseaBrandEventHandler {
      * 移除玩家身上的指定药水效果
      */
     private static void removeEffect(Player player, String modid, String path) {
-        MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation(modid, path));
+        Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.get(Identifier.fromNamespaceAndPath(modid, path)).orElse(null);
         if (effect != null) {
             player.removeEffect(effect);
         }
     }
 
     private static void giveItem(Player player, ItemStack stack) {
-        if (!player.getInventory().add(stack)) {
-            player.spawnAtLocation(stack);
+        if (!player.getInventory().add(stack) && player.level() instanceof ServerLevel serverLevel) {
+            player.spawnAtLocation(serverLevel, stack);
         }
     }
 
     // ========== 破坏虫染溟痕方块时的理智伤害 ==========
     @SubscribeEvent
-    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+    public static void onBlockBreak(BreakBlockEvent event) {
         BlockState state = event.getState();
         if (state.getBlock() instanceof InfestedNetherseaBrandGrown || state.getBlock() instanceof InfestedNetherseaBrandSolid) {
             LivingEntity livingEntity = event.getPlayer();
             if (livingEntity != null && !(IParasite.isParasiteByTagOrInterface(livingEntity))) {
                 LevelAccessor levelAccessor = event.getLevel();
                 if (levelAccessor instanceof Level level) {
-                    applySanityDamage(livingEntity, level, 16 + level.random.nextInt(33));
+                    applySanityDamage(livingEntity, level, 16 + level.getRandom().nextInt(33));
                 }
             }
         }
@@ -80,7 +83,7 @@ public class InfestedNetherseaBrandEventHandler {
     // ========== 食用物品事件 ==========
     @SubscribeEvent
     public static void onPlayerEat(LivingEntityUseItemEvent.Finish event) {
-        if (event.getEntity().level().isClientSide) return;
+        if (event.getEntity().level().isClientSide()) return;
         if (!(event.getEntity() instanceof Player player)) return;
 
         // 处理虫染溟痕冰淇淋：每5tick扣5理智，共50点，并移除效果
@@ -108,12 +111,12 @@ public class InfestedNetherseaBrandEventHandler {
 
     // ========== 玩家每Tick事件：处理冰淇淋持续伤害 ==========
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
-        if (event.getEntity().level().isClientSide) return;
+    public static void onLivingTick(EntityTickEvent.Post event) {
+        if (event.getEntity().level().isClientSide()) return;
         if (!(event.getEntity() instanceof Player player)) return;
 
         var data = player.getPersistentData();
-        int remaining = data.getInt("icecream_damage_remaining");
+        int remaining = data.getInt("icecream_damage_remaining").orElse(0);
         if (remaining <= 0) {
             // 清除残留数据
             if (data.contains("icecream_damage_remaining")) {
@@ -124,7 +127,7 @@ public class InfestedNetherseaBrandEventHandler {
         }
 
         // 冷却递减
-        int cooldown = data.getInt("icecream_damage_cooldown");
+        int cooldown = data.getInt("icecream_damage_cooldown").orElse(0);
         cooldown--;
         if (cooldown <= 0) {
             // 造成5点理智伤害

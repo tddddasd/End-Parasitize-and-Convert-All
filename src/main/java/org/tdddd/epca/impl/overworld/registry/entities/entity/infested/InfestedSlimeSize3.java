@@ -23,8 +23,8 @@ import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
@@ -39,15 +39,15 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.SlimeProjectile;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
@@ -59,25 +59,17 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     private float oSquish;
     private boolean wasOnGround;
     private int attackCooldown = 0; 
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedSlimeSize3.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_INVULNERABLE = SynchedEntityData.defineId(InfestedSlimeSize3.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 10;
     private BlockPos deathPosition;
-
-    
     private int rangedAttackCooldown = 0; 
     private int projectileCount = 0; 
     private int shootAnimationTime = 0; 
     private LivingEntity primaryTarget; 
     private List<LivingEntity> additionalTargets; 
-
-    
     private static final EntityDataAccessor<Boolean> DATA_SHOOTING =
             SynchedEntityData.defineId(InfestedSlimeSize3.class, EntityDataSerializers.BOOLEAN);
-
-    
     private static final SizeAttributes SIZE_3_ATTRIBUTES = new SizeAttributes(
             24.0D,  
             0.0D,   
@@ -87,8 +79,6 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             20, 60, 
             1.0F    
     );
-
-    
     private static class SizeAttributes {
         public final double maxHealth;
         public final double attackDamage;
@@ -112,8 +102,6 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             this.scale = scale;
         }
     }
-
-    
     private SizeAttributes getCurrentSizeAttributes() {
         return SIZE_3_ATTRIBUTES;
     }
@@ -129,11 +117,7 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
         this.navigation = new GroundPathNavigation(this, level);
         
         this.moveControl = new SlimeMoveControl(this);
-
-        
         this.currentSize = 3;
-
-        
         this.wasOnGround = this.onGround();
         
         this.additionalTargets = new ArrayList<>(); 
@@ -154,8 +138,6 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 32.0D));
     }
-
-    
     public static AttributeSupplier.Builder createAttributes() {
         return PathfinderMob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, SIZE_3_ATTRIBUTES.maxHealth)
@@ -165,8 +147,6 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
 
     @Override
     public void tick() {
-
-        
         if (this.additionalTargets == null) {
             this.additionalTargets = new ArrayList<>();
         }
@@ -176,7 +156,7 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
                 
-                if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+                if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
                     
                     int particleCount = 24;
                     for (int i = 0; i < particleCount; i++) {
@@ -184,12 +164,10 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                         double d1 = this.getY() + this.random.nextDouble() * this.getBbHeight();
                         double d2 = this.getZ() + (this.random.nextDouble() - 0.5D) * this.getBbWidth();
                         serverLevel.sendParticles(
-                                new ItemParticleOption(ParticleTypes.ITEM, ModItems.INFESTED_SLIME_BALL.get().getDefaultInstance()),
+                                new ItemParticleOption(ParticleTypes.ITEM, ModItems.INFESTED_SLIME_BALL.get()),
                                 d0, d1, d2, 1, 0.0D, 0.0D, 0.0D, 0.1D
                         );
                     }
-
-                    
                     int spawnCount = 2 + this.random.nextInt(3); 
                     for (int i = 0; i < spawnCount; i++) {
                         InfestedSlimeSize1 mediumSlime = InfestedSlimeSize1.create(this.level());
@@ -198,53 +176,41 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                             double offsetX = (this.random.nextDouble() - 0.5D) * 3.0D;
                             double offsetZ = (this.random.nextDouble() - 0.5D) * 3.0D;
                             mediumSlime.setPos(this.getX() + offsetX, this.getY() + 0.5D, this.getZ() + offsetZ);
-
-                            
                             if (this.isOnFire()) {
-                                mediumSlime.setSecondsOnFire(this.getRemainingFireTicks() / 20);
+                                mediumSlime.igniteForSeconds(this.getRemainingFireTicks() / 20);
                             }
 
                             this.level().addFreshEntity(mediumSlime);
                         }
                     }
                 }
-
-                
                 this.discard();
                 return; 
             }
             
             return;
         }
-
-        
         if (this.attackCooldown > 0) {
             this.attackCooldown--;
         }
-
-        
         if (this.rangedAttackCooldown > 0) {
             this.rangedAttackCooldown--;
         }
-
-        
         if (this.shootAnimationTime > 0) {
             this.shootAnimationTime--;
-
-            
-            if (this.shootAnimationTime == 12 && !this.level().isClientSide) {
+            if (this.shootAnimationTime == 12 && !this.level().isClientSide()) {
                 if (this.additionalTargets.size() > 0) {
                     this.shootProjectileAtTarget(this.additionalTargets.get(0));
                 }
             }
             
-            else if (this.shootAnimationTime == 8 && !this.level().isClientSide) {
+            else if (this.shootAnimationTime == 8 && !this.level().isClientSide()) {
                 if (this.additionalTargets.size() > 1) {
                     this.shootProjectileAtTarget(this.additionalTargets.get(1));
                 }
             }
             
-            else if (this.shootAnimationTime == 4 && !this.level().isClientSide) {
+            else if (this.shootAnimationTime == 4 && !this.level().isClientSide()) {
                 if (this.additionalTargets.size() > 2) {
                     this.shootProjectileAtTarget(this.additionalTargets.get(2));
                 }
@@ -254,13 +220,9 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                 this.entityData.set(DATA_SHOOTING, false);
             }
         }
-
-        
         this.oSquish = this.squish;
 
         boolean isOnGround = this.onGround();
-
-        
         if (isOnGround && !this.wasOnGround) {
             
             this.targetSquish = -0.5F;
@@ -273,21 +235,17 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
         this.squish += (this.targetSquish - this.squish) * 0.5F; 
 
         super.tick();
-
-        
         isOnGround = this.onGround();
-
-        
         if (isOnGround && !this.wasOnGround) {
             
-            if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+            if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
                 int particleCount = this.currentSize * 4;
                 for (int i = 0; i < particleCount; i++) {
                     double d0 = this.getX() + (this.random.nextDouble() - 0.5D) * this.getBbWidth();
                     double d1 = this.getY();
                     double d2 = this.getZ() + (this.random.nextDouble() - 0.5D) * this.getBbWidth();
                     serverLevel.sendParticles(
-                            new ItemParticleOption(ParticleTypes.ITEM, ModItems.INFESTED_SLIME_BALL.get().getDefaultInstance()),
+                            new ItemParticleOption(ParticleTypes.ITEM, ModItems.INFESTED_SLIME_BALL.get()),
                             d0, d1, d2, 1, 0.0D, 0.0D, 0.0D, 0.0D
                     );
                 }
@@ -300,8 +258,6 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
         
         updateFloating();
     }
-
-    
     public boolean isFakingDeath() {
         return this.entityData.get(DATA_IS_FAKING_DEATH);
     }
@@ -317,30 +273,18 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     public void setInvulnerable(boolean invulnerable) {
         this.entityData.set(DATA_IS_INVULNERABLE, invulnerable);
     }
-
-    
     private void triggerFakeDeath(DamageSource source) {
         
         setFakingDeath(true);
         setInvulnerable(true);
         fakeDeathTimer = 10; 
         deathPosition = this.blockPosition(); 
-
-        
         this.setHealth(0.02F);
-
-        
         this.setNoAi(true);
-
-        
         this.setInvulnerable(true);
-
-        
         this.setTarget(null);
 
         this.setPose(Pose.DYING); 
-
-        
         this.entityData.set(DATA_IS_FAKING_DEATH, true);
     }
 
@@ -351,11 +295,9 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             super.die(source);
             return;
         }
-
-        
         if (this.isOnFire()) {
             
-            if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+            if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
                 int spawnCount = 2 + this.random.nextInt(3); 
                 for (int i = 0; i < spawnCount; i++) {
                     InfestedSlimeSize1 mediumSlime = InfestedSlimeSize1.create(this.level());
@@ -364,9 +306,7 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                         double offsetX = (this.random.nextDouble() - 0.5D) * 3.0D;
                         double offsetZ = (this.random.nextDouble() - 0.5D) * 3.0D;
                         mediumSlime.setPos(this.getX() + offsetX, this.getY() + 0.5D, this.getZ() + offsetZ);
-
-                        
-                        mediumSlime.setSecondsOnFire(this.getRemainingFireTicks() / 20);
+                        mediumSlime.igniteForSeconds(this.getRemainingFireTicks() / 20);
 
                         this.level().addFreshEntity(mediumSlime);
                     }
@@ -375,13 +315,11 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             super.die(source);
             return;
         }
-
-        
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < 1.0f) {
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 1.0f) {
             triggerFakeDeath(source);
         } else {
             
-            if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+            if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
                 int spawnCount = 2 + this.random.nextInt(3); 
                 for (int i = 0; i < spawnCount; i++) {
                     InfestedSlimeSize1 mediumSlime = InfestedSlimeSize1.create(this.level());
@@ -400,13 +338,11 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (isFakingDeath() || isInvulnerable()) {
             return false;
         }
-
-        
         if (source.getEntity() instanceof LivingEntity attacker) {
             
             if (shouldIgnoreDamageFrom(attacker)) {
@@ -414,22 +350,14 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
-
-
-
-    
     static class SlimeRangedAttackGoal extends Goal {
         private final InfestedSlimeSize3 slime;
         private int seeTime;
@@ -460,24 +388,16 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
         public void tick() {
             LivingEntity target = this.slime.getTarget();
             if (target == null) return;
-
-            
             boolean canSee = this.slime.getSensing().hasLineOfSight(target);
             if (canSee) {
                 this.seeTime++;
             } else {
                 this.seeTime = 0;
             }
-
-            
             this.slime.getLookControl().setLookAt(target, 30.0F, 30.0F);
-
-            
             this.slime.getNavigation().stop();
             this.slime.xxa = 0.0F;
             this.slime.zza = 0.0F;
-
-            
             if (this.seeTime >= 20) {
                 this.slime.setAggressive(true);
                 this.startRangedAttack(target);
@@ -487,19 +407,11 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
         private void startRangedAttack(LivingEntity target) {
             
             this.slime.rangedAttackCooldown = this.attackInterval;
-
-            
             this.slime.primaryTarget = target;
-
-            
             this.slime.additionalTargets = this.findAdditionalTargets(target);
-
-            
             this.slime.shootAnimationTime = 20;
             this.slime.entityData.set(InfestedSlimeSize3.DATA_SHOOTING, true);
             this.slime.swinging = true;
-
-            
             this.slime.projectileCount = 0;
         }
 
@@ -517,11 +429,7 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                             !(entity instanceof Player && (((Player) entity).isCreative() || ((Player) entity).isSpectator())) &&
                             this.slime.getSensing().hasLineOfSight(entity)
             );
-
-            
             nearbyEnemies.sort(Comparator.comparingDouble(entity -> entity.distanceToSqr(this.slime)));
-
-            
             int enemyCount = nearbyEnemies.size() + 1; 
 
             if (enemyCount == 1) {
@@ -553,11 +461,7 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                         !(entity instanceof Player && (((Player) entity).isCreative() || ((Player) entity).isSpectator())) &&
                         this.getSensing().hasLineOfSight(entity)
         );
-
-        
         nearbyEnemies.sort(Comparator.comparingDouble(entity -> entity.distanceToSqr(this)));
-
-        
         int enemyCount = nearbyEnemies.size() + 1; 
 
         if (enemyCount == 1) {
@@ -574,109 +478,62 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             return List.of(primaryTarget, secondTarget, thirdTarget);
         }
     }
-
-    
     private void shootProjectileAtTarget(LivingEntity target) {
         if (target == null || !target.isAlive()) return;
-
-        
         if (target instanceof Player) {
             Player player = (Player) target;
             if (player.isCreative() || player.isSpectator()) {
                 return; 
             }
         }
-
-        
         SlimeProjectile projectile = new SlimeProjectile(
                 (EntityType<? extends ThrowableProjectile>) ModEntities.SLIME_PROJECTILE.get(),
                 this,
                 this.level()
         );
-
-        
         Vec3 shootPos = this.position().add(0, this.getEyeHeight() * 0.5, 0);
         projectile.setPos(shootPos.x, shootPos.y, shootPos.z);
-
-        
         Vec3 targetPos = target.position().add(0, target.getBbHeight() * 0.5, 0);
-
-        
         double dx = targetPos.x - shootPos.x;
         double dz = targetPos.z - shootPos.z;
         double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
-
-        
         double dy = targetPos.y - shootPos.y;
-
-        
         double gravity = 0.05; 
         double minSpeed = 0.6; 
         double maxSpeed = 1.2; 
-
-        
         double baseSpeed = Math.min(maxSpeed, Math.max(minSpeed, horizontalDistance * 0.1));
-
-        
         double angle = calculateLaunchAngle(horizontalDistance, dy, gravity, baseSpeed);
-
-        
         if (Double.isNaN(angle)) {
             angle = Math.PI / 4; 
         }
-
-        
         Vec3 horizontalDir = new Vec3(dx, 0, dz).normalize();
-
-        
         double speedX = baseSpeed * Math.cos(angle) * horizontalDir.x;
         double speedY = baseSpeed * Math.sin(angle);
         double speedZ = baseSpeed * Math.cos(angle) * horizontalDir.z;
 
         Vec3 velocity = new Vec3(speedX, speedY, speedZ);
-
-        
         double spread = 0.05D;
         velocity = velocity.add(
                 (this.random.nextDouble() - 0.5) * spread,
                 (this.random.nextDouble() - 0.5) * spread * 0.5,
                 (this.random.nextDouble() - 0.5) * spread
         );
-
-        
         projectile.shoot(velocity.x, velocity.y, velocity.z, (float) baseSpeed, 1.0F);
-
-        
         projectile.setTarget(target); 
         this.level().addFreshEntity(projectile);
-
-        
         this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, 1.0F / (this.random.nextFloat() * 0.4F + 0.8F));
     }
-
-    
     private double calculateLaunchAngle(double distance, double heightDiff, double gravity, double speed) {
-        
-        
-
         double speedSquared = speed * speed;
         double discriminant = speedSquared * speedSquared - gravity * (gravity * distance * distance + 2 * heightDiff * speedSquared);
-
-        
         if (discriminant < 0) {
             return Double.NaN;
         }
-
-        
         double sqrtDiscriminant = Math.sqrt(discriminant);
         double angle1 = Math.atan((speedSquared + sqrtDiscriminant) / (gravity * distance));
         double angle2 = Math.atan((speedSquared - sqrtDiscriminant) / (gravity * distance));
-
-        
         return Math.max(angle1, angle2);
     }
-
-    
     static class SlimeMoveControl extends MoveControl {
         private float yRot;
         private int jumpDelay;
@@ -729,8 +586,6 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                     }
 
                     ((InfestedSlimeSize3)this.mob).getJumpControl().jump();
-
-                    
                     this.slime.playSound(this.slime.getJumpSound(), this.slime.getSoundVolume(),
                             ((this.slime.getRandom().nextFloat() - this.slime.getRandom().nextFloat()) * 0.2F + 1.0F) * 0.8F);
                 } else {
@@ -750,44 +605,32 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     }
 
     @Override
-    protected void jumpFromGround() {
+    public void jumpFromGround() {
         Vec3 vec3 = this.getDeltaMovement();
         SizeAttributes attributes = getCurrentSizeAttributes();
-
-        
         this.setDeltaMovement(vec3.x * attributes.horizontalMultiplier, attributes.jumpPower, vec3.z * attributes.horizontalMultiplier);
-        this.hasImpulse = true;
+        this.hurtMarked = true;
     }
 
     @Override
     public void aiStep() {
         super.aiStep();
-
-        
         if (this.shootAnimationTime > 0) {
             this.setDeltaMovement(0, this.getDeltaMovement().y, 0);
             this.xxa = 0.0F;
             this.zza = 0.0F;
         }
-
-        
         if (!this.onGround()) {
             Vec3 vec3 = this.getDeltaMovement();
             this.setDeltaMovement(vec3.x * 0.95D, vec3.y, vec3.z * 0.95D);
         }
-
-        
         if (this.onGround() && this.getDeltaMovement().horizontalDistanceSqr() < 0.01D) {
             this.setDeltaMovement(0, this.getDeltaMovement().y, 0);
         }
-
-        
-        if (!this.level().isClientSide && this.attackCooldown <= 0) {
+        if (!this.level().isClientSide() && this.attackCooldown <= 0) {
             this.checkContactDamage();
         }
     }
-
-    
     private void checkContactDamage() {
         
         AABB collisionBox = this.getBoundingBox().inflate(0.0D); 
@@ -796,17 +639,15 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             if (target == this || IParasite.isParasiteByTagOrInterface(target)) {
                 continue;
             }
-
-            
             if (this.getBoundingBox().intersects(target.getBoundingBox())) {
                 
                 DamageSource magicDamage = this.damageSources().magic();
-                boolean hurt = target.hurt(magicDamage, 6.0F);
+                boolean hurt = target.hurtOrSimulate(magicDamage, 6.0F);
 
                 if (hurt) {
                     
                     MobEffectInstance solidifyEffect = new MobEffectInstance(
-                            ModEffects.SOLIDIFY.get(), 
+                            ModEffects.SOLIDIFY, 
                             40, 
                             0,  
                             false, 
@@ -815,18 +656,14 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                     target.addEffect(solidifyEffect);
 
                     MobEffectInstance fearEffect = new MobEffectInstance(
-                            ModEffects.FEAR.get(), 
+                            ModEffects.FEAR, 
                             400, 
                             0,  
                             false, 
                             true  
                     );
                     target.addEffect(fearEffect);
-
-                    
                     this.attackCooldown = 10;
-
-                    
                     this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, this.getVoicePitch());
 
                     break; 
@@ -834,8 +671,6 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             }
         }
     }
-
-    
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
         return SoundEvents.SLIME_HURT;
@@ -865,16 +700,13 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     }
 
     @Override
-    public EntityDimensions getDimensions(Pose pose) {
-        SizeAttributes attributes = getCurrentSizeAttributes();
-        return super.getDimensions(pose).scale(attributes.scale);
+    public float getAgeScale() {
+        return getCurrentSizeAttributes().scale;
     }
 
     public int getCurrentSize() {
         return currentSize;
     }
-
-    
     public float getSquish() {
         return this.squish;
     }
@@ -882,27 +714,25 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     public float getoSquish() {
         return this.oSquish;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::playState));
+        controllers.add(new AnimationController<>("controller", 4, this::playState));
     }
 
-    private PlayState playState(AnimationState<InfestedSlimeSize3> event) {
+    private PlayState playState(AnimationTest<InfestedSlimeSize3> event) {
         String sizeSuffix = getSizeSuffix();
 
         if (this.isFakingDeath()) {
-            event.getController().setAnimation(RawAnimation.begin().thenPlay("dead" + sizeSuffix));
+            event.setAnimation(RawAnimation.begin().thenPlay("dead" + sizeSuffix));
         } else if (!this.onGround() || this.getDeltaMovement().y > 0.0D) {
-            event.getController().setAnimation(RawAnimation.begin().thenPlay("jump" + sizeSuffix));
+            event.setAnimation(RawAnimation.begin().thenPlay("jump" + sizeSuffix));
         } else if (this.entityData.get(DATA_SHOOTING) || this.shootAnimationTime > 0) {
             
-            event.getController().setAnimation(RawAnimation.begin().thenPlay("shoot" + sizeSuffix));
+            event.setAnimation(RawAnimation.begin().thenPlay("shoot" + sizeSuffix));
         } else if (event.isMoving()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle" + sizeSuffix));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle" + sizeSuffix));
         } else {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle" + sizeSuffix));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle" + sizeSuffix));
         }
 
         return PlayState.CONTINUE;
@@ -918,16 +748,14 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_FAKING_DEATH, false);
-        this.entityData.define(DATA_IS_INVULNERABLE, false);
-        this.entityData.define(DATA_SHOOTING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_FAKING_DEATH, false);
+        entityData.define(DATA_IS_INVULNERABLE, false);
+        entityData.define(DATA_SHOOTING, false);
     }
-
-    
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput compound) {
         super.addAdditionalSaveData(compound);
         compound.putInt("Size", this.currentSize);
         compound.putInt("RangedAttackCooldown", this.rangedAttackCooldown);
@@ -940,35 +768,29 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput compound) {
         super.readAdditionalSaveData(compound);
         
         this.currentSize = 3;
-        this.rangedAttackCooldown = compound.getInt("RangedAttackCooldown");
-        this.entityData.set(DATA_SHOOTING, compound.getBoolean("Shooting"));
-        this.rangedAttackCooldown = compound.getInt("RangedAttackCooldown");
-        this.shootAnimationTime = compound.getInt("ShootAnimationTime");
-        this.entityData.set(DATA_IS_FAKING_DEATH, compound.getBoolean("FakingDeath"));
-        this.fakeDeathTimer = compound.getInt("FakeDeathTimer");
-        this.entityData.set(DATA_IS_INVULNERABLE, compound.getBoolean("Invulnerable"));
+        this.rangedAttackCooldown = compound.getIntOr("RangedAttackCooldown", 0);
+        this.entityData.set(DATA_SHOOTING, compound.getBooleanOr("Shooting", false));
+        this.rangedAttackCooldown = compound.getIntOr("RangedAttackCooldown", 0);
+        this.shootAnimationTime = compound.getIntOr("ShootAnimationTime", 0);
+        this.entityData.set(DATA_IS_FAKING_DEATH, compound.getBooleanOr("FakingDeath", false));
+        this.fakeDeathTimer = compound.getIntOr("FakeDeathTimer", 0);
+        this.entityData.set(DATA_IS_INVULNERABLE, compound.getBooleanOr("Invulnerable", false));
     }
 
     public void setSize(int size) {
         
     }
-
-    
     public static InfestedSlimeSize3 create(Level level) {
         return new InfestedSlimeSize3((EntityType<? extends PathfinderMob>) ModEntities.INFESTED_SLIME_SIZE3.get(), level);
     }
-
-    
     @Override
-    public void onAddedToWorld() {
-        super.onAddedToWorld();
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
     }
-
-    
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
@@ -977,36 +799,28 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     public static boolean checkInfestedSlimeSize3SpawnRules(
             EntityType<InfestedSlimeSize3> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
         
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
-
-            
             if (stage < 2 || stage > 4) {
                 return false;
             }
         }
-
-        
         return level.getMaxLocalRawBrightness(pos) < 8;
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -1019,16 +833,12 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
         
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             IParasite.super.onKillEntity(killedEntity);
         }
     }
-
-    
     private int floatingTime;
-
-    
     private void updateFloating() {
         if (this.isInWater()) {
             
@@ -1037,11 +847,7 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
                 
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
-
-            
             this.floatingTime++;
-
-            
             if (this.floatingTime > 10) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.4D, 0.0D));
                 this.floatingTime = 0;
@@ -1050,8 +856,6 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             this.floatingTime = 0;
         }
     }
-
-    
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
@@ -1063,14 +867,10 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
             super.travel(travelVector);
         }
     }
-
-    
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
-
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;

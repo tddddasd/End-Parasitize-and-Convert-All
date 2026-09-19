@@ -2,11 +2,11 @@ package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageType;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.tdddd.epca.impl.client.entity.IGlowRenderable;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 
@@ -36,8 +36,8 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -58,16 +58,16 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
@@ -80,8 +80,8 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private final Set<UUID> chargedTargets = new HashSet<>();
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.BOOLEAN);
-    private static final UUID WANDER_SPEED_ID = UUID.fromString("A2766B59-7066-4402-AD81-0E3B7B6C2B9B");
-    private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, "Wander speed reduction", -0.35, AttributeModifier.Operation.MULTIPLY_TOTAL);
+    private static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath("epca", "a2766b59-7066-4402-ad81-0e3b7b6c2b9b");
+    private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20;
     private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20;
@@ -103,8 +103,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private double baseSpeed = 0.35D;
     private double chaseSpeed = 0.45D;
     private int floatingTime;
-
-    
     private Entity carriedEntity; 
     private static final EntityDataAccessor<Integer> DATA_CARRIED_ENTITY_ID = SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.INT);
 
@@ -112,14 +110,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private int summoningTicks = 0;               
     private int summonsRemaining = 0;              
     private LivingEntity summonTarget;             
-
-    
     public boolean isArayaMinion = false;         
     private int minionLife = 0;                    
     private Vec3 minionVelocity = Vec3.ZERO;       
     public boolean isStationaryMinion = false;   
-
-    
     private boolean isCharging = false;              
     private int chargeRemainingTicks = 0;            
     private Vec3 chargeDirection = Vec3.ZERO;         
@@ -128,14 +122,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private long lastSuccessfulAttackTime = 0;        
     private static final EntityDataAccessor<Boolean> DATA_IS_STATIONARY_MINION =
             SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.BOOLEAN);
-
-    
     public InfestedEnderman(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 12;
-
-        
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             int roll = this.random.nextInt(100);
             if (roll < 70) {
                 this.setVariant(InfestedEnderman.Variant.DEFAULT);  
@@ -143,28 +133,25 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 this.setVariant(InfestedEnderman.Variant.UNSTABLE);    
             }
         }
-
-        
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             lastSuccessfulAttackTime = level().getGameTime();
         }
 
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-        this.setMaxUpStep(0.5F);
+        var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
+        if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
         this.navigation = new GroundPathNavigation(this, level);
     }
 
     @Override
-    public ResourceLocation getGlowTexture() {
-        return new ResourceLocation(epca.MODID, "textures/entity/infested_enderman_unstable_glow.png");
+    public Identifier getGlowTexture() {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/infested_enderman_unstable_glow.png");
     }
 
     public enum Variant {
         DEFAULT,
         UNSTABLE
     }
-
-    
     public InfestedEnderman.Variant getVariant() {
         
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
@@ -172,15 +159,13 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             
             return InfestedEnderman.Variant.DEFAULT;
         }
-
-        
         int index = Mth.clamp(variantOrdinal, 0, InfestedEnderman.Variant.values().length - 1);
         return InfestedEnderman.Variant.values()[index];
     }
 
     public void setVariant(InfestedEnderman.Variant variant) {
         this.entityData.set(DATA_VARIANT, variant.ordinal());
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             applyVariantAttributes(); 
         }
     }
@@ -191,22 +176,20 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
-        if (!this.level().isClientSide) {
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
+        if (!this.level().isClientSide()) {
             breakCooldown = tryBreakLightSources(this, breakCooldown);
         }
     }
 
     @Override
     public void remove(RemovalReason reason) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             releaseCarriedEntity();
         }
         super.remove(reason);
     }
-
-    
     private boolean isTeleportFromExternalSource() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (StackTraceElement element : stackTrace) {
@@ -228,7 +211,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     @Override
     public void teleportTo(double x, double y, double z) {
         
-        if (!this.level().isClientSide && this.getCarriedEntity() != null && isTeleportFromExternalSource()) {
+        if (!this.level().isClientSide() && this.getCarriedEntity() != null && isTeleportFromExternalSource()) {
             releaseCarriedEntity();
         }
         super.teleportTo(x, y, z);
@@ -239,16 +222,12 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         
         return super.randomTeleport(x, y, z, particleEffects);
     }
-
-    
     public boolean isFakingDeath() {
         return this.entityData.get(DATA_IS_FAKING_DEATH);
     }
     private void setFakingDeath(boolean faking) {
         this.entityData.set(DATA_IS_FAKING_DEATH, faking);
     }
-
-    
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 32.0D)
@@ -260,8 +239,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 .add(Attributes.ARMOR, 4.0D)
                 .build();
     }
-
-    
     @Override
     protected void registerGoals() {
         super.registerGoals();
@@ -277,22 +254,16 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
     }
-
-    
     @Override
     public void tick() {
         super.tick();
         
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             if (isCharging) {
                 handleCharge();      
                 return;              
             }
-
-            
             if (chargeCooldown > 0) chargeCooldown--;
-
-            
             if (getVariant() == Variant.UNSTABLE && chargeCooldown <= 0 && getTarget() != null && getTarget().isAlive()) {
                 
                 boolean yAligned = Math.abs(getY() - getTarget().getY()) < 1.5; 
@@ -307,7 +278,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
 
             if (isArayaMode && chargeCooldown <= 0 && getTarget() != null && getTarget().isAlive()) {
                 LivingEntity target = getTarget();
-                int scar = target.getPersistentData().getInt("SwordScar");
+                int scar = target.getPersistentData().getIntOr("SwordScar", 0);
                 if (scar >= 99 || this.getHealth() <= this.getMaxHealth() * 0.5f) {
                     startCharge();
                 }
@@ -329,11 +300,11 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             return; 
         }
 
-        if (isArayaMode && !level().isClientSide) {
+        if (isArayaMode && !level().isClientSide()) {
             arayaBuffTimer++;
             if (arayaBuffTimer >= 60 * 20) {
                 arayaBuffTimer = 0;
-                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 120, 1, false, false));
+                this.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 120, 1, false, false));
                 damageIncreaseTimer = 120; // 6秒
             }
             if (damageIncreaseTimer > 0) damageIncreaseTimer--;
@@ -346,10 +317,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             else stage = -1;
 
             if (stage != lastResistanceStage) {
-                this.removeEffect(MobEffects.DAMAGE_RESISTANCE);
+                this.removeEffect(MobEffects.RESISTANCE);
                 if (stage != -1) {
                     int amplifier = (stage == 0) ? 3 : (stage == 1 ? 2 : 1); // IV=3, III=2, II=1
-                    this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 400, amplifier, false, false));
+                    this.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 400, amplifier, false, false));
                 }
                 lastResistanceStage = stage;
             }
@@ -363,14 +334,14 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                     float entityRatio = entity.getHealth() / entity.getMaxHealth();
                     int lostPercent = (int) ((1 - entityRatio) * 100);
                     if (lostPercent < 1) lostPercent = 1;
-                    int currentScar = entity.getPersistentData().getInt("SwordScar");
+                    int currentScar = entity.getPersistentData().getIntOr("SwordScar", 0);
                     currentScar = Math.min(99, currentScar + lostPercent);
                     entity.getPersistentData().putInt("SwordScar", currentScar);
                 }
             }
         }
         
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
             boolean hasTarget = this.getTarget() != null;
             boolean hasPassenger = this.getCarriedEntity() != null;
@@ -386,13 +357,11 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 this.setWalking(false);
             }
         }
-
-        
         if (isFakingDeath()) {
             super.tick();
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
@@ -408,7 +377,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                         BlockPos deathPos = this.deathPosition;
                         long seed = this.random.nextLong();
                         int delay = this.random.nextInt(30) + 40;
-                        serverLevel.getServer().tell(new TickTask(
+                        serverLevel.getServer().schedule(new TickTask(
                                 serverLevel.getServer().getTickCount() + delay,
                                 () -> {
                                     spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed));
@@ -422,9 +391,9 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                         cloud.setDuration(60);
                         cloud.setRadiusPerTick(0);
                         cloud.setWaitTime(0);
-                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 1, false, true));
                         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
-                        cloud.addEffect(new MobEffectInstance(ModEffects.ENDER_EROSION.get(), 20, 0, false, true));
+                        cloud.addEffect(new MobEffectInstance(ModEffects.ENDER_EROSION, 20, 0, false, true));
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
@@ -433,8 +402,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             }
             return;
         }
-
-        
         AttributeInstance movementAttribute = this.getAttribute(Attributes.MOVEMENT_SPEED);
         if (movementAttribute != null) {
             boolean hasTarget = this.getTarget() != null;
@@ -446,30 +413,22 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 movementAttribute.addTransientModifier(WANDER_SPEED_REDUCTION);
             }
         }
-
-        
-        if (!this.level().isClientSide && this.getTarget() == null) {
+        if (!this.level().isClientSide() && this.getTarget() == null) {
             if (--this.ambientSoundTime <= 0) {
                 this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
                 playAmbientSound();
             }
         }
-
-        
         updateFloating();
-
-        
         if (this.teleportCooldown > 0) this.teleportCooldown--;
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             Entity carried = this.getCarriedEntity();
             if (carried != null) {
                 
                 updateCarriedEntityPosition(carried);
                 
                 if (this.isOnFire()) {
-                    carried.setSecondsOnFire(5);
+                    carried.igniteForSeconds(5);
                 } else {
                     carried.setRemainingFireTicks(-1);
                 }
@@ -481,8 +440,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                     releaseCarriedEntity();
                 }
             }
-
-            
             boolean namedAraya = hasCustomName() && "Araya".equals(getCustomName().getString());
             boolean isUnstable = getVariant() == Variant.UNSTABLE;
             if (isUnstable && namedAraya && !isArayaMode) {
@@ -490,8 +447,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             } else if ((!isUnstable || !namedAraya) && isArayaMode) {
                 exitArayaMode();
             }
-
-            
             if (isArayaMode && summoningTicks > 0) {
                 if (summonTarget == null || !summonTarget.isAlive()) {
                     summoningTicks = 0; 
@@ -504,9 +459,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 }
             }
         }
-
-        
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             for (int i = 0; i < 2; ++i) {
                 this.level().addParticle(
                         ParticleTypes.PORTAL,
@@ -522,7 +475,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     private void startCharge() {
-        if (level().isClientSide) return;
+        if (level().isClientSide()) return;
         chargedTargets.clear();
 
         LivingEntity target = getTarget();
@@ -560,7 +513,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         double step = 8.0 / 15.0;
         Vec3 movement = chargeDirection.scale(step);
         Vec3 newPos = position().add(movement);
-        if (newPos.y < level().getMinBuildHeight() || newPos.y > level().getMaxBuildHeight()) {
+        if (newPos.y < level().getMinY() || newPos.y > level().getMaxY()) {
             endCharge();
             return;
         }
@@ -571,21 +524,21 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, aabb,
                 e -> e != this && e.isAlive() && !IParasite.isParasiteByTagOrInterface(e));
         for (LivingEntity entity : entities) {
-            entity.addEffect(new MobEffectInstance(ModEffects.ENDER_EROSION.get(), 60, 5, false, false));
-            entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0, false, false));
+            entity.addEffect(new MobEffectInstance(ModEffects.ENDER_EROSION, 60, 5, false, false));
+            entity.addEffect(new MobEffectInstance(ModEffects.COTH, 600, 0, false, false));
 
             if (!chargedTargets.contains(entity.getUUID())) {
                 Level level = entity.level();
                 chargedTargets.add(entity.getUUID());
-                int scar = entity.getPersistentData().getInt("SwordScar");
+                int scar = entity.getPersistentData().getIntOr("SwordScar", 0);
                 if (scar > 0) {
                     entity.getPersistentData().putInt("SwordScar", 0);
                     float maxHealth = entity.getMaxHealth();
                     float slashDamage = maxHealth * scar / 100.0f;
-                    Registry<DamageType> registry = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-                    Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
+                    Registry<DamageType> registry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+                    Holder<DamageType> holder = registry.get(ModDamageTypes.MINIMUM).orElseThrow();
                     DamageSource minimumSource = new DamageSource(holder);
-                    entity.hurt(minimumSource, slashDamage);
+                    entity.hurtOrSimulate(minimumSource, slashDamage);
                 }
             }
         }
@@ -624,8 +577,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         }
         return false;
     }
-
-    
     private boolean attemptPlaceCarried() {
         Entity passenger = getCarriedEntity();
         if (passenger == null) return false;
@@ -659,7 +610,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     private void applyVariantAttributes() {
-        if (this.level().isClientSide) return; 
+        if (this.level().isClientSide()) return; 
         AttributeInstance followRange = this.getAttribute(Attributes.FOLLOW_RANGE);
         if (followRange != null) {
             double base = 32.0D;
@@ -709,31 +660,30 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         int choice = random.nextInt(4);
         switch (choice) {
             case 0 -> target.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 0));
-            case 1 -> target.addEffect(new MobEffectInstance(ModEffects.BLEEDING.get(), 120, 0));
-            case 2 -> target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 0));
-            case 3 -> target.setSecondsOnFire(6);
+            case 1 -> target.addEffect(new MobEffectInstance(ModEffects.BLEEDING, 120, 0));
+            case 2 -> target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 0));
+            case 3 -> target.igniteForSeconds(6);
         }
     }
 
     @Override
-    public boolean doHurtTarget(Entity target) {
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
 
         if (isArayaMode && target instanceof LivingEntity livingTarget) {
             if (summoningTicks > 0) return false;
             startSummoning(livingTarget);
-            Level level = this.level();
-            int scarLevel = livingTarget.getPersistentData().getInt("SwordScar");
+            int scarLevel = livingTarget.getPersistentData().getIntOr("SwordScar", 0);
             int bonus = (scarLevel / 10) * 10;
             if (bonus > 50) bonus = 50;
             float baseDamage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
             float directDamage = baseDamage * (1 + bonus / 100.0f);
 
-            boolean hurt = livingTarget.hurt(livingTarget.damageSources().mobAttack(this), directDamage);
+            boolean hurt = livingTarget.hurtOrSimulate(livingTarget.damageSources().mobAttack(this), directDamage);
             if (hurt) {
-                Registry<DamageType> registry = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-                Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
+                Registry<DamageType> registry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+                Holder<DamageType> holder = registry.get(ModDamageTypes.MINIMUM).orElseThrow();
                 DamageSource minimumSource = new DamageSource(holder);
-                livingTarget.hurt(minimumSource, directDamage * 0.1f);
+                livingTarget.hurtOrSimulate(minimumSource, directDamage * 0.1f);
 
                 applyRandomEffect(livingTarget);
 
@@ -745,8 +695,8 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             }
             return false;
         } else {
-            boolean hurt = super.doHurtTarget(target);
-            if (hurt && !level().isClientSide) {
+            boolean hurt = super.doHurtTarget(level, target);
+            if (hurt && !level().isClientSide()) {
                 lastSuccessfulAttackTime = level().getGameTime();
             }
             return hurt;
@@ -770,16 +720,12 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         InfestedEnderman minion = new InfestedEnderman(ModEntities.INFESTED_ENDERMAN.get(), this.level());
         minion.setVariant(Variant.UNSTABLE);
         minion.setPos(this.getX(), this.getY(), this.getZ());
-
-        
         minion.isArayaMinion = true;
         minion.minionLife = 10; 
         minion.setInvulnerable(true);  
         minion.noPhysics = true;       
         minion.setNoGravity(true);     
         minion.setNoAi(true);          
-
-        
         Vec3 dir = new Vec3(target.getX() - this.getX(), 0, target.getZ() - this.getZ()).normalize();
         minion.minionVelocity = dir.scale(0.25); 
 
@@ -792,8 +738,8 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 e -> e != this && e.isAlive());
         for (LivingEntity target : list) {
             if (!IParasite.isParasiteByTagOrInterface(target)) { 
-                target.hurt(this.level().damageSources().magic(), 9.0F);
-                target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 0)); 
+                target.hurtOrSimulate(this.level().damageSources().magic(), 9.0F);
+                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 0)); 
             }
         }
     }
@@ -801,15 +747,13 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level().isClientSide && isArayaMode && summoningTicks > 0) {
+        if (!this.level().isClientSide() && isArayaMode && summoningTicks > 0) {
             this.getNavigation().stop();
             this.setDeltaMovement(0, this.getDeltaMovement().y, 0); 
         }
     }
-
-    
     public Entity getCarriedEntity() {
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             int id = this.entityData.get(DATA_CARRIED_ENTITY_ID);
             return id == -1 ? null : this.level().getEntity(id);
         } else {
@@ -818,7 +762,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     private void setCarriedEntity(Entity entity) {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
         this.carriedEntity = entity;
         this.entityData.set(DATA_CARRIED_ENTITY_ID, entity == null ? -1 : entity.getId());
         if (entity != null) {
@@ -855,24 +799,22 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             this.setCarriedEntity(null);
         }
     }
-
-    
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_FAKING_DEATH, false);
-        this.entityData.define(DATA_IS_INVULNERABLE, false);
-        this.entityData.define(DATA_IS_RUNNING, false);
-        this.entityData.define(DATA_IS_WALKING, false);
-        this.entityData.define(DATA_IDLE2_PROBABILITY, DEFAULT_IDLE2_PROB);
-        this.entityData.define(DATA_CARRY_IDLE2_PROBABILITY, DEFAULT_CARRY_IDLE2_PROB);
-        this.entityData.define(DATA_CARRIED_ENTITY_ID, -1);
-        this.entityData.define(DATA_VARIANT, InfestedEnderman.Variant.DEFAULT.ordinal());
-        this.entityData.define(DATA_IS_STATIONARY_MINION, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_FAKING_DEATH, false);
+        entityData.define(DATA_IS_INVULNERABLE, false);
+        entityData.define(DATA_IS_RUNNING, false);
+        entityData.define(DATA_IS_WALKING, false);
+        entityData.define(DATA_IDLE2_PROBABILITY, DEFAULT_IDLE2_PROB);
+        entityData.define(DATA_CARRY_IDLE2_PROBABILITY, DEFAULT_CARRY_IDLE2_PROB);
+        entityData.define(DATA_CARRIED_ENTITY_ID, -1);
+        entityData.define(DATA_VARIANT, InfestedEnderman.Variant.DEFAULT.ordinal());
+        entityData.define(DATA_IS_STATIONARY_MINION, false);
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat("Idle2Probability", this.entityData.get(DATA_IDLE2_PROBABILITY));
         tag.putFloat("CarryIdle2Probability", this.entityData.get(DATA_CARRY_IDLE2_PROBABILITY));
@@ -880,20 +822,20 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("Idle2Probability", net.minecraft.nbt.Tag.TAG_FLOAT)) {
-            this.entityData.set(DATA_IDLE2_PROBABILITY, tag.getFloat("Idle2Probability"));
+        if (tag.read("Idle2Probability", com.mojang.serialization.Codec.FLOAT).isPresent()) {
+            this.entityData.set(DATA_IDLE2_PROBABILITY, tag.getFloatOr("Idle2Probability", 0.0F));
         } else {
             this.entityData.set(DATA_IDLE2_PROBABILITY, DEFAULT_IDLE2_PROB);
         }
-        if (tag.contains("CarryIdle2Probability", net.minecraft.nbt.Tag.TAG_FLOAT)) {
-            this.entityData.set(DATA_CARRY_IDLE2_PROBABILITY, tag.getFloat("CarryIdle2Probability"));
+        if (tag.read("CarryIdle2Probability", com.mojang.serialization.Codec.FLOAT).isPresent()) {
+            this.entityData.set(DATA_CARRY_IDLE2_PROBABILITY, tag.getFloatOr("CarryIdle2Probability", 0.0F));
         } else {
             this.entityData.set(DATA_CARRY_IDLE2_PROBABILITY, DEFAULT_CARRY_IDLE2_PROB);
         }
-        if (tag.contains("Variant", 8)) {
-            String variantName = tag.getString("Variant");
+        if (tag.getString("Variant").isPresent()) {
+            String variantName = tag.getStringOr("Variant", "");
             try {
                 this.setVariant(InfestedEnderman.Variant.valueOf(variantName));
             } catch (IllegalArgumentException e) {
@@ -909,18 +851,12 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     public void setStationaryMinion(boolean stationary) {
         this.entityData.set(DATA_IS_STATIONARY_MINION, stationary);
     }
-
-    
     public boolean isRunning() { return this.entityData.get(DATA_IS_RUNNING); }
     public boolean isWalking() { return this.entityData.get(DATA_IS_WALKING); }
     private void setRunning(boolean running) { this.entityData.set(DATA_IS_RUNNING, running); }
     private void setWalking(boolean walking) { this.entityData.set(DATA_IS_WALKING, walking); }
-
-    
     public boolean isInvulnerable() { return this.entityData.get(DATA_IS_INVULNERABLE); }
     public void setInvulnerable(boolean invulnerable) { this.entityData.set(DATA_IS_INVULNERABLE, invulnerable); }
-
-    
     public void playAmbientSound() {
         if (this.getTarget() != null && !this.isSilent()) {
             this.playSound(ModSoundEvents.INFESTED_ENDERMAN_SCREAM.get());
@@ -932,10 +868,8 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         return ModSoundEvents.INFESTED_ENDERMAN_HURT.get();
     }
     @Override protected SoundEvent getDeathSound() { return ModSoundEvents.INFESTED_ENDERMAN_DEATH.get(); }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (isCharging) return false;
 
@@ -944,7 +878,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         }
         if (isFakingDeath() || isInvulnerable()) return false;
 
-        if (!this.level().isClientSide && source.getDirectEntity() instanceof Projectile projectile) {
+        if (!this.level().isClientSide() && source.getDirectEntity() instanceof Projectile projectile) {
             if (tryForcedTeleport()) {
                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                         ModSoundEvents.INFESTED_ENDERMAN_PORTAL.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
@@ -953,14 +887,14 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             else { reboundProjectile(projectile); return false; }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
 
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
-        if (!this.level().isClientSide && result && this.teleportCooldown <= 0) {
+        if (!this.level().isClientSide() && result && this.teleportCooldown <= 0) {
             if (tryTeleportRandomly()) {
                 this.teleportCooldown = this.random.nextInt(TELEPORT_COOLDOWN_MIN, TELEPORT_COOLDOWN_MAX + 1);
                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -985,7 +919,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     private boolean tryTeleportRandomly() {
-        if (this.level().isClientSide) return false;
+        if (this.level().isClientSide()) return false;
         double x = this.getX() + (this.random.nextDouble() - 0.5) * 64.0;
         double y = this.getY() + (double)(this.random.nextInt(64) - 32);
         double z = this.getZ() + (this.random.nextDouble() - 0.5) * 64.0;
@@ -999,73 +933,67 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             IParasite.super.onKillEntity(killedEntity);
             this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0, false, false, true));
         }
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         
-        AnimationController<InfestedEnderman> normalController = new AnimationController<>(this, "normal_controller", 4, this::normalAnimationPredicate);
+        AnimationController<InfestedEnderman> normalController = new AnimationController<>("normal_controller", 4, this::normalAnimationPredicate);
         
-        AnimationController<InfestedEnderman> stationaryController = new AnimationController<>(this, "stationary_controller", 0, this::stationaryAnimationPredicate);
+        AnimationController<InfestedEnderman> stationaryController = new AnimationController<>("stationary_controller", 0, this::stationaryAnimationPredicate);
         controllers.add(normalController, stationaryController);
     }
 
-    private PlayState normalAnimationPredicate(software.bernie.geckolib.core.animation.AnimationState<InfestedEnderman> event) {
+    private PlayState normalAnimationPredicate(com.geckolib.animation.state.AnimationTest<InfestedEnderman> event) {
         
-        if (event.getAnimatable().isStationaryMinion()) {
+        if (event.animatable().isStationaryMinion()) {
             return PlayState.STOP;
         }
-
-        
         boolean hasPassenger = this.getCarriedEntity() != null;
         boolean isMoving = event.isMoving();
 
         if (this.isFakingDeath()) {
-            event.getController().setAnimation(RawAnimation.begin().thenPlay("dead"));
+            event.setAnimation(RawAnimation.begin().thenPlay("dead"));
         } else if (hasPassenger) {
             if (this.isRunning() || this.getTarget() != null) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("carry_run"));
+                event.setAnimation(RawAnimation.begin().thenLoop("carry_run"));
             } else if (isMoving) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("carry_walk"));
+                event.setAnimation(RawAnimation.begin().thenLoop("carry_walk"));
             } else {
                 if (getVariant() != Variant.DEFAULT) {
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("carry_idle2"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("carry_idle2"));
                 } else {
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("carry_idle1"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("carry_idle1"));
                 }
             }
         } else {
             if (this.isRunning() || this.getTarget() != null) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("run"));
+                event.setAnimation(RawAnimation.begin().thenLoop("run"));
             } else if (isMoving) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+                event.setAnimation(RawAnimation.begin().thenLoop("walk"));
             } else {
                 if (getVariant() != Variant.DEFAULT) {
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("idle2"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("idle2"));
                 } else {
-                    event.getController().setAnimation(RawAnimation.begin().thenLoop("idle1"));
+                    event.setAnimation(RawAnimation.begin().thenLoop("idle1"));
                 }
             }
         }
         return PlayState.CONTINUE;
     }
 
-    private PlayState stationaryAnimationPredicate(AnimationState<InfestedEnderman> event) {
+    private PlayState stationaryAnimationPredicate(AnimationTest<InfestedEnderman> event) {
         
-        if (!event.getAnimatable().isStationaryMinion()) {
+        if (!event.animatable().isStationaryMinion()) {
             return PlayState.STOP;
         }
         
-        event.getController().setAnimation(RawAnimation.begin().thenLoop("idle2"));
+        event.setAnimation(RawAnimation.begin().thenLoop("idle2"));
         return PlayState.CONTINUE;
     }
-
-    
     private boolean tryTeleportToEntity(LivingEntity target) {
         if (target == null) return false;
         RandomSource rand = random;
@@ -1082,14 +1010,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         }
         return false;
     }
-
-    
     private class PickUpParasiteGoal extends Goal {
         private static final int SEARCH_RADIUS = 32;
         private LivingEntity carryTarget;
         private int cooldown = 0;
-
-        
         private boolean isCarriedByOther(LivingEntity target) {
             
             return !InfestedEnderman.this.level().getEntitiesOfClass(InfestedEnderman.class,
@@ -1115,8 +1039,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                             !e.isOnFire() &&
                             !isCarriedByOther(e)
             );
-
-            
             list.removeIf(candidate -> attackTarget.distanceToSqr(candidate) > 24 * 24);
 
             if (list.isEmpty()) return false;
@@ -1135,9 +1057,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             if (configAllows) {
                 return true;
             }
-
-            
-            
             return configAllows;
         }
 
@@ -1159,18 +1078,12 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         public void tick() {
             if (carryTarget == null) return;
             double distSq = InfestedEnderman.this.distanceToSqr(carryTarget);
-
-            
             if (distSq <= 8 * 8 && InfestedEnderman.this.teleportCooldown <= 0) {
                 if (InfestedEnderman.this.tryTeleportToEntity(carryTarget)) {
-                    
-                    
                     InfestedEnderman.this.setCarriedEntity(carryTarget);
                     InfestedEnderman.this.level().playSound(null, InfestedEnderman.this.getX(), InfestedEnderman.this.getY(), InfestedEnderman.this.getZ(),
                             ModSoundEvents.INFESTED_ENDERMAN_PORTAL.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     InfestedEnderman.this.getNavigation().stop();
-
-                    
                     LivingEntity target = InfestedEnderman.this.getTarget();
                     if (target != null && InfestedEnderman.this.attemptTeleportAndPlace(target)) {
                         
@@ -1184,8 +1097,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                     return;
                 }
             }
-
-            
             if (distSq <= 1.2 * 1.2) {
                 
                 if (InfestedEnderman.this.getCarriedEntity() == null) {
@@ -1193,8 +1104,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                     InfestedEnderman.this.level().playSound(null, InfestedEnderman.this.getX(), InfestedEnderman.this.getY(), InfestedEnderman.this.getZ(),
                             ModSoundEvents.INFESTED_ENDERMAN_PORTAL.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     InfestedEnderman.this.getNavigation().stop();
-
-                    
                     LivingEntity target = InfestedEnderman.this.getTarget();
                     if (target != null && InfestedEnderman.this.attemptTeleportAndPlace(target)) {
                         
@@ -1216,8 +1125,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             InfestedEnderman.this.getNavigation().stop();
         }
     }
-
-    
     private class PlacePassengerGoal extends Goal {
         private static final int PLACE_RANGE = 6;
         private int placeAttempts = 0;
@@ -1260,8 +1167,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         public void tick() {
             LivingEntity target = InfestedEnderman.this.getTarget();
             if (target == null) return;
-
-            
             if (InfestedEnderman.this.teleportCooldown <= 0) {
                 if (tryTeleportToTarget(target)) {
                     
@@ -1323,8 +1228,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             placeAttempts++;
         }
     }
-
-    
     @Override
     public void die(DamageSource source) {
         releaseCarriedEntity(); 
@@ -1353,15 +1256,15 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             return;
         }
 
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
             this.onDeath(source);
         } else {
             super.die(source);
             this.onDeath(source);
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 if (this.random.nextFloat() < 0.3f) {
-                    WalkingEndermanHead head = ModEntities.WALKING_ENDERMAN_HEAD.get().create(this.level());
+                    WalkingEndermanHead head = ModEntities.WALKING_ENDERMAN_HEAD.get().create(this.level(), EntitySpawnReason.MOB_SUMMONED);
                     if (head != null) {
                         head.setPos(this.getX(), this.getY(), this.getZ());
                         head.setYRot(this.random.nextFloat() * 360.0F);
@@ -1390,12 +1293,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         this.setPose(Pose.DYING);
         this.entityData.set(DATA_IS_FAKING_DEATH, true);
     }
-
-    
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 3; i++) {
             EntityType<?> buglinType = ModEntities.INFESTED_ENDERMITE.get();
-            Entity buglin = buglinType.create(level);
+            Entity buglin = buglinType.create(level, EntitySpawnReason.MOB_SUMMONED);
             if (buglin != null) {
                 double offsetX = random.nextDouble() - 0.5;
                 double offsetY = random.nextDouble() * 0.5;
@@ -1414,7 +1315,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     private static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
-        if (level.isClientSide || deathPos == null) return;
+        if (level.isClientSide() || deathPos == null) return;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_LARGE.get().defaultBlockState(), 1);
         int mediumCount = rand.nextInt(3) + 2;
@@ -1439,8 +1340,6 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             }
         }
     }
-
-    
     private void updateFloating() {
         if (this.isInWater()) {
             Vec3 vec3 = this.getDeltaMovement();
@@ -1467,18 +1366,14 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             super.travel(travelVector);
         }
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -1489,7 +1384,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
 
@@ -1507,12 +1402,12 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     }
 
     @SubscribeEvent
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
         LivingEntity victim = event.getEntity();
         if (victim == null) return;
 
         // ----- 剑痕残像增伤（除 Araya 自身外） -----
-        int scar = victim.getPersistentData().getInt("SwordScar");
+        int scar = victim.getPersistentData().getIntOr("SwordScar", 0);
         if (scar > 0) {
             // 若受害者是 Araya 形态则跳过自身增伤（但自身增伤由另一个逻辑处理）
             if (!(victim instanceof InfestedEnderman && ((InfestedEnderman) victim).isArayaMode())) {
@@ -1533,11 +1428,11 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     public static boolean checkInfestedEndermanSpawnRules(
             EntityType<InfestedEnderman> entityType,
             ServerLevelAccessor levelAccessor,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
             if (stage < 4 || stage > 7) return false;
         }
@@ -1549,12 +1444,12 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         return factory;
     }
 
-    public ResourceLocation getTextureResource() {
+    public Identifier getTextureResource() {
         switch (getVariant()) {
             case UNSTABLE:
-                return new ResourceLocation("epca", "textures/entity/infested_enderman_unstable.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_enderman_unstable.png");
             default:
-                return new ResourceLocation("epca", "textures/entity/infested_enderman.png");
+                return Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_enderman.png");
         }
     }
 }

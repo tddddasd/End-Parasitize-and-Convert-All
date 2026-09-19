@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -16,22 +19,31 @@ public class SolidifyEffect extends MobEffect implements RemovableEffect {
         super(MobEffectCategory.BENEFICIAL, 0x8B795E);
     }
 
+    // 26.1.2: LivingEntity#getEffect/removeEffect take a Holder<MobEffect>. Resolving this instance through
+    // the registry yields the canonical holder it was registered with.
+    private Holder<MobEffect> holder() {
+        return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(this);
+    }
+
     @Override
     public boolean isRemovable() {
         return false;
     }
 
+    // 26.1.2: applyEffectTick(ServerLevel,LivingEntity,int):boolean, run only server side
+    // (MobEffectInstance#tickServer). Entity#hurt is final void now, so the two 2.0F hits go through
+    // LivingEntity#hurtServer(ServerLevel, DamageSource, float) -- same damage source and amount.
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         
         if (isImmune(entity)) {
-            entity.removeEffect(this);
-            return;
+            entity.removeEffect(holder());
+            return true;
         }
 
         
-        MobEffectInstance effectInstance = entity.getEffect(this);
-        if (effectInstance == null) return;
+        MobEffectInstance effectInstance = entity.getEffect(holder());
+        if (effectInstance == null) return true;
 
         int duration = effectInstance.getDuration();
 
@@ -40,23 +52,26 @@ public class SolidifyEffect extends MobEffect implements RemovableEffect {
         if (duration > 0 && duration % 20 == 0) {
             
             if (entity.isAlive()) {
-                entity.hurt(entity.damageSources().inWall(), 2.0F);
+                entity.hurtServer(serverLevel, entity.damageSources().inWall(), 2.0F);
             }
 
             
             if (entity.isAlive()) {
-                entity.hurt(entity.damageSources().magic(), 2.0F);
+                entity.hurtServer(serverLevel, entity.damageSources().magic(), 2.0F);
             }
         }
 
         
         if (shouldRemoveEffect(entity)) {
-            entity.removeEffect(this);
+            entity.removeEffect(holder());
         }
+        return true;
     }
 
+    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
+    // 1.20.1 returned true unconditionally (the 20-tick cadence lives in the body), so keep ticking every tick.
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
         
         return true;
     }

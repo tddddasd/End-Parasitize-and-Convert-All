@@ -3,11 +3,13 @@ package org.tdddd.epca.impl.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.permissions.PermissionCheck;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 import org.tdddd.epca.impl.events.BiomassEventHandler;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 
@@ -16,7 +18,7 @@ public class NestLeaderCommand {
     public static void register(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
         dispatcher.register(Commands.literal("epca_nestleader")
-                .requires(s -> s.hasPermission(2))
+                .requires(Commands.hasPermission(new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER)))
                 .then(Commands.literal("add")
                         .then(Commands.argument("player", EntityArgument.player())
                                 .executes(ctx -> {

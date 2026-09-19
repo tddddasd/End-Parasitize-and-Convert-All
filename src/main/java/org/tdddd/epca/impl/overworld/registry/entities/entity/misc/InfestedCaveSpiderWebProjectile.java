@@ -1,8 +1,9 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -25,8 +26,8 @@ public class InfestedCaveSpiderWebProjectile extends ThrowableItemProjectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
     }
 
     @Override
@@ -41,7 +42,7 @@ public class InfestedCaveSpiderWebProjectile extends ThrowableItemProjectile {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             tryPlaceWeb(this.blockPosition());
             this.discard();
         }
@@ -50,7 +51,7 @@ public class InfestedCaveSpiderWebProjectile extends ThrowableItemProjectile {
 
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             BlockState hitState = this.level().getBlockState(result.getBlockPos());
             if (hitState.getFluidState().isEmpty()) {
                 tryPlaceWeb(this.blockPosition());

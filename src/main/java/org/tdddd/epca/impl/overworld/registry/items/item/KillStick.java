@@ -1,27 +1,26 @@
 package org.tdddd.epca.impl.overworld.registry.items.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import dev.kosmx.playerAnim.api.layered.IAnimation;
 import dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer;
 import dev.kosmx.playerAnim.api.layered.ModifierLayer;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.particles.ParticleTypes;
@@ -31,60 +30,78 @@ import net.minecraft.world.phys.AABB;
 import java.util.List;
 import java.util.Random;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraftforge.common.ForgeMod;
 import org.tdddd.epca.impl.epca;
 
+/**
+ * Kill stick.
+ *
+ * <h2>26.1.2 item-API changes applied here</h2>
+ * <ul>
+ *   <li>{@code Item#getDefaultAttributeModifiers(EquipmentSlot)} is gone: item attributes are a
+ *       data component now, so the reach bonus is built with {@link ItemAttributeModifiers} and
+ *       installed through {@code Item.Properties#attributes(...)} in the constructor.</li>
+ *   <li>{@code NeoForgeMod.ENTITY_REACH} does not exist in 26.1.2 — the reach attribute is vanilla
+ *       {@code Attributes.ENTITY_INTERACTION_RANGE} (verified: {@code NeoForgeMod} only declares
+ *       SWIM_SPEED / NAMETAG_DISTANCE / CREATIVE_FLIGHT).</li>
+ *   <li>{@code AttributeModifier} is a record {@code (Identifier, double, Operation)}.</li>
+ *   <li>{@code Item#use} returns {@link InteractionResult} ({@code InteractionResultHolder} is
+ *       deleted); {@code getUseDuration} takes the stack <i>and</i> the entity;
+ *       {@code releaseUsing} returns {@code boolean}; {@code inventoryTick} takes a
+ *       {@link ServerLevel} and an {@link EquipmentSlot}.</li>
+ * </ul>
+ */
 public class KillStick extends Item {
-    private final Multimap<Attribute, AttributeModifier> defaultModifiers;
     private static final Random RANDOM = new Random();
     private static final double CLEAR_RANGE = 128.0;
+    private static final int USE_DURATION = 72000;
 
     public KillStick(Properties properties) {
-        super(properties);
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        builder.put(ForgeMod.ENTITY_REACH.get(), new AttributeModifier("weapon_reach", 3.0, AttributeModifier.Operation.ADDITION));
-        this.defaultModifiers = builder.build();
+        super(properties.attributes(defaultAttributeModifiers()));
+    }
+
+    private static ItemAttributeModifiers defaultAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ENTITY_INTERACTION_RANGE,
+                        new AttributeModifier(Identifier.fromNamespaceAndPath(epca.MODID, "weapon_reach"),
+                                3.0, AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.MAINHAND)
+                .build();
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-        return slot == EquipmentSlot.MAINHAND ? this.defaultModifiers : super.getDefaultAttributeModifiers(slot);
-    }
-
-    @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
-        if (world.isClientSide && player instanceof AbstractClientPlayer clientPlayer) {
+        if (world.isClientSide() && player instanceof AbstractClientPlayer clientPlayer) {
             clearAnimation(clientPlayer);
         }
-        if (!world.isClientSide && player.getCooldowns().isOnCooldown(this)) {
-            return InteractionResultHolder.fail(itemStack);
+        if (!world.isClientSide() && player.getCooldowns().isOnCooldown(itemStack)) {
+            return InteractionResult.FAIL;
         }
         player.startUsingItem(hand);
-        return InteractionResultHolder.consume(itemStack);
+        return InteractionResult.CONSUME;
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
-        return 72000;
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+        return USE_DURATION;
     }
 
     @Override
     public void onUseTick(Level level, LivingEntity livingEntity, ItemStack stack, int remainingUseDuration) {
         if (!(livingEntity instanceof Player player)) return;
 
-        int elapsed = getUseDuration(stack) - remainingUseDuration;
+        int elapsed = getUseDuration(stack, livingEntity) - remainingUseDuration;
         if (elapsed == 1) {
-            if (level.isClientSide && player instanceof AbstractClientPlayer clientPlayer) {
-                if (player.getCooldowns().isOnCooldown(this)) {
+            if (level.isClientSide() && player instanceof AbstractClientPlayer clientPlayer) {
+                if (player.getCooldowns().isOnCooldown(stack)) {
                     return;
                 }
                 ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
                         .getPlayerAssociatedData(clientPlayer)
-                        .get(new ResourceLocation(epca.MODID, "kill_stick"));
+                        .get(Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"));
                 if (animation != null) {
                     var keyframe = PlayerAnimationRegistry.getAnimation(
-                            new ResourceLocation(epca.MODID, "kill_stick")
+                            Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick")
                     );
                     if (keyframe != null) {
                         animation.setAnimation(new KeyframeAnimationPlayer(keyframe));
@@ -94,8 +111,8 @@ public class KillStick extends Item {
         }
 
         if (elapsed == 10) {
-            if (!level.isClientSide) {
-                if (player.getCooldowns().isOnCooldown(this)) {
+            if (!level.isClientSide()) {
+                if (player.getCooldowns().isOnCooldown(stack)) {
                     return;
                 }
 
@@ -119,8 +136,7 @@ public class KillStick extends Item {
                     e.setDeltaMovement(velocity);
                     e.setNoGravity(false);
 
-                    if (e instanceof Mob) {
-                        Mob mob = (Mob) e;
+                    if (e instanceof Mob mob) {
                         mob.setNoAi(true);
                         mob.setTarget(null);
                     } else if (e instanceof LivingEntity) {
@@ -135,30 +151,30 @@ public class KillStick extends Item {
     }
 
     @Override
-    public void releaseUsing(ItemStack stack, Level world, LivingEntity entity, int count) {
+    public boolean releaseUsing(ItemStack stack, Level world, LivingEntity entity, int count) {
         if (entity instanceof Player player) {
-            if (!world.isClientSide) {
-                player.getCooldowns().addCooldown(this, 10);
+            if (!world.isClientSide()) {
+                player.getCooldowns().addCooldown(stack, 10);
             } else if (entity instanceof AbstractClientPlayer clientPlayer) {
                 clearAnimation(clientPlayer);
             }
         }
-        super.releaseUsing(stack, world, entity, count);
+        return super.releaseUsing(stack, world, entity, count);
     }
 
     private static void clearAnimation(AbstractClientPlayer player) {
         ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
                 .getPlayerAssociatedData(player)
-                .get(new ResourceLocation(epca.MODID, "kill_stick"));
+                .get(Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"));
         if (animation != null) {
             animation.setAnimation(null);
         }
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, EquipmentSlot slot) {
         if (!(entity instanceof Player player)) return;
-        if (level.isClientSide && player.isUsingItem() && player.getUseItem() == stack) {
+        if (level.isClientSide() && player.isUsingItem() && player.getUseItem() == stack) {
             if (!isHoldingKillStick(player)) {
                 if (player instanceof AbstractClientPlayer clientPlayer) {
                     clearAnimation(clientPlayer);
@@ -166,7 +182,7 @@ public class KillStick extends Item {
                 player.stopUsingItem();
             }
         }
-        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        super.inventoryTick(stack, level, entity, slot);
     }
 
     /**
@@ -178,11 +194,9 @@ public class KillStick extends Item {
 
     @Override
     public boolean onLeftClickEntity(ItemStack stack, Player player, Entity entity) {
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
 
             boolean isNamed = isAlayavijnana(stack);
-
-
             if (isNamed && player.level() instanceof ServerLevel serverLevel) {
 
                 AABB box = entity.getBoundingBox();
@@ -196,8 +210,6 @@ public class KillStick extends Item {
                     serverLevel.sendParticles(particle, x, y, z, 1, 0, 0, 0, 0.1);
                 }
             }
-
-
             if (entity instanceof Player) {
                 return false;
             }
@@ -213,17 +225,13 @@ public class KillStick extends Item {
             entity.setDeltaMovement(velocity);
             entity.setNoGravity(false);
 
-            if (entity instanceof Mob) {
-                Mob mob = (Mob) entity;
+            if (entity instanceof Mob mob) {
                 mob.setNoAi(true);
                 mob.setTarget(null);
-            } else if (entity instanceof LivingEntity) {
-                LivingEntity livingEntity = (LivingEntity) entity;
+            } else if (entity instanceof LivingEntity livingEntity) {
                 livingEntity.setJumping(false);
                 livingEntity.setDeltaMovement(Vec3.ZERO);
             }
-
-
             if (isNamed) {
 
                 double maxHealth = player.getMaxHealth();
@@ -236,8 +244,6 @@ public class KillStick extends Item {
                 }
 
                 player.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMax);
-
-
                 if (player.getHealth() > newMax) {
                     player.setHealth((float) newMax);
                 }

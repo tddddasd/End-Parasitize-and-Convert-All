@@ -1,23 +1,70 @@
 package org.tdddd.epca.impl.overworld.data;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.jetbrains.annotations.NotNull;
 
 public class EvolutionDataStorage extends SavedData {
-    private static final String DATA_NAME = "EvolutionData";
+    /** 1.20.1 used the file name "EvolutionData"; 26.1.2 needs a valid (lowercase) Identifier path.
+     *  Old file: data/EvolutionData.dat - new file: data/epca/evolution_data.dat (see PORTING-NOTES-w2-data.md). */
+    private static final Identifier DATA_ID = Identifier.fromNamespaceAndPath("epca", "evolution_data");
+
+    /** Dimension keys keep the 1.20.1 "namespace:path" string form: ResourceKey.codec writes exactly what
+     *  the old code wrote via dim.location().toString(). */
+    private static final Codec<ResourceKey<Level>> DIMENSION_CODEC = ResourceKey.codec(Registries.DIMENSION);
+
+    /** "Dimensions" list entry: {Dimension:"ns:dim", Points:int} - same field names as the 1.20.1 save/load. */
+    private record DimensionPoints(ResourceKey<Level> dimension, int points) {
+        private static final Codec<DimensionPoints> CODEC = RecordCodecBuilder.create(i -> i.group(
+                DIMENSION_CODEC.fieldOf("Dimension").forGetter(DimensionPoints::dimension),
+                Codec.INT.fieldOf("Points").forGetter(DimensionPoints::points)
+        ).apply(i, DimensionPoints::new));
+    }
+
+    /** "Cooldowns" list entry: {Dimension:"ns:dim", CooldownEnd:long}. */
+    private record DimensionCooldown(ResourceKey<Level> dimension, long endTick) {
+        private static final Codec<DimensionCooldown> CODEC = RecordCodecBuilder.create(i -> i.group(
+                DIMENSION_CODEC.fieldOf("Dimension").forGetter(DimensionCooldown::dimension),
+                Codec.LONG.fieldOf("CooldownEnd").forGetter(DimensionCooldown::endTick)
+        ).apply(i, DimensionCooldown::new));
+    }
+
+    /** "OverriddenStages" list entry: {Dimension:"ns:dim", Stage:int}. */
+    private record DimensionStage(ResourceKey<Level> dimension, int stage) {
+        private static final Codec<DimensionStage> CODEC = RecordCodecBuilder.create(i -> i.group(
+                DIMENSION_CODEC.fieldOf("Dimension").forGetter(DimensionStage::dimension),
+                Codec.INT.fieldOf("Stage").forGetter(DimensionStage::stage)
+        ).apply(i, DimensionStage::new));
+    }
+
+    /**
+     * 26.1.2 persists SavedData through a codec. The three legacy lists keep their 1.20.1 names, so a 1.20.1
+     * data compound can be carried over by wrapping it as {"data": &lt;old root compound&gt;} in the new file.
+     */
+    public static final Codec<EvolutionDataStorage> CODEC = RecordCodecBuilder.create(i -> i.group(
+            DimensionPoints.CODEC.listOf().optionalFieldOf("Dimensions", List.of())
+                    .forGetter(EvolutionDataStorage::pointsList),
+            DimensionCooldown.CODEC.listOf().optionalFieldOf("Cooldowns", List.of())
+                    .forGetter(EvolutionDataStorage::cooldownsList),
+            DimensionStage.CODEC.listOf().optionalFieldOf("OverriddenStages", List.of())
+                    .forGetter(EvolutionDataStorage::stagesList)
+    ).apply(i, EvolutionDataStorage::new));
+
+    public static final SavedDataType<EvolutionDataStorage> TYPE =
+            new SavedDataType<EvolutionDataStorage>(DATA_ID, EvolutionDataStorage::new, CODEC);
 
     
     private final Map<ResourceKey<Level>, Integer> dimensionPoints = new ConcurrentHashMap<>();
@@ -31,82 +78,46 @@ public class EvolutionDataStorage extends SavedData {
         dimensionPoints.put(Level.NETHER, -50);
         dimensionPoints.put(Level.END, -50);
         
-        ResourceKey<Level> twilightForest = ResourceKey.create(ResourceKey.createRegistryKey(new ResourceLocation("dimension")),
-                new ResourceLocation("twilightforest:twilight_forest"));
+        ResourceKey<Level> twilightForest = ResourceKey.create(Registries.DIMENSION,
+                Identifier.parse("twilightforest:twilight_forest"));
         dimensionPoints.put(twilightForest, -50);
     }
 
-    public EvolutionDataStorage(CompoundTag nbt) {
-        
-        ListTag pointsList = nbt.getList("Dimensions", Tag.TAG_COMPOUND);
-        for (int i = 0; i < pointsList.size(); i++) {
-            CompoundTag tag = pointsList.getCompound(i);
-            ResourceKey<Level> dim = createDimensionKey(tag.getString("Dimension"));
-            int points = tag.getInt("Points");
-            dimensionPoints.put(dim, points);
+    /** Codec decode constructor: takes only what the file contains and seeds nothing, matching the old
+     *  EvolutionDataStorage(CompoundTag) constructor (the defaults above are for brand new data only). */
+    private EvolutionDataStorage(List<DimensionPoints> points, List<DimensionCooldown> cooldowns,
+                                 List<DimensionStage> stages) {
+        for (DimensionPoints entry : points) {
+            dimensionPoints.put(entry.dimension(), entry.points());
         }
-
-        
-        if (nbt.contains("Cooldowns", Tag.TAG_LIST)) {
-            ListTag list = nbt.getList("Cooldowns", Tag.TAG_COMPOUND);
-            for (int i = 0; i < list.size(); i++) {
-                CompoundTag tag = list.getCompound(i);
-                ResourceKey<Level> dim = createDimensionKey(tag.getString("Dimension"));
-                long end = tag.getLong("CooldownEnd");
-                dimensionCooldowns.put(dim, end);
-            }
+        for (DimensionCooldown entry : cooldowns) {
+            dimensionCooldowns.put(entry.dimension(), entry.endTick());
         }
-        if (nbt.contains("OverriddenStages", Tag.TAG_LIST)) {
-            ListTag list = nbt.getList("OverriddenStages", Tag.TAG_COMPOUND);
-            for (int i = 0; i < list.size(); i++) {
-                CompoundTag tag = list.getCompound(i);
-                ResourceKey<Level> dim = createDimensionKey(tag.getString("Dimension"));
-                int stage = tag.getInt("Stage");
-                overriddenStages.put(dim, stage);
-            }
+        for (DimensionStage entry : stages) {
+            overriddenStages.put(entry.dimension(), entry.stage());
         }
     }
 
-    @Override
-    public @NotNull CompoundTag save(CompoundTag nbt) {
-        
-        ListTag pointsList = new ListTag();
-        dimensionPoints.forEach((dim, points) -> {
-            CompoundTag tag = new CompoundTag();
-            tag.putString("Dimension", dim.location().toString());
-            tag.putInt("Points", points);
-            pointsList.add(tag);
-        });
-        nbt.put("Dimensions", pointsList);
+    private List<DimensionPoints> pointsList() {
+        List<DimensionPoints> list = new ArrayList<>(dimensionPoints.size());
+        dimensionPoints.forEach((dim, points) -> list.add(new DimensionPoints(dim, points)));
+        return list;
+    }
 
-        
-        ListTag cooldownList = new ListTag();
-        dimensionCooldowns.forEach((dim, end) -> {
-            CompoundTag tag = new CompoundTag();
-            tag.putString("Dimension", dim.location().toString());
-            tag.putLong("CooldownEnd", end);
-            cooldownList.add(tag);
-        });
-        nbt.put("Cooldowns", cooldownList);
+    private List<DimensionCooldown> cooldownsList() {
+        List<DimensionCooldown> list = new ArrayList<>(dimensionCooldowns.size());
+        dimensionCooldowns.forEach((dim, end) -> list.add(new DimensionCooldown(dim, end)));
+        return list;
+    }
 
-        ListTag stageList = new ListTag();
-        overriddenStages.forEach((dim, stage) -> {
-            CompoundTag tag = new CompoundTag();
-            tag.putString("Dimension", dim.location().toString());
-            tag.putInt("Stage", stage);
-            stageList.add(tag);
-        });
-        nbt.put("OverriddenStages", stageList);
-        return nbt;
+    private List<DimensionStage> stagesList() {
+        List<DimensionStage> list = new ArrayList<>(overriddenStages.size());
+        overriddenStages.forEach((dim, stage) -> list.add(new DimensionStage(dim, stage)));
+        return list;
     }
 
     public static EvolutionDataStorage get(ServerLevel level) {
-        DimensionDataStorage storage = level.getServer().overworld().getDataStorage();
-        return storage.computeIfAbsent(
-                EvolutionDataStorage::new,
-                EvolutionDataStorage::new,
-                DATA_NAME
-        );
+        return level.getServer().overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
     
@@ -166,10 +177,5 @@ public class EvolutionDataStorage extends SavedData {
                 resetDimension(dim);
             }
         }
-    }
-
-    private ResourceKey<Level> createDimensionKey(String location) {
-        return ResourceKey.create(ResourceKey.createRegistryKey(new ResourceLocation("dimension")),
-                new ResourceLocation(location));
     }
 }

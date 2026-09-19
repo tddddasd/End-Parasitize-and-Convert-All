@@ -1,7 +1,7 @@
 package org.tdddd.epca.impl.datagen.gen.lang;
 
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.tdddd.epca.impl.epca;
 
 public class LangDataEN extends LanguageProvider {
@@ -15,8 +15,8 @@ public class LangDataEN extends LanguageProvider {
         add("itemGroup." + epca.MODID + ".main_tab", "E-PCA");
 
         // Gamerules
-        add("gamerule.epca_hardnessConversionBlock", "Convert blocks based on hardness");
-        add("gamerule.epca_hardnessConversionBlock.description", "When a block doesn't have a transformation configuration mapping, is it allowed to convert it into Infested Residue, Rocklike, or Plankslike blocks based on its hardness");
+        add("gamerule.epca_hardness_conversion_block", "Convert blocks based on hardness");
+        add("gamerule.epca_hardness_conversion_block.description", "When a block doesn't have a transformation configuration mapping, is it allowed to convert it into Infested Residue, Rocklike, or Plankslike blocks based on its hardness");
 
         // Tooltips
         add("tooltip.epca.max_damage_type", "Max Damage Type: %s (\u00d7%s)");
@@ -218,7 +218,6 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.infested_bat_spawn_egg", "Infested Bat Spawn Egg");
 
         // Materials & special items
-        add("item.epca.copper_nugget", "Copper Nugget");
         add("item.epca.parasite_viscera", "Parasite Viscera");
         add("item.epca.infested_bone", "Infested Bone");
         add("item.epca.weird_minced_flesh", "Weird Minced Flesh");
@@ -385,6 +384,11 @@ public class LangDataEN extends LanguageProvider {
         add("block.epca.infested_heavy_bricks_wall", "Infested Heavy Bricks Wall");
         add("block.epca.infested_lily_pad", "Infested Lily Pad");
         add("block.epca.infested_carved_pumpkin", "Infested Carved Pumpkin");
+        // infested_carved_pumpkin is the only BlockItem registered through
+        // ITEMS.registerItem(name, factory) WITHOUT Item.Properties#useBlockDescriptionPrefix(),
+        // so its own name key is item.epca.* while the block keeps block.epca.*.
+        // Both keys must exist or the item renders as "item.epca.infested_carved_pumpkin".
+        add("item.epca.infested_carved_pumpkin", "Infested Carved Pumpkin");
         add("block.epca.infested_pumpkin", "Infested Pumpkin");
         add("block.epca.infested_short_grass", "Infested Short Grass");
         add("block.epca.infested_tall_grass", "Infested Tall Grass");
@@ -452,6 +456,32 @@ public class LangDataEN extends LanguageProvider {
         // Notes & messages
         add("epca.note.title", "E-PCA Note");
         add("epca.message.stage_too_low", "The erosion stage here is below level 3...");
+
+        // Altar debug feedback (kill stick / structure probe, EpcaAltarInteractionHandler)
+        // Argument counts must match the Component.translatable calls; literal percent is %%
+        add("altar_debug.epca.not_structure", "This block is not part of a valid altar structure");
+        add("altar_debug.epca.pedestal_count", "Pedestals: %s");
+        add("altar_debug.epca.pedestals_with_item", "Pedestals with an item: %s");
+        add("altar_debug.epca.total_points", "Total points: %s");
+        add("altar_debug.epca.status.valid", "Status: valid");
+        add("altar_debug.epca.status.invalid", "Status: invalid");
+        add("altar_debug.epca.reason", "Reason: %s");
+
+        // Sacrifice ritual feedback (EpcaAltarInteractionHandler.SacrificeCheck + BlockConversionManager)
+        add("ritual.epca.no_base", "Ritual failed: a beacon base block is required below the altar (iron/gold/diamond/emerald/netherite block)");
+        add("ritual.epca.no_gem", "Ritual failed: place a diamond, emerald or amethyst block on the altar");
+        add("ritual.epca.parasite_present", "Ritual failed: a parasite is nearby");
+        add("ritual.epca.not_enough_animals", "Ritual failed: at least 2 animals are required");
+        add("ritual.epca.not_enough_villagers", "Ritual failed: at least 1 villager is required");
+        add("ritual.epca.already_running", "A ritual is already running on this altar");
+        add("ritual.epca.started", "The ritual begins (%s blocks will be converted)");
+        add("ritual.epca.started_nearby", "A nearby altar has begun a ritual...");
+        add("ritual.epca.progress", "Ritual in progress: %s%%");
+        add("ritual.epca.progress_nearby", "The ritual is still in progress...");
+        add("ritual.epca.completed", "The ritual is complete");
+        add("ritual.epca.completed_nearby", "A nearby ritual has completed");
+        add("ritual.epca.cancelled", "The ritual was cancelled (the initiator left)");
+        add("ritual.epca.resumed", "An unfinished ritual was found and resumed at %s%%");
 
         // Bestiary contents (with images and formatting)
         add("epca.content.onesent", "§l§0Onesent§r\n$[page]$\n§0Curbug\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0The image above shows a Curbug.");

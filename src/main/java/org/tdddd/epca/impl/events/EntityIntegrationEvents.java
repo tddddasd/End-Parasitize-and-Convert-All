@@ -1,16 +1,18 @@
 package org.tdddd.epca.impl.events;
 
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.overworld.data.EntityIntegrationManager;
 import org.tdddd.epca.impl.overworld.data.EntityIntegrationManager.EntityIntegrationRule;
 import org.tdddd.epca.impl.overworld.data.EntityIntegrationManager.EntityRequirement;
@@ -24,7 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class EntityIntegrationEvents {
 
     private static final int CHECK_INTERVAL = 5;
@@ -37,21 +39,19 @@ public class EntityIntegrationEvents {
     private static final long CONFIG_RELOAD_INTERVAL = 1200;
 
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            EntityIntegrationManager.tick();
+    public static void onServerTick(ServerTickEvent.Post event) {
+        EntityIntegrationManager.tick();
 
-            long currentTick = event.getServer().getTickCount();
-            if (currentTick - lastConfigLoadTime >= CONFIG_RELOAD_INTERVAL) {
-                loadConfig();
-                lastConfigLoadTime = currentTick;
-            }
+        long currentTick = event.getServer().getTickCount();
+        if (currentTick - lastConfigLoadTime >= CONFIG_RELOAD_INTERVAL) {
+            loadConfig();
+            lastConfigLoadTime = currentTick;
+        }
 
-            checkCounter++;
-            if (checkCounter >= CHECK_INTERVAL) {
-                checkCounter = 0;
-                checkAllWorldsForIntegrations(event.getServer());
-            }
+        checkCounter++;
+        if (checkCounter >= CHECK_INTERVAL) {
+            checkCounter = 0;
+            checkAllWorldsForIntegrations(event.getServer());
         }
     }
 
@@ -91,11 +91,15 @@ public class EntityIntegrationEvents {
     }
 
     private static void checkWorldForIntegrations(ServerLevel level) {
-        List<Mob> allEntities = level.getEntitiesOfClass(
-                Mob.class,
-                level.getWorldBorder().getCollisionShape().bounds(),
-                entity -> entity != null && entity.isAlive()
-        );
+        // 26.1.2: the world-border collision box is far too large for the entity section index
+        // (section keys overflowed and EntitySectionStorage threw "Start element ... is larger than
+        // end element ..."). Iterating the level's loaded entities avoids the AABB math entirely.
+        List<Mob> allEntities = new java.util.ArrayList<>();
+        for (Entity scanned : level.getAllEntities()) {
+            if (scanned instanceof Mob mob && mob.isAlive()) {
+                allEntities.add(mob);
+            }
+        }
         for (Mob entity : allEntities) {
             checkEntityForAllIntegrationRules(level, entity);
         }
@@ -174,7 +178,7 @@ public class EntityIntegrationEvents {
     }
 
     @SubscribeEvent
-    public static void onEntityUpdate(LivingEvent.LivingTickEvent event) {
+    public static void onEntityUpdate(EntityTickEvent.Post event) {
         if (event.getEntity() instanceof Mob mob &&
                 mob.level() instanceof ServerLevel serverLevel) {
             String entityId = getEntityId(mob);
@@ -202,6 +206,6 @@ public class EntityIntegrationEvents {
     }
 
     private static String getEntityId(Mob entity) {
-        return ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
+        return BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
     }
 }

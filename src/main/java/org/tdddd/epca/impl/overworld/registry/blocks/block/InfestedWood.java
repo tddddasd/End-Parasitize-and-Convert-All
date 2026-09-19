@@ -44,6 +44,12 @@ public class InfestedWood extends Block implements InfestedBlockInterface {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(AXIS, NATURAL_SPAWN);
+
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(InfestedWood::new);
     }
 
     
@@ -73,7 +79,7 @@ public class InfestedWood extends Block implements InfestedBlockInterface {
 
         
         @Override
-        public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
+        public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType, net.minecraft.world.level.block.entity.FuelValues fuelValues) {
             return 225; 
         }
     }

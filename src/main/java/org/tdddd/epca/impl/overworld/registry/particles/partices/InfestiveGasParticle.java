@@ -7,7 +7,9 @@ import net.minecraft.util.RandomSource;
 
 import java.util.Random;
 
-public class InfestiveGasParticle extends TextureSheetParticle {
+// 26.1.2: TextureSheetParticle was removed; SingleQuadParticle is its replacement and each
+// particle now picks its own SingleQuadParticle.Layer instead of a ParticleRenderType.
+public class InfestiveGasParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
     private final float initialAlpha; 
     private final float brightnessVariation; 
@@ -18,7 +20,7 @@ public class InfestiveGasParticle extends TextureSheetParticle {
     private int currentFrameIndex = 0; 
 
     public InfestiveGasParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet sprites) {
-        super(level, x, y, z, xd, yd, zd);
+        super(level, x, y, z, xd, yd, zd, sprites.first());
         this.sprites = sprites;
 
         
@@ -79,8 +81,9 @@ public class InfestiveGasParticle extends TextureSheetParticle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT; 
+    public SingleQuadParticle.Layer getLayer() {
+        // 1.20.1: ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT
+        return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
     
@@ -94,7 +97,8 @@ public class InfestiveGasParticle extends TextureSheetParticle {
         @Override
         public Particle createParticle(SimpleParticleType type, ClientLevel level,
                                        double x, double y, double z,
-                                       double xd, double yd, double zd) {
+                                       double xd, double yd, double zd,
+                                       RandomSource random) {
             return new InfestiveGasParticle(level, x, y, z, xd, yd, zd, this.sprites);
         }
     }

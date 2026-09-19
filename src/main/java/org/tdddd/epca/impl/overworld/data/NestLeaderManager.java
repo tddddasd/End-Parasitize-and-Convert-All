@@ -2,8 +2,7 @@ package org.tdddd.epca.impl.overworld.data;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.SyncNestLeadersPacket;
 
@@ -47,6 +46,6 @@ public class NestLeaderManager {
         NestLeaderSavedData data = getSavedData();
         if (data == null) return;
         Set<UUID> leaders = data.getLeaders();
-        ModNetwork.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncNestLeadersPacket(leaders));
+        ModNetwork.sendToAll(new SyncNestLeadersPacket(leaders));
     }
 }

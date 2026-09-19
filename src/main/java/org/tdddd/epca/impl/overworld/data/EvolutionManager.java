@@ -1,9 +1,9 @@
 package org.tdddd.epca.impl.overworld.data;
 
-import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -131,8 +131,8 @@ public class EvolutionManager {
     private void grantSenseOfCrisisAdvancement(ServerPlayer player) {
         try {
             
-            Advancement advancement = player.getServer().getAdvancements()
-                    .getAdvancement(new ResourceLocation("epca", "sense_of_crisis"));
+            AdvancementHolder advancement = player.level().getServer().getAdvancements()
+                    .get(Identifier.fromNamespaceAndPath("epca", "sense_of_crisis"));
 
             if (advancement != null) {
                 
@@ -212,7 +212,7 @@ public class EvolutionManager {
     
     private static boolean isTwilightForestDimension(ServerLevel level) {
         return isTwilightForestInstalled() &&
-                level.dimension().location().toString().equals("twilightforest:twilight_forest");
+                level.dimension().identifier().toString().equals("twilightforest:twilight_forest");
     }
 
     
@@ -226,7 +226,7 @@ public class EvolutionManager {
         }else if (isTwilightForestDimension(level)) {
             return "暮色森林";
         }
-        return level.dimension().location().toString();
+        return level.dimension().identifier().toString();
     }
 
     public static EvolutionManager forDimension(ServerLevel level) {
@@ -281,13 +281,13 @@ public class EvolutionManager {
 
     
     private void broadcastCurrentStage() {
-        ResourceLocation dimId = level.dimension().location();
+        Identifier dimId = level.dimension().identifier();
         int stage = getStage();
         ModNetwork.sendToAll(new SyncEvolutionStagePacket(dimId, stage));
     }
 
     public void syncToPlayer(ServerPlayer player) {
-        ResourceLocation dimId = level.dimension().location();
+        Identifier dimId = level.dimension().identifier();
         int stage = getStage();
         ModNetwork.sendToPlayer(player, new SyncEvolutionStagePacket(dimId, stage));
     }

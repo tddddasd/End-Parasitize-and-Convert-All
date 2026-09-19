@@ -10,13 +10,12 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
@@ -26,10 +25,10 @@ import org.tdddd.epca.impl.epca;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationManager;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.eventbus.api.EventPriority;
+import net.neoforged.bus.api.EventPriority;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GenericPriorityTargetGoal;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class ParasiteNbtEffectHandler {
 
     private static final String LAST_RAGE_TRIGGER_KEY = "lastRageTrigger";
@@ -40,7 +39,7 @@ public class ParasiteNbtEffectHandler {
     
 
     @SubscribeEvent
-    public static void onParasiteAttack(LivingAttackEvent event) {
+    public static void onParasiteAttack(LivingIncomingDamageEvent event) {
         
         if (!(event.getSource().getEntity() instanceof LivingEntity attacker)) return;
         
@@ -57,7 +56,7 @@ public class ParasiteNbtEffectHandler {
         LivingEntity entity = event.getEntity();
         if (!IParasite.isParasiteByTagOrInterface(entity)) return;
 
-        LivingEntity newTarget = event.getNewTarget();
+        LivingEntity newTarget = event.getNewAboutToBeSetTarget();
         if (newTarget != null && IParasite.isParasiteByTagOrInterface(newTarget)) {
             event.setCanceled(true);  
         }
@@ -106,7 +105,7 @@ public class ParasiteNbtEffectHandler {
 
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void onHurt(LivingHurtEvent event) {
+    public static void onHurt(LivingIncomingDamageEvent event) {
         LivingEntity entity = event.getEntity();
         if (!IParasite.isParasiteByTagOrInterface(entity)) return;
         if (entity instanceof IParasite) return; 
@@ -130,11 +129,11 @@ public class ParasiteNbtEffectHandler {
         if (source.is(DamageTypeTags.IS_FIRE)) {
             Level level = entity.level();
             int currentTick = (int) level.getGameTime();
-            int lastTrigger = entity.getPersistentData().getInt(LAST_RAGE_TRIGGER_KEY);
-            if (currentTick - lastTrigger >= 10 && level.random.nextFloat() < 0.1f) {
-                MobEffectInstance currentRage = entity.getEffect(ModEffects.RAGE.get());
+            int lastTrigger = entity.getPersistentData().getInt(LAST_RAGE_TRIGGER_KEY).orElse(0);
+            if (currentTick - lastTrigger >= 10 && level.getRandom().nextFloat() < 0.1f) {
+                MobEffectInstance currentRage = entity.getEffect(ModEffects.RAGE);
                 int amplifier = (currentRage != null) ? Math.min(currentRage.getAmplifier() + 1, 49) : 0;
-                entity.addEffect(new MobEffectInstance(ModEffects.RAGE.get(), 300, amplifier));
+                entity.addEffect(new MobEffectInstance(ModEffects.RAGE, 300, amplifier));
                 entity.getPersistentData().putInt(LAST_RAGE_TRIGGER_KEY, currentTick);
             }
         }
@@ -156,7 +155,7 @@ public class ParasiteNbtEffectHandler {
 
     
     @SubscribeEvent
-    public static void onAttack(LivingAttackEvent event) {
+    public static void onAttack(LivingIncomingDamageEvent event) {
         LivingEntity target = event.getEntity();
         if (!IParasite.isParasiteByTagOrInterface(target)) return;
         if (target instanceof IParasite) return;
@@ -168,10 +167,10 @@ public class ParasiteNbtEffectHandler {
 
     private static void trySwitchForcedTargetOnAttacked(LivingEntity self, LivingEntity attacker) {
         Level level = self.level();
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
         if (attacker != null && !IParasite.isParasiteByTagOrInterface(attacker)) {
             
-            long lastSwitch = self.getPersistentData().getLong(LAST_FORCED_SWITCH_TICK_KEY);
+            long lastSwitch = self.getPersistentData().getLong(LAST_FORCED_SWITCH_TICK_KEY).orElse(0L);
             long now = level.getGameTime();
             if (now - lastSwitch < FORCED_TARGET_COOLDOWN_SECONDS * 20L) return;
             double distSq = self.distanceToSqr(attacker);
@@ -184,7 +183,7 @@ public class ParasiteNbtEffectHandler {
 
     
     private static boolean isDamageAdaptationInvulnerable(LivingEntity entity) {
-        var entityId = net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        var entityId = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         var config = DamageAdaptationManager.getConfig(entityId);
         if (config == null) return false;
         return DamageAdaptation.isInvulnerable(entity);

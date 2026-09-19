@@ -20,8 +20,8 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -39,14 +39,14 @@ import org.tdddd.epca.impl.overworld.registry.entities.ILink;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 
@@ -58,15 +58,13 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
     }
     private final BlockConversionManager conversionManager = BlockConversionManager.getInstance();
     @Override
-    public void onAddedToWorld() {
-        super.onAddedToWorld();
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
         
         if (this.entityData.get(IS_RISING)) {
             startRiseEffect();
         }
     }
-
-    
     private static final EntityDataAccessor<Integer> TICK_COUNT = SynchedEntityData.defineId(StageIIBeckon.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ANIMATION_STATE = SynchedEntityData.defineId(StageIIBeckon.class, EntityDataSerializers.INT);
     
@@ -76,15 +74,11 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
     
     private static final EntityDataAccessor<Float> TARGET_X = SynchedEntityData.defineId(StageIIBeckon.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> TARGET_Z = SynchedEntityData.defineId(StageIIBeckon.class, EntityDataSerializers.FLOAT);
-
-    
     private static final RawAnimation SPAWN_ANIMATION = RawAnimation.begin().thenPlay("spawn");
     private static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation OPEN_ANIMATION = RawAnimation.begin().thenPlay("open");
     private static final RawAnimation IDLE_OPEN_ANIMATION = RawAnimation.begin().thenLoop("idle_open");
     private static final RawAnimation CLOSE_ANIMATION = RawAnimation.begin().thenPlay("close");
-
-    
     private static final int ANIM_STATE_IDLE = 0;
     private static final int ANIM_STATE_OPEN = 1;
     private static final int ANIM_STATE_IDLE_OPEN = 2;
@@ -130,11 +124,7 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         super(type, level);
         this.xpReward = 60;
         this.noPhysics = false; 
-
-        
         this.setPersistenceRequired();
-
-        
         if (isAprilFoolsDay() && this.random.nextInt(100) < 10) {
             this.isFoolsBehavior = true;
             
@@ -147,19 +137,17 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(TICK_COUNT, 0);
-        this.entityData.define(ANIMATION_STATE, ANIM_STATE_IDLE);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(TICK_COUNT, 0);
+        entityData.define(ANIMATION_STATE, ANIM_STATE_IDLE);
         
-        this.entityData.define(IS_RISING, false);
-        this.entityData.define(RISE_TIMER, 0);
-        this.entityData.define(TARGET_Y, 0.0f);
-        this.entityData.define(TARGET_X, 0.0f);
-        this.entityData.define(TARGET_Z, 0.0f);
+        entityData.define(IS_RISING, false);
+        entityData.define(RISE_TIMER, 0);
+        entityData.define(TARGET_Y, 0.0f);
+        entityData.define(TARGET_X, 0.0f);
+        entityData.define(TARGET_Z, 0.0f);
     }
-
-    
     public void setRiseTarget(Vec3 targetPosition) {
         this.entityData.set(IS_RISING, true);
         this.entityData.set(RISE_TIMER, 0);
@@ -169,42 +157,26 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         this.spawnTargetPos = BlockPos.containing(targetPosition);
         
         this.spawnedByItem = true;
-
-        
         this.setPos(targetPosition.x, targetPosition.y - 5, targetPosition.z);
-
-        
         this.entityData.set(ANIMATION_STATE, ANIM_STATE_SPAWN);
-
-        
         startRiseEffect();
     }
-
-    
     private void startRiseEffect() {
         
         this.setInvulnerable(true);
         this.setNoGravity(true);
         this.noPhysics = true;
-
-        
         this.entityData.set(RISE_TIMER, 0);
     }
-
-    
     private void finishRiseEffect() {
         
         this.setInvulnerable(false);
         this.setNoGravity(false);
         this.noPhysics = false;
-
-        
         double targetX = this.entityData.get(TARGET_X);
         double targetY = this.entityData.get(TARGET_Y);
         double targetZ = this.entityData.get(TARGET_Z);
         this.setPos(targetX, targetY, targetZ);
-
-        
         this.entityData.set(ANIMATION_STATE, ANIM_STATE_IDLE);
     }
 
@@ -225,7 +197,7 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (this.entityData.get(IS_RISING)) {
             return false;
@@ -240,7 +212,7 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
         
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
@@ -277,8 +249,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         
         int currentTick = this.entityData.get(TICK_COUNT);
         this.entityData.set(TICK_COUNT, currentTick + 1);
-
-        
         if (this.entityData.get(IS_RISING)) {
             handleRiseAnimation();
             
@@ -287,70 +257,46 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         }
 
         super.tick();
-
-        
         this.hasTargets = hasValidTargets();
-
-        
         updateAnimationState();
-
-        
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             
             if (!spawnedByItem && !hasSpawnedRandomParticles) {
                 spawnRandomUpwardParticles();
                 hasSpawnedRandomParticles = true; 
             }
-
-            
             if (this.entityData.get(ANIMATION_STATE) == ANIM_STATE_IDLE_OPEN) {
                 spawnIdleOpenParticles(currentTick);
             }
         }
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             int stage = EvolutionManager.getStageForDimension(this.level());
-
-            
             if (stage >= -2 && stage <= 2) {
-                this.kill();
+                this.kill((ServerLevel) this.level());
                 return;
             }
-
-            
             if (this.random.nextFloat() < 0.5f) {
                 convertOneBlockByContact();
             }
-
-            
             if (groundConversionTimer <= 0) {
                 groundConversionTimer = 20; 
                 convertGroundBlock();
             } else {
                 groundConversionTimer--;
             }
-
-            
             if (leavesConversionTimer <= 0) {
                 leavesConversionTimer = 10; 
                 convertLeavesAround();
             } else {
                 leavesConversionTimer--;
             }
-
-            
             if (attackCooldown > 0) {
                 attackCooldown--;
             }
-
-            
             if (this.isAlive()) {
                 if (suffocationCooldown > 0) {
                     suffocationCooldown--;
                 }
-
-                
                 BlockPos headPos = BlockPos.containing(this.getX(), this.getEyeY(), this.getZ());
                 if (this.isInWall() || (!this.level().getFluidState(headPos).is(Fluids.EMPTY) && !this.level().getBlockState(headPos).isAir())) {
                     if (suffocationCooldown <= 0) {
@@ -382,8 +328,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 }
             }
         }
-
-        
         this.wasTargeting = this.hasTargets;
     }
 
@@ -423,8 +367,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         BlockPos center = this.blockPosition();
         int radius = AREA_CONVERSION_RADIUS; 
         RandomSource random = this.random;
-
-        
         int attempts = 20;
         for (int i = 0; i < attempts; i++) {
             
@@ -434,8 +376,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
             BlockPos targetPos = center.offset(dx, dy, dz);
 
             if (serverLevel.getBlockState(targetPos).getBlock() instanceof InfestedBlockInterface) continue;
-
-            
             boolean hasInfestedNeighbor = false;
             for (Direction dir : Direction.values()) {
                 BlockPos neighbor = targetPos.relative(dir);
@@ -445,16 +385,12 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 }
             }
             if (!hasInfestedNeighbor) continue;
-
-            
             boolean converted = conversionManager.convertBlockUsingStageIIConfig(serverLevel, targetPos, serverLevel.getBlockState(targetPos));
             if (converted) {
                 
                 conversionManager.convertPlantsInRangeForStageII(serverLevel, targetPos);
             }
         }
-
-        
         if (--autoGrowthTimer <= 0) {
             autoGrowthTimer = GROWTH_INTERVAL;
             int current = EntityKillCountManager.getCurrentKillCount(this);
@@ -463,8 +399,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 EntityKillCountManager.setKillCount(this, newKills);
             }
         }
-
-
         if (EntityKillCountManager.getCurrentKillCount(this) >= PLACE_CORE_COST) {
             if (placeCoreCooldown > 0) {
                 placeCoreCooldown--;
@@ -476,8 +410,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 }
             }
         }
-
-
         if (EntityKillCountManager.getCurrentKillCount(this) >= 128 && !hasTargets) {
             if (--giveCorePointsTimer <= 0) {
                 giveCorePointsTimer = GIVE_CORE_POINTS_INTERVAL;
@@ -546,8 +478,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         List<StageIIBeckon> stageIIList = level.getEntitiesOfClass(StageIIBeckon.class, area, e -> e.isAlive());
         return !stageIIList.isEmpty();
     }
-
-    
     private void spawnIdleOpenParticles(int currentTick) {
         
         if (currentTick % PARTICLE_INTERVAL == 0) {
@@ -558,22 +488,14 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 
                 double angleYaw = this.random.nextDouble() * 2 * Math.PI; 
                 double anglePitch = this.random.nextDouble() * MAX_ANGLE_RADIANS; 
-
-                
                 double speedX = Math.sin(angleYaw) * Math.cos(anglePitch) * PARTICLE_SPEED;
                 double speedY = Math.sin(anglePitch) * PARTICLE_SPEED;
                 double speedZ = Math.cos(angleYaw) * Math.cos(anglePitch) * PARTICLE_SPEED;
-
-                
                 double spawnX = this.getX();
                 double spawnY = this.getY() - 2.0 + this.getBbHeight() * SPAWN_HEIGHT_OFFSET;
                 double spawnZ = this.getZ();
-
-                
                 double offsetX = (this.random.nextDouble() - 0.5) * this.getBbWidth() * 0.15;
                 double offsetZ = (this.random.nextDouble() - 0.5) * this.getBbWidth() * 0.15;
-
-                
                 this.level().addParticle(
                         ModParticles.BIOMASS.get(),
                         spawnX + offsetX,
@@ -586,8 +508,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
             }
         }
     }
-
-    
     private void spawnRandomUpwardParticles() {
         
         int particleCount = 12 + this.random.nextInt(6);
@@ -595,28 +515,18 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         for (int i = 0; i < particleCount; i++) {
             
             AABB boundingBox = this.getBoundingBox();
-
-            
             double minX = boundingBox.minX - 0.15;
             double maxX = boundingBox.maxX + 0.15;
             double minY = boundingBox.minY;
             double maxY = boundingBox.maxY;
             double minZ = boundingBox.minZ - 0.15;
             double maxZ = boundingBox.maxZ + 0.15;
-
-            
             double randomX = minX + this.random.nextDouble() * (maxX - minX);
             double randomY = minY + this.random.nextDouble() * (maxY - minY);
             double randomZ = minZ + this.random.nextDouble() * (maxZ - minZ);
-
-            
             double speedY = 0.03;
-
-            
             double speedX = (this.random.nextDouble() - 0.5) * 0.01;
             double speedZ = (this.random.nextDouble() - 0.5) * 0.01;
-
-            
             this.level().addParticle(
                     ModParticles.BIOMASS.get(),
                     randomX,
@@ -649,39 +559,25 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         super.die(damageSource);
         this.onDeath(damageSource); 
     }
-
-    
     private void handleRiseAnimation() {
         int riseTimer = this.entityData.get(RISE_TIMER);
         riseTimer++;
         this.entityData.set(RISE_TIMER, riseTimer);
-
-        
         if (riseTimer > 60) {
             
             this.entityData.set(IS_RISING, false);
             finishRiseEffect();
             return;
         }
-
-        
         float progress = riseTimer / 60.0f;
-
-        
         double targetY = this.entityData.get(TARGET_Y);
         double startY = targetY - 5;
         double currentY = startY + 5 * progress;
-
-        
         this.setPos(this.getX(), currentY, this.getZ());
-
-        
         if (this.level() instanceof ServerLevel serverLevel) {
             spawnRiseParticles(serverLevel, progress);
         }
     }
-
-    
     private void spawnRiseParticles(ServerLevel level, float progress) {
         
         double targetX = this.entityData.get(TARGET_X);
@@ -690,16 +586,10 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
 
         BlockPos particleBasePos = BlockPos.containing(targetX, targetY - 1, targetZ);
         BlockState blockState = level.getBlockState(particleBasePos);
-
-        
         if (blockState.isAir()) {
             return;
         }
-
-        
         BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, blockState);
-
-        
         int particleCount = 8;
         double radius = 0.5; 
 
@@ -711,13 +601,9 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
             double particleX = targetX + Math.cos(angle) * distance;
             double particleY = targetY; 
             double particleZ = targetZ + Math.sin(angle) * distance;
-
-            
             double velocityX = (this.random.nextDouble() - 0.5) * 0.1;
             double velocityY = 0.1 + this.random.nextDouble() * 0.1; 
             double velocityZ = (this.random.nextDouble() - 0.5) * 0.1;
-
-            
             level.sendParticles(
                     particleOption,
                     particleX, particleY, particleZ, 
@@ -726,8 +612,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                     0.1 
             );
         }
-
-        
         int currentRiseTimer = this.entityData.get(RISE_TIMER); 
         if (currentRiseTimer % 5 == 0) {
             for (int i = 0; i < 4; i++) {
@@ -750,8 +634,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
             }
         }
     }
-
-    
     private boolean hasValidTargets() {
         
         if (this.entityData.get(IS_RISING)) {
@@ -765,15 +647,11 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 if (living instanceof Creeper || IParasite.isParasiteByTagOrInterface(living)) {
                     continue;
                 }
-
-                
                 if (living instanceof Player player) {
                     if (player.isCreative() || player.isSpectator()) {
                         continue;
                     }
                 }
-
-                
                 if (living.isAlive()) {
                     return true;
                 }
@@ -781,26 +659,18 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         }
         return false;
     }
-
-    
     private void spawnBiomass() {
         if (this.level() instanceof ServerLevelAccessor) {
             
             Vec3 eyePosition = this.getEyePosition();
-
-            
             double angle = this.random.nextDouble() * Math.PI * 2;
             double offsetX = Math.cos(angle) * 0.75; 
             double offsetZ = Math.sin(angle) * 0.75;
-
-            
             double x = eyePosition.x + offsetX;
             double y = eyePosition.y + 0.2; 
             double z = eyePosition.z + offsetZ;
-
-            
             EntityType<?> biomassType = ModEntities.BIOMASS_MEDIUM.get();
-            Entity biomass = biomassType.create(this.level());
+            Entity biomass = biomassType.create(this.level(), EntitySpawnReason.MOB_SUMMONED);
 
             if (biomass != null) {
                 
@@ -819,8 +689,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 for (int z = -radius; z <= radius; z++) {
                     BlockPos targetPos = center.offset(x, y, z);
                     BlockState state = level().getBlockState(targetPos);
-
-                    
                     if (state.getDestroySpeed(level(), targetPos) <= 5.5f &&
                                     state.getDestroySpeed(level(), targetPos) >= 0.0f &&
                             !state.isAir() &&
@@ -832,8 +700,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
             }
         }
     }
-
-    
     private void updateAnimationState() {
         
         if (this.entityData.get(IS_RISING)) {
@@ -841,16 +707,12 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         }
 
         int currentAnimState = this.entityData.get(ANIMATION_STATE);
-
-        
         if (forcedAnimationTimer > 0) {
             forcedAnimationTimer--;
             
             this.entityData.set(ANIMATION_STATE, forcedAnimationState);
             return;
         }
-
-        
         if (hasTargets && !wasTargeting) {
             startForcedAnimation(ANIM_STATE_OPEN, OPEN_ANIMATION_DURATION);
         }
@@ -869,38 +731,28 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
             this.entityData.set(ANIMATION_STATE, ANIM_STATE_IDLE);
         }
     }
-
-    
     private void startForcedAnimation(int animationState, int duration) {
         this.forcedAnimationState = animationState;
         this.forcedAnimationTimer = duration;
         this.entityData.set(ANIMATION_STATE, animationState);
     }
-
-    
     public static boolean checkStageIIBeckonSpawnRules(
             EntityType<StageIIBeckon> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
         
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
+        controllers.add(new AnimationController<>("controller", 0, this::predicate));
     }
-
-    
-    private PlayState predicate(AnimationState<StageIIBeckon> event) {
-        AnimationController<StageIIBeckon> controller = event.getController();
+    private PlayState predicate(AnimationTest<StageIIBeckon> event) {
+        AnimationController<StageIIBeckon> controller = event.controller();
         int animState = this.entityData.get(ANIMATION_STATE);
-
-        
         switch (animState) {
             case ANIM_STATE_SPAWN:
                 controller.setAnimation(SPAWN_ANIMATION);
@@ -922,56 +774,54 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
 
         return PlayState.CONTINUE;
     }
-
-    
     @Override
-    public void readAdditionalSaveData(CompoundTag compoundTag) {
-        if (compoundTag.contains("TickCount")) {
-            this.entityData.set(TICK_COUNT, compoundTag.getInt("TickCount"));
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput compoundTag) {
+        if (compoundTag.getInt("TickCount").isPresent()) {
+            this.entityData.set(TICK_COUNT, compoundTag.getIntOr("TickCount", 0));
         }
-        if (compoundTag.contains("AnimationState")) {
-            this.entityData.set(ANIMATION_STATE, compoundTag.getInt("AnimationState"));
-        }
-        
-        if (compoundTag.contains("IsRising")) {
-            this.entityData.set(IS_RISING, compoundTag.getBoolean("IsRising"));
-        }
-        if (compoundTag.contains("RiseTimer")) {
-            this.entityData.set(RISE_TIMER, compoundTag.getInt("RiseTimer"));
-        }
-        if (compoundTag.contains("TargetY")) {
-            this.entityData.set(TARGET_Y, compoundTag.getFloat("TargetY"));
-        }
-        if (compoundTag.contains("TargetX")) {
-            this.entityData.set(TARGET_X, compoundTag.getFloat("TargetX"));
-        }
-        if (compoundTag.contains("TargetZ")) {
-            this.entityData.set(TARGET_Z, compoundTag.getFloat("TargetZ"));
+        if (compoundTag.getInt("AnimationTest").isPresent()) {
+            this.entityData.set(ANIMATION_STATE, compoundTag.getIntOr("AnimationTest", 0));
         }
         
-        if (compoundTag.contains("ForcedAnimationTimer")) {
-            this.forcedAnimationTimer = compoundTag.getInt("ForcedAnimationTimer");
+        if (compoundTag.read("IsRising", com.mojang.serialization.Codec.BOOL).isPresent()) {
+            this.entityData.set(IS_RISING, compoundTag.getBooleanOr("IsRising", false));
         }
-        if (compoundTag.contains("ForcedAnimationState")) {
-            this.forcedAnimationState = compoundTag.getInt("ForcedAnimationState");
+        if (compoundTag.getInt("RiseTimer").isPresent()) {
+            this.entityData.set(RISE_TIMER, compoundTag.getIntOr("RiseTimer", 0));
+        }
+        if (compoundTag.read("TargetY", com.mojang.serialization.Codec.FLOAT).isPresent()) {
+            this.entityData.set(TARGET_Y, compoundTag.getFloatOr("TargetY", 0.0F));
+        }
+        if (compoundTag.read("TargetX", com.mojang.serialization.Codec.FLOAT).isPresent()) {
+            this.entityData.set(TARGET_X, compoundTag.getFloatOr("TargetX", 0.0F));
+        }
+        if (compoundTag.read("TargetZ", com.mojang.serialization.Codec.FLOAT).isPresent()) {
+            this.entityData.set(TARGET_Z, compoundTag.getFloatOr("TargetZ", 0.0F));
         }
         
-        if (compoundTag.contains("SpawnedByItem")) {
-            this.spawnedByItem = compoundTag.getBoolean("SpawnedByItem");
+        if (compoundTag.getInt("ForcedAnimationTimer").isPresent()) {
+            this.forcedAnimationTimer = compoundTag.getIntOr("ForcedAnimationTimer", 0);
+        }
+        if (compoundTag.getInt("ForcedAnimationState").isPresent()) {
+            this.forcedAnimationState = compoundTag.getIntOr("ForcedAnimationState", 0);
         }
         
-        if (compoundTag.contains("HasSpawnedRandomParticles")) {
-            this.hasSpawnedRandomParticles = compoundTag.getBoolean("HasSpawnedRandomParticles");
+        if (compoundTag.read("SpawnedByItem", com.mojang.serialization.Codec.BOOL).isPresent()) {
+            this.spawnedByItem = compoundTag.getBooleanOr("SpawnedByItem", false);
+        }
+        
+        if (compoundTag.read("HasSpawnedRandomParticles", com.mojang.serialization.Codec.BOOL).isPresent()) {
+            this.hasSpawnedRandomParticles = compoundTag.getBooleanOr("HasSpawnedRandomParticles", false);
         }
         
         if (this.entityData.get(IS_RISING)) {
             startRiseEffect();
         }
 
-        if (compoundTag.contains("FoolsBehavior")) {
-            this.isFoolsBehavior = compoundTag.getBoolean("FoolsBehavior");
+        if (compoundTag.read("FoolsBehavior", com.mojang.serialization.Codec.BOOL).isPresent()) {
+            this.isFoolsBehavior = compoundTag.getBooleanOr("FoolsBehavior", false);
             
-            if (this.isFoolsBehavior && !this.level().isClientSide) {
+            if (this.isFoolsBehavior && !this.level().isClientSide()) {
                 
                 this.goalSelector.removeGoal(new WaterAvoidingRandomStrollGoal(this, 0.8D));
                 this.goalSelector.removeGoal(new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -981,24 +831,24 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
             }
         }
-        if (compoundTag.contains("AutoGrowthTimer")) {
-            this.autoGrowthTimer = compoundTag.getInt("AutoGrowthTimer");
+        if (compoundTag.getInt("AutoGrowthTimer").isPresent()) {
+            this.autoGrowthTimer = compoundTag.getIntOr("AutoGrowthTimer", 0);
         }
-        if (compoundTag.contains("PlaceCoreCooldown")) {
-            this.placeCoreCooldown = compoundTag.getInt("PlaceCoreCooldown");
+        if (compoundTag.getInt("PlaceCoreCooldown").isPresent()) {
+            this.placeCoreCooldown = compoundTag.getIntOr("PlaceCoreCooldown", 0);
         }
-        if (compoundTag.contains("GiveCorePointsTimer")) {
-            this.giveCorePointsTimer = compoundTag.getInt("GiveCorePointsTimer");
+        if (compoundTag.getInt("GiveCorePointsTimer").isPresent()) {
+            this.giveCorePointsTimer = compoundTag.getIntOr("GiveCorePointsTimer", 0);
         }
-        if (compoundTag.contains("FastAttackCounter")) {
-            this.fastAttackCounter = compoundTag.getInt("FastAttackCounter");
+        if (compoundTag.getInt("FastAttackCounter").isPresent()) {
+            this.fastAttackCounter = compoundTag.getIntOr("FastAttackCounter", 0);
         }
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compoundTag) {
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput compoundTag) {
         compoundTag.putInt("TickCount", this.entityData.get(TICK_COUNT));
-        compoundTag.putInt("AnimationState", this.entityData.get(ANIMATION_STATE));
+        compoundTag.putInt("AnimationTest", this.entityData.get(ANIMATION_STATE));
         
         compoundTag.putBoolean("IsRising", this.entityData.get(IS_RISING));
         compoundTag.putInt("RiseTimer", this.entityData.get(RISE_TIMER));
@@ -1018,18 +868,14 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         compoundTag.putInt("GiveCorePointsTimer", this.giveCorePointsTimer);
         compoundTag.putInt("FastAttackCounter", this.fastAttackCounter);
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -1038,8 +884,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         }
         return super.canRide(entity);
     }
-
-    
     @Override
     public boolean isPushable() {
         return false; 
@@ -1049,8 +893,6 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
     public boolean isPickable() {
         return !this.entityData.get(IS_RISING); 
     }
-
-    
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return false; 
@@ -1069,7 +911,7 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
         
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             IParasite.super.onKillEntity(killedEntity);
         }

@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvent;
@@ -13,8 +15,8 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,14 +30,14 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -46,11 +48,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     public InfestedSilverfish(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
-
-        
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-        
         this.navigation = new GroundPathNavigation(this, level);
     }
 
@@ -72,15 +70,11 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     @Override
     protected void registerGoals() {
         super.registerGoals();
-
-        
         this.goalSelector.addGoal(5, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
-
-        
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
@@ -91,7 +85,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     public void tick() {
         super.tick();
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
@@ -99,8 +93,6 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                     playAmbientSound();
                 }
             }
-
-            
             LivingEntity target = this.getTarget();
             BlockPos footPos = this.blockPosition();
             boolean inInfestedBlock = this.level().getBlockState(footPos).getBlock() instanceof InfestedBlockInterface;
@@ -116,8 +108,6 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                 
                 double dy = target.getY() - this.getY();
                 double horizontalDistSq = this.distanceToSqr(target.getX(), this.getY(), target.getZ());
-
-                
                 if (dy > 0.5 && inInfestedBlock) {
                     shouldHaveNoGravity = true; 
                     Vec3 motion = this.getDeltaMovement();
@@ -135,14 +125,10 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                         }
                     }
                 }
-
-                
                 if (this.navigation.isDone() && this.random.nextInt(20) == 0) {
                     this.navigation.moveTo(target, 1.0);
                 }
             }
-
-            
             if (this.isNoGravity() != shouldHaveNoGravity) {
                 this.setNoGravity(shouldHaveNoGravity);
                 
@@ -150,22 +136,15 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                     this.setDeltaMovement(this.getDeltaMovement().multiply(1, 0, 1));
                 }
             }
-
-            
             updateFloating();
         }
     }
-
-    
     public void playAmbientSound() {
         if (!this.isSilent() && this.random.nextInt(3) == 0) {
             
             this.playSound(SoundEvents.SILVERFISH_AMBIENT, 0.95F, 0.8F);
         }
     }
-
-    
-
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         
@@ -186,16 +165,12 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
             this.playSound(soundevent, 0.95F, 0.8F); 
         }
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (source == this.damageSources().fall() && this.isInInfestedBlock()) {
             return false;
         }
-
-        
         if (source.getEntity() instanceof LivingEntity attacker) {
             
             if (shouldIgnoreDamageFrom(attacker)) {
@@ -203,15 +178,11 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
@@ -228,25 +199,23 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
         
         return false;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<InfestedSilverfish> event) {
+    private PlayState animationPredicate(AnimationTest<InfestedSilverfish> event) {
 
         if (event.isMoving()) {
             if (this.isInWall()) {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("mining"));
+                event.setAnimation(RawAnimation.begin().thenLoop("mining"));
             } else {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+                event.setAnimation(RawAnimation.begin().thenLoop("walk"));
             }
         } else {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
         return PlayState.CONTINUE;
     }
@@ -254,36 +223,28 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     public static boolean checkInfestedSilverfishSpawnRules(
             EntityType<InfestedSilverfish> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
         
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
-
-            
             if (stage < 2 || stage > 5) {
                 return false;
             }
         }
-
-        
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -303,11 +264,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
         super.die(source);
         this.onDeath(source); 
     }
-
-    
     private int floatingTime;
-
-    
     private void updateFloating() {
         if (this.isInWater()) {
             
@@ -316,11 +273,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                 
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
-
-            
             this.floatingTime++;
-
-            
             if (this.floatingTime > 10) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.4D, 0.0D));
                 this.floatingTime = 0;
@@ -331,16 +284,14 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
     }
-
-    
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
@@ -352,25 +303,18 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
             super.travel(travelVector);
         }
     }
-
-    
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
-
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
-
-    
-    
     @Override
     public boolean isInWall() {
         
-        float f = this.getDimensions(this.getPose()).width * 0.8F;
+        float f = this.getDimensions(this.getPose()).width() * 0.8F;
         AABB aabb = AABB.ofSize(this.getEyePosition(), (double)f, 1.0E-6D, (double)f);
         return BlockPos.betweenClosedStream(aabb).anyMatch((pos) -> {
             BlockState blockstate = this.level().getBlockState(pos);

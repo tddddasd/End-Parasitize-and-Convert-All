@@ -51,8 +51,8 @@ public class NestLeaderDamageAdaptation {
         int stage = EvolutionManager.getStageForDimension(level);
         if (stage < 0) return amount;
 
-        CompoundTag root = player.getPersistentData().getCompound(ADAPTATION_KEY);
-        long disabledUntil = root.getLong(DISABLED_UNTIL_KEY);
+        CompoundTag root = player.getPersistentData().getCompoundOrEmpty(ADAPTATION_KEY);
+        long disabledUntil = root.getLong(DISABLED_UNTIL_KEY).orElse(0L);
         long now = level.getGameTime();
 
         if (now < disabledUntil) return amount;
@@ -73,16 +73,16 @@ public class NestLeaderDamageAdaptation {
             return amount;
         }
 
-        CompoundTag adaptMap = root.getCompound(ADAPTATIONS_KEY);
-        String id = typeKey.location().toString();
-        int currentLevel = adaptMap.getInt(id);
+        CompoundTag adaptMap = root.getCompoundOrEmpty(ADAPTATIONS_KEY);
+        String id = typeKey.identifier().toString();
+        int currentLevel = adaptMap.getInt(id).orElse(0);
         int newLevel = currentLevel + 1;
 
-        int typeCount = adaptMap.getAllKeys().size();
+        int typeCount = adaptMap.keySet().size();
         if (typeCount >= MAX_TYPES && !adaptMap.contains(id)) {
-            List<String> keys = new ArrayList<>(adaptMap.getAllKeys());
+            List<String> keys = new ArrayList<>(adaptMap.keySet());
             if (!keys.isEmpty()) {
-                String removedKey = keys.get(level.random.nextInt(keys.size()));
+                String removedKey = keys.get(level.getRandom().nextInt(keys.size()));
                 adaptMap.remove(removedKey);
             }
         }
@@ -90,8 +90,8 @@ public class NestLeaderDamageAdaptation {
         root.put(ADAPTATIONS_KEY, adaptMap);
         player.getPersistentData().put(ADAPTATION_KEY, root);
 
-        if (!player.level().isClientSide) {
-            long lastSound = player.getPersistentData().getLong(LAST_SOUND_TIME_KEY);
+        if (!player.level().isClientSide()) {
+            long lastSound = player.getPersistentData().getLong(LAST_SOUND_TIME_KEY).orElse(0L);
             if (now - lastSound >= SOUND_COOLDOWN_TICKS) {
                 boolean fullAdapted = newLevel >= 7;
                 SoundEvent sound = fullAdapted ?

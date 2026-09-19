@@ -3,19 +3,19 @@ package org.tdddd.epca.impl.events;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.ModConfig;
 import org.tdddd.epca.impl.utils.ParasiteHelper;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class ParasiteFriendlyHandler {
 
     @SubscribeEvent
     public static void onLivingChangeTarget(LivingChangeTargetEvent event) {
         LivingEntity entity = event.getEntity();
-        LivingEntity target = event.getNewTarget();
+        LivingEntity target = event.getNewAboutToBeSetTarget();
 
         
         if (!ParasiteHelper.isParasite(entity)) {
@@ -28,7 +28,7 @@ public class ParasiteFriendlyHandler {
             if (entity instanceof Mob) {
                 ((Mob) entity).setTarget(null);
             }
-            event.setNewTarget(null);
+            event.setNewAboutToBeSetTarget(null);
             return;
         }
 
@@ -39,7 +39,7 @@ public class ParasiteFriendlyHandler {
                 if (entity instanceof Mob) {
                     ((Mob) entity).setTarget(null);
                 }
-                event.setNewTarget(null);
+                event.setNewAboutToBeSetTarget(null);
             }
         }
     }

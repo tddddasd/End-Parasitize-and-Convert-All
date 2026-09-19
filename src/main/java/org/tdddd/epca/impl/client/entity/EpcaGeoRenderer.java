@@ -1,24 +1,27 @@
 package org.tdddd.epca.impl.client.entity;
 
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import com.geckolib.animatable.GeoAnimatable;
+import com.geckolib.constant.DataTickets;
+import com.geckolib.model.GeoModel;
+import com.geckolib.renderer.GeoEntityRenderer;
+import com.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.renderer.base.RenderPassInfo;
+import com.geckolib.renderer.layer.GeoRenderLayer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.client.ClientColorEffect;
 import org.tdddd.epca.impl.utils.entity.BillboardRenderHelper;
-import software.bernie.geckolib.cache.object.BakedGeoModel;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
-import software.bernie.geckolib.model.GeoModel;
-import software.bernie.geckolib.renderer.GeoEntityRenderer;
-import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -31,21 +34,46 @@ import java.util.List;
  * <ul>
  *   <li>{@link IMotionAligned} — rotate to face velocity direction (projectiles)</li>
  *   <li>{@link IOverlayRenderable} — translucent overlay layer (villager plains, wolf collar)</li>
- *   <li>{@link IHeadRotatable} — handled in {@link EpcaGeoModel#setCustomAnimations}</li>
+ *   <li>{@link IHeadRotatable} — head rotation, applied to the head bone snapshot</li>
  * </ul>
+ *
+ * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <p>GeckoLib 5 split rendering into render-state extraction and submission, and the
+ * animatable is no longer reachable while drawing. The EPCA customisations were re-expressed
+ * on the GeckoLib 5 hooks:</p>
+ * <ul>
+ *   <li>tint / hurt-overlay → {@link #getRenderColor} / {@link #getPackedOverlay}
+ *       (both still receive the animatable),</li>
+ *   <li>translucent render type → {@link #getRenderType(EntityRenderState, Identifier)},</li>
+ *   <li>billboard / motion-aligned rotation → {@link #adjustRenderPose},</li>
+ *   <li>head rotation → a {@code RenderPassInfo.BoneUpdater} installed in
+ *       {@link #preRenderPass} (GeckoLib 4 mutated the bone directly),</li>
+ *   <li>overlays and afterimages → a single delegate {@link GeoRenderLayer} that
+ *       re-submits the model with another texture/colour/alpha.</li>
+ * </ul>
+ *
+ * <h3>Why {@code RenderPassInfo} is used raw here</h3>
+ * <p>{@code com.geckolib.renderer.base.RenderPassInfo<R extends GeoRenderState>} is bounded by
+ * GeckoLib's {@code GeoRenderState}, which vanilla's {@code EntityRenderState} only gains at
+ * runtime through GeckoLib's mixin. GeckoLib's own {@code GeoEntityRenderer<T, R extends EntityRenderState>}
+ * therefore cannot be specialised to a concrete {@code R} from mod code, and neither can
+ * {@code RenderPassInfo<EntityRenderState>} be written down. EPCA renders every entity type with
+ * one renderer, so the delegate layer and its helpers take the erased {@code RenderPassInfo}
+ * type; the values flowing through it are the vanilla {@code EntityRenderState}s GeckoLib
+ * itself creates.</p>
  */
-public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntityRenderer<T> {
+@SuppressWarnings("rawtypes")
+public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntityRenderer<T, EntityRenderState> {
 
     private final List<IGeoLayerProvider> layerProviders = new ArrayList<>();
 
     public EpcaGeoRenderer(EntityRendererProvider.Context renderManager) {
-        super(renderManager, new EpcaGeoModel<>());
-        addRenderLayer(new OuterLayerDelegate());
+        this(renderManager, new EpcaGeoModel<>());
     }
 
     public EpcaGeoRenderer(EntityRendererProvider.Context renderManager, GeoModel<T> model) {
         super(renderManager, model);
-        addRenderLayer(new OuterLayerDelegate());
+        withRenderLayer(new OuterLayerDelegate());
     }
 
     /**
@@ -57,35 +85,45 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
     }
 
     // ═══════════════════════════════════════════════════════════════
+    //  Render-state extraction
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * GeckoLib 5 only hands the animatable to the extraction phase. {@link EpcaGeoModel}
+     * and {@link IGeoLayerProvider} need it later on, so it is parked in the render state.
+     */
+    @Override
+    public void captureDefaultRenderState(T animatable, Void renderData, EntityRenderState renderState, float partialTick) {
+        EpcaGeoModel.setRenderEntity(renderState, animatable);
+        super.captureDefaultRenderState(animatable, renderData, renderState, partialTick);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     //  Color effects
     // ═══════════════════════════════════════════════════════════════
 
     @Override
-    public void actuallyRender(PoseStack poseStack, T animatable, BakedGeoModel model, RenderType renderType,
-                               MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
-                               float partialTick, int packedLight, int packedOverlay,
-                               float red, float green, float blue, float alpha) {
-        this.animatable = animatable;
-
+    public int getRenderColor(T animatable, Void renderData, float partialTick) {
         if (animatable instanceof LivingEntity living) {
             var effect = ClientColorEffect.getEffect(living);
             if (effect != null) {
-                packedOverlay = OverlayTexture.NO_OVERLAY;
-                float[] rgb = effect.getColorRGB();
-                red = rgb[0];
-                green = rgb[1];
-                blue = rgb[2];
+                return effect.getColorARGB();
             }
         }
-
-        super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer,
-                isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+        return super.getRenderColor(animatable, renderData, partialTick);
     }
 
     @Override
-    public RenderType getRenderType(T animatable, ResourceLocation texture,
-                                     @Nullable MultiBufferSource bufferSource, float partialTick) {
-        return RenderType.entityTranslucent(texture);
+    public int getPackedOverlay(T animatable, Void renderData, float partialTick, float whiteOverlay) {
+        if (animatable instanceof LivingEntity living && ClientColorEffect.getEffect(living) != null) {
+            return OverlayTexture.NO_OVERLAY;
+        }
+        return super.getPackedOverlay(animatable, renderData, partialTick, whiteOverlay);
+    }
+
+    @Override
+    public RenderType getRenderType(EntityRenderState renderState, Identifier texture) {
+        return RenderTypes.entityTranslucent(texture);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -93,18 +131,19 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
     // ═══════════════════════════════════════════════════════════════
 
     @Override
-    protected void applyRotations(T entity, PoseStack poseStack, float rotationYaw,
-                                   float partialTicks, float ageInTicks) {
+    public void adjustRenderPose(RenderPassInfo passInfo) {
+        Entity entity = EpcaGeoModel.entityOf(passInfo.renderState());
         if (entity instanceof IMotionAligned) {
-            applyMotionAlignedRotation(entity, poseStack);
+            applyMotionAlignedRotation(entity, passInfo.poseStack());
         } else if (isAprilFoolsDay() && entity instanceof LivingEntity living) {
-            BillboardRenderHelper.applyBillboardTransform(poseStack, living, partialTicks);
+            BillboardRenderHelper.applyBillboardTransform(
+                    passInfo.poseStack(), living, passInfo.renderState().getPartialTick());
         } else {
-            super.applyRotations(entity, poseStack, rotationYaw, partialTicks, ageInTicks);
+            super.adjustRenderPose(passInfo);
         }
     }
 
-    private void applyMotionAlignedRotation(T entity, PoseStack poseStack) {
+    private void applyMotionAlignedRotation(Entity entity, PoseStack poseStack) {
         double mx = entity.getDeltaMovement().x;
         double my = entity.getDeltaMovement().y;
         double mz = entity.getDeltaMovement().z;
@@ -119,97 +158,139 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  Overlay rendering  (IOverlayRenderable)
-    // ═══════════════════════════════════════════════════════════════
-
-    @Override
-    public void render(T entity, float entityYaw, float partialTick,
-                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
-
-        if (entity instanceof IOverlayRenderable overlay) {
-            renderOverlay(entity, overlay, poseStack, bufferSource, partialTick, packedLight);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void renderOverlay(T entity, IOverlayRenderable overlay, PoseStack poseStack,
-                               MultiBufferSource bufferSource, float partialTick, int packedLight) {
-        ResourceLocation tex = overlay.getOverlayTexture();
-        if (tex == null) return;
-
-        float[] color = overlay.getOverlayColor();
-        BakedGeoModel baked = getGeoModel().getBakedModel(getGeoModel().getModelResource(entity));
-        RenderType rt = RenderType.entityTranslucent(tex);
-        VertexConsumer buf = bufferSource.getBuffer(rt);
-
-        poseStack.pushPose();
-        this.animatable = entity;
-        this.preRender(poseStack, entity, baked, bufferSource, buf, false,
-                partialTick, packedLight, getOverlayCoords(entity, 0), color[0], color[1], color[2], 1.0F);
-        this.actuallyRender(poseStack, entity, baked, rt, bufferSource, buf,
-                false, partialTick, packedLight, getOverlayCoords(entity, 0),
-                color[0], color[1], color[2], 1.0F);
-        poseStack.popPose();
-    }
-
-    private static int getOverlayCoords(Entity entity, float u) {
-        if (entity instanceof LivingEntity living) {
-            return LivingEntityRenderer.getOverlayCoords(living, u);
-        }
-        return OverlayTexture.NO_OVERLAY;
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    //  Public helper for external renderers (afterimages, layers, etc.)
+    //  Head rotation  (IHeadRotatable)
     // ═══════════════════════════════════════════════════════════════
 
     /**
-     * Renders the model with explicit color/alpha using a specific RenderType.
-     * Public wrapper around {@link #actuallyRender} for use by subclasses and
-     * external callers that need to draw the model with custom transparency
-     * (e.g. afterimage ghost layers).
+     * GeckoLib 5 replaced direct bone mutation with bone updaters. The updater is resolved
+     * lazily when the render pass compiles its bone snapshots, which happens after
+     * {@code preRenderPass} and before the model is submitted.
      */
-    public void renderModelWithAlpha(PoseStack poseStack, T entity, BakedGeoModel model,
-                                      RenderType renderType, MultiBufferSource bufferSource,
-                                      VertexConsumer buffer, float partialTick,
-                                      int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
-        this.animatable = entity;
+    @Override
+    public void preRenderPass(RenderPassInfo passInfo, SubmitNodeCollector collector) {
+        super.preRenderPass(passInfo, collector);
 
-        this.actuallyRender(poseStack, entity, model, renderType, bufferSource, buffer,
-                false, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+        Entity entity = EpcaGeoModel.entityOf(passInfo.renderState());
+        if (entity instanceof LivingEntity living
+                && entity instanceof IHeadRotatable rotatable
+                && rotatable.shouldRotateHead()) {
+            float partialTick = passInfo.renderState().getPartialTick();
+            float currentTime = living.tickCount + partialTick;
+            float bodyYaw = Mth.rotLerp(partialTick, living.yBodyRotO, living.yBodyRot);
+            float radians = HeadRotationHandler.computeHeadRotation(
+                    living.getId(), rotatable, currentTime, partialTick, bodyYaw);
+            String boneName = rotatable.getHeadBoneName();
+            passInfo.addBoneUpdater((info, snapshots) ->
+                    snapshots.ifPresent(boneName, snapshot -> snapshot.setRotY(radians)));
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  GeckoLib render layer → delegates to registered IGeoLayerProviders
+    //  Public helpers for external renderers / layers
     // ═══════════════════════════════════════════════════════════════
 
     /**
-     * A GeckoLib {@link GeoRenderLayer} that dispatches to all
-     * registered {@link IGeoLayerProvider} instances for this renderer.
-     * Mirrors the {@code UniversalDelegateLayer} pattern from OpenSRP.
+     * Re-submits the current model pass with an explicit colour and alpha.
+     *
+     * <p>GeckoLib 4 exposed {@code reRender(...)} and allowed callers to hand in a fresh
+     * {@code VertexConsumer}; GeckoLib 5 removed both. The equivalent is to push the desired
+     * colour into the render state (which is what {@code submitRenderTasks} reads) and ask it
+     * to submit the already-compiled bone snapshots again with another render type.</p>
+     */
+    public void submitModelWithArgb(RenderPassInfo passInfo, SubmitNodeCollector collector,
+                                    int order, RenderType renderType,
+                                    float red, float green, float blue, float alpha) {
+        int a = clampChannel(alpha);
+        int r = clampChannel(red);
+        int g = clampChannel(green);
+        int b = clampChannel(blue);
+        submitWithColor(passInfo, collector, order, renderType, (a << 24) | (r << 16) | (g << 8) | b);
+    }
+
+    /** Same as {@link #submitModelWithArgb} but keeps the pass's own RGB and only changes alpha. */
+    public void submitModelWithAlpha(RenderPassInfo passInfo, SubmitNodeCollector collector,
+                                     int order, RenderType renderType, float alpha) {
+        GeoRenderState state = passInfo.renderState();
+        Integer previous = state.getGeckolibData(DataTickets.RENDER_COLOR);
+        int base = previous != null ? previous : 0xFFFFFFFF;
+        submitWithColor(passInfo, collector, order, renderType,
+                (clampChannel(alpha) << 24) | (base & 0x00FFFFFF));
+    }
+
+    private void submitWithColor(RenderPassInfo passInfo, SubmitNodeCollector collector,
+                                 int order, RenderType renderType, int argb) {
+        GeoRenderState state = passInfo.renderState();
+        Integer previous = state.getGeckolibData(DataTickets.RENDER_COLOR);
+        state.addGeckolibData(DataTickets.RENDER_COLOR, argb);
+        try {
+            submitRenderTasks(passInfo, collector.order(order), renderType);
+        } finally {
+            if (previous != null) {
+                state.addGeckolibData(DataTickets.RENDER_COLOR, previous);
+            }
+        }
+    }
+
+    private static int clampChannel(float value) {
+        int channel = (int) (value * 255.0F);
+        return channel < 0 ? 0 : Math.min(channel, 255);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  GeckoLib render layer → overlays + registered IGeoLayerProviders
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * A GeckoLib {@link GeoRenderLayer} that first re-draws the model for
+     * {@link IOverlayRenderable} entities and then dispatches to all registered
+     * {@link IGeoLayerProvider} instances.
+     *
+     * <p>{@code GeoRenderLayer} is extended raw for the reason documented on
+     * {@link EpcaGeoRenderer}: its {@code R} is bounded by {@code GeoRenderState}, which a
+     * concrete vanilla render state cannot satisfy at compile time. The override signatures are
+     * therefore the erased ones; dispatch at runtime is unchanged.</p>
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private class OuterLayerDelegate extends GeoRenderLayer<T> {
+    private class OuterLayerDelegate extends GeoRenderLayer {
 
         OuterLayerDelegate() {
             super(EpcaGeoRenderer.this);
         }
 
         @Override
-        public void render(PoseStack poseStack, T entity, BakedGeoModel bakedModel,
-                           RenderType renderType, MultiBufferSource bufferSource,
-                           VertexConsumer buffer, float partialTick,
-                           int packedLight, int packedOverlay) {
-            if (!(entity instanceof LivingEntity living)) return;
+        public void addRenderData(GeoAnimatable animatable, Object renderData,
+                                  GeoRenderState renderState, float partialTick) {
             for (IGeoLayerProvider provider : layerProviders) {
-                provider.renderAdditionalLayer(
-                        EpcaGeoRenderer.this,
-                        living, bakedModel, renderType,
-                        bufferSource, buffer, poseStack,
-                        partialTick, packedLight, packedOverlay);
+                provider.addLayerData(renderState, partialTick);
             }
         }
+
+        @Override
+        public void submitRenderTask(RenderPassInfo passInfo, SubmitNodeCollector collector) {
+            Entity entity = EpcaGeoModel.entityOf(passInfo.renderState());
+            int order = 0;
+
+            if (entity instanceof IOverlayRenderable overlay) {
+                Identifier tex = overlay.getOverlayTexture();
+                if (tex != null) {
+                    float[] color = overlay.getOverlayColor();
+                    submitModelWithArgb(passInfo, collector, order++, RenderTypes.entityTranslucent(tex),
+                            color[0], color[1], color[2], 1.0F);
+                }
+            }
+
+            for (IGeoLayerProvider provider : layerProviders) {
+                provider.submitLayer(passInfo, collector);
+            }
+        }
+    }
+
+    /**
+     * Helper for layers that need to hide whole bone sub-trees (GeckoLib 4 did this by
+     * calling {@code CoreGeoBone#setHidden}); GeckoLib 5 expresses it as a bone updater.
+     */
+    public static void addBoneHider(RenderPassInfo passInfo, String boneName, boolean hide) {
+        passInfo.addBoneUpdater((info, snapshots) ->
+                snapshots.ifPresent(boneName, snapshot -> snapshot.skipRender(hide)));
     }
 }

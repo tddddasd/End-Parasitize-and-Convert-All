@@ -6,7 +6,7 @@ public class BiomassManager {
     private static final String BIOMASS_KEY = "BiomassPoints";
 
     public static int getBiomassPoints(Player player) {
-        return player.getPersistentData().getInt(BIOMASS_KEY);
+        return player.getPersistentData().getInt(BIOMASS_KEY).orElse(0);
     }
 
     public static void setBiomassPoints(Player player, int points) {

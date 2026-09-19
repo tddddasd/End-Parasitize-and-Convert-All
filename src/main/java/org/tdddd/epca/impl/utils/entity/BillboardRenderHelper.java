@@ -12,7 +12,7 @@ public class BillboardRenderHelper {
     
     public static void applyBillboardTransform(PoseStack poseStack, LivingEntity entity, float partialTick) {
         
-        Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
         
         Vec3 entityPos = entity.getPosition(partialTick).add(0, entity.getBbHeight() / 2, 0);
 

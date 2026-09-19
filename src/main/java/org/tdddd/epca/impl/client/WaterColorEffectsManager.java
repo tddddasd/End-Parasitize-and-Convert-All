@@ -23,7 +23,8 @@ public class WaterColorEffectsManager {
      * 添加单个虫染源（由网络包调用）
      */
     public static void addInfestedSource(BlockPos pos) {
-        ChunkPos cp = new ChunkPos(pos);
+        // 26.1.2: ChunkPos is a record (x, z) and lost its BlockPos constructor; use ChunkPos#containing.
+        ChunkPos cp = ChunkPos.containing(pos);
         INFESTED_BY_CHUNK.computeIfAbsent(cp, k -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
         refreshArea(pos, 8); // 刷新周围受影响的水域
     }
@@ -32,7 +33,7 @@ public class WaterColorEffectsManager {
      * 移除单个虫染源（由网络包调用）
      */
     public static void removeInfestedSource(BlockPos pos) {
-        ChunkPos cp = new ChunkPos(pos);
+        ChunkPos cp = ChunkPos.containing(pos);
         Set<BlockPos> set = INFESTED_BY_CHUNK.get(cp);
         if (set != null) {
             set.remove(pos.immutable());
@@ -48,7 +49,7 @@ public class WaterColorEffectsManager {
         if (positions.isEmpty()) return;
         BlockPos first = null;
         for (BlockPos pos : positions) {
-            ChunkPos cp = new ChunkPos(pos);
+            ChunkPos cp = ChunkPos.containing(pos);
             INFESTED_BY_CHUNK.computeIfAbsent(cp, k -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
             if (first == null) first = pos;
         }
@@ -223,8 +224,10 @@ public class WaterColorEffectsManager {
         }
 
         for (ChunkPos cp : chunks) {
-            for (int y = mc.level.getMinSection(); y <= mc.level.getMaxSection(); y++) {
-                mc.levelRenderer.setSectionDirty(cp.x, y, cp.z);
+            // 26.1.2: Level#getMinSection/getMaxSection -> getMinSectionY/getMaxSectionY, and ChunkPos exposes
+            // record accessors x()/z() instead of public fields.
+            for (int y = mc.level.getMinSectionY(); y <= mc.level.getMaxSectionY(); y++) {
+                mc.levelRenderer.setSectionDirty(cp.x(), y, cp.z());
             }
         }
     }

@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.RandomSource;
@@ -11,8 +12,8 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
@@ -23,19 +24,17 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-
-    
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
     private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
@@ -45,8 +44,6 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
         this.xpReward = 8;
         
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-        
         this.navigation = new GroundPathNavigation(this, level);
     }
 
@@ -84,15 +81,11 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
     public void tick() {
         super.tick();
 
-        if (!this.level().isClientSide) {
-
-            
+        if (!this.level().isClientSide()) {
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-                    
                     playAmbientSound();
                 }
             }
@@ -100,15 +93,11 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
             updateFloating();
         }
     }
-
-    
     public void playAmbientSound() {
         if (!this.isSilent()) {
             this.playSound(ModSoundEvents.WALKING_HEAD_SAY.get(), 1.0F, 1.0F);
         }
     }
-
-    
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         return ModSoundEvents.WALKING_HEAD_SAY.get();
@@ -119,10 +108,8 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
         
         return ModSoundEvents.WALKING_HEAD_DEATH.get();
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (source.getEntity() instanceof LivingEntity attacker) {
             
@@ -131,72 +118,56 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 5, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 5, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<WalkingVillagerHead> event) {
+    private PlayState animationPredicate(AnimationTest<WalkingVillagerHead> event) {
 
             if (event.isMoving()) {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+                event.setAnimation(RawAnimation.begin().thenLoop("walk"));
             } else {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle"));
             }
-
-
         return PlayState.CONTINUE;
     }
 
     public static boolean checkWalkingVillagerHeadSpawnRules(
             EntityType<WalkingVillagerHead> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
         
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
-
-            
             if (stage < 2 || stage > 4) {
                 return false;
             }
         }
-
-        
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -216,11 +187,7 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
         super.die(source);
         this.onDeath(source); 
     }
-
-    
     private int floatingTime;
-
-    
     private void updateFloating() {
         if (this.isInWater()) {
             
@@ -229,11 +196,7 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
                 
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
-
-            
             this.floatingTime++;
-
-            
             if (this.floatingTime > 10) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.4D, 0.0D));
                 this.floatingTime = 0;
@@ -242,8 +205,6 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
             this.floatingTime = 0;
         }
     }
-
-    
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
@@ -255,14 +216,10 @@ public class WalkingVillagerHead extends PathfinderMob implements GeoEntity, IPa
             super.travel(travelVector);
         }
     }
-
-    
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
-
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
