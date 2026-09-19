@@ -1,7 +1,7 @@
 package org.tdddd.epca.impl.client.entity;
 
 import org.tdddd.epca.impl.api.IGeoResources;
-import software.bernie.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.GeoEntity;
 
 /**
  * Marks an entity as auto-renderable via the generic EpcaGeoModel/EpcaGeoRenderer.

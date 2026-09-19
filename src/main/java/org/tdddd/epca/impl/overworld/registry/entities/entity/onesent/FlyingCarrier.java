@@ -20,8 +20,8 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,43 +38,29 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 
 public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite, IOnesent, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_EXPLODING = SynchedEntityData.defineId(FlyingCarrier.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_BOOMING = SynchedEntityData.defineId(FlyingCarrier.class, EntityDataSerializers.BOOLEAN);
-
-    
     private int explosionTimer = 20;
     private BlockPos deathPosition;
-
-    
     private int boomAnimationTimer = 0;          
     private boolean isBoomTriggered = false;     
-
-    
     private int clientBoomTimer = 0;
     private int clientSpawnTimer = 0;
-
-    
     private int gnatSpawnTimer = 0;
-
-    
     private int particleTimer = 0;
-
-    
     private int dodgeCooldown = 0;
     private boolean isDodging = false;
     
@@ -90,7 +76,7 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
         this.xpReward = 15;
         this.moveControl = new FlyingMoveControl(this, 20, true);
 
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             clientSpawnTimer = 15; 
         }
     }
@@ -111,14 +97,12 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
                 .add(Attributes.FLYING_SPEED, 0.35D)
                 .build();
     }
-
-    
     @Override
     protected PathNavigation createNavigation(Level level) {
         FlyingPathNavigation flyingPathNavigation = new FlyingPathNavigation(this, level);
         flyingPathNavigation.setCanOpenDoors(false);
         flyingPathNavigation.setCanFloat(true);
-        flyingPathNavigation.setCanPassDoors(true);
+        flyingPathNavigation.setCanOpenDoors(true);
         return flyingPathNavigation;
     }
 
@@ -137,13 +121,11 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_EXPLODING, false);
-        this.entityData.define(DATA_IS_BOOMING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_EXPLODING, false);
+        entityData.define(DATA_IS_BOOMING, false);
     }
-
-    
     public boolean isExploding() {
         return this.entityData.get(DATA_IS_EXPLODING);
     }
@@ -172,15 +154,13 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             serverLevel.sendParticles(ParticleTypes.EXPLOSION,
                     this.getX(), this.getY() + 0.5, this.getZ(),
                     1, 0.0, 0.0, 0.0, 0.0);
-
-            
             AABB explosionArea = this.getBoundingBox().inflate(4.0);
             for (LivingEntity entity : this.level().getEntitiesOfClass(LivingEntity.class, explosionArea)) {
                 if (entity != null && entity.isAlive() && entity != this && !IParasite.isParasiteByTagOrInterface(entity)) {
                     double distance = this.distanceTo(entity);
                     if (distance <= 4.0) {
                         float damage = 35.0F * (float)(1.0 - distance / 4.0);
-                        entity.hurt(this.damageSources().explosion(this, null), damage);
+                        entity.hurtOrSimulate(this.damageSources().explosion(this, null), damage);
 
                         double dx = entity.getX() - this.getX();
                         double dz = entity.getZ() - this.getZ();
@@ -196,12 +176,10 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
                     }
                 }
             }
-
-            
             int rupterCount = 2 + this.random.nextInt(2);
             for (int i = 0; i < rupterCount; i++) {
                 EntityType<?> rupterType = ModEntities.RIPPER.get();
-                Entity rupter = rupterType.create(this.level());
+                Entity rupter = rupterType.create(this.level(), EntitySpawnReason.MOB_SUMMONED);
                 if (rupter != null) {
                     double offsetX = (this.random.nextDouble() - 0.5) * 2.0;
                     double offsetZ = (this.random.nextDouble() - 0.5) * 2.0;
@@ -213,12 +191,10 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
                     this.level().addFreshEntity(rupter);
                 }
             }
-
-            
             int buglinCount = 1 + this.random.nextInt(2);
             for (int i = 0; i < buglinCount; i++) {
                 EntityType<?> buglinType = ModEntities.CURBUG.get();
-                Entity buglin = buglinType.create(this.level());
+                Entity buglin = buglinType.create(this.level(), EntitySpawnReason.MOB_SUMMONED);
                 if (buglin != null) {
                     double offsetX = (this.random.nextDouble() - 0.5) * 2.0;
                     double offsetZ = (this.random.nextDouble() - 0.5) * 2.0;
@@ -230,12 +206,8 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
                     this.level().addFreshEntity(buglin);
                 }
             }
-
-            
             BlockPos center = this.blockPosition();
             BlockConversionManager manager = BlockConversionManager.getInstance();
-
-            
             for (int dx = -3; dx <= 3; dx++) {
                 for (int dy = -3; dy <= 3; dy++) {
                     for (int dz = -3; dz <= 3; dz++) {
@@ -246,8 +218,6 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
 
                         BlockState state = serverLevel.getBlockState(pos);
                         if (!manager.isExposed(serverLevel, pos)) continue; 
-
-                        
                         if (distSqr <= 4.0) {
                             
                             if (this.random.nextFloat() < 0.8f) {
@@ -266,8 +236,6 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             }
         }
     }
-
-    
     private void startRetreating(LivingEntity target) {
         if (target == null) return;
         isRetreating = true;
@@ -275,15 +243,11 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
         retreatDirection = this.position().subtract(target.position()).normalize();
         this.getNavigation().stop(); 
     }
-
-    
     private void updateRetreatMovement() {
         if (!isRetreating || retreatDirection == Vec3.ZERO) return;
         
         this.setDeltaMovement(retreatDirection.scale(RETREAT_SPEED));
     }
-
-    
     private void stopRetreating() {
         if (isRetreating) {
             isRetreating = false;
@@ -294,10 +258,8 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             }
         }
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.DROWN)) {
             return false;
@@ -313,15 +275,13 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
 
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        return super.hurt(source, adjustedAmount);
+        return super.hurtServer(level, source, adjustedAmount);
     }
-
-    
     @Override
     public void die(DamageSource source) {
         if (this.isOnFire()) {
@@ -330,9 +290,7 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             this.onDeath(source);
             return;
         }
-
-        
-        if (!this.level().isClientSide && !this.isExploding()) {
+        if (!this.level().isClientSide() && !this.isExploding()) {
             triggerExplosionDeath(source);
             this.onDeath(source);
         } else {
@@ -340,30 +298,22 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             this.onDeath(source);
         }
     }
-
-    
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return false;
     }
-
-    
     @Override
-    public boolean causeFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource) {
+    public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource damageSource) {
         return false;
     }
 
     @Override
     public void checkFallDamage(double y, boolean onGround, net.minecraft.world.level.block.state.BlockState state, BlockPos pos) {
     }
-
-    
     @Override
     public void tick() {
         super.tick();
-
-        
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             
             if (this.entityData.get(DATA_IS_BOOMING)) {
                 if (clientBoomTimer <= 0) {
@@ -379,8 +329,6 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             if (clientSpawnTimer > 0) {
                 clientSpawnTimer--;
             }
-
-            
             if (particleTimer <= 0) {
                 particleTimer = 4;
                 int count = 1 + this.random.nextInt(4); 
@@ -394,12 +342,10 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
                 particleTimer--;
             }
         }
-
-        
         if (isExploding()) {
             explosionTimer--;
             if (explosionTimer <= 0) {
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     executeExplosionEffects();
                 }
                 this.discard();
@@ -407,27 +353,21 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             }
             return;
         }
-
-        
         if (boomAnimationTimer > 0) {
             boomAnimationTimer--;
             LivingEntity target = this.getTarget();
-            if (target != null && target.isAlive() && !this.level().isClientSide) {
+            if (target != null && target.isAlive() && !this.level().isClientSide()) {
                 this.getNavigation().moveTo(target, 1.2);
             }
             if (boomAnimationTimer <= 0) {
                 this.entityData.set(DATA_IS_BOOMING, false); 
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     triggerExplosionDeath(null);
                 }
             }
         }
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             LivingEntity target = this.getTarget();
-
-            
             if (target == null || !target.isAlive()) {
                 if (boomAnimationTimer == 0 && !isExploding()) {
                     isBoomTriggered = false;
@@ -435,8 +375,6 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
                 }
                 
             }
-
-            
             if (target != null && target.isAlive() && !isBoomTriggered && boomAnimationTimer == 0) {
                 double distance = this.distanceTo(target);
                 boolean healthLow = this.getHealth() / this.getMaxHealth() < 0.25F;
@@ -448,8 +386,6 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
                     this.getNavigation().moveTo(target, 1.2);
                 }
             }
-
-            
             if (boomAnimationTimer == 0 && !isExploding()) {
                 if (dodgeCooldown <= 0) {
                     dodgeCooldown = 5; 
@@ -497,11 +433,7 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
             if (!isDodging && boomAnimationTimer == 0 && !isExploding()) {
                 if (target != null && target.isAlive()) {
                     double distance = this.distanceTo(target);
-
-                    
                     if (retreatCooldown > 0) retreatCooldown--;
-
-                    
                     if (distance < SAFE_DISTANCE) {
                         if (retreatCooldown <= 0) {
                             startRetreating(target);
@@ -519,20 +451,16 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
                         if (isRetreating && distance >= SAFE_DISTANCE + 3.0) {
                             stopRetreating();
                         }
-
-                        
                         if (!isRetreating) {
                             if (distance > 10.0) {
                                 
                                 Vec3 targetPos = new Vec3(this.getX(), target.getY() + 5.0, this.getZ());
                                 this.getNavigation().moveTo(targetPos.x, targetPos.y, targetPos.z, 1.0);
-
-                                
                                 if (gnatSpawnTimer <= 0) {
                                     int gnatCount = 1 + this.random.nextInt(2);
                                     for (int i = 0; i < gnatCount; i++) {
                                         EntityType<?> gnatType = ModEntities.MOZZIE.get();
-                                        Entity gnat = gnatType.create(this.level());
+                                        Entity gnat = gnatType.create(this.level(), EntitySpawnReason.MOB_SUMMONED);
                                         if (gnat != null) {
                                             gnat.setPos(this.getX(), this.getY(), this.getZ());
                                             this.level().addFreshEntity(gnat);
@@ -565,16 +493,14 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
     protected SoundEvent getHurtSound(DamageSource damageSource) {
         return ModSoundEvents.RIPPER_HUNT.get();
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<FlyingCarrier>(this, "controller", 4, this::predicate));
+        controllers.add(new AnimationController<FlyingCarrier>("controller", 4, this::predicate));
     }
 
-    private PlayState predicate(AnimationState<FlyingCarrier> event) {
-        AnimationController<FlyingCarrier> controller = event.getController();
-        FlyingCarrier entity = event.getAnimatable();
+    private PlayState predicate(AnimationTest<FlyingCarrier> event) {
+        AnimationController<FlyingCarrier> controller = event.controller();
+        FlyingCarrier entity = event.animatable();
 
         if (entity.isExploding()) {
             controller.setAnimation(RawAnimation.begin().thenLoop("boom"));
@@ -592,19 +518,14 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.factory;
     }
-
-    
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -614,23 +535,27 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
         return super.canRide(entity);
     }
 
+        // 26.1.2: Mob#shouldDespawnInPeaceful() was removed. Peaceful-mode removal is expressed by
+    // handling it in checkDespawn(), which is where vanilla consults the difficulty.
     @Override
-    protected boolean shouldDespawnInPeaceful() {
-        return true;
+    public void checkDespawn() {
+        if (this.level().getLevelData().getDifficulty() == net.minecraft.world.Difficulty.PEACEFUL) {
+            this.discard();
+            return;
+        }
+        super.checkDespawn();
     }
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             IParasite.super.onKillEntity(killedEntity);
         }
     }
-
-    
     public static boolean checkFlyingCarrierSpawnRules(
             EntityType<FlyingCarrier> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {

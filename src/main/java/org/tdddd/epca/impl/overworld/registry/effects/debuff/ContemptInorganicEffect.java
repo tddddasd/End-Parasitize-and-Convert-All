@@ -1,11 +1,13 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -13,7 +15,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.ModConfig;
 import org.tdddd.epca.impl.overworld.data.EntityConversionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
@@ -39,41 +42,49 @@ public class ContemptInorganicEffect extends MobEffect {
         super(MobEffectCategory.BENEFICIAL, 0x6B3E2A);
     }
 
+    // 26.1.2: LivingEntity#getEffect/addEffect and MobEffectInstance(Holder<MobEffect>, ...) take a Holder.
+    // Resolving this instance through the registry yields the canonical holder it was registered with.
+    private Holder<MobEffect> holder() {
+        return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(this);
+    }
+
+    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
+    // 1.20.1 returned true unconditionally and the body below enforces its own cadence.
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
         return true;
     }
 
+    // 26.1.2: applyEffectTick(LivingEntity,int) -> applyEffectTick(ServerLevel,LivingEntity,int):boolean.
+    // The body is unchanged; the isClientSide() early-out is now implied by the ServerLevel parameter.
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
-        if (entity.level().isClientSide) return;
-        ServerLevel serverLevel = (ServerLevel) entity.level();
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         long gameTime = serverLevel.getGameTime();
 
-        MobEffectInstance currentEffect = entity.getEffect(this);
-        if (currentEffect == null) return;
+        MobEffectInstance currentEffect = entity.getEffect(holder());
+        if (currentEffect == null) return true;
         int duration = currentEffect.getDuration();
 
         
         if (duration <= 1 && !(entity instanceof Player)) {
-            entity.addEffect(new MobEffectInstance(this, BASE_DURATION, 0, false, false, true));
-            return;
+            entity.addEffect(new MobEffectInstance(holder(), BASE_DURATION, 0, false, false, true));
+            return true;
         }
 
         
-        long lastCothTime = entity.getPersistentData().getLong(TAG_LAST_COTH_TIME);
+        long lastCothTime = entity.getPersistentData().getLong(TAG_LAST_COTH_TIME).orElse(0L);
         if (lastCothTime == 0) {
             lastCothTime = gameTime - COTH_INTERVAL;
             entity.getPersistentData().putLong(TAG_LAST_COTH_TIME, lastCothTime);
         }
         if (gameTime - lastCothTime >= COTH_INTERVAL) {
-            entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), COTH_DURATION, COTH_LEVEL_III, false, false, true));
+            entity.addEffect(new MobEffectInstance(ModEffects.COTH, COTH_DURATION, COTH_LEVEL_III, false, false, true));
             entity.getPersistentData().putLong(TAG_LAST_COTH_TIME, gameTime);
         }
 
         
         if (entity instanceof Player player) {
-            long nextSoundTime = entity.getPersistentData().getLong(TAG_NEXT_SOUND_TIME);
+            long nextSoundTime = entity.getPersistentData().getLong(TAG_NEXT_SOUND_TIME).orElse(0L);
             if (nextSoundTime == 0) {
                 int initialDelay = ThreadLocalRandom.current().nextInt(MIN_SOUND_INTERVAL, MAX_SOUND_INTERVAL + 1);
                 nextSoundTime = gameTime + initialDelay;
@@ -88,13 +99,23 @@ public class ContemptInorganicEffect extends MobEffect {
         }
 
         
-        if (!entity.getPersistentData().getBoolean(TAG_CONVERTED_BY_CONTEMPT)) {
-            MobEffectInstance coth = entity.getEffect(ModEffects.COTH.get());
+        if (!entity.getPersistentData().getBoolean(TAG_CONVERTED_BY_CONTEMPT).orElse(false)) {
+            MobEffectInstance coth = entity.getEffect(ModEffects.COTH);
             if (coth != null && entity.getHealth() <= entity.getMaxHealth() * 0.5f) {
                 
                 tryPerformConversion(entity);
             }
         }
+        return true;
+    }
+
+    // 26.1.2: Entity#saveWithoutId now writes into a ValueOutput. EntityConversionManager still matches
+    // its datapack rules against a CompoundTag, so the entity is serialised through TagValueOutput with
+    // the entity's registry context -- the same field set (including "Age") that 1.20.1 produced.
+    private static CompoundTag saveEntityTag(LivingEntity entity) {
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, entity.registryAccess());
+        entity.saveWithoutId(output);
+        return output.buildResult();
     }
 
     
@@ -107,18 +128,18 @@ public class ContemptInorganicEffect extends MobEffect {
             return;
         }
 
-        CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
+        CompoundTag nbt = saveEntityTag(entity);
         EntityType<?> entityType = entity.getType();
         EntityConversionManager.EntityConversionRule rule = EntityConversionManager.getConversionRule(entityType, nbt);
 
         if (rule != null && rule.mozzie_to != null && !rule.mozzie_to.isEmpty()) {
             String targetEntityId = rule.mozzie_to;
-            ResourceLocation targetLocation = new ResourceLocation(targetEntityId);
-            EntityType<?> targetType = ForgeRegistries.ENTITY_TYPES.getValue(targetLocation);
+            Identifier targetLocation = Identifier.parse(targetEntityId);
+            EntityType<?> targetType = BuiltInRegistries.ENTITY_TYPE.getValue(targetLocation);
 
             if (targetType != null && entity.level() instanceof ServerLevel serverLevel) {
                 try {
-                    Entity newEntity = targetType.create(serverLevel);
+                    Entity newEntity = targetType.create(serverLevel, net.minecraft.world.entity.EntitySpawnReason.CONVERSION);
                     if (newEntity != null) {
                         
                         newEntity.setPos(entity.getX(), entity.getY(), entity.getZ());

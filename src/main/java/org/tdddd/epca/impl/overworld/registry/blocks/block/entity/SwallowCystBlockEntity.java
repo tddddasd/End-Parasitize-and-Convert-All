@@ -20,11 +20,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
@@ -33,14 +30,14 @@ import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystMenu;
-import software.bernie.geckolib.animatable.GeoBlockEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoBlockEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider, GeoBlockEntity {
     private final ItemStackHandler inventory = new ItemStackHandler(27) {
@@ -53,8 +50,6 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
             }
         }
     };
-    private LazyOptional<IItemHandler> handler = LazyOptional.of(() -> inventory);
-
     private int emptyTicks = 0;          
     private int absorbCooldown = 0;      
     private int damageCooldown = 0;       
@@ -67,12 +62,10 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
     }
 
     public void tick(Level level, BlockPos pos, BlockState state) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
         ServerLevel serverLevel = (ServerLevel) level;
 
         boolean isLiving = state.getValue(SwallowCyst.LIVING);
-
-        
         if (isLiving) {
             
             if (consumeCooldown <= 0) {
@@ -81,14 +74,8 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
             } else {
                 consumeCooldown--;
             }
-
-            
             absorbItems(serverLevel, pos);
-
-            
             damageEntitiesOnTop(serverLevel, pos);
-
-            
             if (isInventoryEmpty()) {
                 emptyTicks++;
                 if (emptyTicks >= 600) {
@@ -124,8 +111,6 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
             return;
         }
         absorbCooldown = 8; 
-
-        
         AABB area = new AABB(pos.getX(), pos.getY() + 0.5, pos.getZ(),
                 pos.getX() + 1, pos.getY() + 2, pos.getZ() + 1);
         for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, area)) {
@@ -151,7 +136,7 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
                 inventory.setStackInSlot(i, stack.split(limit));
                 setChanged();
                 return stack;
-            } else if (ItemStack.isSameItemSameTags(slotStack, stack)) {
+            } else if (ItemStack.isSameItemSameComponents(slotStack, stack)) {
                 int space = inventory.getSlotLimit(i) - slotStack.getCount();
                 if (space > 0) {
                     int move = Math.min(stack.getCount(), space);
@@ -176,9 +161,9 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
                 pos.getX() + 1, pos.getY() + 2, pos.getZ() + 1);
         for (Entity entity : level.getEntitiesOfClass(Entity.class, area)) {
             if (entity instanceof LivingEntity living && !IParasite.isParasiteByTagOrInterface(living)) {
-                if (level.random.nextFloat() < 0.05f) { 
-                    living.hurt(living.damageSources().generic(), 1.0f);
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 300, 0));
+                if (level.getRandom().nextFloat() < 0.05f) { 
+                    living.hurtOrSimulate(living.damageSources().generic(), 1.0f);
+                    living.addEffect(new MobEffectInstance(ModEffects.COTH, 300, 0));
                     level.playSound(null, pos, SoundEvents.PLAYER_HURT, SoundSource.HOSTILE, 0.5f, 1.0f);
                 }
             }
@@ -197,23 +182,16 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
         }
         return true;
     }
-
-    
     public void onPlayerTake(Player player, ItemStack takenStack) {
         BlockState state = level.getBlockState(worldPosition);
         boolean isLiving = state.getValue(SwallowCyst.LIVING);
         if (!isLiving) return;
-        
-        
-        
-        if (level.random.nextFloat() < 0.1f) {
-            player.hurt(player.damageSources().generic(), 1.0f);
-            player.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 300, 0));
+        if (level.getRandom().nextFloat() < 0.1f) {
+            player.hurtOrSimulate(player.damageSources().generic(), 1.0f);
+            player.addEffect(new MobEffectInstance(ModEffects.COTH, 300, 0));
             level.playSound(null, worldPosition, SoundEvents.PLAYER_HURT, SoundSource.PLAYERS, 0.5f, 1.0f);
         }
     }
-
-    
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.epca.swallow_cyst");
@@ -225,49 +203,40 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
         return new SwallowCystMenu(id, inv, this);
     }
 
-    
+    // ═══════════════════════════════════════════════════════════════
+    //  Persistence
+    //
+    //  26.1.2: BlockEntity#saveAdditional/loadAdditional speak ValueOutput/ValueInput
+    //  (the Forge capability API — LazyOptional / Capability / ForgeCapabilities /
+    //  invalidateCaps — no longer exists at all). ItemStackHandler is ValueIOSerializable,
+    //  so it is written through a child view; the keys are unchanged.
+    // ═══════════════════════════════════════════════════════════════
+
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return handler.cast();
-        }
-        return super.getCapability(cap, side);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {
+        super.saveAdditional(output);
+        inventory.serialize(output.child("Inventory"));
+        output.putInt("EmptyTicks", emptyTicks);
+        output.putInt("AbsorbCooldown", absorbCooldown);
+        output.putInt("DamageCooldown", damageCooldown);
+        output.putInt("ConsumeCooldown", consumeCooldown);
     }
 
     @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        handler.invalidate();
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+        super.loadAdditional(input);
+        inventory.deserialize(input.childOrEmpty("Inventory"));
+        emptyTicks = input.getIntOr("EmptyTicks", 0);
+        absorbCooldown = input.getIntOr("AbsorbCooldown", 0);
+        damageCooldown = input.getIntOr("DamageCooldown", 0);
+        consumeCooldown = input.getIntOr("ConsumeCooldown", 0);
     }
-
-    
-    @Override
-    public void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put("Inventory", inventory.serializeNBT());
-        tag.putInt("EmptyTicks", emptyTicks);
-        tag.putInt("AbsorbCooldown", absorbCooldown);
-        tag.putInt("DamageCooldown", damageCooldown);
-        tag.putInt("ConsumeCooldown", consumeCooldown);
-    }
-
-    @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        inventory.deserializeNBT(tag.getCompound("Inventory"));
-        emptyTicks = tag.getInt("EmptyTicks");
-        absorbCooldown = tag.getInt("AbsorbCooldown");
-        damageCooldown = tag.getInt("DamageCooldown");
-        consumeCooldown = tag.getInt("ConsumeCooldown");
-    }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 3, this::predicate));
+        controllers.add(new AnimationController<>("controller", 3, this::predicate));
     }
 
-    private PlayState predicate(AnimationState<SwallowCystBlockEntity> state) {
+    private PlayState predicate(AnimationTest<SwallowCystBlockEntity> state) {
         boolean living = getBlockState().getValue(SwallowCyst.LIVING);
         if (living) {
             state.setAnimation(RawAnimation.begin().thenLoop("idle"));

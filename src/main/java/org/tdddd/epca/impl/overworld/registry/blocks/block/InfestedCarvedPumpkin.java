@@ -27,6 +27,7 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedPumpkinHead;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
+import net.minecraft.server.level.ServerLevel;
 
 public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements InfestedBlockInterface {
 
@@ -43,6 +44,12 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING);
         builder.add(NATURAL_SPAWN);
+
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends HorizontalDirectionalBlock> codec() {
+        return simpleCodec(InfestedCarvedPumpkin::new);
     }
 
     @Override
@@ -79,9 +86,14 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
-        if (!level.isClientSide && !state.is(newState.getBlock())) {
-            InfestedPumpkinHead entity = ModEntities.INFESTED_PUMPKIN_HEAD.get().create(level);
+    /**
+     * 26.1.2: {@code onRemove(state, level, pos, newState, moved)} was replaced by
+     * {@code affectNeighborsAfterRemoval(BlockState,ServerLevel,BlockPos,boolean)}, which drops the
+     * incoming state; "was this really replaced?" is read back from the level.
+     */
+    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
+if (!level.getBlockState(pos).is(state.getBlock())) {
+InfestedPumpkinHead entity = ModEntities.INFESTED_PUMPKIN_HEAD.get().create(level, net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
             if (entity != null) {
                 entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
 
@@ -94,7 +106,7 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
             level.updateNeighborsAt(pos, Blocks.AIR);
             level.updateNeighbourForOutputSignal(pos, Blocks.AIR);
         }
-        super.onRemove(state, level, pos, newState, moved);
+        super.affectNeighborsAfterRemoval(state, level, pos, moved);
     }
 
     @Override

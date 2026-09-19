@@ -4,33 +4,40 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 
 public class InfestedSweetBerries extends Item {
     public InfestedSweetBerries(Properties properties) {
-        super(properties.food(createFoodProperties()));
+        super(properties.food(createFoodProperties(), createConsumable()));
     }
 
     private static FoodProperties createFoodProperties() {
 
         return new FoodProperties.Builder()
                 .nutrition(2)
-                .saturationMod(0.4F)
-                .effect(() -> new MobEffectInstance(
-                        ModEffects.COTH.get(),
+                .saturationModifier(0.4F)
+                .build();
+    }
+
+    private static Consumable createConsumable() {
+        return Consumable.builder()
+                .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
+                        ModEffects.COTH,
                         10 * 20,
                         0
-                ), 1.0F)
-                .effect(() -> new MobEffectInstance(
+                ), 1.0F))
+                .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
                         MobEffects.HUNGER,
                         10 * 20,
                         0
-                ), 1.0F)
-                .effect(() -> new MobEffectInstance(
-                        MobEffects.CONFUSION,
+                ), 1.0F))
+                .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
+                        MobEffects.NAUSEA, // 26.1.2 rename of CONFUSION
                         10 * 20,
                         0
-                ), 1.0F)
+                ), 1.0F))
                 .build();
     }
 }

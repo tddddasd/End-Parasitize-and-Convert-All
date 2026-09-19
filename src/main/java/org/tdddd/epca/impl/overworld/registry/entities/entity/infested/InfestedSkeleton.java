@@ -5,7 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -31,11 +31,11 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.BoneArrow;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractInfestedEntity;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 
 public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAttackMob {
 
@@ -68,7 +68,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
     private int retreatCooldown = 0;
     private static final int RETREAT_COOLDOWN = 5;
 
-    private static final ThreadLocal<MobSpawnType> SPAWN_TYPE = new ThreadLocal<>();
+    private static final ThreadLocal<EntitySpawnReason> SPAWN_TYPE = new ThreadLocal<>();
 
     // ────────── Constructor ──────────
 
@@ -78,11 +78,11 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         this.baseSpeed = 0.21D;
         this.chaseSpeed = 0.29D;
 
-        if (!level.isClientSide) {
-            MobSpawnType spawnType = SPAWN_TYPE.get();
+        if (!level.isClientSide()) {
+            EntitySpawnReason spawnType = SPAWN_TYPE.get();
             SPAWN_TYPE.remove();
             int stage = EvolutionManager.getStageForDimension((ServerLevel) level);
-            boolean allowFireVariant = (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION)
+            boolean allowFireVariant = (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION)
                     ? (stage >= 4) : true;
             if (allowFireVariant && this.random.nextFloat() < 0.3f) {
                 this.setVariant(Variant.FIRED);
@@ -104,24 +104,24 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
 
     public void setVariant(Variant variant) { this.entityData.set(DATA_VARIANT, variant.ordinal()); }
 
-    public ResourceLocation getTextureResource() {
+    public Identifier getTextureResource() {
         return switch (getVariant()) {
-            case FIRED -> new ResourceLocation("epca", "textures/entity/infested_skeleton_fired.png");
-            default -> new ResourceLocation("epca", "textures/entity/infested_skeleton.png");
+            case FIRED -> Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_skeleton_fired.png");
+            default -> Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_skeleton.png");
         };
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putString("Variant", this.getVariant().name());
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("Variant", 8)) {
-            try { this.setVariant(Variant.valueOf(tag.getString("Variant"))); }
+        if (tag.getString("Variant").isPresent()) {
+            try { this.setVariant(Variant.valueOf(tag.getStringOr("Variant", ""))); }
             catch (IllegalArgumentException e) { this.setVariant(Variant.DEFAULT); }
         }
     }
@@ -129,14 +129,14 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
     // ────────── Synched data ──────────
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_POSE_ANIM, "none");
-        this.entityData.define(DATA_SHOOT_ANIM, false);
-        this.entityData.define(DATA_SHOOT_ANIM_TIMER, 0);
-        this.entityData.define(DATA_TARGET_PITCH, 0.0F);
-        this.entityData.define(DATA_SHOOT_THETA, 0.0F);
-        this.entityData.define(DATA_VARIANT, Variant.DEFAULT.ordinal());
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_POSE_ANIM, "none");
+        entityData.define(DATA_SHOOT_ANIM, false);
+        entityData.define(DATA_SHOOT_ANIM_TIMER, 0);
+        entityData.define(DATA_TARGET_PITCH, 0.0F);
+        entityData.define(DATA_SHOOT_THETA, 0.0F);
+        entityData.define(DATA_VARIANT, Variant.DEFAULT.ordinal());
     }
 
     public String getPoseAnim() { return this.entityData.get(DATA_POSE_ANIM); }
@@ -223,7 +223,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
 
         if (isFakingDeath()) return;
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (getShootAnimationTimer() > 0) setShootAnimationTimer(getShootAnimationTimer() - 1);
             this.entityData.set(DATA_TARGET_PITCH, getTargetPitchDeg());
 
@@ -293,8 +293,8 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
 
     @Override
     protected void onNormalDeathActions(DamageSource source) {
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
-            WalkingSkeletonHead head = ModEntities.WALKING_SKELETON_HEAD.get().create(serverLevel);
+        if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
+            WalkingSkeletonHead head = ModEntities.WALKING_SKELETON_HEAD.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
             if (head != null) {
                 head.setPos(this.getX(), this.getY(), this.getZ());
                 head.setYRot(this.random.nextFloat() * 360.0F);
@@ -325,18 +325,18 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "main", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("main", 4, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<InfestedSkeleton> event) {
+    private PlayState animationPredicate(AnimationTest<InfestedSkeleton> event) {
         if (this.isFakingDeath())
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("dead"));
+            event.setAnimation(RawAnimation.begin().thenLoop("dead"));
         else if (this.isRunning())
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("run"));
+            event.setAnimation(RawAnimation.begin().thenLoop("run"));
         else if (this.isWalking())
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+            event.setAnimation(RawAnimation.begin().thenLoop("walk"));
         else
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         return PlayState.CONTINUE;
     }
 
@@ -344,8 +344,8 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
 
     public static boolean checkInfestedSkeletonSpawnRules(
             EntityType<InfestedSkeleton> entityType, ServerLevelAccessor level,
-            MobSpawnType spawnType, BlockPos pos, RandomSource random) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+            EntitySpawnReason spawnType, BlockPos pos, RandomSource random) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 2 || stage > 5) return false;
         }

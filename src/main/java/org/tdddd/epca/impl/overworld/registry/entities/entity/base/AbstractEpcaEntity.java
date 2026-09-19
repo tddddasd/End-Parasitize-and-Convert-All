@@ -4,7 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
@@ -13,8 +14,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.IAutoRenderableEntity;
@@ -23,12 +24,12 @@ import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.utils.entity.EntityBreakUtils;
 import org.tdddd.epca.impl.utils.entity.EntityMovementUtils;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
 
@@ -50,7 +51,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
         implements IAutoRenderableEntity, IParasite, Enemy, IHeadRotatable {
 
     // ────────── Geo resources ──────────
-    public ResourceLocation model, texture, animation;
+    public Identifier model, texture, animation;
     protected static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     protected static final RawAnimation ANIM_WALK = RawAnimation.begin().thenLoop("walk");
     protected static final RawAnimation ANIM_RUN  = RawAnimation.begin().thenLoop("run");
@@ -98,7 +99,9 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
         super(entityType, level);
         EpcaEntityManager.track(this);
         this.ambientSoundTime = this.random.nextInt(minAmbientSoundDelay, maxAmbientSoundDelay);
-        this.setMaxUpStep(0.5F);
+        // 26.1.2: Entity#setMaxUpStep was replaced by the STEP_HEIGHT attribute.
+        var stepHeight = this.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) stepHeight.setBaseValue(0.5F);
     }
 
     /**
@@ -112,9 +115,9 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
 
     // ────────── IGeoResources ──────────
 
-    @Override public ResourceLocation model()     { return this.model; }
-    @Override public ResourceLocation texture()   { return this.texture; }
-    @Override public ResourceLocation animation() { return this.animation; }
+    @Override public Identifier model()     { return this.model; }
+    @Override public Identifier texture()   { return this.texture; }
+    @Override public Identifier animation() { return this.animation; }
 
     // ────────── GeoEntity ──────────
 
@@ -125,7 +128,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar registrar) {
-        registrar.add(new AnimationController<>(this, "controller", 3, state -> {
+        registrar.add(new AnimationController<>("controller", 3, state -> {
             if (isFakingDeath()) return PlayState.STOP;
             if (!state.isMoving()) return state.setAndContinue(ANIM_IDLE);
             if (isRunning()) return state.setAndContinue(ANIM_RUN);
@@ -137,12 +140,12 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
     // ────────── Data sync ──────────
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_RUNNING, false);
-        this.entityData.define(DATA_IS_WALKING, false);
-        this.entityData.define(DATA_IS_FAKING_DEATH, false);
-        this.entityData.define(DATA_IS_INVULNERABLE, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_RUNNING, false);
+        entityData.define(DATA_IS_WALKING, false);
+        entityData.define(DATA_IS_FAKING_DEATH, false);
+        entityData.define(DATA_IS_INVULNERABLE, false);
     }
 
     // ────────── State accessors ──────────
@@ -185,7 +188,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
     public void tick() {
         super.tick();
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             // Update movement animation state
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
             boolean hasTarget = this.getTarget() != null;
@@ -209,7 +212,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
 
         // Fake death timer
         if (isFakingDeath()) {
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 fakeDeathTimer--;
                 if (fakeDeathTimer <= 0) {
                     onFakeDeathEnd();
@@ -244,7 +247,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
 
     protected void onFakeDeathEnd() {
         setFakingDeath(false);
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             onFakeDeathBurst();
         }
         this.discard();
@@ -263,20 +266,21 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
 
     // ────────── Hurt / Die ──────────
 
+    // ═══════════════════════════════════════════════════════════════
+    //  26.1.2: Entity#hurt(DamageSource,float) is final and forwards here.
+    // ═══════════════════════════════════════════════════════════════
+
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (isFakingDeath()) return false;
 
         if (source.getEntity() instanceof LivingEntity attacker) {
             if (shouldIgnoreDamageFrom(attacker)) return false;
-        }
-
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
 
         float adjustedAmount = onHurt(source, amount);
-        return super.hurt(source, adjustedAmount);
+        return super.hurtServer(level, source, adjustedAmount);
     }
 
     @Override
@@ -285,7 +289,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
             super.die(source);
             return;
         }
-        if (!this.level().isClientSide && tryFakeDeath()) {
+        if (!this.level().isClientSide() && tryFakeDeath()) {
             this.onDeath(source);
             return;
         }
@@ -301,9 +305,9 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
     // ────────── Boat/Minecart prevention ──────────
 
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         if (vehicle instanceof Boat || vehicle instanceof Minecart) return false;
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
 
     @Override
@@ -324,7 +328,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
     }
 
     @Override
-    protected boolean isAffectedByFluids() { return true; }
+    public boolean isAffectedByFluids() { return true; }
 
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) { return false; }
@@ -348,7 +352,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
      * Plays the given sound when on ground and moving, with a cooldown.
      */
     protected void tickStepSounds(SoundEvent stepSound, int minDelay, int maxDelay, float volume) {
-        if (!this.level().isClientSide && this.onGround() && isMoving()) {
+        if (!this.level().isClientSide() && this.onGround() && isMoving()) {
             if (this.stepSoundDelay <= 0) {
                 this.playSound(stepSound, volume, 1.0F);
                 this.stepSoundDelay = minDelay + this.random.nextInt(maxDelay - minDelay + 1);

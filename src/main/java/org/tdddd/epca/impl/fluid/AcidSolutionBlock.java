@@ -17,8 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.network.ModNetwork;
@@ -30,15 +29,20 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class AcidSolutionBlock extends LiquidBlock {
+    /**
+     * 26.1.2：{@code LiquidBlock} 的构造器由 {@code (Supplier<? extends FlowingFluid>, Properties)}
+     * 变为 {@code (FlowingFluid, Properties)}，且 {@code simpleCodec(LiquidBlock::new)} 也要求
+     * 直接传流体实例。这里保留 {@code Supplier} 参数的类形状，在构造器里立即取值。
+     */
     public AcidSolutionBlock(Supplier<? extends FlowingFluid> fluid, Properties properties) {
-        super(fluid, properties);
+        super(fluid.get(), properties);
     }
 
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
 
-        if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+        if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
             
             List<BlockPos> affectedWaters = findWaterInRange(level, pos, 8);
 
@@ -52,19 +56,16 @@ public class AcidSolutionBlock extends LiquidBlock {
                         waterPos, pos, distance, true
                 );
 
-                ModNetwork.INSTANCE.send(
-                        PacketDistributor.ALL.noArg(),
-                        packet
-                );
+                ModNetwork.sendToAll(packet);
             }
         }
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        super.onRemove(state, level, pos, newState, isMoving);
+    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean isMoving) {
+        super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
 
-        if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+        if (!level.isClientSide()) {
             
             List<BlockPos> affectedWaters = findWaterInRange(level, pos, 8);
 
@@ -74,10 +75,7 @@ public class AcidSolutionBlock extends LiquidBlock {
                         waterPos, pos, 0, false
                 );
 
-                ModNetwork.INSTANCE.send(
-                        PacketDistributor.ALL.noArg(),
-                        packet
-                );
+                ModNetwork.sendToAll(packet);
             }
         }
     }
@@ -105,12 +103,18 @@ public class AcidSolutionBlock extends LiquidBlock {
         return result;
     }
 
+    /**
+     * 26.1.2：{@code Block#entityInside(state, level, pos, entity)} 增加了
+     * {@code InsideBlockEffectApplier} 与 {@code boolean isPrecise} 两个参数。
+     * 本模组不使用 effect applier，只是把原逻辑（非寄生生物 + 非创造/旁观者时施加酸液效果）原样保留。
+     */
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        super.entityInside(state, level, pos, entity);
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                                net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+        super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
 
         
-        if (!level.isClientSide && entity instanceof LivingEntity livingEntity) {
+        if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
             if (!IParasite.isParasiteByTagOrInterface(livingEntity)
                     && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity)) {
                 applyAcidSolutionEffects(livingEntity);
@@ -124,7 +128,7 @@ public class AcidSolutionBlock extends LiquidBlock {
         if (level.getGameTime() % 5 == 0) {
             
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     1200, 
                     1,    
                     false,
@@ -133,7 +137,7 @@ public class AcidSolutionBlock extends LiquidBlock {
 
             
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.CORROSIVE.get(),
+                    ModEffects.CORROSIVE,
                     300, 
                     0,   
                     false,
@@ -143,8 +147,8 @@ public class AcidSolutionBlock extends LiquidBlock {
             
             entity.hurt(entity.damageSources().magic(), 1.0F);
 
-            Registry<DamageType> registry = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-            Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
+            Registry<DamageType> registry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+            Holder<DamageType> holder = registry.getOrThrow(ModDamageTypes.MINIMUM);
             DamageSource minimumSource = new DamageSource(holder);
             entity.hurt(minimumSource, 0.25F);
         }

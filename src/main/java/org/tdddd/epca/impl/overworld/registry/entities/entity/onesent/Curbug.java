@@ -29,11 +29,11 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractOnesentEntity;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -54,7 +54,7 @@ public class Curbug extends AbstractOnesentEntity {
     public Curbug(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 2;
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             this.growTimer = this.random.nextInt(1200) + 1200;
         }
         this.navigation = new GroundPathNavigation(this, level);
@@ -116,7 +116,7 @@ public class Curbug extends AbstractOnesentEntity {
             }
         }
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             handleEntityContact();
 
             if (this.isAlive()) {
@@ -190,9 +190,9 @@ public class Curbug extends AbstractOnesentEntity {
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-        boolean result = super.hurt(source, amount);
-        if (result && !this.level().isClientSide && this.isHiding) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+        boolean result = super.hurtServer(level, source, amount);
+        if (result && !this.level().isClientSide() && this.isHiding) {
             this.isHiding = false;
             this.hideTimer = 0;
             this.hidingPos = null;
@@ -221,16 +221,16 @@ public class Curbug extends AbstractOnesentEntity {
     }
 
     private void applyCothEffect(LivingEntity target) {
-        MobEffectInstance current = target.getEffect(ModEffects.COTH.get());
+        MobEffectInstance current = target.getEffect(ModEffects.COTH);
         int newAmplifier = current != null ? Math.min(current.getAmplifier() + 1, 2) : 0;
-        target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 400, newAmplifier, false, true, true));
+        target.addEffect(new MobEffectInstance(ModEffects.COTH, 400, newAmplifier, false, true, true));
     }
 
     private void growIntoFins() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
-        Fins fins = ModEntities.FINS.get().create(serverLevel);
+        Fins fins = ModEntities.FINS.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
         if (fins != null) {
-            fins.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+            fins.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
             serverLevel.addFreshEntity(fins);
             serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
@@ -241,9 +241,9 @@ public class Curbug extends AbstractOnesentEntity {
 
     private void growIntoRupter() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
-        Ripper rupter = ModEntities.RIPPER.get().create(serverLevel);
+        Ripper rupter = ModEntities.RIPPER.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
         if (rupter != null) {
-            rupter.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+            rupter.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
             serverLevel.addFreshEntity(rupter);
             serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
@@ -260,36 +260,36 @@ public class Curbug extends AbstractOnesentEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 3, this::predicate));
-        controllers.add(new AnimationController<>(this, "spawn_controller", 3, this::spawnPredicate));
+        controllers.add(new AnimationController<>("controller", 3, this::predicate));
+        controllers.add(new AnimationController<>("spawn_controller", 3, this::spawnPredicate));
     }
 
-    private PlayState spawnPredicate(AnimationState<Curbug> event) {
+    private PlayState spawnPredicate(AnimationTest<Curbug> event) {
         if (this.spawnAnimationTimer > 0) {
-            event.getController().setAnimation(RawAnimation.begin().thenPlay("spawn"));
+            event.setAnimation(RawAnimation.begin().thenPlay("spawn"));
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;
     }
 
-    private PlayState predicate(AnimationState<Curbug> event) {
+    private PlayState predicate(AnimationTest<Curbug> event) {
         if (this.spawnAnimationTimer > 0) return PlayState.STOP;
-        event.getController().setAnimation(RawAnimation.begin().thenLoop(isMoving() ? "walk" : "idle"));
+        event.setAnimation(RawAnimation.begin().thenLoop(isMoving() ? "walk" : "idle"));
         return PlayState.CONTINUE;
     }
 
     public static boolean checkBuglinSpawnRules(
             EntityType<Curbug> entityType, ServerLevelAccessor levelAccessor,
-            MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+            EntitySpawnReason spawnType, BlockPos pos, RandomSource random) {
         int blockLight = levelAccessor.getBrightness(LightLayer.BLOCK, pos);
         int skyLight = levelAccessor.getBrightness(LightLayer.SKY, pos);
-        long dayTime = levelAccessor.getLevelData().getDayTime() % 24000;
+        long dayTime = levelAccessor.getLevel().getOverworldClockTime() % 24000;
         boolean isNight = dayTime >= 13000 && dayTime <= 23000;
 
         if (isNight) { if (blockLight > 8) return false; }
         else { if (skyLight > 8 || blockLight > 8) return false; }
 
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
             if (stage < 0 || stage > 2) return false;
         }
@@ -368,7 +368,7 @@ public class Curbug extends AbstractOnesentEntity {
             }
             if (state.is(BlockTags.FLOWERS)
                     || state.is(BlockTags.SMALL_FLOWERS)
-                    || state.is(BlockTags.TALL_FLOWERS)) {
+                    || state.is(BlockTags.FLOWERS)) {
                 return true;
             }
             return !state.isSolid();

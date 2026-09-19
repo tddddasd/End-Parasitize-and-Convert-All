@@ -2,7 +2,7 @@ package org.tdddd.epca.impl.fluid;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -11,11 +11,11 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 
 import java.util.function.Supplier;
 
-public abstract class AcidSolutionFluid extends ForgeFlowingFluid {
+public abstract class AcidSolutionFluid extends BaseFlowingFluid {
     protected AcidSolutionFluid(Properties properties) {
         super(properties);
     }
@@ -27,7 +27,7 @@ public abstract class AcidSolutionFluid extends ForgeFlowingFluid {
     }
 
     @Override
-    protected boolean canConvertToSource(Level level) {
+    protected boolean canConvertToSource(ServerLevel level) {
         return false;
     }
 

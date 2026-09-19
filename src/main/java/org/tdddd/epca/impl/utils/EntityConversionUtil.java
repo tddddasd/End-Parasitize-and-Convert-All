@@ -4,6 +4,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -11,7 +12,7 @@ import net.minecraft.world.entity.player.Player;
 public class EntityConversionUtil {
     public static void convertTo(LivingEntity entity, EntityType<? extends LivingEntity> targetType) {
         
-        if (entity.level().isClientSide) return;
+        if (entity.level().isClientSide()) return;
 
         
         entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
@@ -31,7 +32,7 @@ public class EntityConversionUtil {
         }
 
         
-        LivingEntity newEntity = targetType.create(entity.level());
+        LivingEntity newEntity = targetType.create(entity.level(), EntitySpawnReason.CONVERSION);
         if (newEntity != null) {
             
             newEntity.copyPosition(entity);
@@ -45,7 +46,7 @@ public class EntityConversionUtil {
             }
 
             
-            newEntity.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
+            newEntity.snapTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
 
             
             entity.level().addFreshEntity(newEntity);

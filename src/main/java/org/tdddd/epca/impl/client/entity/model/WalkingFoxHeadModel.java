@@ -1,24 +1,30 @@
 package org.tdddd.epca.impl.client.entity.model;
 
-import net.minecraft.resources.ResourceLocation;
+import com.geckolib.renderer.base.GeoRenderState;
+import net.minecraft.resources.Identifier;
+
 import org.tdddd.epca.impl.client.entity.EpcaGeoModel;
+
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedFox;
+
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingFoxHead;
-import software.bernie.geckolib.model.GeoModel;
+
+import com.geckolib.model.GeoModel;
 
 public class WalkingFoxHeadModel extends GeoModel<WalkingFoxHead> {
     @Override
-    public ResourceLocation getModelResource(WalkingFoxHead entity) {
-        return new ResourceLocation("epca", "geo/entity/walking_fox_head.geo.json");
+    public Identifier getModelResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath("epca", "entity/walking_fox_head");
     }
 
     @Override
-    public ResourceLocation getTextureResource(WalkingFoxHead entity) {
-        return entity.getTextureResource();
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        WalkingFoxHead entity = EpcaGeoModel.entityOf(renderState, WalkingFoxHead.class);
+        return entity == null ? null : entity.getTextureResource();
     }
 
     @Override
-    public ResourceLocation getAnimationResource(WalkingFoxHead entity) {
-        return new ResourceLocation("epca", "animations/walking_fox_head.animation.json");
+    public Identifier getAnimationResource(WalkingFoxHead entity) {
+        return Identifier.fromNamespaceAndPath("epca", "walking_fox_head");
     }
 }

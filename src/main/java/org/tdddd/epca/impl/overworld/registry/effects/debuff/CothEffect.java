@@ -1,27 +1,33 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.Fox;
-import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.animal.fox.Fox;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.Registries;
 import org.tdddd.epca.impl.ModConfig;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
@@ -36,7 +42,6 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.effects.RemovableEffect;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
-import org.tdddd.epca.impl.utils.ClientOnlyHelper;
 import org.tdddd.epca.impl.utils.EffectApplicationInterceptor;
 import org.tdddd.epca.impl.utils.EntityConversionUtil;
 import org.tdddd.epca.impl.utils.ParasiteHelper;
@@ -62,6 +67,15 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         super(MobEffectCategory.BENEFICIAL, 0x990000);
     }
 
+    // 26.1.2: Entity#saveWithoutId(ValueOutput); EntityConversionManager still matches its datapack rules
+    // against a CompoundTag, so serialise through TagValueOutput with the entity's registry context.
+    // The produced field set (including "Age") is the same one 1.20.1's saveWithoutId(CompoundTag) wrote.
+    private static CompoundTag saveEntityTag(LivingEntity entity) {
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, entity.registryAccess());
+        entity.saveWithoutId(output);
+        return output.buildResult();
+    }
+
     public static boolean canApplyInLevel(Level level) {
         return !(DifficultyEffects.isLegendary(level));
     }
@@ -69,7 +83,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     public static boolean applyCothEffect(LivingEntity target, int duration, int amplifier) {
         if (!canApplyInLevel(target.level())) return false;
         MobEffectInstance effect = new MobEffectInstance(
-                ModEffects.COTH.get(),
+                ModEffects.COTH,
                 duration,
                 amplifier,
                 false, false, true
@@ -79,7 +93,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     }
 
     public static boolean canApplyEffect(LivingEntity target, int newAmplifier) {
-        MobEffectInstance existingEffect = target.getEffect(ModEffects.COTH.get());
+        MobEffectInstance existingEffect = target.getEffect(ModEffects.COTH);
 
         
         if (existingEffect == null) {
@@ -95,21 +109,29 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         return false;
     }
 
+    // 26.1.2: applyEffectTick(ServerLevel,LivingEntity,int):boolean. MobEffectInstance#tickServer is the
+    // only caller, so the body is now always server side; the returned boolean replaces the old void
+    // contract (true == keep ticking).
+    // 26.1.2 行为变化：MobEffectInstance#tickClient 不再调用 applyEffectTick，1.20.1 里“客户端分支只负责
+    // 生成粒子”的写法已不可达，粒子改为在服务端按同一节奏通过 ServerLevel#sendParticles 下发
+    // （见 spawnCothParticles）。显示效果等价，分布细节见文件头说明。
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         Level level = entity.level();
 
-        // 客户端：仅生成粒子
-        if (level.isClientSide) {
-            if (level.getGameTime() % PARTICLE_SPAWN_INTERVAL == 0) {
-                spawnCothParticles(entity);
-            }
-            return;
+        if (level.isClientSide()) {
+            // unreachable in 26.1.2 (kept so the surrounding structure still reads the same)
+            return true;
+        }
+
+        // 粒子（原客户端分支，每 PARTICLE_SPAWN_INTERVAL tick 一次）
+        if (level.getGameTime() % PARTICLE_SPAWN_INTERVAL == 0) {
+            spawnCothParticles(entity);
         }
 
         if (entity instanceof Player || ParasiteHelper.isParasite(entity)) {
             executeOriginalLogic(entity, amplifier);
-            return;
+            return true;
         }
 
         if (DifficultyEffects.getEffectiveDifficulty(level) == DifficultyLevel.LEGENDARY) {
@@ -117,11 +139,12 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         }
 
         executeOriginalLogic(entity, amplifier);
+        return true;
     }
 
     private void executeOriginalLogic(LivingEntity entity, int amplifier) {
         Level level = entity.level();
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         if (ModConfig.isParasitePeaceful()) {
             if (!ModConfig.isInTargetWhitelist(entity)) {
@@ -129,7 +152,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             }
         }
 
-        MobEffectInstance effect = entity.getEffect(ModEffects.COTH.get());
+        MobEffectInstance effect = entity.getEffect(ModEffects.COTH);
         if (effect == null) return;
 
         int duration = effect.getDuration();
@@ -146,7 +169,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         }
 
         // 等级3特殊扩散
-        if (amplifier >= 5 && !level.isClientSide) {
+        if (amplifier >= 5 && !level.isClientSide()) {
             long gameTime = level.getGameTime();
             if (gameTime % LEVEL3_SPREAD_INTERVAL == 0) {
                 spreadLevel3Effect(entity);
@@ -157,7 +180,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         if (amplifier >= 3) {
             CompoundTag tag = entity.getPersistentData();
             String key = "CothLevel4Triggered";
-            if (!tag.getBoolean(key)) {
+            if (!tag.getBoolean(key).orElse(false)) {
                 tag.putBoolean(key, true);
 
                 double x = entity.getX();
@@ -191,11 +214,20 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         int particleCount = MIN_PARTICLES + random.nextInt(MAX_PARTICLES - MIN_PARTICLES + 1);
 
-        for (int i = 0; i < particleCount; i++) {
-            double x = centerX + (random.nextDouble() - 0.5) * PARTICLE_AREA_SIZE;
-            double y = centerY + (random.nextDouble() - 0.5) * PARTICLE_AREA_SIZE;
-            double z = centerZ + (random.nextDouble() - 0.5) * PARTICLE_AREA_SIZE;
-            level.addParticle(ModParticles.COTH.get(), x, y, z, 0, 0, 0);
+        // 26.1.2: Level#addParticle is client-only and applyEffectTick no longer runs on the client,
+        // so the identical ClientboundLevelParticlesPacket is emitted from the server instead:
+        // ServerLevel#sendParticles(p_type, x, y, z, count, xDist, yDist, zDist, speed) sends
+        //   x + (rand-0.5)*2*xDist  etc.
+        // 1.20.1 scattered each particle uniformly over +-PARTICLE_AREA_SIZE/2 (PARTICLE_AREA_SIZE = 5),
+        // so xDist = PARTICLE_AREA_SIZE / 2 reproduces the same +-2.5 cube around the entity with the
+        // same particle count. The in-box distribution is uniform rather than triangular - see
+        // PORTING-NOTES-w2-effects.md.
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ModParticles.COTH.get(),
+                    centerX, centerY, centerZ,
+                    particleCount,
+                    PARTICLE_AREA_SIZE / 2.0, PARTICLE_AREA_SIZE / 2.0, PARTICLE_AREA_SIZE / 2.0,
+                    0.0);
         }
     }
 
@@ -219,21 +251,21 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
         
         CompoundTag persistentData = entity.getPersistentData();
-        if (persistentData.getBoolean("BeingConvertedByGnat")) {
+        if (persistentData.getBoolean("BeingConvertedByGnat").orElse(false)) {
             return;
         }
-        boolean killedByParasite = persistentData.getBoolean("KilledByParasite");
+        boolean killedByParasite = persistentData.getBoolean("KilledByParasite").orElse(false);
         boolean isSmallEntity = entity.getBbWidth() < SMALL_ENTITY_THRESHOLD ||
                 entity.getBbHeight() < SMALL_ENTITY_THRESHOLD;
         boolean isLargeEntity = entity.getBbWidth() > LARGE_ENTITY_THRESHOLD ||
                 entity.getBbHeight() > LARGE_ENTITY_THRESHOLD;
 
         
-        CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
+        CompoundTag nbt = saveEntityTag(entity);
         EntityType<?> entityType = entity.getType();
         EntityConversionManager.EntityConversionRule rule = EntityConversionManager.getConversionRule(entityType, nbt);
 
-        boolean isBaby = nbt.getInt("Age") < 0;
+        boolean isBaby = nbt.getInt("Age").orElse(0) < 0;
         
         boolean canConvert = false;
 
@@ -267,7 +299,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     
     private static void performConversion(LivingEntity entity) {
         
-        CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
+        CompoundTag nbt = saveEntityTag(entity);
         EntityType<?> entityType = entity.getType();
         EntityConversionManager.EntityConversionRule rule = EntityConversionManager.getConversionRule(entityType, nbt);
         boolean isSmallEntity = entity.getBbWidth() < SMALL_ENTITY_THRESHOLD || entity.getBbHeight() < SMALL_ENTITY_THRESHOLD;
@@ -277,7 +309,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
     private static void performConversion(LivingEntity entity, EntityConversionManager.EntityConversionRule rule, CompoundTag nbt, boolean isSmallEntity, boolean isLargeEntity) {
         
-        boolean isFinsConversion = hasFinsNearby(entity) && entity.hasEffect(ModEffects.COTH.get());
+        boolean isFinsConversion = hasFinsNearby(entity) && entity.hasEffect(ModEffects.COTH);
         if (isFinsConversion && rule != null && rule.fins_to != null && !rule.fins_to.isEmpty()) {
             convertUsingDataPackRule(entity, rule.fins_to);
             return;
@@ -312,12 +344,12 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             return;
         }
 
-        ResourceLocation target = new ResourceLocation(targetEntity);
-        EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(target);
+        Identifier target = Identifier.parse(targetEntity);
+        EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.getValue(target);
 
         if (entityType != null && entity.level() instanceof ServerLevel serverLevel) {
             try {
-                Entity newEntity = entityType.create(serverLevel);
+                Entity newEntity = entityType.create(serverLevel, net.minecraft.world.entity.EntitySpawnReason.CONVERSION);
                 if (newEntity != null) {
                     
                     newEntity.setPos(entity.getX(), entity.getY(), entity.getZ());
@@ -329,15 +361,18 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                             int collarColor = wolf.getCollarColor().getId(); 
                             infestedWolf.setCollarColor(collarColor);
                         }
-                        if (wolf.getOwnerUUID() != null) {
-                            infestedWolf.setOwnerUUID(wolf.getOwnerUUID());
+                        // 26.1.2: TamableAnimal#getOwnerUUID() is gone; the owner is stored as an
+                        // EntityReference<LivingEntity>. InfestedWolf still carries a plain UUID.
+                        EntityReference<LivingEntity> ownerReference = wolf.getOwnerReference();
+                        if (ownerReference != null) {
+                            infestedWolf.setOwnerUUID(ownerReference.getUUID());
                         }
                         
                     }
                     if (entity instanceof Fox fox && newEntity instanceof InfestedFox infestedFox) {
                         
-                        Fox.Type foxVariant = fox.getVariant();
-                        if (foxVariant == Fox.Type.SNOW) {
+                        Fox.Variant foxVariant = fox.getVariant();
+                        if (foxVariant == Fox.Variant.SNOW) {
                             infestedFox.setVariant(InfestedFox.Variant.SNOW);
                         } else {
                             infestedFox.setVariant(InfestedFox.Variant.DEFAULT);
@@ -345,8 +380,8 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                     }
                     if (entity instanceof Fox fox && newEntity instanceof WalkingFoxHead walkingFoxHead) {
                         
-                        Fox.Type foxVariant = fox.getVariant();
-                        if (foxVariant == Fox.Type.SNOW) {
+                        Fox.Variant foxVariant = fox.getVariant();
+                        if (foxVariant == Fox.Variant.SNOW) {
                             walkingFoxHead.setVariant(WalkingFoxHead.Variant.SNOW);
                         } else {
                             
@@ -355,12 +390,18 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                     }
                     
                     if (entity.getType() == EntityType.SKELETON &&
-                            target.equals(new ResourceLocation("epca:infested_skeleton")) &&
+                            target.equals(Identifier.parse("epca:infested_skeleton")) &&
                             newEntity instanceof InfestedSkeleton infestedSkeleton) {
 
                         LivingEntity livingEntity = (LivingEntity) entity;
                         ItemStack bow = livingEntity.getItemInHand(InteractionHand.MAIN_HAND);
-                        boolean hasFlame = bow.getEnchantmentLevel(Enchantments.FLAMING_ARROWS) > 0;
+                        // 26.1.2: ItemStack#getEnchantmentLevel takes a Holder<Enchantment>; enchantments are
+                        // a datapack registry, so Enchantments.FLAME (a ResourceKey) is resolved through the
+                        // entity's registry access.
+                        Holder<Enchantment> flame = entity.registryAccess()
+                                .lookupOrThrow(Registries.ENCHANTMENT)
+                                .getOrThrow(Enchantments.FLAME);
+                        boolean hasFlame = bow.getEnchantmentLevel(flame) > 0;
                         infestedSkeleton.setVariant(hasFlame ?
                                 InfestedSkeleton.Variant.FIRED :
                                 InfestedSkeleton.Variant.DEFAULT);
@@ -437,7 +478,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
     private void applyEffectInArea(Level level, double x, double y, double z, double radius, int duration, int amplifier) {
         if (DifficultyEffects.isLegendary(level)) return;
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         AABB area = new AABB(
                 x - radius, y - radius, z - radius,
@@ -446,13 +487,13 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
         for (LivingEntity target : level.getEntitiesOfClass(
                 LivingEntity.class, area,
-                e -> !e.hasEffect(ModEffects.COTH.get()) &&
+                e -> !e.hasEffect(ModEffects.COTH) &&
                         !isImmuneEntity(e) &&
                         !ParasiteHelper.isParasite(e) &&
                         (!ModConfig.isParasitePeaceful() || ModConfig.isInTargetWhitelist(e))
         )) {
             target.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     duration,
                     amplifier,
                     false, false, true
@@ -480,7 +521,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             CompoundTag persistentData = entity.getPersistentData();
             String tagKey = "CothLevel3Triggered";
 
-            if (!persistentData.getBoolean(tagKey)) {
+            if (!persistentData.getBoolean(tagKey).orElse(false)) {
                 persistentData.putBoolean(tagKey, true);
 
                 if (entity.level() instanceof ServerLevel serverLevel) {
@@ -490,9 +531,9 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             }
         }
 
-        entity.removeEffect(ModEffects.COTH.get());
+        entity.removeEffect(ModEffects.COTH);
         entity.addEffect(new MobEffectInstance(
-                ModEffects.COTH.get(),
+                ModEffects.COTH,
                 BASE_DURATION,
                 newAmplifier,
                 false, false, true
@@ -520,13 +561,13 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         for (LivingEntity target : source.level().getEntitiesOfClass(
                 LivingEntity.class, area,
                 e -> e != source &&
-                        !e.hasEffect(ModEffects.COTH.get()) &&
+                        !e.hasEffect(ModEffects.COTH) &&
                         !isImmuneEntity(e) &&
                         !ParasiteHelper.isParasite(e) &&
                         (!ModConfig.isParasitePeaceful() || ModConfig.isInTargetWhitelist(e))
         )) {
             target.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     BASE_DURATION,
                     0, 
                     false, false, true
@@ -555,7 +596,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         )) {
             
             target.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     LEVEL3_DURATION,
                     LEVEL3_AMPLIFIER,
                     false, false, true
@@ -585,7 +626,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         }
 
         
-        Entity newEntity = targetType.create(serverLevel);
+        Entity newEntity = targetType.create(serverLevel, net.minecraft.world.entity.EntitySpawnReason.CONVERSION);
         if (newEntity != null) {
             
             newEntity.setPos(originalEntity.getX(), originalEntity.getY(), originalEntity.getZ());
@@ -603,8 +644,11 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         }
     }
 
+    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
+    // 1.20.1 returned true unconditionally (the upgrade/spread/level3 cadences are computed inside the
+    // body from the effect's own duration), so the effect must still be ticked every tick.
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
         return true;
     }
 

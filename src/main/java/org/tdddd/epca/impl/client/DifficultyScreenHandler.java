@@ -3,17 +3,15 @@ package org.tdddd.epca.impl.client;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.ModConfig;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 import org.tdddd.epca.impl.epca;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
-@OnlyIn(Dist.CLIENT)
+@EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public class DifficultyScreenHandler {
 
     private static final String BUTTON_KEY = "epca.difficulty.button";

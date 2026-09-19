@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -42,14 +45,14 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
         builder.add(SPIDER);
     }
 
-    public void entityInside(BlockState blockState, Level level, BlockPos pos, Entity entity) {
+    public void entityInside(BlockState blockState, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         entity.makeStuckInBlock(blockState, new Vec3(0.5, 0.05000000074505806 * 2, 0.5));
     }
 
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             PLACE_TIME.put(pos.immutable(), level.getGameTime());
             level.scheduleTick(pos, this, 1);
             if (state.getValue(SPIDER)) {
@@ -98,10 +101,10 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
         var data = living.getPersistentData();
         long now = level.getGameTime();
 
-        long lastEffect = data.getLong("InfestedWebLastEffect");
+        long lastEffect = data.getLong("InfestedWebLastEffect").orElse(0L);
         if (now - lastEffect >= 20) {
-            living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 20 * 20, 0));
-            living.addEffect(new MobEffectInstance(ModEffects.BLEEDING.get(), 15 * 20, 0));
+            living.addEffect(new MobEffectInstance(ModEffects.COTH, 20 * 20, 0));
+            living.addEffect(new MobEffectInstance(ModEffects.BLEEDING, 15 * 20, 0));
             data.putLong("InfestedWebLastEffect", now);
         }
     }
@@ -112,7 +115,7 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
     }
 
     @Override
-    public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
+    public boolean propagatesSkylightDown(BlockState state) {
         return true;
     }
 

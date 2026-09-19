@@ -13,6 +13,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -65,23 +66,27 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
     protected AbstractReshapeEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
         this.fakeDeathEnabled = true;
-        this.setMaxUpStep(1.6F);
+        // 26.1.2: Entity#setMaxUpStep is gone; the step height is the STEP_HEIGHT attribute.
+        var stepHeight = this.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) stepHeight.setBaseValue(1.6F);
     }
 
     protected AbstractReshapeEntity(EntityType<? extends PathfinderMob> entityType, Level level,
                                      Consumer<AbstractEpcaEntity> configurer) {
         super(entityType, level, configurer);
         this.fakeDeathEnabled = true;
-        this.setMaxUpStep(1.6F);
+        // 26.1.2: Entity#setMaxUpStep is gone; the step height is the STEP_HEIGHT attribute.
+        var stepHeight = this.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) stepHeight.setBaseValue(1.6F);
     }
 
     // ────────── Synched data ──────────
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_ATTACKING, false);
-        this.entityData.define(DATA_ATTACK_TYPE, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_ATTACKING, false);
+        entityData.define(DATA_ATTACK_TYPE, 0);
     }
 
     // ────────── Attack state ──────────
@@ -116,7 +121,14 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         if (deathPos != null) {
             long seed = this.random.nextLong();
             int delay = this.random.nextInt(30) + 40;
-            serverLevel.getServer().tell(new TickTask(
+            // 26.1.2: MinecraftServer#tell(TickTask) is gone. A transient TickTask handed to the
+            // server event loop is the replacement (same shape as vanilla SkeletonTrapGoal); the
+            // loop's shouldRun() gate means it runs as soon as the server has time, exactly like
+            // the removed tell(), so the nominal offset is retained but not enforced.
+            // TimerQueue#schedule is not usable here: TimerCallbacks.SERVER_CALLBACKS only knows
+            // the vanilla minecraft:function/function_tag callbacks, so a mod callback could not
+            // be serialised and would break the world save.
+            serverLevel.getServer().schedule(new TickTask(
                     serverLevel.getServer().getTickCount() + delay,
                     () -> spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed))
             ));
@@ -129,7 +141,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         cloud.setDuration(60);
         cloud.setRadiusPerTick(0);
         cloud.setWaitTime(0);
-        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+        cloud.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 1, false, true));
         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
         serverLevel.addFreshEntity(cloud);
     }
@@ -137,7 +149,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
     // ────────── Remains blocks ──────────
 
     protected static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
-        if (level.isClientSide || deathPos == null) return;
+        if (level.isClientSide() || deathPos == null) return;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         placeRemainsBlock(level, deathPos, pos, rand,
@@ -268,7 +280,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
     // ────────── Overrides ──────────
 
     @Override
-    public boolean causeFallDamage(float fallDistance, float damageMultiplier, DamageSource source) {
+    public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource source) {
         return false;
     }
 
@@ -279,10 +291,11 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
 
     // ────────── hurt() ──────────
 
+    // 26.1.2: Entity#hurt(DamageSource,float) is final and forwards to hurtServer.
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (isInvulnerable()) return false;
-        return super.hurt(source, amount); // AbstractEpcaEntity handles the rest
+        return super.hurtServer(level, source, amount); // AbstractEpcaEntity handles the rest
     }
 
     // ────────── die() ──────────
@@ -313,7 +326,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
             return;
         }
 
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F
                 && this.random.nextFloat() < fakeDeathBurstChance) {
             onTriggerFakeDeath(source);
             this.onDeath(source);

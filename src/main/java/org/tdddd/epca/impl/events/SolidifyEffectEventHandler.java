@@ -1,25 +1,26 @@
 package org.tdddd.epca.impl.events;
 
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class SolidifyEffectEventHandler {
 
     @SubscribeEvent
-    public static void onLivingUpdate(LivingEvent.LivingTickEvent event) {
-        LivingEntity entity = event.getEntity();
+    public static void onLivingUpdate(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
         
-        if (entity.hasEffect(ModEffects.SOLIDIFY.get())) {
+        if (entity.hasEffect(ModEffects.SOLIDIFY)) {
             if (entity instanceof Player player) {
                 
                 restrictPlayerMovement(player);
@@ -31,11 +32,11 @@ public class SolidifyEffectEventHandler {
     }
 
     @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
             
-            if (attacker.hasEffect(ModEffects.SOLIDIFY.get())) {
+            if (attacker.hasEffect(ModEffects.SOLIDIFY)) {
                 event.setCanceled(true);
             }
         }
@@ -43,10 +44,10 @@ public class SolidifyEffectEventHandler {
 
     @SubscribeEvent
     public static void onLivingChangeTarget(LivingChangeTargetEvent event) {
-        LivingEntity entity = event.getEntity();
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
         
-        if (entity.hasEffect(ModEffects.SOLIDIFY.get())) {
+        if (entity.hasEffect(ModEffects.SOLIDIFY)) {
             event.setCanceled(true);
         }
     }

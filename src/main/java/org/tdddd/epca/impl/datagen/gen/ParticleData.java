@@ -2,20 +2,23 @@ package org.tdddd.epca.impl.datagen.gen;
 
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.ParticleDescriptionProvider;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.client.data.ParticleDescriptionProvider;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 
 /**
  * 数据生成器：自动为模组中所有粒子生成 particles/*.json 纹理描述。
+ *
+ * <p><b>26.1.2 改动</b>：{@code ParticleDescriptionProvider} 的构造器只剩
+ * {@code (PackOutput)}（{@code ExistingFileHelper} 已删除）；描述方法名由
+ * {@code addParticle(...)} 变为 {@code sprite(ParticleType, Identifier)}。
  */
 public class ParticleData extends ParticleDescriptionProvider {
 
-    public ParticleData(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, existingFileHelper);
+    public ParticleData(PackOutput output) {
+        super(output);
     }
 
     @Override
@@ -35,7 +38,8 @@ public class ParticleData extends ParticleDescriptionProvider {
         addParticle(ModParticles.P_ADAPTATION, "p_adaptation");
     }
 
-    private void addParticle(RegistryObject<SimpleParticleType> particle, String textureName) {
-        sprite(particle.get(), new ResourceLocation(epca.MODID, textureName));
+    private void addParticle(DeferredHolder<net.minecraft.core.particles.ParticleType<?>, SimpleParticleType> particle, String textureName) {
+        // 26.1.2: addParticle(...) 改名为 spriteSet(...)（单个纹理的重载）
+        spriteSet(particle.get(), Identifier.fromNamespaceAndPath(epca.MODID, textureName));
     }
 }

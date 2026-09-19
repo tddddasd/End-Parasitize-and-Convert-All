@@ -2,28 +2,33 @@ package org.tdddd.epca.impl.datagen.gen;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.*;
-import net.minecraftforge.common.data.BlockTagsProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.data.BlockTagsProvider;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModTags;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * 方块标签数据生成器。
+ *
+ * <p><b>26.1.2 改动</b>：{@code BlockTagsProvider} 的构造器去掉了
+ * {@code ExistingFileHelper}（该类已被平台删除），变成
+ * {@code (PackOutput, CompletableFuture<HolderLookup.Provider>, String modId)}。
+ * {@code addTags/tag(...)} 用法不变。
+ */
 public class BlockTagData extends BlockTagsProvider {
-    public BlockTagData(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
-                        @Nullable ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, epca.MODID, existingFileHelper);
+    public BlockTagData(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, epca.MODID);
     }
 
     private boolean isModBlock(Block b) {
-        var key = ForgeRegistries.BLOCKS.getKey(b);
+        var key = BuiltInRegistries.BLOCK.getKey(b);
         return key != null && key.getNamespace().equals(epca.MODID);
     }
 
@@ -42,10 +47,10 @@ public class BlockTagData extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        for (var entry : ForgeRegistries.BLOCKS.getEntries()) {
+        for (var entry : BuiltInRegistries.BLOCK.entrySet()) {
             Block block = entry.getValue();
             if (!isModBlock(block)) continue;
-            String name = entry.getKey().location().getPath();
+            String name = entry.getKey().identifier().getPath();
 
             // ── 可挖掘工具标签 ──
             if (block instanceof RotatedPillarBlock || block instanceof FenceBlock

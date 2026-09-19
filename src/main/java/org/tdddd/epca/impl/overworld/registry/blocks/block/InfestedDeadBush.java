@@ -20,6 +20,12 @@ public class InfestedDeadBush extends BushBlock implements InfestedBlockInterfac
 
     public InfestedDeadBush(Properties properties) {
         super(properties);
+
+    }
+
+    @Override
+    public com.mojang.serialization.MapCodec<BushBlock> codec() {
+        return simpleCodec(InfestedDeadBush::new);
     }
 
     @Override
@@ -38,7 +44,7 @@ public class InfestedDeadBush extends BushBlock implements InfestedBlockInterfac
         Block block = state.getBlock();
         return block == ModBlocks.INFESTED_DIRT.get() ||
                 block == ModBlocks.INFESTED_SAND.get() ||
-                state.is(BlockTags.DEAD_BUSH_MAY_PLACE_ON);
+                state.is(BlockTags.SUPPORTS_VEGETATION);
     }
 
     @Override

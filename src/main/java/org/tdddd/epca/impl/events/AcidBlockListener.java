@@ -3,15 +3,16 @@ package org.tdddd.epca.impl.events;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.fluid.AcidDamageSystem;
 import org.tdddd.epca.impl.fluid.AcidSolutionBlock;
 
 import java.util.Set;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class AcidBlockListener {
 
     @SubscribeEvent
@@ -32,7 +33,7 @@ public class AcidBlockListener {
     }
 
     @SubscribeEvent
-    public static void onBlockBroken(BlockEvent.BreakEvent event) {
+    public static void onBlockBroken(BreakBlockEvent event) {
         if (event.getLevel().isClientSide()) return;
 
         Level level = (Level) event.getLevel();

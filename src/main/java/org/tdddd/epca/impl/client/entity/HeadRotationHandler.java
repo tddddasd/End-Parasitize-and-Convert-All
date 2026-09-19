@@ -1,7 +1,6 @@
 package org.tdddd.epca.impl.client.entity;
 
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.model.GeoModel;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,9 +8,17 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Client-side handler for IHeadRotatable entity head rotation.
  *
- * <p>Call from {@link EpcaGeoModel#setCustomAnimations}. Each entity gets a
+ * <p>Called from {@link EpcaGeoRenderer} while it builds the render pass. Each entity gets a
  * persistent {@link HeadState} that tracks the smoothed yaw. When the entity
  * has no look target or stops moving, the yaw gradually returns to 0.</p>
+ *
+ * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <p>GeckoLib 4 applied this from {@code GeoModel#setCustomAnimations} by grabbing the bone
+ * through {@code GeoModel#getAnimationProcessor()} and calling {@code bone.setRotY(...)}.
+ * In GeckoLib 5 bones are immutable during rendering: the pose is expressed as a
+ * {@code BoneSnapshot} produced by a {@code RenderPassInfo.BoneUpdater}. So this class no
+ * longer touches bones at all — it only computes the smoothed yaw in radians, and
+ * {@link EpcaGeoRenderer} installs the value into the head bone's snapshot.</p>
  */
 public class HeadRotationHandler {
 
@@ -20,8 +27,14 @@ public class HeadRotationHandler {
     /** How many ticks of no rotation target before starting to reset to centre. */
     private static final float RESET_DELAY = 5f;
 
-    public static void applyHeadRotation(
-            int entityId, IHeadRotatable rotatable, GeoModel<?> model,
+    /**
+     * Advance the smoothed head yaw for one entity and return the new head rotation.
+     *
+     * @return the head bone Y rotation in <b>radians</b> (same convention as the old
+     *         {@code CoreGeoBone#setRotY} call this replaces)
+     */
+    public static float computeHeadRotation(
+            int entityId, IHeadRotatable rotatable,
             float currentTime, float partialTick, float bodyYaw) {
 
         HeadState s = STATES.computeIfAbsent(entityId, k -> new HeadState());
@@ -56,12 +69,7 @@ public class HeadRotationHandler {
         if (Math.abs(s.yaw) < 0.05f) s.yaw = 0f;
         s.time = currentTime;
 
-        applyToBone(model, rotatable.getHeadBoneName(), s.yaw * Mth.DEG_TO_RAD);
-    }
-
-    private static void applyToBone(GeoModel<?> model, String boneName, float rads) {
-        var bone = model.getAnimationProcessor().getBone(boneName);
-        if (bone != null) bone.setRotY(rads);
+        return s.yaw * Mth.DEG_TO_RAD;
     }
 
     public static void removeEntity(int entityId) {

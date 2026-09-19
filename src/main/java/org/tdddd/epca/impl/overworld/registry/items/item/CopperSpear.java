@@ -1,31 +1,32 @@
 package org.tdddd.epca.impl.overworld.registry.items.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.ForgeMod;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.ThrownCopperSpear;
 
 public class CopperSpear extends Item {
-    private final Multimap<Attribute, AttributeModifier> defaultModifiers;
+    private final ItemAttributeModifiers defaultModifiers;
     public static final int MAX_CHARGE = 12000; 
     public static final int FULL_CHARGE_TICKS = 20; 
     public static final float MAX_SPEED = 2.5F; 
@@ -33,49 +34,61 @@ public class CopperSpear extends Item {
 
     public CopperSpear(Properties properties) {
         super(properties);
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        
-        
-        builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", 6.0, AttributeModifier.Operation.ADDITION));
-        
-        builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier", -2.8, AttributeModifier.Operation.ADDITION));
-        
-        builder.put(ForgeMod.ENTITY_REACH.get(), new AttributeModifier("weapon_reach", 1.0, AttributeModifier.Operation.ADDITION));
-        this.defaultModifiers = builder.build();
+                this.defaultModifiers = ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(BASE_ATTACK_DAMAGE_ID, 6.0, AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED,
+                        new AttributeModifier(BASE_ATTACK_SPEED_ID, -2.8, AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ENTITY_INTERACTION_RANGE,
+                        new AttributeModifier(Identifier.fromNamespaceAndPath("epca", "weapon_reach"), 1.0,
+                                AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.MAINHAND)
+                .build();
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-        return slot == EquipmentSlot.MAINHAND ? this.defaultModifiers : super.getDefaultAttributeModifiers(slot);
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return this.defaultModifiers;
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity user) {
         return MAX_CHARGE;
     }
 
     @Override
-    public UseAnim getUseAnimation(ItemStack stack) {
-        return UseAnim.SPEAR; 
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        // 26.1.2: the charge/hold pose comes from vanilla. AvatarRenderer#getArmPose maps
+        // ItemUseAnimation.TRIDENT to ArmPose.THROW_TRIDENT (the trident charge pose) and
+        // ItemInHandRenderer draws the matching first-person pull-back; nothing here touches
+        // the arm itself. The mod's old HumanoidModelMixin (which forced an extra 180 degree
+        // 蓄力时第三人称会整个倒过来：ArmPose.THROW_TRIDENT 把手臂绕 X 轴转了 180°，
+        // 而物品自己的 display 变换没有补偿。资源包用 assets/epca/items/*_spear.json 的
+        // minecraft:using_item 条件在蓄力期间切到 *_spear_throwing 模型，该模型的第三人称
+        // display 变换 = 平时变换再绕 X 轴加 180°（正好抵消手臂那 180°），于是蓄力时长矛
+        // 仍然朝上；第一人称与平时手持的变换完全不变（第一人称本来就是对的）。
+        return ItemUseAnimation.TRIDENT; 
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         player.startUsingItem(hand);
-        return InteractionResultHolder.consume(player.getItemInHand(hand));
+        return InteractionResult.CONSUME.heldItemTransformedTo(player.getItemInHand(hand));
     }
 
     @Override
-    public void releaseUsing(ItemStack stack, Level level, LivingEntity livingEntity, int timeCharged) {
-        if (!(livingEntity instanceof Player player)) return;
-        int charge = this.getUseDuration(stack) - timeCharged;
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity livingEntity, int timeCharged) {
+        if (!(livingEntity instanceof Player player)) return false;
+        int charge = this.getUseDuration(stack, livingEntity) - timeCharged;
         
         int effectiveCharge = Math.min(charge, FULL_CHARGE_TICKS);
         float chargePercent = (float) effectiveCharge / FULL_CHARGE_TICKS;
         float speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * chargePercent;
-        if (speed < 0.1F) return;
+        if (speed < 0.1F) return false;
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             boolean isCreative = player.getAbilities().instabuild;
             ThrownCopperSpear spear = new ThrownCopperSpear(level, player, stack, isCreative);
             spear.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, speed, 1.0F);
@@ -91,28 +104,32 @@ public class CopperSpear extends Item {
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
+        return true;
+    }
+
+    
+    // 26.1.2: enchantments are data driven; "which enchantments may be put on this
+    // item" is expressed through this NeoForge hook instead of the removed
+    // Item#canApplyAtEnchantingTable.
+    @Override
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        return stack.is(Items.ENCHANTED_BOOK) ||
+                enchantment.is(Enchantments.MENDING) ||
+                enchantment.is(Enchantments.UNBREAKING) ||
+                enchantment.is(Enchantments.SHARPNESS) ||
+                enchantment.is(Enchantments.SMITE) ||
+                enchantment.is(Enchantments.BANE_OF_ARTHROPODS) ||
+                enchantment.is(Enchantments.FIRE_ASPECT) ||
+                enchantment.is(Enchantments.LOYALTY);
     }
 
     
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, net.minecraft.world.item.enchantment.Enchantment enchantment) {
-        return enchantment == Enchantments.MENDING ||
-                enchantment == Enchantments.UNBREAKING ||
-                enchantment == Enchantments.SHARPNESS ||
-                enchantment == Enchantments.SMITE ||
-                enchantment == Enchantments.BANE_OF_ARTHROPODS ||
-                enchantment == Enchantments.FIRE_ASPECT ||
-                enchantment == Enchantments.LOYALTY;
-    }
-
-    
-    @Override
-    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker instanceof Player player && !player.getAbilities().instabuild) {
             
-            stack.hurtAndBreak(1, attacker, (entity) -> entity.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+            stack.hurtAndBreak(1, attacker, EquipmentSlot.MAINHAND);
         }
-        return true;
     }
 
     
@@ -122,19 +139,11 @@ public class CopperSpear extends Item {
         if (miningEntity instanceof Player player && !player.getAbilities().instabuild) {
             float hardness = state.getDestroySpeed(level, pos);
             if (hardness > 0.0F) {
-                stack.hurtAndBreak(1, miningEntity, (entity) -> entity.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+                stack.hurtAndBreak(1, miningEntity, EquipmentSlot.MAINHAND);
             }
         }
         return true;
     }
 
-    @Override
-    public int getEnchantmentValue() {
-        return 13;
-    }
 
-    @Override
-    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
-        return repair.is(Items.COPPER_INGOT);
-    }
 }

@@ -3,11 +3,11 @@ package org.tdddd.epca.impl.overworld.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.nbt.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.EntityType;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class EntityConversionManager implements ResourceManagerReloadListener {
     private static final Gson GSON = new GsonBuilder().create();
-    private static final Map<ResourceLocation, List<EntityConversionRule>> CONVERSION_RULES = new HashMap<>();
+    private static final Map<Identifier, List<EntityConversionRule>> CONVERSION_RULES = new HashMap<>();
 
     public static class EntityConversionRule {
         public String from;
@@ -39,7 +39,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
                 .forEach((resourceLocation, resource) -> {
                     try (InputStream stream = resource.open()) {
                         EntityConversionRule rule = GSON.fromJson(new InputStreamReader(stream), EntityConversionRule.class);
-                        ResourceLocation fromLocation = new ResourceLocation(rule.from);
+                        Identifier fromLocation = Identifier.parse(rule.from);
                         
                         CONVERSION_RULES.computeIfAbsent(fromLocation, k -> new ArrayList<>()).add(rule);
                     } catch (Exception e) {
@@ -53,7 +53,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         }
     }
 
-    public static EntityConversionRule getConversionRule(ResourceLocation entityType, CompoundTag nbt) {
+    public static EntityConversionRule getConversionRule(Identifier entityType, CompoundTag nbt) {
         List<EntityConversionRule> rules = CONVERSION_RULES.get(entityType);
         if (rules != null) {
             
@@ -67,7 +67,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
     }
 
     public static EntityConversionRule getConversionRule(EntityType<?> entityType, CompoundTag nbt) {
-        return getConversionRule(ForgeRegistries.ENTITY_TYPES.getKey(entityType), nbt);
+        return getConversionRule(BuiltInRegistries.ENTITY_TYPE.getKey(entityType), nbt);
     }
 
     
@@ -164,37 +164,37 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         switch (actualTag.getId()) {
             case Tag.TAG_BYTE:
                 if (expectedValue instanceof Number) {
-                    return ((Number) expectedValue).byteValue() == ((net.minecraft.nbt.ByteTag) actualTag).getAsByte();
+                    return ((Number) expectedValue).byteValue() == ((net.minecraft.nbt.ByteTag) actualTag).value();
                 }
                 break;
             case Tag.TAG_SHORT:
                 if (expectedValue instanceof Number) {
-                    return ((Number) expectedValue).shortValue() == ((net.minecraft.nbt.ShortTag) actualTag).getAsShort();
+                    return ((Number) expectedValue).shortValue() == ((net.minecraft.nbt.ShortTag) actualTag).value();
                 }
                 break;
             case Tag.TAG_INT:
                 if (expectedValue instanceof Number) {
-                    return ((Number) expectedValue).intValue() == ((net.minecraft.nbt.IntTag) actualTag).getAsInt();
+                    return ((Number) expectedValue).intValue() == ((net.minecraft.nbt.IntTag) actualTag).value();
                 }
                 break;
             case Tag.TAG_LONG:
                 if (expectedValue instanceof Number) {
-                    return ((Number) expectedValue).longValue() == ((net.minecraft.nbt.LongTag) actualTag).getAsLong();
+                    return ((Number) expectedValue).longValue() == ((net.minecraft.nbt.LongTag) actualTag).value();
                 }
                 break;
             case Tag.TAG_FLOAT:
                 if (expectedValue instanceof Number) {
-                    return Float.compare(((Number) expectedValue).floatValue(), ((net.minecraft.nbt.FloatTag) actualTag).getAsFloat()) == 0;
+                    return Float.compare(((Number) expectedValue).floatValue(), ((net.minecraft.nbt.FloatTag) actualTag).value()) == 0;
                 }
                 break;
             case Tag.TAG_DOUBLE:
                 if (expectedValue instanceof Number) {
-                    return Double.compare(((Number) expectedValue).doubleValue(), ((net.minecraft.nbt.DoubleTag) actualTag).getAsDouble()) == 0;
+                    return Double.compare(((Number) expectedValue).doubleValue(), ((net.minecraft.nbt.DoubleTag) actualTag).value()) == 0;
                 }
                 break;
             case Tag.TAG_STRING:
                 if (expectedValue instanceof String) {
-                    return expectedValue.equals(((net.minecraft.nbt.StringTag) actualTag).getAsString());
+                    return expectedValue.equals(((net.minecraft.nbt.StringTag) actualTag).value());
                 }
                 break;
             case Tag.TAG_BYTE_ARRAY:
@@ -231,49 +231,49 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
                 switch (actualTag.getId()) {
                     case Tag.TAG_BYTE:
                         if (value instanceof Number) {
-                            byte actual = ((ByteTag) actualTag).getAsByte();
+                            byte actual = ((ByteTag) actualTag).value();
                             byte expected = ((Number) value).byteValue();
                             return compareWithOperator(actual, expected, operator);
                         }
                         break;
                     case Tag.TAG_SHORT:
                         if (value instanceof Number) {
-                            short actual = ((ShortTag) actualTag).getAsShort();
+                            short actual = ((ShortTag) actualTag).value();
                             short expected = ((Number) value).shortValue();
                             return compareWithOperator(actual, expected, operator);
                         }
                         break;
                     case Tag.TAG_INT:
                         if (value instanceof Number) {
-                            int actual = ((IntTag) actualTag).getAsInt();
+                            int actual = ((IntTag) actualTag).value();
                             int expected = ((Number) value).intValue();
                             return compareWithOperator(actual, expected, operator);
                         }
                         break;
                     case Tag.TAG_LONG:
                         if (value instanceof Number) {
-                            long actual = ((LongTag) actualTag).getAsLong();
+                            long actual = ((LongTag) actualTag).value();
                             long expected = ((Number) value).longValue();
                             return compareWithOperator(actual, expected, operator);
                         }
                         break;
                     case Tag.TAG_FLOAT:
                         if (value instanceof Number) {
-                            float actual = ((FloatTag) actualTag).getAsFloat();
+                            float actual = ((FloatTag) actualTag).value();
                             float expected = ((Number) value).floatValue();
                             return compareWithOperator(actual, expected, operator);
                         }
                         break;
                     case Tag.TAG_DOUBLE:
                         if (value instanceof Number) {
-                            double actual = ((DoubleTag) actualTag).getAsDouble();
+                            double actual = ((DoubleTag) actualTag).value();
                             double expected = ((Number) value).doubleValue();
                             return compareWithOperator(actual, expected, operator);
                         }
                         break;
                     case Tag.TAG_STRING:
                         if (value instanceof String) {
-                            String actual = ((StringTag) actualTag).getAsString();
+                            String actual = ((StringTag) actualTag).value();
                             String expected = (String) value;
                             return compareWithOperator(actual, expected, operator);
                         }

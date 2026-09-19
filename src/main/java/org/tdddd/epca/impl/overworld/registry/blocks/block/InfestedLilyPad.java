@@ -22,13 +22,18 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedS
 
 import javax.annotation.Nullable;
 
-public class InfestedLilyPad extends WaterlilyBlock implements InfestedBlockInterface {
+public class InfestedLilyPad extends LilyPadBlock implements InfestedBlockInterface {
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedLilyPad(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(NATURAL_SPAWN, true));
+    }
+
+    @Override
+    public com.mojang.serialization.MapCodec<LilyPadBlock> codec() {
+        return simpleCodec(InfestedLilyPad::new);
     }
 
     @Override

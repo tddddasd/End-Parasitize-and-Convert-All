@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
@@ -14,15 +14,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class EntityIntegrationManager implements ResourceManagerReloadListener {
     private static final Gson GSON = new GsonBuilder().create();
@@ -155,12 +155,14 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
     }
 
     private static List<EntityType<?>> getEntityTypesForTag(String tagName) {
-        ResourceLocation loc = ResourceLocation.tryParse(tagName);
+        Identifier loc = Identifier.tryParse(tagName);
         if (loc == null) return Collections.emptyList();
         TagKey<EntityType<?>> tagKey = TagKey.create(Registries.ENTITY_TYPE, loc);
-        return ForgeRegistries.ENTITY_TYPES.getValues().stream()
-                .filter(type -> type.is(tagKey))
-                .collect(Collectors.toList());
+        List<EntityType<?>> types = new ArrayList<>();
+        for (Holder<EntityType<?>> holder : BuiltInRegistries.ENTITY_TYPE.getTagOrEmpty(tagKey)) {
+            types.add(holder.value());
+        }
+        return types;
     }
     
     private static void standardizeRule(EntityIntegrationRule rule) {
@@ -273,7 +275,7 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
                 if (matchesEntityRequirement(entity, requirement)) {
                     
                     if (requirement.chance < 1.0) {
-                        if (level.random.nextDouble() > requirement.chance) {
+                        if (level.getRandom().nextDouble() > requirement.chance) {
                             continue; 
                         }
                     }
@@ -296,14 +298,14 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
 
     public static boolean matchesEntityRequirement(Mob entity, EntityRequirement requirement) {
-        ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        Identifier entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         if (entityId == null) return false;
 
         boolean typeMatches;
         if (isTag(requirement.entity)) {
             TagKey<EntityType<?>> tagKey = TagKey.create(Registries.ENTITY_TYPE,
-                    new ResourceLocation(requirement.entity.substring(1)));
-            typeMatches = entity.getType().is(tagKey);
+                    Identifier.parse(requirement.entity.substring(1)));
+            typeMatches = BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(entity.getType()).is(tagKey);
         } else {
             typeMatches = entityId.toString().equals(requirement.entity);
         }
@@ -328,7 +330,7 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
     private static String generateGroupId(List<Mob> entities) {
         List<String> entityIds = new ArrayList<>();
         for (Mob entity : entities) {
-            ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+            Identifier entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
             if (entityId != null) {
                 entityIds.add(entityId.toString());
             }
@@ -556,7 +558,7 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
         
         private void spawnRandomResults() {
-            RandomSource random = level.random;   
+            RandomSource random = level.getRandom();   
 
             int resultCount = rule.minResultCount;
             if (rule.maxResultCount > rule.minResultCount) {
@@ -620,13 +622,13 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
                 if (typesToSpawn.isEmpty()) return;
 
                 for (int i = 0; i < result.count; i++) {
-                    EntityType<?> chosen = typesToSpawn.get(level.random.nextInt(typesToSpawn.size()));
-                    Entity newEntity = chosen.create(level);
+                    EntityType<?> chosen = typesToSpawn.get(level.getRandom().nextInt(typesToSpawn.size()));
+                    Entity newEntity = chosen.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
                     if (newEntity != null) {
-                        double offsetX = (level.random.nextDouble());
-                        double offsetZ = (level.random.nextDouble());
-                        newEntity.moveTo(spawnPos.getX() + offsetX, spawnPos.getY(), spawnPos.getZ() + offsetZ,
-                                level.random.nextFloat() * 360.0F, 0.0F);
+                        double offsetX = (level.getRandom().nextDouble());
+                        double offsetZ = (level.getRandom().nextDouble());
+                        newEntity.snapTo(spawnPos.getX() + offsetX, spawnPos.getY(), spawnPos.getZ() + offsetZ,
+                                level.getRandom().nextFloat() * 360.0F, 0.0F);
                         applyInheritedVariant(newEntity);
                         level.addFreshEntity(newEntity);
                     }

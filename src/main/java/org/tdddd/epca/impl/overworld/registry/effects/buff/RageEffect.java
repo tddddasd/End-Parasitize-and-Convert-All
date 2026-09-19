@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.effects.buff;
 
+import org.tdddd.epca.impl.epca;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
@@ -16,22 +18,22 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RageEffect extends MobEffect implements RemovableEffect {
-    private static final String ATTACK_DAMAGE_UUID = "0a1b2c3d-4e5f-6789-abcd-ef0123456789";
-    private static final String MOVEMENT_SPEED_UUID = "12345678-9abc-def0-1234-56789abcdef0";
+    private static final Identifier ATTACK_DAMAGE_ID = Identifier.fromNamespaceAndPath(epca.MODID, "rage_attack_damage");
+    private static final Identifier MOVEMENT_SPEED_ID = Identifier.fromNamespaceAndPath(epca.MODID, "rage_movement_speed");
 
     public RageEffect() {
         super(MobEffectCategory.BENEFICIAL, 0x000000);
-        this.addAttributeModifier(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE_UUID, 0.1, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        this.addAttributeModifier(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED_UUID, 0.1, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        this.addAttributeModifier(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE_ID, 0.1, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        this.addAttributeModifier(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED_ID, 0.1, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
-        super.applyEffectTick(entity, amplifier);
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
+        return super.applyEffectTick(serverLevel, entity, amplifier);
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
         return true; 
     }
 

@@ -20,13 +20,12 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
 import org.tdddd.epca.impl.overworld.registry.entities.IPoverty;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
@@ -38,19 +37,17 @@ import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IParasite, IPoverty, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_EXPLODING = SynchedEntityData.defineId(LargeIncompleteForm.class, EntityDataSerializers.BOOLEAN);
 
     private int explosionTimer = 30;
@@ -69,7 +66,8 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     public LargeIncompleteForm(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 10;
-        this.setMaxUpStep(1.0F);
+        var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
+        if (epcaStepHeight != null) epcaStepHeight.setBaseValue(1.0F);
         this.navigation = new GroundPathNavigation(this, level);
     }
 
@@ -91,9 +89,9 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_EXPLODING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_EXPLODING, false);
     }
 
     public boolean isExploding() {
@@ -123,9 +121,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     @Override
     public void tick() {
         super.tick();
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             Player nearestPlayer = this.level().getNearestPlayer(this, 64.0D);
             if (nearestPlayer == null) {
                 
@@ -136,12 +132,10 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
                 }
             }
         }
-
-        
         if (isExploding()) {
             explosionTimer--;
             if (explosionTimer <= 0) {
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     executeExplosionEffects();
                 }
                 this.discard();
@@ -149,9 +143,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             }
             return;
         }
-
-        
-        if (this.level().isClientSide && this.isAlive()) {
+        if (this.level().isClientSide() && this.isAlive()) {
             if (particleCooldown > 0) {
                 particleCooldown--;
             } else {
@@ -159,35 +151,23 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
                 particleCooldown = this.random.nextInt(MAX_PARTICLE_INTERVAL - MIN_PARTICLE_INTERVAL + 1) + MIN_PARTICLE_INTERVAL;
             }
         }
-
-        
-        if (!this.level().isClientSide) {
-
-            
+        if (!this.level().isClientSide()) {
             if (healCooldown > 0) {
                 healCooldown--;
             }
-
-            
             checkHealFromSmallForm();
-
-            
             if (contactDamageCooldown > 0) {
                 contactDamageCooldown--;
             } else {
                 contactDamageCooldown = CONTACT_DAMAGE_INTERVAL;
                 applyContactDamage();
             }
-
-            
             updateFloating();
         }
     }
-
-    
     private void generateParticles() {
         
-        if (!this.level().isClientSide) return;
+        if (!this.level().isClientSide()) return;
 
         ParticleOptions particle = ModParticles.SPLASHI.get();
         if (particle == null) return;
@@ -197,8 +177,6 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             double x = this.getX() + (this.random.nextDouble() - 0.5) * this.getBbWidth() * 0.05;
             double y = this.getY() + this.random.nextDouble() * this.getBbHeight();
             double z = this.getZ() + (this.random.nextDouble() - 0.5) * this.getBbWidth() * 0.05;
-
-            
             this.level().addParticle(
                     particle,
                     x, y, z,
@@ -206,8 +184,6 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             );
         }
     }
-
-    
     private void executeExplosionEffects() {
         if (this.level() instanceof ServerLevel serverLevel) {
             
@@ -225,15 +201,13 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             serverLevel.sendParticles(ModParticles.SPLASHI.get(),
                     this.getX(), this.getY() + 0.5, this.getZ(),
                     10, 0.6, 0.4, 0.6, 0.3);
-
-            
             AABB explosionArea = this.getBoundingBox().inflate(4.0);
             for (LivingEntity entity : this.level().getEntitiesOfClass(LivingEntity.class, explosionArea)) {
                 if (entity != null && entity.isAlive() && entity != this && !IParasite.isParasiteByTagOrInterface(entity)) {
                     double distance = this.distanceTo(entity);
                     if (distance <= 4.0) {
                         float damage = 45.0F * (float)(1.0 - distance / 4.0);
-                        entity.hurt(this.damageSources().explosion(this, null), damage);
+                        entity.hurtOrSimulate(this.damageSources().explosion(this, null), damage);
 
                         double dx = entity.getX() - this.getX();
                         double dz = entity.getZ() - this.getZ();
@@ -249,12 +223,10 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
                     }
                 }
             }
-
-            
             int rupterCount = this.random.nextInt(2) + 1;
             for (int i = 0; i < rupterCount; i++) {
                 EntityType<?> rupterType = ModEntities.RIPPER.get();
-                Entity rupter = rupterType.create(this.level());
+                Entity rupter = rupterType.create(this.level(), EntitySpawnReason.MOB_SUMMONED);
 
                 if (rupter != null) {
                     double offsetX = (this.random.nextDouble() - 0.5) * 2.0;
@@ -279,9 +251,6 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         RandomSoundGoal(LargeIncompleteForm largeIncompleteForm) {
             this.largeIncompleteForm = largeIncompleteForm;
         }
-
-        
-
         @Override
         public boolean canUse() {
             return largeIncompleteForm.isAlive() && !largeIncompleteForm.isAggressive();
@@ -304,12 +273,8 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             largeIncompleteForm.playSound(ModSoundEvents.INCOMPLETE_FORM_IDLE.get(), 1.0F, 1.0F);
         }
     }
-
-    
     private void applyContactDamage() {
         if (!this.isAlive()) return;
-
-        
         AABB contactArea = this.getBoundingBox().inflate(1.5);
         double maxDistSq = 1.5 * 1.5; 
 
@@ -320,7 +285,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             }
             
             if (this.distanceToSqr(entity) <= maxDistSq) {
-                entity.hurt(this.damageSources().mobAttack(this), 3.0F);
+                entity.hurtOrSimulate(this.damageSources().mobAttack(this), 3.0F);
 
                 if (entity instanceof Player) {
                     double dx = entity.getX() - this.getX();
@@ -353,10 +318,8 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             }
         }
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (isExploding()) {
             return false;
         }
@@ -367,25 +330,23 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             }
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
 
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<LargeIncompleteForm>(this, "controller", 6, this::predicate));
+        controllers.add(new AnimationController<LargeIncompleteForm>("controller", 6, this::predicate));
     }
 
-    private PlayState predicate(AnimationState<LargeIncompleteForm> event) {
-        AnimationController<LargeIncompleteForm> controller = event.getController();
-        LargeIncompleteForm largeIncompleteForm = event.getAnimatable();
+    private PlayState predicate(AnimationTest<LargeIncompleteForm> event) {
+        AnimationController<LargeIncompleteForm> controller = event.controller();
+        LargeIncompleteForm largeIncompleteForm = event.animatable();
 
         if (largeIncompleteForm.isExploding()) {
             controller.setAnimation(RawAnimation.begin().thenLoop("dead"));
@@ -402,8 +363,6 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.factory;
     }
-
-    
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         return ModSoundEvents.INCOMPLETE_FORM_HUNT.get();
@@ -414,8 +373,6 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         
         return ModSoundEvents.INCOMPLETE_FORM_DEATH.get();
     }
-
-    
     @Override
     public void die(DamageSource source) {
         if (isExploding()) {
@@ -442,7 +399,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             return;
         }
 
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F) {
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F) {
             triggerExplosionDeath(source);
             this.onDeath(source);
         } else {
@@ -461,12 +418,10 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         this.setTarget(null);
         this.entityData.set(DATA_IS_EXPLODING, true);
     }
-
-    
     public static boolean checkLargeIncompleteFormSpawnRules(
             EntityType<LargeIncompleteForm> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
@@ -478,11 +433,11 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     }
 
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
 
     @Override
@@ -495,21 +450,15 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             IParasite.super.onKillEntity(killedEntity);
         }
     }
-
-    
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public Packet<ClientGamePacketListener> getAddEntityPacket(net.minecraft.server.level.ServerEntity serverEntity) {
+        return super.getAddEntityPacket(serverEntity);
     }
-
-    
     private int floatingTime;
-
-    
     private void updateFloating() {
         if (this.isInWater()) {
             
@@ -518,11 +467,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
                 
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
-
-            
             this.floatingTime++;
-
-            
             if (this.floatingTime > 10) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.4D, 0.0D));
                 this.floatingTime = 0;
@@ -531,8 +476,6 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             this.floatingTime = 0;
         }
     }
-
-    
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
@@ -544,14 +487,10 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             super.travel(travelVector);
         }
     }
-
-    
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return true;
     }
-
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;

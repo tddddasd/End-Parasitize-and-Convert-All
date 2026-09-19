@@ -31,7 +31,7 @@ public class AcidDamageSystem {
 
     
     public static void registerAcidDamageArea(Level level, BlockPos acidPos, Set<BlockPos> waterPositions) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         Map<BlockPos, AcidDamageData> damageMap = levelDamageData.computeIfAbsent(
                 level, k -> new HashMap<>()
@@ -45,7 +45,7 @@ public class AcidDamageSystem {
 
     
     public static void removeAcidDamageArea(Level level, BlockPos acidPos, Set<BlockPos> waterPositions) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         Map<BlockPos, AcidDamageData> damageMap = levelDamageData.get(level);
         if (damageMap == null) return;
@@ -91,8 +91,8 @@ public class AcidDamageSystem {
             
             entity.hurt(entity.damageSources().magic(), 1.0F);
 
-            Registry<DamageType> registry = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-            Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
+            Registry<DamageType> registry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+            Holder<DamageType> holder = registry.getOrThrow(ModDamageTypes.MINIMUM);
             DamageSource minimumSource = new DamageSource(holder);
             entity.hurt(minimumSource, 0.5F + distanceFactor);
 
@@ -106,7 +106,7 @@ public class AcidDamageSystem {
         
         
         entity.addEffect(new MobEffectInstance(
-                ModEffects.CORROSIVE.get(),
+                ModEffects.CORROSIVE,
                 100, 
                 0,   
                 false,
@@ -115,7 +115,7 @@ public class AcidDamageSystem {
 
         if (distance <= 4) {
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     600, 
                     1,   
                     false,
@@ -123,7 +123,7 @@ public class AcidDamageSystem {
             ));
         } else {
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     600, 
                     0,  
                     false,

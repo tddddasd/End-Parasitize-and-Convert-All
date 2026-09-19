@@ -79,7 +79,7 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             return (lvl, pos, st, be) -> {
                 if (be instanceof InfestedSweetBerryBushBlockEntity bushEntity) {
                     InfestedSweetBerryBushBlockEntity.tick(lvl, pos, st, bushEntity);
@@ -91,7 +91,8 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
 
     // ========== 原有交互（减速 + 伤害 + 30秒COTH） ==========
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         if (!(entity instanceof LivingEntity living)) {
             return;
         }
@@ -101,27 +102,28 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
             living.makeStuckInBlock(state, new Vec3(0.8, 0.75, 0.8));
 
             // 当 age=2 且移动时造成伤害 + 30秒 COTH
-            if (!level.isClientSide && state.getValue(AGE) >= 3) {
+            if (!level.isClientSide() && state.getValue(AGE) >= 3) {
                 if (living.xOld != living.getX() || living.zOld != living.getZ()) {
                     living.hurt(level.damageSources().sweetBerryBush(), 1.0F);
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0)); // I级 30秒
+                    living.addEffect(new MobEffectInstance(ModEffects.COTH, 600, 0)); // I级 30秒
                 }
             }
         }
     }
 
+    // 26.1.2: {@code Block#use} became {@code useItemOn} / {@code useWithoutItem}.
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
-                                 InteractionHand hand, BlockHitResult hit) {
+    protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player,
+                                          InteractionHand hand, BlockHitResult hit) {
         if (state.getValue(AGE) >= 3) {
-            if (!level.isClientSide) {
-                int count = 1 + level.random.nextInt(3);
+            if (!level.isClientSide()) {
+                int count = 1 + level.getRandom().nextInt(3);
                 popResource(level, pos, new ItemStack(ModItems.INFESTED_SWEET_BERRIES.get(), count));
                 level.setBlock(pos, state.setValue(AGE, 0), 3);
                 level.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
                         SoundSource.BLOCKS, 1.0F, 1.0F);
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         return InteractionResult.PASS;
     }

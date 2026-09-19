@@ -1,12 +1,22 @@
 package org.tdddd.epca.impl.overworld.registry.items.item;
 
+import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -15,7 +25,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -68,106 +77,97 @@ public class LivingArmorBox extends Item {
     private static final int BIOMASS_THRESHOLD_SOUL_I = 47500;
     private static final int BIOMASS_THRESHOLD_SOUL_II = 49000;
 
+    // 26.1.2: item NBT is gone. The box keeps its serialised state in the vanilla
+    // minecraft:custom_data component, with the same NBT keys as the 1.20.1 version.
+    private static CustomData customData(ItemStack stack) {
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+    }
+
+    private static void updateData(ItemStack stack, Consumer<CompoundTag> consumer) {
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, consumer);
+    }
+
     public LivingArmorBox(Properties properties) {
         super(properties);
     }
 
-    @Override
-    public boolean isEnchantable(ItemStack stack) {
-        return true;
-    }
+
+
 
     @Override
-    public int getEnchantmentValue() {
-        return 16;
-    }
-
-    @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        EnchantmentCategory category = enchantment.category;
-        // 允许所有盔甲相关类别（含通用、头、胸、腿、足）以及可穿戴诅咒类
-        return category == EnchantmentCategory.ARMOR ||
-                category == EnchantmentCategory.ARMOR_HEAD ||
-                category == EnchantmentCategory.ARMOR_CHEST ||
-                category == EnchantmentCategory.ARMOR_LEGS ||
-                category == EnchantmentCategory.ARMOR_FEET ||
-                category == EnchantmentCategory.WEARABLE;
-    }
-
-    @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull TooltipDisplay display, @NotNull Consumer<Component> tooltip, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
 
         
-        tooltip.add(Component.literal(""));
-        tooltip.add(Component.translatable(TOOLTIP_STORAGE_INFO).withStyle(ChatFormatting.DARK_GREEN));
+        tooltip.accept(Component.literal(""));
+        tooltip.accept(Component.translatable(TOOLTIP_STORAGE_INFO).withStyle(ChatFormatting.DARK_GREEN));
 
         List<ItemStack> storedItems = getStoredItems(stack);
         int storedCount = storedItems.size();
 
         
-        tooltip.add(Component.translatable(TOOLTIP_STORAGE_SPACE, storedCount, MAX_STORED_ITEMS)
+        tooltip.accept(Component.translatable(TOOLTIP_STORAGE_SPACE, storedCount, MAX_STORED_ITEMS)
                 .withStyle(storedCount >= MAX_STORED_ITEMS ? ChatFormatting.DARK_RED : ChatFormatting.DARK_GREEN));
 
         
         if (storedCount > 0) {
-            tooltip.add(Component.translatable(TOOLTIP_STORED_ITEMS).withStyle(ChatFormatting.DARK_GREEN));
+            tooltip.accept(Component.translatable(TOOLTIP_STORED_ITEMS).withStyle(ChatFormatting.DARK_GREEN));
             for (int i = 0; i < Math.min(storedCount, 8); i++) {
                 ItemStack storedItem = storedItems.get(i);
-                tooltip.add(Component.literal("  " + (i + 1) + ". " + storedItem.getDisplayName().getString())
+                tooltip.accept(Component.literal("  " + (i + 1) + ". " + storedItem.getDisplayName().getString())
                         .withStyle(ChatFormatting.DARK_GREEN));
             }
 
             
             if (storedCount > 8) {
-                tooltip.add(Component.translatable(TOOLTIP_MORE_ITEMS, storedCount - 8)
+                tooltip.accept(Component.translatable(TOOLTIP_MORE_ITEMS, storedCount - 8)
                         .withStyle(ChatFormatting.DARK_GREEN));
             }
         } else {
-            tooltip.add(Component.translatable(TOOLTIP_EMPTY).withStyle(ChatFormatting.DARK_GREEN));
+            tooltip.accept(Component.translatable(TOOLTIP_EMPTY).withStyle(ChatFormatting.DARK_GREEN));
         }
 
         
         int biomass = getBiomass(stack);
-        tooltip.add(Component.literal(""));
-        tooltip.add(Component.translatable(TOOLTIP_BIOMASS, biomass, MAX_BIOMASS)
+        tooltip.accept(Component.literal(""));
+        tooltip.accept(Component.translatable(TOOLTIP_BIOMASS, biomass, MAX_BIOMASS)
                 .withStyle(biomass >= MAX_BIOMASS ? ChatFormatting.DARK_RED : ChatFormatting.DARK_GREEN));
 
         
-        tooltip.add(Component.literal(""));
-        tooltip.add(Component.translatable(TOOLTIP_USAGE).withStyle(ChatFormatting.GREEN));
-        tooltip.add(Component.translatable(TOOLTIP_USE_RIGHT_CLICK).withStyle(ChatFormatting.GREEN));
-        tooltip.add(Component.translatable(TOOLTIP_USE_SNEAK_RIGHT_CLICK_WITH_ITEM).withStyle(ChatFormatting.GREEN));
-        tooltip.add(Component.translatable(TOOLTIP_USE_SNEAK_RIGHT_CLICK_EMPTY).withStyle(ChatFormatting.GREEN));
+        tooltip.accept(Component.literal(""));
+        tooltip.accept(Component.translatable(TOOLTIP_USAGE).withStyle(ChatFormatting.GREEN));
+        tooltip.accept(Component.translatable(TOOLTIP_USE_RIGHT_CLICK).withStyle(ChatFormatting.GREEN));
+        tooltip.accept(Component.translatable(TOOLTIP_USE_SNEAK_RIGHT_CLICK_WITH_ITEM).withStyle(ChatFormatting.GREEN));
+        tooltip.accept(Component.translatable(TOOLTIP_USE_SNEAK_RIGHT_CLICK_EMPTY).withStyle(ChatFormatting.GREEN));
         
-        tooltip.add(Component.translatable(TOOLTIP_BIOMASS_USAGE).withStyle(ChatFormatting.GREEN));
+        tooltip.accept(Component.translatable(TOOLTIP_BIOMASS_USAGE).withStyle(ChatFormatting.GREEN));
 
         
         int adaptationCount = getBoxAdaptationCount(stack);
         if (adaptationCount > 0) {
-            tooltip.add(Component.literal(""));
-            tooltip.add(Component.translatable(TOOLTIP_ADAPTATION_LEVEL, adaptationCount).withStyle(ChatFormatting.DARK_GREEN));
+            tooltip.accept(Component.literal(""));
+            tooltip.accept(Component.translatable(TOOLTIP_ADAPTATION_LEVEL, adaptationCount).withStyle(ChatFormatting.DARK_GREEN));
             float damageReduction = getBoxDamageReduction(stack);
-            tooltip.add(Component.translatable(TOOLTIP_DAMAGE_REDUCTION, String.format("%.1f", damageReduction * 100))
+            tooltip.accept(Component.translatable(TOOLTIP_DAMAGE_REDUCTION, String.format("%.1f", damageReduction * 100))
                     .withStyle(ChatFormatting.DARK_GREEN));
         }
 
         
         boolean isOpen = getState(stack);
-        tooltip.add(Component.literal(""));
+        tooltip.accept(Component.literal(""));
         String stateText = isOpen ? TOOLTIP_STATE_EQUIPPED : TOOLTIP_STATE_UNEQUIPPED;
-        tooltip.add(Component.translatable(TOOLTIP_CURRENT_STATE, Component.translatable(stateText))
+        tooltip.accept(Component.translatable(TOOLTIP_CURRENT_STATE, Component.translatable(stateText))
                 .withStyle(isOpen ? ChatFormatting.DARK_GREEN : ChatFormatting.DARK_RED));
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack boxStack = player.getItemInHand(hand);
 
         if (!level.isClientSide()) {
             
             if (player.isShiftKeyDown()) {
-                return InteractionResultHolder.success(boxStack);
+                return InteractionResult.SUCCESS.heldItemTransformedTo(boxStack);
             }
 
             boolean isOpen = getState(boxStack);
@@ -176,13 +176,13 @@ public class LivingArmorBox extends Item {
                 
                 equipLivingArmorSet(player, boxStack);
                 setState(boxStack, true);
-                return InteractionResultHolder.success(boxStack);
+                return InteractionResult.SUCCESS.heldItemTransformedTo(boxStack);
 
             } else if (isOpen && hasLivingArmor(player)) {
                 
                 removeLivingArmor(player);
                 setState(boxStack, false);
-                return InteractionResultHolder.success(boxStack);
+                return InteractionResult.SUCCESS.heldItemTransformedTo(boxStack);
             } else {
                 
                 if (isOpen && !hasLivingArmor(player)) {
@@ -191,7 +191,7 @@ public class LivingArmorBox extends Item {
             }
         }
 
-        return InteractionResultHolder.pass(boxStack);
+        return InteractionResult.PASS;
     }
 
     
@@ -225,12 +225,12 @@ public class LivingArmorBox extends Item {
             
             biomassToAdd = 20;
             itemsToConsume = calculateConsumableItems(currentBiomass, biomassToAdd, heldItem.getCount());
-        } else if (heldItem.isEdible()) {
+        } else if (heldItem.has(DataComponents.FOOD)) {
             
-            FoodProperties foodProperties = heldItem.getFoodProperties(player);
+            FoodProperties foodProperties = heldItem.get(DataComponents.FOOD);
             if (foodProperties != null) {
-                int nutrition = foodProperties.getNutrition();
-                float saturation = foodProperties.getSaturationModifier();
+                int nutrition = foodProperties.nutrition();
+                float saturation = foodProperties.saturation();
                 biomassToAdd = (int) Math.ceil((nutrition + saturation) * 2);
                 itemsToConsume = calculateConsumableItems(currentBiomass, biomassToAdd, heldItem.getCount());
             }
@@ -278,7 +278,7 @@ public class LivingArmorBox extends Item {
 
         
         for (ItemStack storedItem : storedItems) {
-            if (ItemStack.isSameItemSameTags(storedItem, itemToStore)) {
+            if (ItemStack.isSameItemSameComponents(storedItem, itemToStore)) {
                 return false;
             }
         }
@@ -309,41 +309,19 @@ public class LivingArmorBox extends Item {
 
     
     public List<ItemStack> getStoredItems(ItemStack boxStack) {
-        List<ItemStack> items = new ArrayList<>();
-
-        if (!boxStack.hasTag()) {
-            return items;
+        ListTag itemsList = customData(boxStack).copyTag().getListOrEmpty(TAG_STORED_ITEMS);
+        if (itemsList.isEmpty()) {
+            return new ArrayList<>();
         }
-
-        CompoundTag tag = boxStack.getTag();
-        if (!tag.contains(TAG_STORED_ITEMS)) {
-            return items;
-        }
-
-        ListTag itemsList = tag.getList(TAG_STORED_ITEMS, CompoundTag.TAG_COMPOUND);
-        for (int i = 0; i < itemsList.size(); i++) {
-            CompoundTag itemTag = itemsList.getCompound(i);
-            ItemStack itemStack = ItemStack.of(itemTag);
-            if (!itemStack.isEmpty()) {
-                items.add(itemStack);
-            }
-        }
-
-        return items;
+        List<ItemStack> parsed = ItemStack.CODEC.listOf().parse(NbtOps.INSTANCE, itemsList).result().orElse(List.of());
+        return parsed.stream().filter(itemStack -> !itemStack.isEmpty())
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     
     private void setStoredItems(ItemStack boxStack, List<ItemStack> items) {
-        CompoundTag tag = boxStack.getOrCreateTag();
-        ListTag itemsList = new ListTag();
-
-        for (ItemStack item : items) {
-            CompoundTag itemTag = new CompoundTag();
-            item.save(itemTag);
-            itemsList.add(itemTag);
-        }
-
-        tag.put(TAG_STORED_ITEMS, itemsList);
+        Tag encoded = ItemStack.CODEC.listOf().encodeStart(NbtOps.INSTANCE, items).result().orElseThrow();
+        updateData(boxStack, tag -> tag.put(TAG_STORED_ITEMS, encoded));
     }
 
     
@@ -379,30 +357,33 @@ public class LivingArmorBox extends Item {
 
     private void equipLivingArmorSet(Player player, ItemStack boxStack) {
         int boxAdaptationCount = getBoxAdaptationCount(boxStack);
-        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(boxStack);
+        ItemEnchantments enchantments = boxStack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+
+        Holder<Enchantment> bindingCurse = player.level().registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.BINDING_CURSE);
 
         ItemStack helmet = new ItemStack(ModItems.LIVING_HELMET.get());
         syncAdaptationFromBox(helmet, boxAdaptationCount);
-        EnchantmentHelper.setEnchantments(enchantments, helmet);
-        helmet.enchant(Enchantments.BINDING_CURSE, 1);
+        EnchantmentHelper.setEnchantments(helmet, enchantments);
+        helmet.enchant(bindingCurse, 1);
         player.setItemSlot(EquipmentSlot.HEAD, helmet);
 
         ItemStack chestplate = new ItemStack(ModItems.LIVING_CHESTPLATE.get());
         syncAdaptationFromBox(chestplate, boxAdaptationCount);
-        EnchantmentHelper.setEnchantments(enchantments, chestplate);
-        chestplate.enchant(Enchantments.BINDING_CURSE, 1);
+        EnchantmentHelper.setEnchantments(chestplate, enchantments);
+        chestplate.enchant(bindingCurse, 1);
         player.setItemSlot(EquipmentSlot.CHEST, chestplate);
 
         ItemStack leggings = new ItemStack(ModItems.LIVING_LEGGINGS.get());
         syncAdaptationFromBox(leggings, boxAdaptationCount);
-        EnchantmentHelper.setEnchantments(enchantments, leggings);
-        leggings.enchant(Enchantments.BINDING_CURSE, 1);
+        EnchantmentHelper.setEnchantments(leggings, enchantments);
+        leggings.enchant(bindingCurse, 1);
         player.setItemSlot(EquipmentSlot.LEGS, leggings);
 
         ItemStack boots = new ItemStack(ModItems.LIVING_BOOTS.get());
         syncAdaptationFromBox(boots, boxAdaptationCount);
-        EnchantmentHelper.setEnchantments(enchantments, boots);
-        boots.enchant(Enchantments.BINDING_CURSE, 1);
+        EnchantmentHelper.setEnchantments(boots, enchantments);
+        boots.enchant(bindingCurse, 1);
         player.setItemSlot(EquipmentSlot.FEET, boots);
     }
 
@@ -437,28 +418,22 @@ public class LivingArmorBox extends Item {
 
     
     private void syncAdaptationFromBox(ItemStack armorStack, int adaptationCount) {
-        armorStack.getOrCreateTag().putInt(TAG_ADAPTATION_COUNT, Math.min(adaptationCount, MAX_ADAPTATIONS_PER_PIECE));
+        updateData(armorStack, tag -> tag.putInt(TAG_ADAPTATION_COUNT, Math.min(adaptationCount, MAX_ADAPTATIONS_PER_PIECE)));
     }
 
     
     private int getArmorAdaptationCount(ItemStack armorStack) {
-        if (!armorStack.hasTag()) {
-            return 0;
-        }
-        return armorStack.getTag().getInt(TAG_ADAPTATION_COUNT);
+        return customData(armorStack).copyTag().getIntOr(TAG_ADAPTATION_COUNT, 0);
     }
 
     
     public int getBoxAdaptationCount(ItemStack boxStack) {
-        if (!boxStack.hasTag()) {
-            return 0;
-        }
-        return boxStack.getTag().getInt(TAG_ADAPTATION_COUNT);
+        return customData(boxStack).copyTag().getIntOr(TAG_ADAPTATION_COUNT, 0);
     }
 
     
     public void setBoxAdaptationCount(ItemStack boxStack, int count) {
-        boxStack.getOrCreateTag().putInt(TAG_ADAPTATION_COUNT, Math.min(count, MAX_ADAPTATIONS_PER_PIECE * 4));
+        updateData(boxStack, tag -> tag.putInt(TAG_ADAPTATION_COUNT, Math.min(count, MAX_ADAPTATIONS_PER_PIECE * 4)));
     }
 
     
@@ -477,12 +452,12 @@ public class LivingArmorBox extends Item {
 
     
     public boolean getState(ItemStack stack) {
-        return stack.getOrCreateTag().getBoolean(TAG_STATE);
+        return customData(stack).copyTag().getBooleanOr(TAG_STATE, false);
     }
 
     
     public void setState(ItemStack stack, boolean state) {
-        stack.getOrCreateTag().putBoolean(TAG_STATE, state);
+        updateData(stack, tag -> tag.putBoolean(TAG_STATE, state));
     }
 
     
@@ -490,11 +465,7 @@ public class LivingArmorBox extends Item {
         if (boxStack == null || boxStack.isEmpty()) {
             return 0;
         }
-        CompoundTag tag = boxStack.getTag();
-        if (tag == null || !tag.contains(TAG_BIOMASS)) {
-            return 0; 
-        }
-        return tag.getInt(TAG_BIOMASS);
+        return customData(boxStack).copyTag().getIntOr(TAG_BIOMASS, 0);
     }
 
     
@@ -502,8 +473,7 @@ public class LivingArmorBox extends Item {
         if (boxStack == null || boxStack.isEmpty()) {
             return;
         }
-        CompoundTag tag = boxStack.getOrCreateTag();
-        tag.putInt(TAG_BIOMASS, Math.min(Math.max(biomass, 0), MAX_BIOMASS));
+        updateData(boxStack, tag -> tag.putInt(TAG_BIOMASS, Math.min(Math.max(biomass, 0), MAX_BIOMASS)));
     }
 
     
@@ -522,21 +492,16 @@ public class LivingArmorBox extends Item {
         return amount;
     }
 
-    @Override
-    public boolean isFireResistant() {
-        
-        return hasNetheriteModuleI(this.getDefaultInstance());
-    }
 
     @Override
-    public boolean canBeHurtBy(DamageSource damageSource) {
+    public boolean canBeHurtBy(ItemStack stack, DamageSource damageSource) {
         
-        if (hasNetheriteModuleI(this.getDefaultInstance())) {
+        if (hasNetheriteModuleI(stack)) {
             if (damageSource.is(DamageTypeTags.IS_FIRE)) {
                 return false;
             }
         }
-        return super.canBeHurtBy(damageSource);
+        return super.canBeHurtBy(stack, damageSource);
     }
 
     
@@ -604,27 +569,27 @@ public class LivingArmorBox extends Item {
 
         
         if (biomass >= BIOMASS_THRESHOLD_HASTE) {
-            player.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, duration, 0, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.HASTE, duration, 0, false, false, true));
         }
         
         if (biomass >= BIOMASS_THRESHOLD_SPEED) {
-            player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, duration, 0, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.SPEED, duration, 0, false, false, true));
         }
         
         if (biomass >= BIOMASS_THRESHOLD_DAMAGE_RESISTANCE) {
-            player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, duration, 0, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, duration, 0, false, false, true));
         }
         
         if (biomass >= BIOMASS_THRESHOLD_STRENGTH_II) {
-            player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, duration, 1, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, duration, 1, false, false, true));
         } else if (biomass >= BIOMASS_THRESHOLD_STRENGTH_I) {
-            player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, duration, 0, false, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, duration, 0, false, false, true));
         }
 
         if (biomass >= BIOMASS_THRESHOLD_SOUL_II) {
-            player.addEffect(new MobEffectInstance(ModEffects.SOUL_PROTECTION.get(), duration, 1, false, false, true));
+            player.addEffect(new MobEffectInstance(ModEffects.SOUL_PROTECTION, duration, 1, false, false, true));
         } else if (biomass >= BIOMASS_THRESHOLD_SOUL_I) {
-            player.addEffect(new MobEffectInstance(ModEffects.SOUL_PROTECTION.get(), duration, 0, false, false, true));
+            player.addEffect(new MobEffectInstance(ModEffects.SOUL_PROTECTION, duration, 0, false, false, true));
         }
     }
 }

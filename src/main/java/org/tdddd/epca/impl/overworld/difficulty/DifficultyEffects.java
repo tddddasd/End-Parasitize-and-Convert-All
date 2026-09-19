@@ -8,7 +8,7 @@ public class DifficultyEffects {
 
     
     public static DifficultyLevel getEffectiveDifficulty(Level level) {
-        if (level.isClientSide) return DifficultyLevel.NORMAL;
+        if (level.isClientSide()) return DifficultyLevel.NORMAL;
         WorldDifficultyData data = WorldDifficultyData.get((ServerLevel) level);
         DifficultyLevel diff = data.getDifficulty();
         if (diff == DifficultyLevel.CUSTOM) {
@@ -20,7 +20,7 @@ public class DifficultyEffects {
 
     
     public static float getSpawnRateMultiplier(Level level) {
-        if (level.isClientSide) return 1.0f;
+        if (level.isClientSide()) return 1.0f;
         WorldDifficultyData data = WorldDifficultyData.get((ServerLevel) level);
         if (data.getDifficulty() == DifficultyLevel.CUSTOM) {
             return data.getCustomSpawnRate();
@@ -32,7 +32,7 @@ public class DifficultyEffects {
     
     
     public static boolean isRewardEnabled(Level level) {
-        if (level.isClientSide) return true;
+        if (level.isClientSide()) return true;
         WorldDifficultyData data = WorldDifficultyData.get((ServerLevel) level);
         DifficultyLevel diff = data.getDifficulty();
         if (diff == DifficultyLevel.CUSTOM) {
@@ -88,7 +88,7 @@ public class DifficultyEffects {
     
     public static boolean shouldDropLoot(Level level) {
         DifficultyLevel diff = getEffectiveDifficulty(level);
-        if (diff == DifficultyLevel.EASY && level.random.nextFloat() < 0.25f) {
+        if (diff == DifficultyLevel.EASY && level.getRandom().nextFloat() < 0.25f) {
             return false;
         }
         return true;

@@ -40,6 +40,12 @@ public class InfestedInfestedChiseledStoneBricks extends Block implements Infest
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(NATURAL_SPAWN);
+
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(InfestedInfestedChiseledStoneBricks::new);
     }
 
     @Override
@@ -50,10 +56,18 @@ public class InfestedInfestedChiseledStoneBricks extends Block implements Infest
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    /**
+     * 26.1.2: {@code onRemove(BlockState,Level,BlockPos,BlockState,boolean)} became
+     * {@code affectNeighborsAfterRemoval(BlockState,ServerLevel,BlockPos,boolean)}, which no longer
+     * receives the incoming state.
+     */
+    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        if (movedByPiston) {
+            super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+            return;
+        }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             
             if (!movedByPiston) {
                 
@@ -67,7 +81,9 @@ public class InfestedInfestedChiseledStoneBricks extends Block implements Infest
                     } else {
                         
                         ItemStack mainHand = nearestPlayer.getMainHandItem();
-                        if (mainHand.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0) {
+if (net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLevel(
+                                level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+                                        .getOrThrow(Enchantments.SILK_TOUCH), mainHand) > 0) {
                             shouldSpawn = false;
                         }
                     }
@@ -76,7 +92,7 @@ public class InfestedInfestedChiseledStoneBricks extends Block implements Infest
                 if (shouldSpawn) {
                     
                     EntityType<?> infestedSilverfishEntityType = ModEntities.INFESTED_SILVERFISH.get();
-                    Entity infestedSilverfish = infestedSilverfishEntityType.create(level);
+Entity infestedSilverfish = infestedSilverfishEntityType.create(level, net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
                     if (infestedSilverfish != null) {
                         infestedSilverfish.setPos(
                                 pos.getX() + 0.5,

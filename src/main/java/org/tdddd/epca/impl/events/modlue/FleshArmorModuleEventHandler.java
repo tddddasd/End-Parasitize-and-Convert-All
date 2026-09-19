@@ -1,13 +1,15 @@
 package org.tdddd.epca.impl.events.modlue;
 
+import org.tdddd.epca.impl.epca;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.items.item.FleshArmorModuleI;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorBox;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorItem;
@@ -17,10 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class FleshArmorModuleEventHandler {
 
-    private static final UUID FLESH_ARMOR_HEALTH_MODIFIER_ID = UUID.fromString("a1b2c3dd-e5f6-7890-abcd-ef1234567890");
+    private static final Identifier FLESH_ARMOR_HEALTH_MODIFIER_ID = Identifier.fromNamespaceAndPath(epca.MODID, "flesh_armor_health");
     private static final String MODIFIER_NAME = "FleshArmorHealthBonus";
 
     
@@ -30,12 +32,8 @@ public class FleshArmorModuleEventHandler {
     private static final Map<UUID, Double> playerArmorStatsCache = new HashMap<>();
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        Player player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
 
         
         if (player.level().isClientSide()) {
@@ -182,14 +180,9 @@ public class FleshArmorModuleEventHandler {
 
         
         if (healthBonus > 0) {
-            AttributeModifier healthModifier = new AttributeModifier(
-                    FLESH_ARMOR_HEALTH_MODIFIER_ID,
-                    MODIFIER_NAME,
-                    healthBonus,
-                    AttributeModifier.Operation.ADDITION
-            );
+            AttributeModifier healthModifier = new AttributeModifier(FLESH_ARMOR_HEALTH_MODIFIER_ID, healthBonus, AttributeModifier.Operation.ADD_VALUE);
 
-            if (!player.getAttribute(Attributes.MAX_HEALTH).hasModifier(healthModifier)) {
+            if (!player.getAttribute(Attributes.MAX_HEALTH).hasModifier(healthModifier.id())) {
                 player.getAttribute(Attributes.MAX_HEALTH).addTransientModifier(healthModifier);
 
                 

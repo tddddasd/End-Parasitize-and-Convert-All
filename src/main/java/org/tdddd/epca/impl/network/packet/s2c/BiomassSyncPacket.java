@@ -1,12 +1,26 @@
 package org.tdddd.epca.impl.network.packet.s2c;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.overworld.data.BiomassClientData;
 
-import java.util.function.Supplier;
+/**
+ * 服务端 → 客户端：生物质点数与巢穴领袖标记。
+ *
+ * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
+ * <b>线上字段与顺序不变</b>：{@code boolean isNestLeader} + {@code int points}。
+ */
+public class BiomassSyncPacket implements CustomPacketPayload {
 
-public class BiomassSyncPacket {
+    public static final CustomPacketPayload.Type<BiomassSyncPacket> TYPE =
+            new CustomPacketPayload.Type<>(ModNetwork.id("biomass_sync"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, BiomassSyncPacket> STREAM_CODEC =
+            CustomPacketPayload.codec(BiomassSyncPacket::encode, BiomassSyncPacket::new);
+
     private final boolean isNestLeader;
     private final int points;
 
@@ -15,18 +29,22 @@ public class BiomassSyncPacket {
         this.points = points;
     }
 
-    public BiomassSyncPacket(FriendlyByteBuf buf) {
+    public BiomassSyncPacket(RegistryFriendlyByteBuf buf) {
         this.isNestLeader = buf.readBoolean();
         this.points = buf.readInt();
     }
 
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(RegistryFriendlyByteBuf buf) {
         buf.writeBoolean(isNestLeader);
         buf.writeInt(points);
     }
 
-    public static void handle(BiomassSyncPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> BiomassClientData.update(packet.isNestLeader, packet.points));
-        ctx.get().setPacketHandled(true);
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(BiomassSyncPacket packet, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> BiomassClientData.update(packet.isNestLeader, packet.points));
     }
 }

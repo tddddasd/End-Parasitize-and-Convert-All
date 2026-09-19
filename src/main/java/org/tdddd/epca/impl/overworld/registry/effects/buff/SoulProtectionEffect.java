@@ -8,9 +8,10 @@ public class SoulProtectionEffect extends MobEffect {
         super(MobEffectCategory.BENEFICIAL, 0xFFD700);
     }
 
+    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
+    // 1.20.1 returned false, so applyEffectTick never ran; keep that exactly.
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
         return false;
     }
 }

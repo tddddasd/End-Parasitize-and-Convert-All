@@ -5,10 +5,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 
@@ -18,13 +18,15 @@ public class ModCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, epca.MODID);
 
-    public static final RegistryObject<CreativeModeTab> EPCA_MAIN_TAB = CREATIVE_TABS.register("main_tab",
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EPCA_MAIN_TAB = CREATIVE_TABS.register("main_tab",
             () -> {
                 CustomTab.Builder builder = (CustomTab.Builder) new CustomTab.Builder(CreativeModeTab.Row.TOP, 0)
                         .icon(() -> new ItemStack(ModItems.PARASITE_VISCERA.get()))
                         .title(Component.translatable("itemGroup.epca.main_tab"));
 
-                builder.add(i(ModItems.COPPER_NUGGET));
+                // 26.1.2: 铜粒（minecraft:copper_nugget）不再出现在 EPCA 的创造模式标签页里。
+                // 模组自己的 copper_nugget 已删除，而原版标签页（CreativeModeTabs.INGREDIENTS）
+                // 本来就自带原版铜粒，所以这里既不再添加、也不做任何注入。
                 builder.add(i(ModItems.PARASITE_VISCERA));
                 builder.add(i(ModItems.FINS_FIN));
                 builder.add(i(ModItems.DISEASED_HEART));

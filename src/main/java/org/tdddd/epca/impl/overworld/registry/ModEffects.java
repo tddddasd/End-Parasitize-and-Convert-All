@@ -1,10 +1,10 @@
 package org.tdddd.epca.impl.overworld.registry;
 
 import net.minecraft.world.effect.MobEffect;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.overworld.registry.effects.buff.SoulProtectionEffect;
 import org.tdddd.epca.impl.overworld.registry.effects.buff.CamouflageEffect;
 import org.tdddd.epca.impl.overworld.registry.effects.buff.SpiritEffect;
@@ -14,48 +14,48 @@ import org.tdddd.epca.impl.overworld.registry.effects.debuff.*;
 
 public class ModEffects {
     public static final DeferredRegister<MobEffect> EFFECTS =
-            DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, epca.MODID);
+            DeferredRegister.create(BuiltInRegistries.MOB_EFFECT, epca.MODID);
 
-    public static final RegistryObject<MobEffect> BLEEDING =
+    public static final DeferredHolder<MobEffect, MobEffect> BLEEDING =
             EFFECTS.register("bleeding", BleedingEffect::new);
 
-    public static final RegistryObject<MobEffect> VIRAL =
+    public static final DeferredHolder<MobEffect, MobEffect> VIRAL =
             EFFECTS.register("viral", ViralEffect::new);
 
-    public static final RegistryObject<MobEffect> FEAR =
+    public static final DeferredHolder<MobEffect, MobEffect> FEAR =
             EFFECTS.register("fear", FearEffect::new);
 
-    public static final RegistryObject<MobEffect> COTH =
+    public static final DeferredHolder<MobEffect, MobEffect> COTH =
             EFFECTS.register("coth", CothEffect::new);
 
-    public static final RegistryObject<MobEffect> CONTEMPT_INORGANIC =
+    public static final DeferredHolder<MobEffect, MobEffect> CONTEMPT_INORGANIC =
             EFFECTS.register("contempt_inorganic", ContemptInorganicEffect::new);
 
-    public static final RegistryObject<MobEffect> CORROSIVE =
+    public static final DeferredHolder<MobEffect, MobEffect> CORROSIVE =
             EFFECTS.register("corrosive", CorrosiveEffect::new);
 
-    public static final RegistryObject<MobEffect> RAGE =
+    public static final DeferredHolder<MobEffect, MobEffect> RAGE =
             EFFECTS.register("rage", RageEffect::new);
 
-    public static final RegistryObject<MobEffect> NEEDLER =
+    public static final DeferredHolder<MobEffect, MobEffect> NEEDLER =
             EFFECTS.register("needler", NeedlerEffect::new);
 
-    public static final RegistryObject<MobEffect> DEEP_SNEAK =
+    public static final DeferredHolder<MobEffect, MobEffect> DEEP_SNEAK =
             EFFECTS.register("deep_sneak", DeepSneakEffect::new);
 
-    public static final RegistryObject<MobEffect> SOLIDIFY =
+    public static final DeferredHolder<MobEffect, MobEffect> SOLIDIFY =
             EFFECTS.register("solidify", SolidifyEffect::new);
 
-    public static final RegistryObject<MobEffect> ENDER_EROSION =
+    public static final DeferredHolder<MobEffect, MobEffect> ENDER_EROSION =
             EFFECTS.register("ender_erosion", EnderErosionEffect::new);
 
-    public static final RegistryObject<MobEffect> SPIRIT =
+    public static final DeferredHolder<MobEffect, MobEffect> SPIRIT =
             EFFECTS.register("spirit", SpiritEffect::new);
 
-    public static final RegistryObject<MobEffect> CAMOUFLAGE =
+    public static final DeferredHolder<MobEffect, MobEffect> CAMOUFLAGE =
             EFFECTS.register("camouflage", CamouflageEffect::new);
 
-    public static final RegistryObject<MobEffect> SOUL_PROTECTION =
+    public static final DeferredHolder<MobEffect, MobEffect> SOUL_PROTECTION =
             EFFECTS.register("soul_protection", SoulProtectionEffect::new);
 
     public static void register(IEventBus eventBus) {

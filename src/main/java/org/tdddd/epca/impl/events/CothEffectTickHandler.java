@@ -1,23 +1,24 @@
 package org.tdddd.epca.impl.events;
 
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class CothEffectTickHandler {
     private static final List<EffectRemovalRequest> removalRequests = new ArrayList<>();
 
     
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
+    public static void onServerTick(ServerTickEvent.Post event) {
+        
 
         
         if (!removalRequests.isEmpty()) {
@@ -32,25 +33,25 @@ public class CothEffectTickHandler {
 
     
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        
 
-        LivingEntity player = event.player;
+        LivingEntity player = event.getEntity();
 
         
-        if (player.level().isClientSide) return;
+        if (player.level().isClientSide()) return;
 
         
-        if (player.getPersistentData().getBoolean("ShouldRemoveCothEffect")) {
+        if (player.getPersistentData().getBoolean("ShouldRemoveCothEffect").orElse(false)) {
             player.getPersistentData().remove("ShouldRemoveCothEffect");
-            int amplifierToRemove = player.getPersistentData().getInt("CothEffectToRemoveAmplifier");
+            int amplifierToRemove = player.getPersistentData().getInt("CothEffectToRemoveAmplifier").orElse(0);
             player.getPersistentData().remove("CothEffectToRemoveAmplifier");
 
-            MobEffectInstance cothEffect = player.getEffect(ModEffects.COTH.get());
+            MobEffectInstance cothEffect = player.getEffect(ModEffects.COTH);
 
             
             if (cothEffect != null && cothEffect.getAmplifier() == amplifierToRemove) {
-                player.removeEffect(ModEffects.COTH.get());
+                player.removeEffect(ModEffects.COTH);
 
                 
                 
@@ -63,7 +64,7 @@ public class CothEffectTickHandler {
 
     
     private static void checkAndFixEffectLevels(LivingEntity entity) {
-        MobEffectInstance currentCoth = entity.getEffect(ModEffects.COTH.get());
+        MobEffectInstance currentCoth = entity.getEffect(ModEffects.COTH);
         if (currentCoth == null) return;
 
         
@@ -88,10 +89,10 @@ public class CothEffectTickHandler {
         public void process() {
             if (!entity.isAlive()) return;
 
-            MobEffectInstance cothEffect = entity.getEffect(ModEffects.COTH.get());
+            MobEffectInstance cothEffect = entity.getEffect(ModEffects.COTH);
             
             if (cothEffect != null && cothEffect.getAmplifier() == amplifier) {
-                entity.removeEffect(ModEffects.COTH.get());
+                entity.removeEffect(ModEffects.COTH);
             }
         }
     }

@@ -2,7 +2,7 @@ package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -29,11 +29,11 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.*;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractInfestedEntity;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +41,8 @@ import java.util.List;
 public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotatable, IGlowRenderable {
 
     @Override
-    public ResourceLocation getGlowTexture() {
-        return new ResourceLocation(epca.MODID, "textures/entity/infested_zombie_glow.png");
+    public Identifier getGlowTexture() {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/infested_zombie_glow.png");
     }
 
     private boolean isHim = false;
@@ -87,10 +87,10 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
     // ────────── Custom AI Step ──────────
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             // Cliff jumping
             if (jumpCooldown > 0) jumpCooldown--;
 
@@ -114,7 +114,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
                             double jumpPower = 0.45;
                             double horizontalSpeed = 0.28;
                             this.setDeltaMovement(dir.x * horizontalSpeed, jumpPower, dir.z * horizontalSpeed);
-                            this.hasImpulse = true;
+                            this.hurtMarked = true;
                             this.jumpCooldown = 10;
                         }
                     }
@@ -125,14 +125,14 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
 
     private double getGroundHeightAt(BlockPos pos) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
-        int startY = Math.min((int) this.getY() + 5, level().getMaxBuildHeight());
+        int startY = Math.min((int) this.getY() + 5, level().getMaxY());
         mutable.setY(startY);
-        while (mutable.getY() > level().getMinBuildHeight()) {
+        while (mutable.getY() > level().getMinY()) {
             BlockState state = level().getBlockState(mutable);
             if (state.isSolid()) return mutable.getY() + 1;
             mutable.setY(mutable.getY() - 1);
         }
-        return level().getMinBuildHeight();
+        return level().getMinY();
     }
 
     // ────────── Tick ──────────
@@ -147,7 +147,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         applyInfestedMovementSpeed();
 
         // Animation state update
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             boolean isMoving = isMoving();
             boolean hasTarget = this.getTarget() != null;
             if (isMoving && hasTarget) {
@@ -179,7 +179,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         if (this.level() instanceof ServerLevel serverLevel && burstPos != null) {
             long seed = this.random.nextLong();
             int delay = this.random.nextInt(30) + 40;
-            serverLevel.getServer().tell(new TickTask(
+            serverLevel.getServer().schedule(new TickTask(
                     serverLevel.getServer().getTickCount() + delay,
                     () -> spawnBuglins(serverLevel, burstPos, RandomSource.create(seed))
             ));
@@ -190,8 +190,8 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
 
     @Override
     protected void onNormalDeathActions(DamageSource source) {
-        if (!this.level().isClientSide && this.random.nextFloat() < 0.3f) {
-            WalkingZombieHead head = ModEntities.WALKING_ZOMBIE_HEAD.get().create(this.level());
+        if (!this.level().isClientSide() && this.random.nextFloat() < 0.3f) {
+            WalkingZombieHead head = ModEntities.WALKING_ZOMBIE_HEAD.get().create(this.level(), EntitySpawnReason.MOB_SUMMONED);
             if (head != null) {
                 head.setPos(this.getX(), this.getY(), this.getZ());
                 head.setYRot(this.random.nextFloat() * 360.0F);
@@ -205,7 +205,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 3; i++) {
             EntityType<?> buglinType = ModEntities.CURBUG.get();
-            Entity buglin = buglinType.create(level);
+            Entity buglin = buglinType.create(level, EntitySpawnReason.MOB_SUMMONED);
             if (buglin != null) {
                 double offsetX = random.nextDouble() - 0.5;
                 double offsetY = random.nextDouble() * 0.5;
@@ -243,18 +243,18 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<InfestedZombie> event) {
+    private PlayState animationPredicate(AnimationTest<InfestedZombie> event) {
         if (this.isFakingDeath()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("dead"));
+            event.setAnimation(RawAnimation.begin().thenLoop("dead"));
         } else if (this.isRunning()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("run"));
+            event.setAnimation(RawAnimation.begin().thenLoop("run"));
         } else if (this.isWalking()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+            event.setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
         return PlayState.CONTINUE;
     }
@@ -264,11 +264,11 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
     public static boolean checkInfestedZombieSpawnRules(
             EntityType<InfestedZombie> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 2 || stage > 4) return false;
         }
@@ -397,9 +397,9 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
     }
 
     @Override
-    public boolean doHurtTarget(Entity target) {
-        boolean hurt = super.doHurtTarget(target);
-        if (hurt && distanceToSqr(target) <= 9 && !level().isClientSide && target instanceof LivingEntity) {
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        boolean hurt = super.doHurtTarget(level, target);
+        if (hurt && distanceToSqr(target) <= 9 && !level().isClientSide() && target instanceof LivingEntity) {
             boostPath();
         }
         return hurt;
@@ -416,9 +416,8 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty,
-                                        MobSpawnType pSpawnType, @Nullable SpawnGroupData pSpawnGroupData,
-                                        @Nullable CompoundTag pDataTag) {
-        pSpawnGroupData = super.finalizeSpawn(pLevel, pDifficulty, pSpawnType, pSpawnGroupData, pDataTag);
+                                        EntitySpawnReason pSpawnType, @Nullable SpawnGroupData pSpawnGroupData) {
+        pSpawnGroupData = super.finalizeSpawn(pLevel, pDifficulty, pSpawnType, pSpawnGroupData);
         // 1% 概率标记为稀有
         if (this.random.nextFloat() < 0.01f) {
             this.isHim = true;
@@ -427,16 +426,16 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag pCompound) {
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput pCompound) {
         super.addAdditionalSaveData(pCompound);
         pCompound.putBoolean("Him", this.isHim);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag pCompound) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput pCompound) {
         super.readAdditionalSaveData(pCompound);
-        if (pCompound.contains("Him")) {
-            this.isHim = pCompound.getBoolean("Him");
+        if (pCompound.read("Him", com.mojang.serialization.Codec.BOOL).isPresent()) {
+            this.isHim = pCompound.getBooleanOr("Him", false);
         }
     }
 

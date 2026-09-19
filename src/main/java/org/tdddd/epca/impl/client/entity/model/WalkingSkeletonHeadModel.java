@@ -1,22 +1,26 @@
 package org.tdddd.epca.impl.client.entity.model;
 
-import net.minecraft.resources.ResourceLocation;
+import org.tdddd.epca.impl.client.entity.EpcaGeoModel;
+import com.geckolib.renderer.base.GeoRenderState;
+
+import net.minecraft.resources.Identifier;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingSkeletonHead;
-import software.bernie.geckolib.model.GeoModel;
+import com.geckolib.model.GeoModel;
 
 public class WalkingSkeletonHeadModel extends GeoModel<WalkingSkeletonHead> {
     @Override
-    public ResourceLocation getModelResource(WalkingSkeletonHead entity) {
-        return new ResourceLocation("epca", "geo/entity/walking_skeleton_head.geo.json");
+    public Identifier getModelResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath("epca", "entity/walking_skeleton_head");
     }
 
     @Override
-    public ResourceLocation getTextureResource(WalkingSkeletonHead entity) {
-        return entity.getTextureResource();
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        WalkingSkeletonHead entity = EpcaGeoModel.entityOf(renderState, WalkingSkeletonHead.class);
+        return entity == null ? null : entity.getTextureResource();
     }
 
     @Override
-    public ResourceLocation getAnimationResource(WalkingSkeletonHead entity) {
-        return new ResourceLocation("epca", "animations/walking_skeleton_head.animation.json");
+    public Identifier getAnimationResource(WalkingSkeletonHead entity) {
+        return Identifier.fromNamespaceAndPath("epca", "walking_skeleton_head");
     }
 }

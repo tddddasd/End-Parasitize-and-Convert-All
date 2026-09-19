@@ -1,46 +1,55 @@
 package org.tdddd.epca.impl.client.entity;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.world.entity.LivingEntity;
-import software.bernie.geckolib.cache.object.BakedGeoModel;
+import com.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.renderer.base.RenderPassInfo;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 
 /**
  * Contract for rendering additional layers on top of a GeckoLib model.
  * Implementations are registered per entity type and invoked by the
- * {@link EpcaGeoRenderer}'s delegate render layer after the main model pass.
+ * {@link EpcaGeoRenderer}'s delegate render layer.
  *
- * <p>Pattern mirrors {@code IGeoLayerProvider} from OpenSRP's GeoBaseRender.</p>
+ * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <p>The GeckoLib 4 contract was one imperative method
+ * {@code renderAdditionalLayer(renderer, entity, bakedModel, renderType, bufferSource, buffer, poseStack, partialTick, packedLight, packedOverlay)}
+ * — it drew immediately and had direct access to the entity, the {@code MultiBufferSource}
+ * and the {@code VertexConsumer}.</p>
+ * <p>GeckoLib 5 removed all three: rendering is split into a render-state <b>extraction</b>
+ * phase (while the animatable is still reachable) and a <b>submission</b> phase (after the
+ * entity is forgotten, where draw calls go into a {@code SubmitNodeCollector}). The contract
+ * therefore has two methods:</p>
+ * <ul>
+ *   <li>{@link #addLayerData} — extraction: read whatever per-entity data the layer needs
+ *       (reachable via {@link EpcaGeoModel#entityOf}) into the render state.</li>
+ *   <li>{@link #submitLayer} — submission: emit this layer's draw calls. The renderer is
+ *       reachable again through {@link RenderPassInfo#renderer()}.</li>
+ * </ul>
  */
 public interface IGeoLayerProvider {
 
     /**
-     * Render an additional layer on top of the entity model.
+     * Render-state extraction phase. The entity being rendered is reachable through
+     * {@link EpcaGeoModel#entityOf(GeoRenderState)}.
      *
-     * @param renderer      the renderer instance (cast to {@code EpcaGeoRenderer} as needed)
-     * @param entity        the entity being rendered
-     * @param bakedModel    the current baked model (with animation state for this frame)
-     * @param renderType    current render type of the main pass
-     * @param bufferSource  multibuffer source
-     * @param buffer        current vertex consumer
-     * @param poseStack     current pose stack (already at entity position)
-     * @param partialTick   render partial tick
-     * @param packedLight   packed light coordinates
-     * @param packedOverlay packed overlay coordinates
+     * @param renderState the render state being filled
+     * @param partialTick render partial tick
+     */
+    default void addLayerData(GeoRenderState renderState, float partialTick) {
+    }
+
+    /**
+     * Rendering phase. Use {@link EpcaGeoRenderer#submitModelWithAlpha} /
+     * {@link EpcaGeoRenderer#submitModelWithArgb} to draw the model again with an
+     * additional texture, render type, colour and alpha.
+     *
+     * <p>{@code RenderPassInfo} is taken raw for the reason documented on
+     * {@link EpcaGeoRenderer}: the {@code GeoRenderState} bound on its type parameter is only
+     * satisfied by vanilla render states at runtime.</p>
+     *
+     * @param passInfo  the active render pass
+     * @param collector the collector draw calls are submitted to
      */
     @SuppressWarnings("rawtypes")
-    void renderAdditionalLayer(
-            EpcaGeoRenderer renderer,
-            LivingEntity entity,
-            BakedGeoModel bakedModel,
-            RenderType renderType,
-            MultiBufferSource bufferSource,
-            VertexConsumer buffer,
-            PoseStack poseStack,
-            float partialTick,
-            int packedLight,
-            int packedOverlay
-    );
+    default void submitLayer(RenderPassInfo passInfo, SubmitNodeCollector collector) {
+    }
 }

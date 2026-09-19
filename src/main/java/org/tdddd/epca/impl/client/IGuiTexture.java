@@ -1,11 +1,11 @@
 package org.tdddd.epca.impl.client;
 
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public interface IGuiTexture {
 
-    public ResourceLocation getLocation();
+    public Identifier getLocation();
 
     public int getStartX();
 

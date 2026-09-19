@@ -43,9 +43,9 @@ public abstract class AbstractPovertyEntity extends AbstractEpcaEntity implement
     // ────────── Synched data ──────────
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(TICK_COUNT, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(TICK_COUNT, 0);
     }
 
     // ────────── Tick counter ──────────

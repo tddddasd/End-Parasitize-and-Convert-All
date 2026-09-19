@@ -1,22 +1,26 @@
 package org.tdddd.epca.impl.client.entity.model;
 
-import net.minecraft.resources.ResourceLocation;
+import org.tdddd.epca.impl.client.entity.EpcaGeoModel;
+import com.geckolib.renderer.base.GeoRenderState;
+
+import net.minecraft.resources.Identifier;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSkeleton;
-import software.bernie.geckolib.model.GeoModel;
+import com.geckolib.model.GeoModel;
 
 public class InfestedSkeletonModel extends GeoModel<InfestedSkeleton> {
     @Override
-    public ResourceLocation getModelResource(InfestedSkeleton entity) {
-        return new ResourceLocation("epca", "geo/entity/infested_skeleton.geo.json");
+    public Identifier getModelResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath("epca", "entity/infested_skeleton");
     }
 
     @Override
-    public ResourceLocation getTextureResource(InfestedSkeleton entity) {
-        return entity.getTextureResource();
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        InfestedSkeleton entity = EpcaGeoModel.entityOf(renderState, InfestedSkeleton.class);
+        return entity == null ? null : entity.getTextureResource();
     }
 
     @Override
-    public ResourceLocation getAnimationResource(InfestedSkeleton entity) {
-        return new ResourceLocation("epca", "animations/infested_skeleton.animation.json");
+    public Identifier getAnimationResource(InfestedSkeleton entity) {
+        return Identifier.fromNamespaceAndPath("epca", "infested_skeleton");
     }
 }

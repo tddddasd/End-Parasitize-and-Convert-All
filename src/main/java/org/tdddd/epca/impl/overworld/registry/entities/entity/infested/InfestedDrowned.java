@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -28,8 +29,8 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -51,14 +52,14 @@ import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,20 +73,18 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     }
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedDrowned.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedDrowned.class, EntityDataSerializers.BOOLEAN);
-    private static final UUID WANDER_SPEED_ID = UUID.fromString("A4766B59-7066-4402-AD81-0E3B7B6C2B9B");
-    private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, "Wander speed reduction", -0.35, AttributeModifier.Operation.MULTIPLY_TOTAL);
+    private static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath("epca", "a4766b59-7066-4402-ad81-0e3b7b6c2b9b");
+    private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     
     private int breakCooldown = 0;
     private int jumpCooldown = 0;
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             breakCooldown = tryBreakLightSources(this, breakCooldown);
-
-            
             if (jumpCooldown > 0) {
                 jumpCooldown--;
             }
@@ -96,26 +95,15 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                     double dx = target.getX() - this.getX();
                     double dz = target.getZ() - this.getZ();
                     double horizontalDistSq = dx * dx + dz * dz;
-
-                    
                     if (horizontalDistSq > 1.0) {
                         Vec3 dir = new Vec3(dx, 0, dz).normalize();
-
-                        
                         double currentGroundY = getGroundHeightAt(this.blockPosition());
-
-                        
                         double forward1Y = getGroundHeightAt(
                                 BlockPos.containing(this.getX() + dir.x, this.getY(), this.getZ() + dir.z)
                         );
-
-                        
                         double forward2Y = getGroundHeightAt(
                                 BlockPos.containing(this.getX() + dir.x * 2, this.getY(), this.getZ() + dir.z * 2)
                         );
-
-                        
-                        
                         boolean isCliffToJump = (currentGroundY - forward1Y > 0.5) && (currentGroundY - forward2Y <= 0.5);
 
                         if (isCliffToJump) {
@@ -128,7 +116,7 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                                     jumpPower,
                                     dir.z * horizontalSpeed
                             );
-                            this.hasImpulse = true;          
+                            this.hurtMarked = true;          
                             this.jumpCooldown = 10;           
                         }
                     }
@@ -138,30 +126,18 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             handleIceTargeting();
         }
     }
-
-    
     private static final double WATER_ATTACK_RANGE = 4.5D; 
     private static final double WATER_ATTACK_RANGE_SQR = WATER_ATTACK_RANGE * WATER_ATTACK_RANGE; 
-
-    
     private static final double CLOSE_ATTACK_RANGE_SQR = 2 * 2; 
     private static final double MAX_TRACKING_RANGE_SQR = 24 * 24;   
-
-    
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20; 
     private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20; 
-
-    
     private int deepSneakCheckCooldown = 0;
     private static final int DEEP_SNEAK_CHECK_INTERVAL = 100; 
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedDrowned.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 30;
     private BlockPos deathPosition; 
-
-    
     private int iceBreakCooldown = 0;
     private static final int ICE_BREAK_COOLDOWN_TICKS = 10; 
 
@@ -172,7 +148,8 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
         
         this.moveControl = new InfestedMoveControl(this);
-        this.setMaxUpStep(0.5F);
+        var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
+        if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
         
         this.navigation = new GroundPathNavigation(this, level);
     }
@@ -181,8 +158,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     public boolean canPassThroughInfestedLeaves() {
         return true; 
     }
-
-    
     static class InfestedMoveControl extends MoveControl {
         private final InfestedDrowned drowned;
         private float targetPitch; 
@@ -203,22 +178,14 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                             target.getEyeY() - drowned.getEyeY(),
                             target.getZ() - drowned.getZ()
                     );
-
-                    
                     float targetYaw = (float) Math.toDegrees(Math.atan2(toTarget.z, toTarget.x)) - 90.0F;
                     drowned.setYRot(this.rotlerp(drowned.getYRot(), targetYaw, 90.0F));
                     drowned.yBodyRot = drowned.getYRot();
-
-                    
                     double horizontalDist = Math.sqrt(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
                     float rawPitch = (float) -Math.toDegrees(Math.atan2(toTarget.y, horizontalDist));
                     this.targetPitch = Mth.clamp(rawPitch, -75.0F, 75.0F);
                 }
-
-                
                 drowned.setXRot(this.rotlerp(drowned.getXRot(), targetPitch, 20.0F));
-
-                
                 if (target != null) {
                     double dy = target.getY() - this.drowned.getY();
                     if (Math.abs(dy) > 0.5) {
@@ -232,15 +199,11 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                     this.drowned.setSpeed(0.0F);
                     return;
                 }
-
-                
                 double dx = this.wantedX - this.drowned.getX();
                 double dy = this.wantedY - this.drowned.getY();
                 double dz = this.wantedZ - this.drowned.getZ();
                 double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
                 dy /= distance;
-
-                
                 float baseSpeed = (float)(this.speedModifier * this.drowned.getAttributeValue(Attributes.MOVEMENT_SPEED));
                 
                 if (this.drowned.isSwimming()) {
@@ -248,8 +211,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                 }
                 float adjustedSpeed = Mth.lerp(0.125F, this.drowned.getSpeed(), baseSpeed);
                 this.drowned.setSpeed(adjustedSpeed);
-
-                
                 this.drowned.setDeltaMovement(
                         this.drowned.getDeltaMovement().add(
                                 (double)adjustedSpeed * dx * 0.005D,
@@ -263,8 +224,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             }
         }
     }
-
-    
     private void handleIceTargeting() {
         if (iceBreakCooldown > 0) {
             iceBreakCooldown--;
@@ -291,28 +250,20 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             double dz = target.getZ() - this.getZ();
             double horizontalDistSq = dx * dx + dz * dz;
             if (target.getY() <= this.getY() || horizontalDistSq > 4.0) continue; 
-
-            
             double distToTarget = this.distanceToSqr(target);
             if (distToTarget < closestDist) {
                 closestDist = distToTarget;
                 targetToMove = target;
             }
-
-            
             double distToIceSq = this.distanceToSqr(icePos.getX() + 0.5, icePos.getY(), icePos.getZ() + 0.5);
             if (distToIceSq <= 1.44) {
                 icePositionsToBreak.add(icePos.immutable());
             }
         }
-
-        
         if (targetToMove != null) {
             BlockPos targetBottomPos = targetToMove.blockPosition().below();
             this.getNavigation().moveTo(targetBottomPos.getX() + 0.5, targetBottomPos.getY(), targetBottomPos.getZ() + 0.5, 1.0);
         }
-
-        
         if (!icePositionsToBreak.isEmpty() && iceBreakCooldown == 0) {
             int toBreak = this.random.nextInt(2) + 1; 
             Collections.shuffle(icePositionsToBreak);
@@ -338,23 +289,19 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
         }
         return false;
     }
-
-    
     private double getGroundHeightAt(BlockPos pos) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
-        int startY = Math.min((int) this.getY() + 5, level().getMaxBuildHeight());
+        int startY = Math.min((int) this.getY() + 5, level().getMaxY());
         mutable.setY(startY);
-        while (mutable.getY() > level().getMinBuildHeight()) {
+        while (mutable.getY() > level().getMinY()) {
             BlockState state = level().getBlockState(mutable);
             if (state.isSolid()) {
                 return mutable.getY() + 1; 
             }
             mutable.setY(mutable.getY() - 1);
         }
-        return level().getMinBuildHeight();
+        return level().getMinY();
     }
-
-    
     private boolean shouldJumpOverCliff(LivingEntity target) {
         if (target == null) return false;
 
@@ -364,8 +311,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
         if (horizontalDistSq <= 1.0) return false; 
 
         Vec3 dir = new Vec3(dx, 0, dz).normalize();
-
-        
         double currentGround = getGroundHeightAt(this.blockPosition());
 
         int width = 0;
@@ -424,11 +369,7 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, true));
-
-        
         this.goalSelector.addGoal(1, new RandomSwimmingGoal(this, 1.0D, 30));
-
-        
         this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
@@ -440,17 +381,11 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     @Override
     public void tick() {
         super.tick();
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001; 
             boolean hasTarget = this.getTarget() != null;
-
-            
             this.setRunning(isMoving && hasTarget);
             this.setWalking(isMoving && !hasTarget);
-
-            
             if (isMoving && hasTarget) {
                 this.setWalking(false);
             } else if (isMoving && !hasTarget) {
@@ -461,18 +396,14 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                 this.setWalking(false);
             }
         }
-
-        
-        if (!this.level().isClientSide && !this.isFakingDeath()) {
+        if (!this.level().isClientSide() && !this.isFakingDeath()) {
             if (this.isInWater() && !this.isSwimming()) {
                 this.setSwimming(true);
             } else if (!this.isInWater() && this.isSwimming()) {
                 this.setSwimming(false);
             }
         }
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             LivingEntity target = this.getTarget();
             if (target != null) {
                 
@@ -492,12 +423,10 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
                 
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
-
-                    
                     if (this.level() instanceof ServerLevel serverLevel) {
                         
                         serverLevel.sendParticles(ModParticles.COTH.get(), 
@@ -506,20 +435,16 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                                 0.3, 0.45, 0.3, 
                                 0.0 
                         );
-
-                        
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 7, 
                                 0.4, 0.3, 0.4, 
                                 0.2); 
-
-                        
                         BlockPos deathPos = this.deathPosition;
                         long seed = this.random.nextLong();
                         int delay = this.random.nextInt(30) + 40;
 
-                        serverLevel.getServer().tell(new TickTask(
+                        serverLevel.getServer().schedule(new TickTask(
                                 serverLevel.getServer().getTickCount() + delay,
                                 () -> {
                                     spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed));
@@ -527,31 +452,25 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                                     spawnBuglins(serverLevel, deathPos, RandomSource.create(seed));
                                 }
                         ));
-
-                        
                         AreaEffectCloud cloud = new AreaEffectCloud(serverLevel,
                                 deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
                         cloud.setRadius(1.5F); 
                         cloud.setDuration(60); 
                         cloud.setRadiusPerTick(0); 
                         cloud.setWaitTime(0); 
-
-                        
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH.get(),
+                                ModEffects.COTH,
                                 1200, 
                                 1,    
                                 false, true
                         ));
 
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.DEEP_SNEAK.get(),
+                                ModEffects.DEEP_SNEAK,
                                 600, 
                                 14,    
                                 false, true
                         ));
-
-                        
                         cloud.addEffect(new MobEffectInstance(
                                 MobEffects.POISON,
                                 200,  
@@ -561,24 +480,16 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-
-                
                 this.discard();
                 return; 
             }
             
             return;
         }
-
-        
         AttributeInstance movementAttribute = this.getAttribute(Attributes.MOVEMENT_SPEED);
         if (movementAttribute != null) {
             boolean hasTarget = this.getTarget() != null;
-
-            
             movementAttribute.removeModifier(WANDER_SPEED_ID);
-
-            
             if (hasTarget) {
                 
                 movementAttribute.setBaseValue(chaseSpeed);
@@ -587,36 +498,26 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                 movementAttribute.setBaseValue(baseSpeed);
                 movementAttribute.addTransientModifier(WANDER_SPEED_REDUCTION);
             }
-
-            
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 double horizontalMovement = this.getDeltaMovement().horizontalDistance();
                 boolean isActuallyMoving = horizontalMovement > 0.01; 
 
                 this.setRunning(isActuallyMoving && hasTarget);
                 this.setWalking(isActuallyMoving && !hasTarget);
-
-                
                 if (this.isRunning()) {
                     this.setWalking(false);
                 }
             }
         }
 
-        if (!this.level().isClientSide) {
-
-            
+        if (!this.level().isClientSide()) {
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-
-                    
                     playAmbientSound();
                 }
             }
-
-            
             if (deepSneakCheckCooldown > 0) {
                 deepSneakCheckCooldown--;
             } else {
@@ -626,27 +527,23 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             }
         }
     }
-
-    
     private void checkAndApplyDeepSneak() {
         
-        if (this.getEffect(ModEffects.DEEP_SNEAK.get()) == null) {
+        if (this.getEffect(ModEffects.DEEP_SNEAK) == null) {
             
             this.addEffect(new MobEffectInstance(
-                    ModEffects.DEEP_SNEAK.get(),
+                    ModEffects.DEEP_SNEAK,
                     Integer.MAX_VALUE, 
                     0,                 
                     false, false, false
             ));
         }
     }
-
-    
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 3; i++) {
             
             EntityType<?> buglinType = ModEntities.CURBUG.get(); 
-            Entity buglin = buglinType.create(level);
+            Entity buglin = buglinType.create(level, EntitySpawnReason.MOB_SUMMONED);
 
             if (buglin != null) {
                 
@@ -659,8 +556,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                         pos.getY() + offsetY,
                         pos.getZ() + 0.5 + offsetZ
                 );
-
-                
                 if (buglin instanceof LivingEntity) {
                     ((LivingEntity) buglin).setDeltaMovement(
                             (random.nextDouble() - 0.5) * 0.1,
@@ -668,23 +563,16 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                             (random.nextDouble() - 0.5) * 0.1
                     );
                 }
-
-                
                 level.addFreshEntity(buglin);
             }
         }
     }
-
-    
     public void playAmbientSound() {
         if (!this.isSilent() && this.random.nextInt(3) == 0) {
             
             this.playSound(SoundEvents.DROWNED_AMBIENT, 0.85F, 0.7F);
         }
     }
-
-    
-
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         
@@ -710,10 +598,8 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             this.playSound(deathSound, 0.85F, 0.7F); 
         }
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         if (source.getEntity() instanceof LivingEntity attacker) {
             
@@ -721,58 +607,40 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                 return false; 
             }
         }
-
-        
         if (isFakingDeath() || isInvulnerable()) {
             return false;
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
 
         return result;
     }
-
-    
     @Override
-    public boolean doHurtTarget(Entity target) {
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
         
         if (this.isInWater()) {
             double distSqr = this.distanceToSqr(target);
-
-            
             if (distSqr <= CLOSE_ATTACK_RANGE_SQR) {
                 return performCloseRangeAttack(target);
             }
-
-            
             if (distSqr > WATER_ATTACK_RANGE_SQR) {
                 return false;
             }
         }
 
-        boolean attackSuccess = super.doHurtTarget(target);
+        boolean attackSuccess = super.doHurtTarget(level, target);
 
         return attackSuccess;
     }
-
-    
     private boolean performCloseRangeAttack(Entity target) {
         if (target instanceof LivingEntity livingTarget) {
             float baseDamage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
-
-            
             float actualDamage = calculateActualDamage(baseDamage, livingTarget);
-
-            
-            boolean success = livingTarget.hurt(this.damageSources().mobAttack(this), actualDamage);
+            boolean success = livingTarget.hurtOrSimulate(this.damageSources().mobAttack(this), actualDamage);
 
             if (success) {
                 
@@ -784,11 +652,9 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
         }
         return false;
     }
-
-    
     private float calculateActualDamage(float baseDamage, LivingEntity target) {
         float actualDamage = baseDamage;
-        MobEffectInstance resistance = target.getEffect(MobEffects.DAMAGE_RESISTANCE);
+        MobEffectInstance resistance = target.getEffect(MobEffects.RESISTANCE);
 
         if (resistance != null) {
             int level = resistance.getAmplifier() + 1;
@@ -800,10 +666,8 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             IParasite.super.onKillEntity(killedEntity);
-
-            
             this.addEffect(new MobEffectInstance(
                     MobEffects.REGENERATION,
                     60,     
@@ -812,39 +676,37 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             ));
         }
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<InfestedDrowned> event) {
+    private PlayState animationPredicate(AnimationTest<InfestedDrowned> event) {
         
         boolean inWater = this.isInWater();
 
         if (inWater) {
             
             if (this.isFakingDeath()) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("dead_water"));
+                event.setAnimation(RawAnimation.begin().thenLoop("dead_water"));
             } else if (event.isMoving()) {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("swim"));
+                event.setAnimation(RawAnimation.begin().thenLoop("swim"));
             } else {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle_water"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle_water"));
             }
         } else {
             
             if (this.isFakingDeath()) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("dead"));
+                event.setAnimation(RawAnimation.begin().thenLoop("dead"));
             } else if (this.isRunning()) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("run"));
+                event.setAnimation(RawAnimation.begin().thenLoop("run"));
             } else if (this.isWalking()) {
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
+                event.setAnimation(RawAnimation.begin().thenLoop("walk"));
             } else {
                 
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+                event.setAnimation(RawAnimation.begin().thenLoop("idle"));
             }
         }
         return PlayState.CONTINUE;
@@ -853,16 +715,14 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     public static boolean checkInfestedDrownedSpawnRules(
             EntityType<InfestedDrowned> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
         
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
-
-            
             if (stage < 2 || stage > 4) {
                 return false;
             }
@@ -876,8 +736,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
         
         return level.isUnobstructed(this) && level.getBlockState(this.blockPosition()).is(Blocks.WATER);
     }
-
-    
     private final double baseSpeed = 0.27D; 
     private final double chaseSpeed = 0.38D; 
 
@@ -885,8 +743,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return factory;
     }
-
-    
     @Override
     public void die(DamageSource source) {
         
@@ -894,8 +750,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             super.die(source);
             return;
         }
-
-        
         DamageAdaptationConfig config = DamageAdaptation.getEntityConfig(this);
         if (config != null) {
             int minKills = config.getMinimumKillCount();
@@ -917,9 +771,7 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             this.onDeath(source);
             return;
         }
-
-        
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
             this.onDeath(source); 
         } else {
@@ -927,7 +779,7 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             super.die(source);
             this.onDeath(source); 
             
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 if (this.random.nextFloat() < 0.3f) {
                     WalkingDrownedHead head = new WalkingDrownedHead(ModEntities.WALKING_DROWNED_HEAD.get(), this.level());
                     head.setPos(this.getX(), this.getY(), this.getZ());
@@ -941,17 +793,15 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     private static final EntityDataAccessor<Boolean> DATA_IS_INVULNERABLE = SynchedEntityData.defineId(InfestedDrowned.class, EntityDataSerializers.BOOLEAN);
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_FAKING_DEATH, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_FAKING_DEATH, false);
         
-        this.entityData.define(DATA_IS_INVULNERABLE, false);
+        entityData.define(DATA_IS_INVULNERABLE, false);
         
-        this.entityData.define(DATA_IS_RUNNING, false);
-        this.entityData.define(DATA_IS_WALKING, false);
+        entityData.define(DATA_IS_RUNNING, false);
+        entityData.define(DATA_IS_WALKING, false);
     }
-
-    
     public boolean isRunning() {
         return this.entityData.get(DATA_IS_RUNNING);
     }
@@ -959,8 +809,6 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     public boolean isWalking() {
         return this.entityData.get(DATA_IS_WALKING);
     }
-
-    
     private void setRunning(boolean running) {
         this.entityData.set(DATA_IS_RUNNING, running);
     }
@@ -976,49 +824,27 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     public void setInvulnerable(boolean invulnerable) {
         this.entityData.set(DATA_IS_INVULNERABLE, invulnerable);
     }
-
-
-
-    
     private void triggerFakeDeath(DamageSource source) {
         
         setFakingDeath(true);
         setInvulnerable(true);
         fakeDeathTimer = 30; 
         deathPosition = this.blockPosition(); 
-
-        
         this.setHealth(0.02F);
-
-        
         this.setNoAi(true);
-
-        
         this.setInvulnerable(true);
-
-        
         this.setTarget(null);
 
         this.setPose(Pose.DYING); 
-
-        
         this.entityData.set(DATA_IS_FAKING_DEATH, true);
     }
-
-    
     private static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
-        if (level.isClientSide || deathPos == null) return;
+        if (level.isClientSide() || deathPos == null) return;
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-
-        
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_LARGE.get().defaultBlockState(), 1);
-
-        
         int mediumCount = rand.nextInt(3) + 2;
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_MEDIUM.get().defaultBlockState(), mediumCount);
-
-        
         int smallCount = rand.nextInt(3) + 2;
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_SMALL.get().defaultBlockState(), smallCount);
     }
@@ -1036,32 +862,24 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                     deathPos.getY()+1 + offsetY,
                     deathPos.getZ() + offsetZ
             );
-
-            
             if (level.isEmptyBlock(pos)) {
                 
                 BlockPos below = pos.below();
                 BlockState belowState = level.getBlockState(below);
-
-                
                 if (belowState.isFaceSturdy(level, below, Direction.UP)) {
                     level.setBlock(pos, state, 3);
                 }
             }
         }
     }
-
-    
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
-
-    
     @Override
     protected boolean canRide(Entity entity) {
         

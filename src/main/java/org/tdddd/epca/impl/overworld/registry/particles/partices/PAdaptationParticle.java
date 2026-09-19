@@ -3,12 +3,14 @@ package org.tdddd.epca.impl.overworld.registry.particles.partices;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.util.RandomSource;
 
-public class PAdaptationParticle extends TextureSheetParticle {
+// 26.1.2: TextureSheetParticle -> SingleQuadParticle.
+public class PAdaptationParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
 
     public PAdaptationParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet sprites) {
-        super(level, x, y, z, xd, yd, zd);
+        super(level, x, y, z, xd, yd, zd, sprites.first());
         this.sprites = sprites;
         this.lifetime = 24; 
         this.setSpriteFromAge(sprites);
@@ -31,8 +33,8 @@ public class PAdaptationParticle extends TextureSheetParticle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
+    public SingleQuadParticle.Layer getLayer() {
+        return SingleQuadParticle.Layer.OPAQUE;
     }
 
     
@@ -46,7 +48,8 @@ public class PAdaptationParticle extends TextureSheetParticle {
         @Override
         public Particle createParticle(SimpleParticleType type, ClientLevel level,
                                        double x, double y, double z,
-                                       double xd, double yd, double zd) {
+                                       double xd, double yd, double zd,
+                                       RandomSource random) {
             return new PAdaptationParticle(level, x, y, z, xd, yd, zd, this.sprites);
         }
     }

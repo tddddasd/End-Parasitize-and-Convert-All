@@ -1,10 +1,10 @@
 package org.tdddd.epca.impl;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.fml.ModContainer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 
 import java.nio.file.Path;
@@ -13,23 +13,23 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ModConfig {
-    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static final ForgeConfigSpec SPEC;
-    public static final ForgeConfigSpec.BooleanValue ALLOW_COTH_LEVEL_4;
-    public static final ForgeConfigSpec.BooleanValue PARASITE_PEACEFUL;
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_TARGET_WHITELIST;
-    private static final Set<ResourceLocation> TARGET_WHITELIST = ConcurrentHashMap.newKeySet();
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_IMMUNITY_WHITELIST;
-    private static final Set<ResourceLocation> IMMUNITY_WHITELIST = ConcurrentHashMap.newKeySet();
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_CONVERSION_MOD_IMMUNITY_WHITELIST;
+    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static final ModConfigSpec SPEC;
+    public static final ModConfigSpec.BooleanValue ALLOW_COTH_LEVEL_4;
+    public static final ModConfigSpec.BooleanValue PARASITE_PEACEFUL;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> PARASITE_TARGET_WHITELIST;
+    private static final Set<Identifier> TARGET_WHITELIST = ConcurrentHashMap.newKeySet();
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> PARASITE_IMMUNITY_WHITELIST;
+    private static final Set<Identifier> IMMUNITY_WHITELIST = ConcurrentHashMap.newKeySet();
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> PARASITE_CONVERSION_MOD_IMMUNITY_WHITELIST;
     private static final Set<String> CONVERSION_MOD_IMMUNITY_WHITELIST = ConcurrentHashMap.newKeySet();
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> PARASITE_MOD_PEACEFUL_PAIRS;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> PARASITE_MOD_PEACEFUL_PAIRS;
     private static final Map<String, Set<String>> MOD_PEACEFUL_MAP = new ConcurrentHashMap<>();
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> DISABLED_ENTITIES_WHITELIST;
-    private static final Set<ResourceLocation> DISABLED_ENTITIES = ConcurrentHashMap.newKeySet();
-    public static final ForgeConfigSpec.ConfigValue<String> DEFAULT_EXTRA_DIFFICULTY;
-    public static final ForgeConfigSpec.BooleanValue SAFETY_DAY_ENABLED;
-    public static final ForgeConfigSpec.IntValue SAFETY_DAY_DURATION_TICKS;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> DISABLED_ENTITIES_WHITELIST;
+    private static final Set<Identifier> DISABLED_ENTITIES = ConcurrentHashMap.newKeySet();
+    public static final ModConfigSpec.ConfigValue<String> DEFAULT_EXTRA_DIFFICULTY;
+    public static final ModConfigSpec.BooleanValue SAFETY_DAY_ENABLED;
+    public static final ModConfigSpec.IntValue SAFETY_DAY_DURATION_TICKS;
     static {
         BUILDER.push("End-Parasitize and Convert All Configuration");
 
@@ -102,12 +102,20 @@ public class ModConfig {
         SPEC = BUILDER.build();
     }
 
-    public static void register() {
+    /**
+     * 26.1.2: ModLoadingContext#registerConfig is gone; config registration moved to
+     * {@link ModContainer#registerConfig(net.neoforged.fml.config.ModConfig.Type,
+     * net.neoforged.fml.config.IConfigSpec, String)}. The old "look the container up
+     * through ModLoadingContext.get()" route no longer exists, so the mod constructor
+     * passes its injected {@link ModContainer} in
+     * (see {@code epca(IEventBus, ModContainer)}).
+     */
+    public static void register(ModContainer modContainer) {
         
         Path configPath = Paths.get("E-PCA", "epca_main_config.toml");
 
-        ModLoadingContext.get().registerConfig(
-                net.minecraftforge.fml.config.ModConfig.Type.COMMON,
+        modContainer.registerConfig(
+                net.neoforged.fml.config.ModConfig.Type.COMMON,
                 SPEC,
                 configPath.toString() 
         );
@@ -122,12 +130,12 @@ public class ModConfig {
     }
 
     
-    public static boolean isInTargetWhitelist(ResourceLocation entityId) {
+    public static boolean isInTargetWhitelist(Identifier entityId) {
         
         if (TARGET_WHITELIST.isEmpty()) {
             for (String id : PARASITE_TARGET_WHITELIST.get()) {
                 try {
-                    TARGET_WHITELIST.add(new ResourceLocation(id));
+                    TARGET_WHITELIST.add(Identifier.parse(id));
                 } catch (Exception e) {
                     
                 }
@@ -137,15 +145,15 @@ public class ModConfig {
     }
 
     public static boolean isInTargetWhitelist(LivingEntity entity) {
-        return isInTargetWhitelist(ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()));
+        return isInTargetWhitelist(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
     }
 
-    public static boolean isInImmunityWhitelist(ResourceLocation entityId) {
+    public static boolean isInImmunityWhitelist(Identifier entityId) {
         
         if (IMMUNITY_WHITELIST.isEmpty()) {
             for (String id : PARASITE_IMMUNITY_WHITELIST.get()) {
                 try {
-                    IMMUNITY_WHITELIST.add(new ResourceLocation(id));
+                    IMMUNITY_WHITELIST.add(Identifier.parse(id));
                 } catch (Exception e) {
                     
                 }
@@ -155,10 +163,10 @@ public class ModConfig {
     }
     
     public static boolean isInImmunityWhitelist(LivingEntity entity) {
-        return isInImmunityWhitelist(ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()));
+        return isInImmunityWhitelist(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
     }
     
-    public static boolean isInConversionModImmunityWhitelist(ResourceLocation entityId) {
+    public static boolean isInConversionModImmunityWhitelist(Identifier entityId) {
         if (CONVERSION_MOD_IMMUNITY_WHITELIST.isEmpty()) {
             for (String modId : PARASITE_CONVERSION_MOD_IMMUNITY_WHITELIST.get()) {
                 CONVERSION_MOD_IMMUNITY_WHITELIST.add(modId);
@@ -168,7 +176,7 @@ public class ModConfig {
     }
 
     public static boolean isInConversionModImmunityWhitelist(LivingEntity entity) {
-        ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        Identifier entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         return entityId != null && isInConversionModImmunityWhitelist(entityId);
     }
 
@@ -178,8 +186,8 @@ public class ModConfig {
             initModPeacefulMap();
         }
 
-        ResourceLocation key1 = ForgeRegistries.ENTITY_TYPES.getKey(entity1.getType());
-        ResourceLocation key2 = ForgeRegistries.ENTITY_TYPES.getKey(entity2.getType());
+        Identifier key1 = BuiltInRegistries.ENTITY_TYPE.getKey(entity1.getType());
+        Identifier key2 = BuiltInRegistries.ENTITY_TYPE.getKey(entity2.getType());
 
         if (key1 == null || key2 == null) {
             return false;
@@ -200,11 +208,11 @@ public class ModConfig {
     }
 
     
-    public static boolean isInDisabledEntitiesWhitelist(ResourceLocation entityId) {
+    public static boolean isInDisabledEntitiesWhitelist(Identifier entityId) {
         if (DISABLED_ENTITIES.isEmpty()) {
             for (String id : DISABLED_ENTITIES_WHITELIST.get()) {
                 try {
-                    DISABLED_ENTITIES.add(new ResourceLocation(id));
+                    DISABLED_ENTITIES.add(Identifier.parse(id));
                 } catch (Exception e) {
                     
                 }
@@ -214,7 +222,7 @@ public class ModConfig {
     }
 
     public static boolean isInDisabledEntitiesWhitelist(LivingEntity entity) {
-        ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        Identifier entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         return entityId != null && isInDisabledEntitiesWhitelist(entityId);
     }
     

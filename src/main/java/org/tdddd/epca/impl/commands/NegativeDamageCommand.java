@@ -1,16 +1,19 @@
 package org.tdddd.epca.impl.commands;
 
+import net.minecraft.core.Holder;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.permissions.PermissionCheck;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
@@ -24,7 +27,7 @@ public class NegativeDamageCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("epca_negativedamage")
-                .requires(source -> source.hasPermission(2))
+                .requires(Commands.hasPermission(new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER)))
                 .then(Commands.argument("targets", EntityArgument.entities())
                         .then(Commands.argument("amount", FloatArgumentType.floatArg())
                                 .executes(context -> {
@@ -34,12 +37,12 @@ public class NegativeDamageCommand {
                                             "minecraft:generic",  
                                             null, null, null);
                                 })
-                                .then(Commands.argument("damageType", ResourceLocationArgument.id())
+                                .then(Commands.argument("damageType", IdentifierArgument.id())
                                         .executes(context -> {
                                             return damage(context.getSource(),
                                                     EntityArgument.getEntities(context, "targets"),
                                                     FloatArgumentType.getFloat(context, "amount"),
-                                                    ResourceLocationArgument.getId(context, "damageType").toString(),
+                                                    IdentifierArgument.getId(context, "damageType").toString(),
                                                     null, null, null);
                                         })
                                         .then(Commands.argument("at", Vec3Argument.vec3())
@@ -47,7 +50,7 @@ public class NegativeDamageCommand {
                                                     return damage(context.getSource(),
                                                             EntityArgument.getEntities(context, "targets"),
                                                             FloatArgumentType.getFloat(context, "amount"),
-                                                            ResourceLocationArgument.getId(context, "damageType").toString(),
+                                                            IdentifierArgument.getId(context, "damageType").toString(),
                                                             Vec3Argument.getVec3(context, "at"), null, null);
                                                 })
                                                 .then(Commands.argument("by", EntityArgument.entity())
@@ -55,7 +58,7 @@ public class NegativeDamageCommand {
                                                             return damage(context.getSource(),
                                                                     EntityArgument.getEntities(context, "targets"),
                                                                     FloatArgumentType.getFloat(context, "amount"),
-                                                                    ResourceLocationArgument.getId(context, "damageType").toString(),
+                                                                    IdentifierArgument.getId(context, "damageType").toString(),
                                                                     Vec3Argument.getVec3(context, "at"),
                                                                     EntityArgument.getEntity(context, "by"),
                                                                     null);
@@ -65,7 +68,7 @@ public class NegativeDamageCommand {
                                                                     return damage(context.getSource(),
                                                                             EntityArgument.getEntities(context, "targets"),
                                                                             FloatArgumentType.getFloat(context, "amount"),
-                                                                            ResourceLocationArgument.getId(context, "damageType").toString(),
+                                                                            IdentifierArgument.getId(context, "damageType").toString(),
                                                                             Vec3Argument.getVec3(context, "at"),
                                                                             EntityArgument.getEntity(context, "by"),
                                                                             EntityArgument.getEntity(context, "from"));
@@ -98,7 +101,7 @@ public class NegativeDamageCommand {
 
                 
                 
-                boolean wasHurt = livingEntity.hurt(finalDamageSource, amount);
+                boolean wasHurt = livingEntity.hurtOrSimulate(finalDamageSource, amount);
 
                 
                 float newHealth = livingEntity.getHealth();
@@ -173,36 +176,36 @@ public class NegativeDamageCommand {
 
     private static DamageSource createDamageSource(CommandSourceStack source, String damageType,
                                                    Vec3 position, Entity directEntity, Entity causingEntity) {
-        var registry = source.getLevel().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-        ResourceLocation damageTypeId;
+        var registry = source.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+        Identifier damageTypeId;
 
         
         if (damageType.contains(":")) {
-            damageTypeId = new ResourceLocation(damageType);
+            damageTypeId = Identifier.parse(damageType);
         } else {
-            damageTypeId = new ResourceLocation("minecraft", damageType);
+            damageTypeId = Identifier.fromNamespaceAndPath("minecraft", damageType);
         }
 
-        DamageType type = registry.get(damageTypeId);
+        DamageType type = registry.get(damageTypeId).map(Holder::value).orElse(null);
 
         if (type == null) {
             
-            type = registry.get(new ResourceLocation("minecraft:generic"));
+            type = registry.get(Identifier.parse("minecraft:generic")).map(Holder::value).orElse(null);
         }
 
         
         DamageSource damageSource;
         if (directEntity != null && causingEntity != null) {
-            damageSource = new DamageSource(registry.getHolderOrThrow(registry.getResourceKey(type).get()),
+            damageSource = new DamageSource(registry.getOrThrow(registry.getResourceKey(type).get()),
                     directEntity, causingEntity);
         } else if (directEntity != null) {
-            damageSource = new DamageSource(registry.getHolderOrThrow(registry.getResourceKey(type).get()),
+            damageSource = new DamageSource(registry.getOrThrow(registry.getResourceKey(type).get()),
                     directEntity);
         } else if (source.getEntity() != null) {
-            damageSource = new DamageSource(registry.getHolderOrThrow(registry.getResourceKey(type).get()),
+            damageSource = new DamageSource(registry.getOrThrow(registry.getResourceKey(type).get()),
                     source.getEntity());
         } else {
-            damageSource = new DamageSource(registry.getHolderOrThrow(registry.getResourceKey(type).get()));
+            damageSource = new DamageSource(registry.getOrThrow(registry.getResourceKey(type).get()));
         }
 
         return damageSource;

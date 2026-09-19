@@ -25,8 +25,8 @@ public class InfestedCarvedPumpkin extends BlockItem {
             Level level = context.getLevel();
             BlockPos clickedPos = context.getClickedPos();
             Direction face = context.getClickedFace();
-            if (!level.isClientSide) {
-                InfestedPumpkinHead entity = ModEntities.INFESTED_PUMPKIN_HEAD.get().create(level);
+            if (!level.isClientSide()) {
+                InfestedPumpkinHead entity = ModEntities.INFESTED_PUMPKIN_HEAD.get().create(level, net.minecraft.world.entity.EntitySpawnReason.DISPENSER);
                 if (entity != null) {
                     double x = clickedPos.getX() + 0.5 + face.getStepX() * 0.5;
                     double y = clickedPos.getY() + 0.5 + face.getStepY() * 0.5;

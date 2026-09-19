@@ -64,7 +64,7 @@ public class GenericPriorityTargetGoal extends Goal {
     @Nullable
     private LivingEntity getForcedTarget() {
         if (!(mob.level() instanceof ServerLevel serverLevel)) return null;
-        String uuidStr = mob.getPersistentData().getString("forcedTargetUuid");
+        String uuidStr = mob.getPersistentData().getString("forcedTargetUuid").orElse("");
         if (uuidStr.isEmpty()) return null;
         try {
             UUID uuid = UUID.fromString(uuidStr);

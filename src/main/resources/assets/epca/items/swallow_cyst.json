@@ -1,0 +1,27 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "epca:living",
+    "scale": 1.0,
+    "entries": [
+      {
+        "threshold": 0.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/swallow_cyst_dead"
+        }
+      },
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "epca:item/swallow_cyst_living"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "epca:item/swallow_cyst_dead"
+    }
+  }
+}

@@ -18,8 +18,8 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -37,14 +37,14 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -114,13 +114,13 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_FAKING_DEATH, false);
-        this.entityData.define(DATA_IS_INVULNERABLE, false);
-        this.entityData.define(DATA_CURRENT_STATE, BatState.IDLE.ordinal());
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_FAKING_DEATH, false);
+        entityData.define(DATA_IS_INVULNERABLE, false);
+        entityData.define(DATA_CURRENT_STATE, BatState.IDLE.ordinal());
         // ========== 新增 ==========
-        this.entityData.define(DATA_IS_RESTING, false);
+        entityData.define(DATA_IS_RESTING, false);
         // ===========================
     }
 
@@ -196,7 +196,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
     // ========================================
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.is(DamageTypes.FALL)) {
             return false;
         }
@@ -213,18 +213,18 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
             this.wasHurtDuringSuck = true;
         }
 
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
 
         float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurt(source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, adjustedAmount);
         return result;
     }
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             IParasite.super.onKillEntity(killedEntity);
             this.addEffect(new MobEffectInstance(
                     MobEffects.REGENERATION,
@@ -274,7 +274,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
             return;
         }
 
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < 1.0f) {
+        if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 1.0f) {
             triggerFakeDeath(source);
             this.onDeath(source);
         } else {
@@ -290,7 +290,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         if (isFakingDeath()) {
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     if (this.level() instanceof ServerLevel serverLevel) {
@@ -308,7 +308,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                         cloud.setRadiusPerTick(0);
                         cloud.setWaitTime(0);
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH.get(),
+                                ModEffects.COTH,
                                 1200, 0, false, true
                         ));
                         serverLevel.addFreshEntity(cloud);
@@ -319,7 +319,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
             return;
         }
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             return;
         }
 
@@ -398,11 +398,11 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         if (vehicle instanceof Boat || vehicle instanceof Minecart) {
             return false;
         }
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
 
     @Override
@@ -416,11 +416,11 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
     public static boolean checkInfestedBatSpawnRules(
             EntityType<InfestedBat> entityType,
             ServerLevelAccessor levelAccessor,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
             if (stage < 2 || stage > 5) {
                 return false;
@@ -432,7 +432,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
 
             int skyLight = levelAccessor.getBrightness(LightLayer.SKY, pos);
             if (skyLight != 0) {
-                long dayTime = levelAccessor.getLevel().getDayTime() % 24000;
+                long dayTime = levelAccessor.getLevel().getOverworldClockTime() % 24000;
                 if (dayTime < 12000 || dayTime >= 24000) {
                     return false;
                 }
@@ -450,23 +450,23 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<InfestedBat> event) {
+    private PlayState animationPredicate(AnimationTest<InfestedBat> event) {
         BatState state = this.getCurrentState();
 
         if (this.isFakingDeath()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("dead"));
+            event.setAnimation(RawAnimation.begin().thenLoop("dead"));
         } else if (this.isResting()) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         } else switch (state) {
             case SUCKING:
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("sucking"));
+                event.setAnimation(RawAnimation.begin().thenLoop("sucking"));
                 break;
             case IDLE, HOVERING, LEAVING:
             default:
-                event.getController().setAnimation(RawAnimation.begin().thenLoop("fly"));
+                event.setAnimation(RawAnimation.begin().thenLoop("fly"));
                 break;
         }
         return PlayState.CONTINUE;
@@ -645,11 +645,11 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                     this.target = null;
                     return;
                 }
-                target.hurt(target.damageSources().cactus(), 2.0f);
-                MobEffectInstance current = target.getEffect(ModEffects.COTH.get());
+                target.hurtOrSimulate(target.damageSources().cactus(), 2.0f);
+                MobEffectInstance current = target.getEffect(ModEffects.COTH);
                 int amp = (current == null) ? 0 : Math.min(current.getAmplifier() + 1, 2);
-                target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, amp, false, true));
-                target.addEffect(new MobEffectInstance(ModEffects.FEAR.get(), 200, 0, false, true));
+                target.addEffect(new MobEffectInstance(ModEffects.COTH, 600, amp, false, true));
+                target.addEffect(new MobEffectInstance(ModEffects.FEAR, 200, 0, false, true));
             }
 
             suckTimer++;
@@ -665,7 +665,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
 
             if (shouldLeave) {
                 if (random.nextFloat() < 0.3f) {
-                    target.addEffect(new MobEffectInstance(ModEffects.BLEEDING.get(), 200, 0, false, true));
+                    target.addEffect(new MobEffectInstance(ModEffects.BLEEDING, 200, 0, false, true));
                 }
                 setCurrentState(BatState.LEAVING);
                 leaveTimer = 0;
@@ -713,10 +713,10 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     private void convertBatToInfested(LivingEntity bat) {
-        if (bat.level().isClientSide) return;
+        if (bat.level().isClientSide()) return;
         if (!(bat.level() instanceof ServerLevel serverLevel)) return;
 
-        InfestedBat newBat = ModEntities.INFESTED_BAT.get().create(serverLevel);
+        InfestedBat newBat = ModEntities.INFESTED_BAT.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
         if (newBat == null) return;
 
         newBat.setPos(bat.getX(), bat.getY(), bat.getZ());

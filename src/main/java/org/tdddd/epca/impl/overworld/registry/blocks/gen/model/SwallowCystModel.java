@@ -1,23 +1,27 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.gen.model;
 
-import net.minecraft.resources.ResourceLocation;
+import com.geckolib.renderer.base.GeoRenderState;
+import net.minecraft.resources.Identifier;
+
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
+
 import org.tdddd.epca.impl.epca;
-import software.bernie.geckolib.model.GeoModel;
+
+import com.geckolib.model.GeoModel;
 
 public class SwallowCystModel extends GeoModel<SwallowCystBlockEntity> {
     @Override
-    public ResourceLocation getModelResource(SwallowCystBlockEntity object) {
-        return new ResourceLocation(epca.MODID, "geo/block/swallow_cyst.geo.json");
+    public Identifier getModelResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "block/swallow_cyst");
     }
 
     @Override
-    public ResourceLocation getTextureResource(SwallowCystBlockEntity object) {
-        return new ResourceLocation(epca.MODID, "textures/block/swallow_cyst.png");
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "textures/block/swallow_cyst.png");
     }
 
     @Override
-    public ResourceLocation getAnimationResource(SwallowCystBlockEntity animatable) {
-        return new ResourceLocation(epca.MODID, "animations/swallow_cyst.animation.json");
+    public Identifier getAnimationResource(SwallowCystBlockEntity animatable) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "swallow_cyst");
     }
 }

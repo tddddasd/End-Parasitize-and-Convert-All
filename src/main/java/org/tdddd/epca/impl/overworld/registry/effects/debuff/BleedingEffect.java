@@ -6,7 +6,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.effects.RemovableEffect;
@@ -15,7 +15,8 @@ import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import java.util.Random;
 import java.util.WeakHashMap;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+// 26.1.2: removed @EventBusSubscriber -- this class declares no @SubscribeEvent methods,
+// and the loader now throws IllegalArgumentException when such a class is registered.
 public class BleedingEffect extends MobEffect implements RemovableEffect {
     private static final WeakHashMap<LivingEntity, Long> LAST_DAMAGE_TIME = new WeakHashMap<>();
     private static final WeakHashMap<LivingEntity, Vec3> LAST_POSITIONS = new WeakHashMap<>();
@@ -31,10 +32,10 @@ public class BleedingEffect extends MobEffect implements RemovableEffect {
     public BleedingEffect() {
         super(MobEffectCategory.BENEFICIAL, 0xFF0000);}
 
+    // 26.1.2: applyEffectTick(ServerLevel, LivingEntity, int) returns boolean and only runs server side
+    // (MobEffectInstance#tickServer); the old "isClientSide()" early-out was already dead on the server.
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
-        if (entity.level().isClientSide) return;
-
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         long currentTime = entity.level().getGameTime();
         long lastTime = LAST_DAMAGE_TIME.getOrDefault(entity, 0L);
 
@@ -57,12 +58,12 @@ public class BleedingEffect extends MobEffect implements RemovableEffect {
             
             damage = Math.min(MAX_DAMAGE, damage);
 
-            entity.hurt(entity.damageSources().magic(), damage);
+            entity.hurtServer(serverLevel, entity.damageSources().magic(), damage);
             LAST_DAMAGE_TIME.put(entity, currentTime);
         }
 
         
-        if (!entity.level().isClientSide && entity.level() instanceof ServerLevel serverLevel) {
+        if (entity.level() instanceof ServerLevel particleLevel) {
             
             int tickCounter = PARTICLE_TICK_COUNTER.getOrDefault(entity, 0);
             tickCounter++;
@@ -117,7 +118,7 @@ public class BleedingEffect extends MobEffect implements RemovableEffect {
                     }
 
                     
-                    serverLevel.sendParticles(ModParticles.BLEEDING.get(),
+                    particleLevel.sendParticles(ModParticles.BLEEDING.get(),
                             x, y, z,
                             1, 
                             0.0, 0.0, 0.0, 
@@ -129,6 +130,7 @@ public class BleedingEffect extends MobEffect implements RemovableEffect {
             PARTICLE_TICK_COUNTER.put(entity, tickCounter);
         }
 
+        return true;
     }
 
     private boolean isEntityMoving(LivingEntity entity) {
@@ -151,8 +153,11 @@ public class BleedingEffect extends MobEffect implements RemovableEffect {
         return distanceMoved > MOVEMENT_THRESHOLD;
     }
 
+    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
+    // 1.20.1 returned true unconditionally (the real 25/21/... tick cadence is enforced by LAST_DAMAGE_TIME
+    // above), so the effect must still be ticked every tick.
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplifier) {
         
         return true;
     }

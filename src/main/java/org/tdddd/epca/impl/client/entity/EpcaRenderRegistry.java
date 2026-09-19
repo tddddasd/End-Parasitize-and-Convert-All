@@ -1,7 +1,6 @@
 package org.tdddd.epca.impl.client.entity;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import java.util.function.Consumer;
  * Client-side registry for model behaviors and render layers.
  * Allows entities to register custom model animations or additional render layers.
  */
-@OnlyIn(Dist.CLIENT)
 public class EpcaRenderRegistry {
 
     @FunctionalInterface

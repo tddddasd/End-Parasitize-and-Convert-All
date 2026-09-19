@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.events.modlue;
 
+import org.tdddd.epca.impl.epca;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -8,10 +11,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.items.item.AfterimageModule;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorBox;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorItem;
@@ -19,14 +21,13 @@ import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorItem;
 import java.util.List;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class AfterimageModuleEventHandler {
-    private static final UUID SPEED_MODIFIER_UUID = UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    private static final Identifier SPEED_MODIFIER_ID = Identifier.fromNamespaceAndPath(epca.MODID, "afterimage_speed");
     private static final AttributeModifier SPEED_MODIFIER = new AttributeModifier(
-            SPEED_MODIFIER_UUID,
-            "afterimage_speed_boost",
+            SPEED_MODIFIER_ID,
             0.15, // 15%
-            AttributeModifier.Operation.MULTIPLY_TOTAL
+            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
     );
 
     
@@ -90,9 +91,8 @@ public class AfterimageModuleEventHandler {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        Player player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
 
         if (player.level().isClientSide()) {
             return;
@@ -120,18 +120,18 @@ public class AfterimageModuleEventHandler {
         AttributeInstance speedAttr = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (speedAttr == null) return;
 
-        boolean hasModifier = speedAttr.getModifier(SPEED_MODIFIER_UUID) != null;
+        boolean hasModifier = speedAttr.getModifier(SPEED_MODIFIER_ID) != null;
 
         if (!hasModifier) {
             speedAttr.addTransientModifier(SPEED_MODIFIER);
         } else {
-            speedAttr.removeModifier(SPEED_MODIFIER_UUID);
+            speedAttr.removeModifier(SPEED_MODIFIER_ID);
         }
     }
 
     // 间接伤害免疫
     @SubscribeEvent
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
         if (player.level().isClientSide()) {
@@ -158,7 +158,7 @@ public class AfterimageModuleEventHandler {
         }
 
         DamageSource source = event.getSource();
-        if (source.getDirectEntity() instanceof Projectile || source.isIndirect()) {
+        if (source.getDirectEntity() instanceof Projectile || !source.isDirect()) {
             if (player.getRandom().nextDouble() < 0.3) {
                 event.setAmount(0);
             }

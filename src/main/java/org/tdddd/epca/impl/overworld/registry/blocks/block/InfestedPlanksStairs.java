@@ -28,7 +28,7 @@ public class InfestedPlanksStairs extends StairBlock implements InfestedBlockInt
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedPlanksStairs(Properties properties) {
-        super(() -> Blocks.OAK_PLANKS.defaultBlockState(), properties);
+        super(Blocks.OAK_PLANKS.defaultBlockState(), properties);
         
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(NATURAL_SPAWN, true)
@@ -61,7 +61,7 @@ public class InfestedPlanksStairs extends StairBlock implements InfestedBlockInt
         }
 
         @Override
-        public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
+        public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType, net.minecraft.world.level.block.entity.FuelValues fuelValues) {
             return 200;
         }
     }

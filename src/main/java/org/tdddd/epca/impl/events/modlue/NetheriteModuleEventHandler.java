@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.events.modlue;
 
+import org.tdddd.epca.impl.epca;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -7,10 +10,9 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorBox;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorItem;
 import org.tdddd.epca.impl.overworld.registry.items.item.NetheriteModuleI;
@@ -18,11 +20,11 @@ import org.tdddd.epca.impl.overworld.registry.items.item.NetheriteModuleI;
 import java.util.List;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class NetheriteModuleEventHandler {
 
-    private static final UUID MOVEMENT_SPEED_MODIFIER_ID = UUID.fromString("a1b2c3da-e5f6-7890-abcd-ef1234567893");
-    private static final UUID ARMOR_MODIFIER_ID = UUID.fromString("a1b2c3da-e5f6-7890-abcd-ef1234567894");
+    private static final Identifier MOVEMENT_SPEED_MODIFIER_ID = Identifier.fromNamespaceAndPath(epca.MODID, "netherite_movement_speed");
+    private static final Identifier ARMOR_MODIFIER_ID = Identifier.fromNamespaceAndPath(epca.MODID, "netherite_armor");
 
     private static final String MOVEMENT_SPEED_MODIFIER_NAME = "NetheriteMovementSpeedReduction";
     private static final String ARMOR_MODIFIER_NAME = "NetheriteArmorBonus";
@@ -31,12 +33,8 @@ public class NetheriteModuleEventHandler {
     private static final int CHECK_INTERVAL = 10;
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        Player player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
 
         
         if (player.level().isClientSide()) {
@@ -80,7 +78,7 @@ public class NetheriteModuleEventHandler {
     }
 
     @SubscribeEvent
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
@@ -193,27 +191,17 @@ public class NetheriteModuleEventHandler {
         removeAttributeModifiers(player);
 
         
-        AttributeModifier speedModifier = new AttributeModifier(
-                MOVEMENT_SPEED_MODIFIER_ID,
-                MOVEMENT_SPEED_MODIFIER_NAME,
-                -0.01,
-                AttributeModifier.Operation.MULTIPLY_TOTAL
-        );
+        AttributeModifier speedModifier = new AttributeModifier(MOVEMENT_SPEED_MODIFIER_ID, -0.01, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
         
-        AttributeModifier armorModifier = new AttributeModifier(
-                ARMOR_MODIFIER_ID,
-                ARMOR_MODIFIER_NAME,
-                2.0,
-                AttributeModifier.Operation.ADDITION
-        );
+        AttributeModifier armorModifier = new AttributeModifier(ARMOR_MODIFIER_ID, 2.0, AttributeModifier.Operation.ADD_VALUE);
 
         
-        if (!player.getAttribute(Attributes.MOVEMENT_SPEED).hasModifier(speedModifier)) {
+        if (!player.getAttribute(Attributes.MOVEMENT_SPEED).hasModifier(speedModifier.id())) {
             player.getAttribute(Attributes.MOVEMENT_SPEED).addTransientModifier(speedModifier);
         }
 
-        if (!player.getAttribute(Attributes.ARMOR).hasModifier(armorModifier)) {
+        if (!player.getAttribute(Attributes.ARMOR).hasModifier(armorModifier.id())) {
             player.getAttribute(Attributes.ARMOR).addTransientModifier(armorModifier);
         }
     }

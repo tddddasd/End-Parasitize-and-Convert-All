@@ -1,13 +1,13 @@
 package org.tdddd.epca.impl.overworld.registry.gui.menus;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.event.RenderGuiEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.BiomassClientData;
 import net.minecraft.world.item.ItemStack;
@@ -18,9 +18,9 @@ import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, value = net.minecraftforge.api.distmarker.Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID, value = net.neoforged.api.distmarker.Dist.CLIENT)
 public class BiomassHUD {
-    private static final ResourceLocation ICON = new ResourceLocation(epca.MODID, "textures/item/biomass_count_icon.png");
+    private static final Identifier ICON = Identifier.fromNamespaceAndPath(epca.MODID, "textures/item/biomass_count_icon.png");
     private static final String COMPASS_BASE = "minecraft:textures/item/recovery_compass_";
     private static final int BECKON_COST = 15;
     private static final long BECKON_COOLDOWN_TICKS = 60 * 20;
@@ -34,7 +34,7 @@ public class BiomassHUD {
         if (!BiomassClientData.isNestLeader()) return;
 
         int points = BiomassClientData.getPoints();
-        GuiGraphics gui = event.getGuiGraphics();
+        GuiGraphicsExtractor gui = event.getGuiGraphics();
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
 
@@ -44,24 +44,26 @@ public class BiomassHUD {
         int iconX = foodX + 81;
         int iconY = foodY;
 
-        RenderSystem.setShaderTexture(0, ICON);
-        gui.blit(ICON, iconX, iconY, 0, 0, 9, 9, 9, 9);
+        // 26.1.2: GuiGraphics#blit(Identifier, x, y, u, v, w, h, texW, texH) gained a leading RenderPipeline and
+        // the texture is bound by the extraction, so RenderSystem#setShaderTexture(...) is gone.
+        gui.blit(RenderPipelines.GUI_TEXTURED, ICON, iconX, iconY, 0.0F, 0.0F, 9, 9, 9, 9);
         String pointsText = String.valueOf(points);
-        gui.drawString(mc.font, pointsText, iconX + 12, iconY + 1, 0xFFFFFF);
+        gui.text(mc.font, pointsText, iconX + 12, iconY + 1, 0xFFFFFF);
 
+        // 26.1.2: CompoundTag#getLong returns Optional<Long>; getLongOr keeps the 1.20.1 default of 0.
         long currentTick = mc.player.level().getGameTime();
-        long beckonCooldownTick = mc.player.getPersistentData().getLong("BeckonPlaceCooldown");
+        long beckonCooldownTick = mc.player.getPersistentData().getLongOr("BeckonPlaceCooldown", 0L);
         long beckonRemaining = Math.max(0, (beckonCooldownTick + BECKON_COOLDOWN_TICKS - currentTick));
         long beckonSeconds = beckonRemaining / 20;
 
-        long parasiteCooldownTick = mc.player.getPersistentData().getLong("LastParasiteInteract");
+        long parasiteCooldownTick = mc.player.getPersistentData().getLongOr("LastParasiteInteract", 0L);
         long parasiteRemaining = Math.max(0, (parasiteCooldownTick + PARASITE_COOLDOWN_TICKS - currentTick));
         long parasiteSeconds = parasiteRemaining / 20;
 
         int beckonX = iconX;
         int beckonY = iconY - 18;
         ItemStack blockStack = new ItemStack(ModBlocks.BECKON_CORE.get());
-        gui.renderItem(blockStack, beckonX, beckonY);
+        gui.item(blockStack, beckonX, beckonY);
 
         boolean hasEnoughPoints = points >= BECKON_COST;
         boolean isOnCooldown = beckonRemaining > 0;
@@ -72,20 +74,20 @@ public class BiomassHUD {
 
         if (hasEnoughPoints && isOnCooldown) {
             String cdText = String.valueOf(beckonSeconds);
-            gui.drawString(mc.font, cdText, beckonX + 18, beckonY + 4, 0xFFFFFF);
+            gui.text(mc.font, cdText, beckonX + 18, beckonY + 4, 0xFFFFFF);
         }
 
         int parasiteX = iconX + 12 + mc.font.width(pointsText) + 4;
         int parasiteY = iconY + 1;
         String parasiteText = String.valueOf(parasiteSeconds);
-        gui.drawString(mc.font, parasiteText, parasiteX, parasiteY, 0xAA00FF);
+        gui.text(mc.font, parasiteText, parasiteX, parasiteY, 0xAA00FF);
 
         if (mc.getConnection() != null && mc.getConnection().getOnlinePlayers().size() > 1) {
             renderTracker(gui, mc, beckonX, beckonY);
         }
     }
 
-    private static void renderTracker(GuiGraphics gui, Minecraft mc, int baseX, int baseY) {
+    private static void renderTracker(GuiGraphicsExtractor gui, Minecraft mc, int baseX, int baseY) {
         Player player = mc.player;
         if (player == null) return;
 
@@ -127,16 +129,16 @@ public class BiomassHUD {
         int trackerX = baseX + 20;
         int trackerY = baseY;
 
+        // 26.1.2: GuiGraphics#pose() returns a Matrix3x2fStack (pushMatrix/popMatrix, 2D transforms only).
         var pose = gui.pose();
-        pose.pushPose();
-        pose.translate(trackerX, trackerY, 0);
+        pose.pushMatrix();
+        pose.translate(trackerX, trackerY);
 
         String path = COMPASS_BASE + String.format("%02d", frame) + ".png";
-        ResourceLocation compassTexture = new ResourceLocation(path);
-        RenderSystem.setShaderTexture(0, compassTexture);
-        gui.blit(compassTexture, 0, 0, 0, 0, 16, 16, 16, 16);
+        Identifier compassTexture = Identifier.parse(path);
+        gui.blit(RenderPipelines.GUI_TEXTURED, compassTexture, 0, 0, 0.0F, 0.0F, 16, 16, 16, 16);
 
-        pose.popPose();
+        pose.popMatrix();
 
         if (within128) {
             long time = System.currentTimeMillis() / 100;
@@ -145,10 +147,10 @@ public class BiomassHUD {
             int alpha = 80 + (int)(60 * Math.sin(System.currentTimeMillis() / 200.0));
             int colorWithAlpha = (alpha << 24) | (color & 0x00ffffff);
 
-            pose.pushPose();
-            pose.translate(trackerX, trackerY, 0);
+            pose.pushMatrix();
+            pose.translate(trackerX, trackerY);
             gui.fill(trackerX, trackerY, trackerX + 16, trackerY + 16, colorWithAlpha);
-            pose.popPose();
+            pose.popMatrix();
         }
     }
 }

@@ -1,0 +1,7 @@
+{
+  "parent": "epca:item/spear",
+  "textures": {
+    "layer0": "epca:item/netherite_spear",
+    "particle": "epca:item/netherite_spear_item"
+  }
+}

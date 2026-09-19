@@ -1,13 +1,13 @@
 package org.tdddd.epca.impl.events;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
@@ -16,9 +16,9 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedLog;
 import java.util.HashMap;
 import java.util.Map;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public class ItemTooltipHandler {
-    private static final Map<RegistryObject<? extends Item>, String> TOOLTIP_MAP = new HashMap<>();
+    private static final Map<DeferredHolder<Item, ? extends Item>, String> TOOLTIP_MAP = new HashMap<>();
 
     static {
         
@@ -202,7 +202,7 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.BECKON_CORE, "item.epca.category_link");
     }
 
-    private static void registerTooltip(RegistryObject<? extends Item> ro, String translationKey) {
+    private static void registerTooltip(DeferredHolder<Item, ? extends Item> ro, String translationKey) {
         if (ro != null) {
             TOOLTIP_MAP.put(ro, translationKey);
         }
@@ -211,8 +211,8 @@ public class ItemTooltipHandler {
     @SubscribeEvent
     public static void onItemTooltip(ItemTooltipEvent event) {
         Item item = event.getItemStack().getItem();
-        for (Map.Entry<RegistryObject<? extends Item>, String> entry : TOOLTIP_MAP.entrySet()) {
-            if (entry.getKey().isPresent() && entry.getKey().get() == item) {
+        for (Map.Entry<DeferredHolder<Item, ? extends Item>, String> entry : TOOLTIP_MAP.entrySet()) {
+            if (entry.getKey().isBound() && entry.getKey().get() == item) {
                 event.getToolTip().add(Component.translatable(entry.getValue()).withStyle(ChatFormatting.GRAY));
                 break;
             }

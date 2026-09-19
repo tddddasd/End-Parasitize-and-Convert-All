@@ -1,0 +1,60 @@
+modLoader = "javafml"
+loaderVersion = "[3,)"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "End-Parasitize and Convert All"
+displayURL = "https://space.bilibili.com/1446970336"
+logoFile = "epca_icon.png"
+authors = "-Yawning喵喵子-"
+description = '''An infection mod.'''
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "playeranimator"
+type = "optional"
+versionRange = "[1,)"
+ordering = "NONE"
+side = "BOTH"
+
+# 必选前置：祭坛方块、祭坛合成与祭坛 JEI 适配
+[[dependencies.${mod_id}]]
+modId = "eej"
+type = "required"
+versionRange = "[1.0.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+# 26.1.2: mixin configs are declared here, not through the jar-manifest
+# `MixinConfigs` attribute (NeoForge 26.x reads them from neoforge.mods.toml,
+# exactly like NeoForge's own META-INF/neoforge.mods.toml does).
+[[mixins]]
+config = "epca.mixins.json"
+
+# 26.1.2: access transformers must be declared here as well. The old
+# automatic `META-INF/accesstransformer.cfg` discovery is gone.
+[[accessTransformers]]
+file = "META-INF/accesstransformer.cfg"
+
+# 26.1.2 port: EPCA's damage-adaptation layer is provided by YawningNekoAPI.
+[[dependencies.epca]]
+modId = "yawning_neko_api"
+type = "required"
+versionRange = "[1.0.0,)"
+ordering = "AFTER"
+side = "BOTH"

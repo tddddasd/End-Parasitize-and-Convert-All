@@ -28,8 +28,8 @@ import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -39,11 +39,8 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
@@ -59,16 +56,16 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.AcidBullet;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -78,8 +75,6 @@ import java.util.Set;
 public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParasite, IReshape, Enemy {
     
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-
-    
     private static final EntityDataAccessor<Boolean> DATA_IS_EXPLODING = SynchedEntityData.defineId(ReshapeYelloweye.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_BOOMING  = SynchedEntityData.defineId(ReshapeYelloweye.class, EntityDataSerializers.BOOLEAN);
     
@@ -90,28 +85,18 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     
     private int explosionTimer = 24;
     private BlockPos deathPosition;
-
-    
     private int boomAnimationTimer = 0;
     private boolean isBoomTriggered = false;
-
-    
     private int shootCooldown = 0;          
     private int shootDelayTimer = 0;        
-
-    
     private boolean isRetreating = false;
     private int retreatCooldown = 0;
     private Vec3 retreatDirection = Vec3.ZERO;
     private static final double SAFE_DISTANCE = 18.0D;            
     private static final int RETREAT_COOLDOWN = 5;               
     private static final double RETREAT_SPEED = 0.4D;            
-
-    
     private int floorCheckCooldown = 0;      
     private double floorY = Double.NEGATIVE_INFINITY;  
-
-    
     private int touchCooldown = 0;
     private static final int TOUCH_COOLDOWN_MAX = 10; 
 
@@ -147,18 +132,14 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                 .add(Attributes.FLYING_SPEED, 0.6D)
                 .build();
     }
-
-    
     @Override
     protected PathNavigation createNavigation(Level level) {
         FlyingPathNavigation navigation = new FlyingPathNavigation(this, level);
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(true);
-        navigation.setCanPassDoors(true);
+        navigation.setCanOpenDoors(true);
         return navigation;
     }
-
-    
     @Override
     protected void registerGoals() {
         super.registerGoals();
@@ -174,16 +155,14 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_EXPLODING, false);
-        this.entityData.define(DATA_IS_BOOMING, false);
-        this.entityData.define(DATA_SHOOT_ANIM_TIMER, 0);
-        this.entityData.define(DATA_IS_GASSING, false);
-        this.entityData.define(DATA_GASSING_TIMER, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_IS_EXPLODING, false);
+        entityData.define(DATA_IS_BOOMING, false);
+        entityData.define(DATA_SHOOT_ANIM_TIMER, 0);
+        entityData.define(DATA_IS_GASSING, false);
+        entityData.define(DATA_GASSING_TIMER, 0);
     }
-
-    
     public boolean isExploding() {
         return this.entityData.get(DATA_IS_EXPLODING);
     }
@@ -214,7 +193,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             BlockPos deathPos = this.deathPosition;
             long seed = this.random.nextLong();
             int delay = this.random.nextInt(30) + 40;
-            serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount() + delay,
+            serverLevel.getServer().schedule(new TickTask(serverLevel.getServer().getTickCount() + delay,
                     () -> spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed))));
 
             AreaEffectCloud cloud = new AreaEffectCloud(serverLevel, deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
@@ -222,7 +201,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             cloud.setDuration(60);
             cloud.setRadiusPerTick(0);
             cloud.setWaitTime(0);
-            cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+            cloud.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 1, false, true));
             cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
             serverLevel.addFreshEntity(cloud);
 
@@ -242,7 +221,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                         Math.cos(pitch) * Math.cos(yaw)
                 ).normalize();
 
-                AcidBullet bullet = ModEntities.ACID_BULLET.get().create(serverLevel);
+                AcidBullet bullet = ModEntities.ACID_BULLET.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
                 if (bullet != null) {
                     bullet.setOwner(this);
                     bullet.setPos(origin.x, origin.y, origin.z);
@@ -252,8 +231,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             }
         }
     }
-
-    
     private void startRetreating(LivingEntity target) {
         if (target == null) return;
         isRetreating = true;
@@ -273,20 +250,16 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             }
         }
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.DROWN)) return false;
         if (isExploding()) return false;
         if (source.getEntity() instanceof LivingEntity attacker && shouldIgnoreDamageFrom(attacker)) return false;
-        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             this.onAttacked(attacker);
         }
-
-        
         float finalAmount = amount;
-        if (!this.level().isClientSide && source.getEntity() instanceof Player player) {
+        if (!this.level().isClientSide() && source.getEntity() instanceof Player player) {
             Vec3 attackerPos = source.getSourcePosition(); 
             if (attackerPos != null) {
                 
@@ -298,10 +271,8 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         }
 
         float adjustedAmount = ((IParasite) this).onHurt(source, finalAmount);
-        return super.hurt(source, adjustedAmount);
+        return super.hurtServer(level, source, adjustedAmount);
     }
-
-    
     @Override
     public void die(DamageSource source) {
         if (this.isOnFire()) {
@@ -311,7 +282,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             return;
         }
 
-        if (!this.level().isClientSide && !this.isExploding()) {
+        if (!this.level().isClientSide() && !this.isExploding()) {
             handleInventoryOnDeath();
             triggerExplosionDeath(source);
             this.onDeath(source);
@@ -322,17 +293,15 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     }
 
     @Override
-    protected boolean isAffectedByFluids() {
+    public boolean isAffectedByFluids() {
         return false;   
     }
     @Override
-    public boolean causeFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource) {
+    public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource damageSource) {
         return false;
     }
     @Override
     public void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) { }
-
-    
     @Override
     public void tick() {
         super.tick();
@@ -344,42 +313,34 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         if (!blocksToDestroy.isEmpty() && blockBreakTimer <= 0 && !isExploding()) {
             destroyNextBlock();
         }
-
-        
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             
             if (this.entityData.get(DATA_IS_BOOMING)) {
                 if (clientBoomTimer <= 0) clientBoomTimer = 20;
                 if (clientBoomTimer > 0) clientBoomTimer--;
             } else clientBoomTimer = 0;
         }
-
-        
         if (isExploding()) {
             explosionTimer--;
             if (explosionTimer <= 0) {
-                if (!this.level().isClientSide) executeExplosionEffects();
+                if (!this.level().isClientSide()) executeExplosionEffects();
                 this.discard();
             }
             return;
         }
-
-        
         if (boomAnimationTimer > 0) {
             boomAnimationTimer--;
             LivingEntity target = this.getTarget();
-            if (target != null && target.isAlive() && !this.level().isClientSide) {
+            if (target != null && target.isAlive() && !this.level().isClientSide()) {
                 this.getNavigation().moveTo(target, 1.2);
             }
             if (boomAnimationTimer <= 0) {
                 this.entityData.set(DATA_IS_BOOMING, false);
-                if (!this.level().isClientSide) triggerExplosionDeath(null);
+                if (!this.level().isClientSide()) triggerExplosionDeath(null);
             }
             return;
         }
-
-        
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             
             if (touchCooldown > 0) touchCooldown--;
             if (touchCooldown == 0) {
@@ -390,14 +351,12 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                 if (!entities.isEmpty()) {
                     
                     for (LivingEntity e : entities) {
-                        e.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 60, 0));
-                        e.addEffect(new MobEffectInstance(ModEffects.CORROSIVE.get(), 60, 0));
+                        e.addEffect(new MobEffectInstance(MobEffects.NAUSEA, 60, 0));
+                        e.addEffect(new MobEffectInstance(ModEffects.CORROSIVE, 60, 0));
                     }
                     touchCooldown = TOUCH_COOLDOWN_MAX;
                 }
             }
-
-            
             if (shootCooldown > 0) shootCooldown--;
             if (shootDelayTimer > 0) {
                 shootDelayTimer--;
@@ -412,11 +371,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                     }
                 }
             }
-
-            
             if (gassingCooldown > 0) gassingCooldown--;
-
-            
             if (!isExploding() && boomAnimationTimer == 0 && !isGassing() && gassingCooldown == 0) {
                 LivingEntity target = this.getTarget();
                 if (target != null && target.isAlive()) {
@@ -430,8 +385,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                     }
                 }
             }
-
-            
             if (isGassing()) {
                 if (gassingTimer > 0) {
                     gassingTimer--;
@@ -441,8 +394,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                         applyGassingPush();
                         hasGassingPush = true;
                     }
-
-                    
                     if (this.level() instanceof ServerLevel serverLevel) {
                         if (gassingTimer == GASSING_DURATION - 10) {
                             
@@ -454,11 +405,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                             }
                         }
                     }
-
-                    
                     applyGassingAreaEffect();
-
-                    
                     if (gassingTimer <= 0) {
                         stopGassing();
                     }
@@ -467,19 +414,13 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                     stopGassing();
                 }
             }
-
-            
             enforceMaxHeight();
-
-            
             if (this.isInWater()) {
                 Vec3 mot = this.getDeltaMovement();
                 this.setDeltaMovement(mot.x * 0.75, mot.y, mot.z * 0.75);
             }
 
             LivingEntity target = this.getTarget();
-
-            
             if (target != null && target.isAlive()) {
                 double distance = this.distanceTo(target);
                 
@@ -496,13 +437,9 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                 if (retreatCooldown > 0) retreatCooldown--;
 
                 double currentSafeDistance = SAFE_DISTANCE;
-
-
                 boolean isBelow = this.getY() < target.getY();
 
                 boolean yClose = (this.getY() + this.getBbHeight()) >= (target.getY() - 1.0);
-
-
                 if (isBelow && !yClose) {
                     double targetSize = target.getBbWidth();   
                     double dynamicDist = Math.max(targetSize * 2.0, 3.0);
@@ -530,15 +467,11 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                 }
             }
         }
-
-        
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             int anim = this.entityData.get(DATA_SHOOT_ANIM_TIMER);
             if (anim > 0) this.entityData.set(DATA_SHOOT_ANIM_TIMER, anim - 1);
         }
     }
-
-    
     public boolean isGassing() {
         return this.entityData.get(DATA_IS_GASSING);
     }
@@ -548,7 +481,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     }
 
     private void startGassing() {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
         setGassing(true);
         gassingTimer = GASSING_DURATION;
         hasGassingPush = false;
@@ -565,17 +498,13 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         hasGassingPush = false;
         this.entityData.set(DATA_GASSING_TIMER, 0);
     }
-
-    
     private void applyGassingPush() {
         Vec3 lookVec = this.getLookAngle();
         Vec3 push = new Vec3(lookVec.x, 0.6, lookVec.z).normalize().scale(0.3); 
         push = push.add(0, 0.15, 0); 
         this.setDeltaMovement(this.getDeltaMovement().add(push));
-        this.hasImpulse = true;
+        this.hurtMarked = true;
     }
-
-    
     private void spawnGassingParticleLine(ServerLevel level) {
         Vec3 center = this.position().add(0, this.getBbHeight() * 0.5, 0);
         Vec3 rightOffset = new Vec3(0.6, -0.3, 0.4);   
@@ -590,8 +519,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                     1, 0, 0, 0, 0);
         }
     }
-
-    
     private void spawnSingleGassingParticle(ServerLevel level) {
         boolean side = (gassingTimer % 4) < 2; 
         Vec3 center = this.position().add(0, this.getBbHeight() * 0.5, 0);
@@ -600,8 +527,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         level.sendParticles(ModParticles.INFESTIVE_GAS.get(), pos.x, pos.y, pos.z,
                 1, 0, 0, 0, 0);
     }
-
-    
     private void applyGassingAreaEffect() {
         AABB effectBox = this.getBoundingBox().inflate(0, -this.getBbHeight() + 2.0, 0)
                 .move(0, -this.getBbHeight() * 0.5, 0);
@@ -609,26 +534,20 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                 e -> e.isAlive());
         for (LivingEntity e : entities) {
             if (IParasite.isParasiteByTagOrInterface(e)) {
-                e.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 400, 0)); 
+                e.addEffect(new MobEffectInstance(MobEffects.SPEED, 400, 0)); 
             } else if (e != this) {
-                e.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 2));     
+                e.addEffect(new MobEffectInstance(ModEffects.COTH, 600, 2));     
                 e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 400, 0));       
             }
         }
     }
-
-    
     private static final Vec3 ACID_CORE_OFFSET = new Vec3(0.0D, 0.8D, 0.8D);
-
-    
     private void shootAcidBullet(LivingEntity target) {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
         ServerLevel serverLevel = (ServerLevel) this.level();
         Vec3 shootPos = getAcidCoreWorldPosition();
         Vec3 toTarget = target.getEyePosition().subtract(shootPos).normalize();
-
-        
-        AcidBullet bullet = ModEntities.ACID_BULLET.get().create(serverLevel);
+        AcidBullet bullet = ModEntities.ACID_BULLET.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
         if (bullet != null) {
             bullet.setOwner(this);
             bullet.setPos(shootPos.x, shootPos.y, shootPos.z);
@@ -644,8 +563,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         Vec3 worldOffset = ACID_CORE_OFFSET.yRot((float) Math.toRadians(-this.getYRot()));
         return this.position().add(worldOffset);
     }
-
-    
     private double getFloorY() {
         if (floorCheckCooldown-- <= 0) {
             floorCheckCooldown = 10;
@@ -661,8 +578,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         }
         return floorY;
     }
-
-    
     private void enforceMaxHeight() {
         double floor = getFloorY();
         double maxY = floor + 48.0;
@@ -673,8 +588,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             if (mot.y > 0) this.setDeltaMovement(mot.x, 0, mot.z);
         }
     }
-
-    
     @Override
     protected SoundEvent getDeathSound() {
         return ModSoundEvents.RESHAPE_YELLOWEYE_HURT.get();
@@ -683,18 +596,16 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     protected SoundEvent getHurtSound(DamageSource source) {
         return ModSoundEvents.RESHAPE_YELLOWEYE_HURT.get();
     }
-
-    
     private int clientBoomTimer = 0;
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::predicate));
+        controllers.add(new AnimationController<>("controller", 4, this::predicate));
     }
 
-    private PlayState predicate(AnimationState<ReshapeYelloweye> event) {
-        AnimationController<ReshapeYelloweye> controller = event.getController();
-        ReshapeYelloweye entity = event.getAnimatable();
+    private PlayState predicate(AnimationTest<ReshapeYelloweye> event) {
+        AnimationController<ReshapeYelloweye> controller = event.controller();
+        ReshapeYelloweye entity = event.animatable();
 
         if (entity.isExploding()) {
             controller.setAnimation(RawAnimation.begin().thenLoop("dead"));
@@ -715,9 +626,9 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     }
     
     @Override
-    public boolean startRiding(Entity vehicle, boolean force) {
+    public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         if (vehicle instanceof Boat || vehicle instanceof Minecart) return false;
-        return super.startRiding(vehicle, force);
+        return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
     @Override
     protected boolean canRide(Entity entity) {
@@ -725,19 +636,23 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         return super.canRide(entity);
     }
 
+        // 26.1.2: Mob#shouldDespawnInPeaceful() was removed. Peaceful-mode removal is expressed by
+    // handling it in checkDespawn(), which is where vanilla consults the difficulty.
     @Override
-    protected boolean shouldDespawnInPeaceful() {
-        return true;
+    public void checkDespawn() {
+        if (this.level().getLevelData().getDifficulty() == net.minecraft.world.Difficulty.PEACEFUL) {
+            this.discard();
+            return;
+        }
+        super.checkDespawn();
     }
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide) IParasite.super.onKillEntity(killedEntity);
+        if (!this.level().isClientSide()) IParasite.super.onKillEntity(killedEntity);
     }
-
-    
     private static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
-        if (level.isClientSide || deathPos == null) return;
+        if (level.isClientSide() || deathPos == null) return;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         placeRemainsBlock(level, deathPos, pos, rand, ModBlocks.INFESTED_REMAINS_LARGE.get().defaultBlockState(), 1);
         int medium = rand.nextInt(3) + 2;
@@ -758,8 +673,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             }
         }
     }
-
-    
     static class RandomSoundGoal extends Goal {
         private final ReshapeYelloweye mob;
         private int nextSoundTick;
@@ -782,24 +695,19 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             }
         }
     }
-
-    
     public static boolean checkReshapeYelloweyeSpawnRules(EntityType<ReshapeYelloweye> type,
-                                                          ServerLevelAccessor levelAccessor, MobSpawnType spawnType,
+                                                          ServerLevelAccessor levelAccessor, EntitySpawnReason spawnType,
                                                           BlockPos pos, RandomSource random) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
             return stage >= 4 && stage <= 6;
         }
         return levelAccessor.getMaxLocalRawBrightness(pos) < 8;
     }
-
-    
     private final ItemStackHandler inventory = new ItemStackHandler(27) {
         @Override
         protected void onContentsChanged(int slot) {}
     };
-    private final LazyOptional<IItemHandler> itemHandler = LazyOptional.of(() -> inventory);
 
     private ItemStack addItemToInventory(ItemStack stack) {
         if (stack.isEmpty()) return ItemStack.EMPTY;
@@ -809,7 +717,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             remaining = insertItemIntoInventory(stack);
             if (remaining.isEmpty()) return ItemStack.EMPTY;
         }
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             Containers.dropItemStack(level(), getX(), getY(), getZ(), remaining);
         }
         return ItemStack.EMPTY;
@@ -833,7 +741,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     }
 
     private boolean tryPlaceCystAndTransfer() {
-        if (level().isClientSide) return false;
+        if (level().isClientSide()) return false;
         
         boolean hasItems = false;
         for (int i = 0; i < inventory.getSlots(); i++) {
@@ -896,7 +804,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     }
 
     private void handleInventoryOnDeath() {
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             if (!tryPlaceCystAndTransfer()) {
                 for (int i = 0; i < inventory.getSlots(); i++) {
                     ItemStack stack = inventory.getStackInSlot(i);
@@ -953,31 +861,17 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
-        tag.put("Inventory", inventory.serializeNBT());
+        inventory.serialize(tag.child("Inventory"));
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("Inventory")) {
-            inventory.deserializeNBT(tag.getCompound("Inventory"));
+        if (tag.child("Inventory").isPresent()) {
+            inventory.deserialize(tag.childOrEmpty("Inventory"));
         }
-    }
-
-    @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return itemHandler.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        itemHandler.invalidate();
     }
 
     private void handleBlockBreaking() {
@@ -990,14 +884,10 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         int minX = (int) Math.floor(aabb.minX), maxX = (int) Math.ceil(aabb.maxX);
         int minZ = (int) Math.floor(aabb.minZ), maxZ = (int) Math.ceil(aabb.maxZ);
         int minY = (int) Math.floor(aabb.minY), maxY = (int) Math.ceil(aabb.maxY);
-
-        
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    
-                    
                     if (y == minY) continue; 
                     if (isBreakableBlock(pos)) {
                         toDestroy.add(pos);
@@ -1005,8 +895,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                 }
             }
         }
-
-        
         int xEast = (int) Math.ceil(aabb.maxX);
         for (int y = minY; y <= maxY; y++) {
             for (int z = minZ; z <= maxZ; z++) {
@@ -1035,8 +923,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                 if (isBreakableBlock(pos)) toDestroy.add(pos);
             }
         }
-
-        
         int topY = (int) Math.ceil(aabb.maxY);
         for (int y = topY; y <= topY + 2; y++) {
             for (int x = minX; x <= maxX; x++) {
@@ -1046,8 +932,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                 }
             }
         }
-
-        
         blocksToDestroy.addAll(toDestroy);
     }
 }

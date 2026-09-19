@@ -1,11 +1,9 @@
 package org.tdddd.epca.impl.datagen.gen;
 
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.SoundDefinition;
-import net.minecraftforge.common.data.SoundDefinitionsProvider;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.common.data.SoundDefinition;
+import net.neoforged.neoforge.common.data.SoundDefinitionsProvider;
 import org.tdddd.epca.impl.epca;
 
 import java.io.IOException;
@@ -16,11 +14,15 @@ import java.util.stream.Stream;
 /**
  * 数据生成器：自动扫描 sounds 目录中的 .ogg 文件生成 sounds.json。
  * 声音文件按规则分组：去掉尾部数字后缀后的名称即为声音事件名。
+ *
+ * <p><b>26.1.2 改动</b>：{@code SoundDefinitionsProvider} 的构造器去掉了
+ * {@code ExistingFileHelper}（{@code (PackOutput, String modId)}，且是 protected）。
+ * {@code SoundDefinition}/{@code add(...)}/{@code sound(...)} 用法不变。
  */
 public class SoundData extends SoundDefinitionsProvider {
 
-    public SoundData(PackOutput output, ExistingFileHelper helper) {
-        super(output, epca.MODID, helper);
+    public SoundData(PackOutput output) {
+        super(output, epca.MODID);
     }
 
     @Override
@@ -32,7 +34,7 @@ public class SoundData extends SoundDefinitionsProvider {
 
             var definition = SoundDefinition.definition();
             for (String file : files) {
-                ResourceLocation soundLoc = new ResourceLocation(epca.MODID, file);
+                Identifier soundLoc = Identifier.fromNamespaceAndPath(epca.MODID, file);
                 definition.with(sound(soundLoc, SoundDefinition.SoundType.SOUND));
             }
             definition.subtitle("subtitles.epca." + eventName);
@@ -44,7 +46,7 @@ public class SoundData extends SoundDefinitionsProvider {
                 // 32 default
             }
 
-            add(new ResourceLocation(epca.MODID, eventName), definition);
+            add(Identifier.fromNamespaceAndPath(epca.MODID, eventName), definition);
         }
     }
 

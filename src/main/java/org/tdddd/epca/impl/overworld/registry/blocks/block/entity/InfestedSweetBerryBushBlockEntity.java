@@ -21,6 +21,8 @@ import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.List;
 import java.util.UUID;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
     public InfestedSweetBerryBushBlockEntity(BlockPos pos, BlockState state) {
@@ -31,7 +33,7 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
     private int attractCooldown = 0; // 冷却tick
 
     public static void tick(Level level, BlockPos pos, BlockState state, InfestedSweetBerryBushBlockEntity entity) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
 
         // 只有 age=2 才进行吸引
@@ -54,7 +56,7 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
                 serverLevel.setBlock(pos, state.setValue(InfestedSweetBerryBush.AGE, 0), 3);
                 serverLevel.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (target instanceof LivingEntity living) {
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 200, 0)); // 10秒=200 ticks
+                    living.addEffect(new MobEffectInstance(ModEffects.COTH, 200, 0)); // 10秒=200 ticks
                 }
                 entity.targetUUID = null;
                 return;
@@ -96,21 +98,21 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
     }
 
     // ---------- NBT 存储 ----------
+    /** 26.1.2: {@code BlockEntity#load(CompoundTag)} became {@code loadAdditional(ValueInput)}. */
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        if (tag.hasUUID("Target")) {
-            targetUUID = tag.getUUID("Target");
-        }
-        attractCooldown = tag.getInt("Cooldown");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        targetUUID = input.read("Target", net.minecraft.core.UUIDUtil.CODEC).orElse(null);
+        attractCooldown = input.getIntOr("Cooldown", 0);
     }
 
+    /** 26.1.2: {@code BlockEntity#saveAdditional} takes a {@code ValueOutput}, not a {@code CompoundTag}. */
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (targetUUID != null) {
-            tag.putUUID("Target", targetUUID);
+            output.store("Target", net.minecraft.core.UUIDUtil.CODEC, targetUUID);
         }
-        tag.putInt("Cooldown", attractCooldown);
+        output.putInt("Cooldown", attractCooldown);
     }
 }

@@ -21,7 +21,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.IPlantable;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
@@ -42,6 +41,12 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(NATURAL_SPAWN);
+
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(InfestedDirt::new);
     }
 
     @Override
@@ -122,8 +127,13 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                     canPlace = true;
                 } else {
                     Block aboveBlock = ModBlocks.INFESTED_SWEET_BERRY_BUSH.get();
-                    if (aboveBlock instanceof IPlantable) {
-                        canPlace = belowState.canSustainPlant(level, below, Direction.UP, (IPlantable) aboveBlock);
+// 26.1.2: Forge's IPlantable is gone. NeoForge exposes
+                    // IBlockStateExtension#canSustainPlant(BlockGetter, BlockPos, Direction, BlockState),
+                    // which returns a TriState (DEFAULT = "let the plant decide").
+                    var soilDecision = belowState.canSustainPlant(level, below, Direction.UP,
+                            aboveBlock.defaultBlockState());
+                    if (!soilDecision.isDefault()) {
+                        canPlace = soilDecision.isTrue();
                     }
                 }
                 if (!canPlace) continue;

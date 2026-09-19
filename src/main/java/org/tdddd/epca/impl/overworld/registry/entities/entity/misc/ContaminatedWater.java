@@ -3,11 +3,12 @@ package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.damagesource.DamageType;
@@ -41,9 +42,9 @@ public class ContaminatedWater extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         
-        this.entityData.define(DUMMY, false);
+        entityData.define(DUMMY, false);
     }
 
     @Override
@@ -53,19 +54,19 @@ public class ContaminatedWater extends Entity {
 
         
         if (lifeTicks >= 200) {
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 this.discard();
             }
             return;
         }
 
         
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             WaterColorEffectsManager.addContaminationEffect(this.getUUID(), this.position());
         }
 
         
-        if (!this.level().isClientSide && lifeTicks % 10 == 0) {
+        if (!this.level().isClientSide() && lifeTicks % 10 == 0) {
             ServerLevel serverLevel = (ServerLevel) this.level();
             DamageSources damageSources = serverLevel.damageSources();
 
@@ -88,8 +89,8 @@ public class ContaminatedWater extends Entity {
     
     private void applyDamageWithMinMechanic(LivingEntity target, DamageSources damageSources) {
         Level level = target.level();
-        Registry<DamageType> registry = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-        Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
+        Registry<DamageType> registry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+        Holder<DamageType> holder = registry.getOrThrow(ModDamageTypes.MINIMUM);
         DamageSource minimumSource = new DamageSource(holder);
         target.hurt(minimumSource, 0.1F);
         addCothEffect(target);
@@ -100,7 +101,7 @@ public class ContaminatedWater extends Entity {
     
     private void addCothEffect(LivingEntity entity) {
         entity.addEffect(new MobEffectInstance(
-                ModEffects.COTH.get(),
+                ModEffects.COTH,
                 400,  
                 0,    
                 false,
@@ -110,19 +111,27 @@ public class ContaminatedWater extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
+    protected void readAdditionalSaveData(ValueInput input) {
 
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
+    protected void addAdditionalSaveData(ValueOutput output) {
 
+    }
+
+    // 26.1.2: Entity#hurtServer is abstract (1.20.1's Entity#hurt returned false by default).
+    // This pure marker entity is never damageable - isAttackable() returns false - so the
+    // 1.20.1 default of "no damage" is preserved.
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+        return false;
     }
 
     @Override
     public void remove(RemovalReason reason) {
         super.remove(reason);
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             WaterColorEffectsManager.removeContaminationEffect(this.getUUID());
         }
     }

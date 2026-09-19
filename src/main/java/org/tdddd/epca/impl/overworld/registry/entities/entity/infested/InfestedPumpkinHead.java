@@ -1,8 +1,13 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.core.registries.Registries;
+
+import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
@@ -21,17 +26,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.util.GeckoLibUtil;
 
 public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -49,8 +53,9 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
 
     public InfestedPumpkinHead(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
-        this.setMaxUpStep(1.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER, -1.0F);
+        var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
+        if (epcaStepHeight != null) epcaStepHeight.setBaseValue(1.0F);
+        this.setPathfindingMalus(PathType.WATER, -1.0F);
     }
 
     public static AttributeSupplier setAttributes() {
@@ -77,7 +82,7 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
         LivingEntity target = this.getTarget();
         if (target != null && target.isAlive()) {
             if (canAttackEntity(target)) {
-                doHurtTarget(target);
+                doHurtTarget((ServerLevel) this.level(), target);
             }
 
             setMoveSpeed(0.35);
@@ -88,7 +93,7 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
                 AABB expandedBox = this.getBoundingBox().inflate(0.025);
                 if (expandedBox.intersects(target.getBoundingBox())) {
                     if (!(IParasite.isParasiteByTagOrInterface(target))) {
-                        target.hurt(this.damageSources().inWall(), 2.0F);
+                        target.hurtOrSimulate(this.damageSources().inWall(), 2.0F);
                     }
                 }
             }
@@ -106,7 +111,7 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
             }
         }
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             double dx = this.getX() - this.xo;
             double dz = this.getZ() - this.zo;
             double speed = Math.sqrt(dx * dx + dz * dz);
@@ -130,7 +135,7 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
     }
 
     private void tryTransformToBlock() {
-        if (this.level().isClientSide) return;
+        if (this.level().isClientSide()) return;
 
         BlockPos center = this.blockPosition();
         java.util.List<BlockPos> validPositions = new java.util.ArrayList<>();
@@ -184,31 +189,31 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
     }
 
     @Override
-    public boolean doHurtTarget(Entity target) {
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
         if (!canAttackEntity(target)) return false;
         float damage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
-        return target.hurt(this.damageSources().mobAttack(this), damage);
+        return target.hurtOrSimulate(this.damageSources().mobAttack(this), damage);
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
             ItemStack mainHand = attacker.getMainHandItem();
             if (!(mainHand.getItem() instanceof AxeItem)) {
                 amount *= 0.75F;
             }
         }
-        return super.hurt(source, amount);
+        return super.hurtServer(level, source, amount);
     }
 
     @Override
-    public boolean causeFallDamage(float fallDistance, float damageMultiplier, DamageSource source) {
+    public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource source) {
         boolean flag = super.causeFallDamage(fallDistance, damageMultiplier, source);
 
-        if (fallDistance >= 2.0F && !this.level().isClientSide) {
+        if (fallDistance >= 2.0F && !this.level().isClientSide()) {
             float damage;
             if (fallDistance <= 12.0F) {
-                damage = 20.0F * (fallDistance - 2.0F) / (12.0F - 2.0F); // 0~20
+                damage = (float) (20.0 * (fallDistance - 2.0) / (12.0 - 2.0)); // 0~20
             } else {
                 damage = 20.0F;
             }
@@ -218,7 +223,7 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
                 if (entity == this) continue;
                 if (entity.getBoundingBox().intersects(box) && entity.getBoundingBox().maxY <= this.getBoundingBox().minY + 0.1) {
                     if (!(IParasite.isParasiteByTagOrInterface(entity))) {
-                        return entity.hurt(this.damageSources().fall(), damage);
+                        return entity.hurtOrSimulate(this.damageSources().fall(), damage);
                     }
                 }
             }
@@ -226,8 +231,21 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
         return flag;
     }
 
+    /**
+     * Deliberately empty: the infested pumpkin head renders statically.
+     *
+     * <p>There is no {@code assets/epca/geckolib/animations/infested_pumpkin_head.animation.json}
+     * — not in the 26.1.2 tree and not in the 1.20.1 baseline either — so any controller's
+     * {@code RawAnimation} stages would all resolve to {@code null}. GeckoLib 5.5.2's
+     * {@code AnimationTimeline.create} would then call {@code List#getLast()} on the empty stage
+     * list whenever the controller's transition length is non-zero, throwing
+     * {@code NoSuchElementException} during render-state extraction. Registering no controller is
+     * what guarantees GeckoLib never builds a timeline here; the geo model and texture still render
+     * through {@code EpcaGeoRenderer}/{@code EpcaGeoModel}.</p>
+     */
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // no controllers: the infested pumpkin head is a static model
     }
 
     @Override
@@ -238,11 +256,11 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
     public static boolean checkInfestedPumpkinHeadSpawnRules(
             EntityType<InfestedPumpkinHead> entityType,
             ServerLevelAccessor levelAccessor,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
             if (stage < 2 || stage > 5) return false;
 
@@ -278,25 +296,30 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
     @Override
     public void die(DamageSource source) {
         super.die(source);
-        if (!this.level().isClientSide && source.getEntity() instanceof Player player) {
+        if (this.level() instanceof ServerLevel serverLevel && source.getEntity() instanceof Player player) {
             ItemStack weapon = player.getMainHandItem();
-            int silkLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, weapon);
+            int silkLevel = EnchantmentHelper.getItemEnchantmentLevel(silkTouch(serverLevel), weapon);
             if (silkLevel > 0) {
                 ItemStack drop = new ItemStack(ModItems.INFESTED_CARVED_PUMPKIN.get(), 1);
-                this.spawnAtLocation(drop);
+                this.spawnAtLocation(serverLevel, drop);
             }
         }
     }
 
+    /** 26.1.2: enchantments are registry entries, so the helper takes a {@code Holder<Enchantment>}. */
+    private static Holder<Enchantment> silkTouch(ServerLevel level) {
+        return level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH);
+    }
+
     @Override
-    protected void dropFromLootTable(DamageSource source, boolean causedByPlayer) {
+    protected void dropFromLootTable(ServerLevel level, DamageSource source, boolean causedByPlayer) {
         if (causedByPlayer && source.getEntity() instanceof Player player) {
             ItemStack weapon = player.getMainHandItem();
-            if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, weapon) > 0) {
+            if (EnchantmentHelper.getItemEnchantmentLevel(silkTouch(level), weapon) > 0) {
                 return;
             }
         }
-        super.dropFromLootTable(source, causedByPlayer);
+        super.dropFromLootTable(level, source, causedByPlayer);
     }
 
     @Override

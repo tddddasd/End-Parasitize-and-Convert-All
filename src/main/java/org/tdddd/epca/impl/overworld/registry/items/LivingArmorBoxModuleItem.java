@@ -5,10 +5,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.TooltipDisplay;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class LivingArmorBoxModuleItem extends Item implements ILivingArmorBoxStorable {
 
@@ -17,33 +17,34 @@ public abstract class LivingArmorBoxModuleItem extends Item implements ILivingAr
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
+    // 26.1.2: appendHoverText(ItemStack, Level, List<Component>, TooltipFlag) is gone; the    // tooltip lines are now pushed into a Consumer and the level became a TooltipContext.
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         
-        tooltip.add(Component.translatable(this.getModuleDescriptionId()));
+        tooltip.accept(Component.translatable(this.getModuleDescriptionId()));
 
         
         Component defenseDesc = this.getDefenseDescription();
         if (defenseDesc != null) {
-            tooltip.add(defenseDesc.copy().withStyle(ChatFormatting.DARK_AQUA));
+            tooltip.accept(defenseDesc.copy().withStyle(ChatFormatting.DARK_AQUA));
         }
 
         
         Component attackDesc = this.getAttackDescription();
         if (attackDesc != null) {
-            tooltip.add(attackDesc.copy().withStyle(ChatFormatting.GOLD));
+            tooltip.accept(attackDesc.copy().withStyle(ChatFormatting.GOLD));
         }
 
         
         Component energyDesc = this.getEnergyConsumptionDescription();
         if (energyDesc != null) {
-            tooltip.add(energyDesc.copy().withStyle(ChatFormatting.WHITE));
+            tooltip.accept(energyDesc.copy().withStyle(ChatFormatting.WHITE));
         }
 
         
         Component specialDesc = this.getSpecialDescription();
         if (specialDesc != null) {
-            tooltip.add(specialDesc.copy().withStyle(ChatFormatting.DARK_PURPLE));
+            tooltip.accept(specialDesc.copy().withStyle(ChatFormatting.DARK_PURPLE));
         }
     }
 

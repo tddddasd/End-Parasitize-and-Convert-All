@@ -31,7 +31,7 @@ public class InfestedSandstoneStairs extends StairBlock implements InfestedBlock
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedSandstoneStairs(Properties properties) {
-        super(() -> Blocks.STONE.defaultBlockState(), properties);
+        super(Blocks.STONE.defaultBlockState(), properties);
         
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(NATURAL_SPAWN, true)

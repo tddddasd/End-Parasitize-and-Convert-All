@@ -1,13 +1,31 @@
 package org.tdddd.epca.impl.network.packet.c2s;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.events.KeyInputHandler;
+import org.tdddd.epca.impl.network.ModNetwork;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class KeyPressPacket {
+/**
+ * 客户端 → 服务端：同步空格/潜行键状态。
+ *
+ * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}；
+ * 接收方向由 {@code context.getDirection().getReceptionSide().isServer()} 判断改为
+ * “注册在 {@code playToServer} 上”（方向由注册决定，不再需要运行时判断）。
+ * <b>线上字段与顺序不变</b>：{@code uuid} + 两个 {@code boolean}。
+ */
+public class KeyPressPacket implements CustomPacketPayload {
+
+    public static final CustomPacketPayload.Type<KeyPressPacket> TYPE =
+            new CustomPacketPayload.Type<>(ModNetwork.id("key_press"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, KeyPressPacket> STREAM_CODEC =
+            CustomPacketPayload.codec(KeyPressPacket::encode, KeyPressPacket::decode);
+
     private final UUID playerId;
     private final boolean spacePressed;
     private final boolean shiftPressed;
@@ -18,33 +36,34 @@ public class KeyPressPacket {
         this.shiftPressed = shiftPressed;
     }
 
-    public static void encode(KeyPressPacket packet, FriendlyByteBuf buffer) {
+    public static void encode(KeyPressPacket packet, RegistryFriendlyByteBuf buffer) {
         buffer.writeUUID(packet.playerId);
         buffer.writeBoolean(packet.spacePressed);
         buffer.writeBoolean(packet.shiftPressed);
     }
 
-    public static KeyPressPacket decode(FriendlyByteBuf buffer) {
+    public static KeyPressPacket decode(RegistryFriendlyByteBuf buffer) {
         return new KeyPressPacket(buffer.readUUID(),
                 buffer.readBoolean(),
                 buffer.readBoolean());
     }
 
-    public static void handle(KeyPressPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(KeyPressPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            
-            if (!context.getDirection().getReceptionSide().isServer()) {
+            if (!(context.player() instanceof ServerPlayer)) {
                 return;
             }
 
-            
             KeyInputHandler.updateKeyState(
                     packet.playerId,
                     packet.spacePressed,
                     packet.shiftPressed
             );
         });
-        context.setPacketHandled(true);
     }
 }

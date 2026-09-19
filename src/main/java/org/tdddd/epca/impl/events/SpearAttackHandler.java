@@ -6,22 +6,22 @@ import dev.kosmx.playerAnim.api.layered.ModifierLayer;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = net.minecraftforge.api.distmarker.Dist.CLIENT)
+@EventBusSubscriber(modid = epca.MODID, value = net.neoforged.api.distmarker.Dist.CLIENT)
 public class SpearAttackHandler {
 
     @SubscribeEvent
     public static void onPlayerAttackEntity(AttackEntityEvent event) {
         // 1. 确保在客户端执行
-        if (!(event.getEntity().level().isClientSide)) return;
+        if (!(event.getEntity().level().isClientSide())) return;
 
         // 2. 获取玩家（攻击者）
         if (!(event.getEntity() instanceof AbstractClientPlayer player)) return;
@@ -45,11 +45,11 @@ public class SpearAttackHandler {
             // 获取与玩家关联的 ModifierLayer（已在工厂中注册）
             ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
                     .getPlayerAssociatedData(player)
-                    .get(new ResourceLocation(epca.MODID, "stab"));
+                    .get(Identifier.fromNamespaceAndPath(epca.MODID, "stab"));
 
             if (animation != null) {
                 // 从注册表获取 KeyframeAnimation，并用 KeyframeAnimationPlayer 包装
-                var keyframe = PlayerAnimationRegistry.getAnimation(new ResourceLocation(epca.MODID, "stab"));
+                var keyframe = PlayerAnimationRegistry.getAnimation(Identifier.fromNamespaceAndPath(epca.MODID, "stab"));
                 if (keyframe != null) {
                     animation.setAnimation(new KeyframeAnimationPlayer(keyframe));
                 }

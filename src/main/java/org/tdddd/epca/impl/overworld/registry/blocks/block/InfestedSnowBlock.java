@@ -37,6 +37,12 @@ public class InfestedSnowBlock extends Block implements InfestedBlockInterface {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(NATURAL_SPAWN);
+
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends Block> codec() {
+        return simpleCodec(InfestedSnowBlock::new);
     }
 
     @Override
@@ -53,19 +59,20 @@ public class InfestedSnowBlock extends Block implements InfestedBlockInterface {
 
     
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        if (!level.isClientSide && entity instanceof LivingEntity living) {
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+        if (!level.isClientSide() && entity instanceof LivingEntity living) {
             
             if (!(IParasite.isParasiteByTagOrInterface(living))) {
                 
                 living.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-                        ModEffects.COTH.get(),           
+                        ModEffects.COTH,           
                         1200,                         
                         0                                 
                 ));
             }
         }
-        super.entityInside(state, level, pos, entity);
+        super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
     }
 
     

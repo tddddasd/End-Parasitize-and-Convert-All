@@ -1,23 +1,27 @@
 package org.tdddd.epca.impl.client.entity.model;
 
-import net.minecraft.resources.ResourceLocation;
+import com.geckolib.renderer.base.GeoRenderState;
+import net.minecraft.resources.Identifier;
+
 import org.tdddd.epca.impl.epca;
+
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLongarms;
-import software.bernie.geckolib.model.GeoModel;
+
+import com.geckolib.model.GeoModel;
 
 public class ReshapeLongarmsModel extends GeoModel<ReshapeLongarms> {
     @Override
-    public ResourceLocation getModelResource(ReshapeLongarms entity) {
-        return new ResourceLocation(epca.MODID, "geo/entity/reshape_longarms.geo.json");
+    public Identifier getModelResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "entity/reshape_longarms");
     }
 
     @Override
-    public ResourceLocation getTextureResource(ReshapeLongarms entity) {
-        return new ResourceLocation(epca.MODID, "textures/entity/reshape_longarms.png");
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/reshape_longarms.png");
     }
 
     @Override
-    public ResourceLocation getAnimationResource(ReshapeLongarms entity) {
-        return new ResourceLocation(epca.MODID, "animations/reshape_longarms.animation.json");
+    public Identifier getAnimationResource(ReshapeLongarms entity) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "reshape_longarms");
     }
 }

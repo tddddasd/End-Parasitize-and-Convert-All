@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.special;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -52,10 +55,10 @@ public class YawningNya extends PathfinderMob implements IParasite {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_HAS_REVENGE, false);
-        this.entityData.define(DATA_HAS_SHOWN_JOIN_MESSAGE, false);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(DATA_HAS_REVENGE, false);
+        entityData.define(DATA_HAS_SHOWN_JOIN_MESSAGE, false);
     }
 
     
@@ -87,7 +90,7 @@ public class YawningNya extends PathfinderMob implements IParasite {
         super.tick();
 
         
-        if (!this.level().isClientSide && !this.entityData.get(DATA_HAS_SHOWN_JOIN_MESSAGE)) {
+        if (!this.level().isClientSide() && !this.entityData.get(DATA_HAS_SHOWN_JOIN_MESSAGE)) {
             this.showJoinMessage();
             this.entityData.set(DATA_HAS_SHOWN_JOIN_MESSAGE, true);
         }
@@ -117,11 +120,7 @@ public class YawningNya extends PathfinderMob implements IParasite {
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-        if (this.level().isClientSide) {
-            return false;
-        }
-
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource source, float amount) {
         Entity attacker = source.getEntity();
         if (attacker instanceof LivingEntity && attacker != this && revengeCooldown <= 0) {
             this.lastAttacker = attacker.getUUID();
@@ -131,16 +130,16 @@ public class YawningNya extends PathfinderMob implements IParasite {
             
             if (attacker instanceof LivingEntity livingAttacker) {
                 this.setLastHurtByMob(livingAttacker);
-                this.doHurtTarget(livingAttacker);
+                this.doHurtTarget(serverLevel, livingAttacker);
             }
         }
 
-        return super.hurt(source, amount);
+        return super.hurtServer(serverLevel, source, amount);
     }
 
     
     @Override
-    public boolean doHurtTarget(Entity target) {
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
         
         ItemStack mainHandItem = this.getMainHandItem();
 
@@ -152,35 +151,24 @@ public class YawningNya extends PathfinderMob implements IParasite {
         }
 
         
-        float enchantmentDamage = 0.0F;
-        if (target instanceof LivingEntity) {
-            enchantmentDamage = EnchantmentHelper.getDamageBonus(mainHandItem, ((LivingEntity)target).getMobType());
-        }
-
-        float totalDamage = baseDamage + enchantmentDamage;
-
-        
         this.playSound(SoundEvents.PLAYER_ATTACK_WEAK, 1.0F, 1.0F);
 
-        
-        boolean attacked = target.hurt(this.damageSources().mobAttack(this), totalDamage);
+        DamageSource damageSource = this.damageSources().mobAttack(this);
+        // 26.1.2: enchantment damage (閿嬪埄 / 浜＄伒鏉€鎵?/ ...) is data driven and applied by
+        // EnchantmentHelper#modifyDamage inside the damage pipeline, so it is no longer
+        // computed here with EnchantmentHelper#getDamageBonus.
+        float totalDamage = EnchantmentHelper.modifyDamage(level, mainHandItem, target, damageSource, baseDamage);
+
+        boolean attacked = target.hurtServer(level, damageSource, totalDamage);
 
         if (attacked) {
             
-            if (enchantmentDamage > 0.0F && target instanceof LivingEntity) {
-                ((LivingEntity)target).knockback((double)((float)enchantmentDamage * 0.5F),
-                        this.getX() - target.getX(), this.getZ() - target.getZ());
-            }
-
-            
             if (!mainHandItem.isEmpty() && target instanceof LivingEntity) {
-                EnchantmentHelper.doPostHurtEffects((LivingEntity)target, this);
+                EnchantmentHelper.doPostAttackEffects(level, target, damageSource);
 
                 
                 if (mainHandItem.isDamageableItem()) {
-                    mainHandItem.hurtAndBreak(1, this, (entity) -> {
-                        this.broadcastBreakEvent(InteractionHand.MAIN_HAND);
-                    });
+                    mainHandItem.hurtAndBreak(1, this, EquipmentSlot.MAINHAND);
                 }
             }
 
@@ -195,14 +183,13 @@ public class YawningNya extends PathfinderMob implements IParasite {
     }
 
     private float getWeaponAttackDamage(ItemStack stack) {
-        
-        double attackDamage = stack.getAttributeModifiers(EquipmentSlot.MAINHAND)
-                .get(Attributes.ATTACK_DAMAGE)
-                .stream()
-                .mapToDouble(AttributeModifier::getAmount)
-                .sum();
-
-        return (float) attackDamage;
+        double[] attackDamage = new double[1];
+        stack.getAttributeModifiers().forEach(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
+            if (attribute.is(Attributes.ATTACK_DAMAGE)) {
+                attackDamage[0] += modifier.amount();
+            }
+        });
+        return (float) attackDamage[0];
     }
 
     
@@ -253,27 +240,25 @@ public class YawningNya extends PathfinderMob implements IParasite {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
-        super.addAdditionalSaveData(compound);
-        compound.putBoolean("HasRevenge", this.entityData.get(DATA_HAS_REVENGE));
-        compound.putBoolean("HasShownJoinMessage", this.entityData.get(DATA_HAS_SHOWN_JOIN_MESSAGE));
-        compound.putInt("RevengeCooldown", this.revengeCooldown);
-        compound.putInt("AttackStrengthTicker", this.attackStrengthTicker);
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("HasRevenge", this.entityData.get(DATA_HAS_REVENGE));
+        output.putBoolean("HasShownJoinMessage", this.entityData.get(DATA_HAS_SHOWN_JOIN_MESSAGE));
+        output.putInt("RevengeCooldown", this.revengeCooldown);
+        output.putInt("AttackStrengthTicker", this.attackStrengthTicker);
         if (this.lastAttacker != null) {
-            compound.putUUID("LastAttacker", this.lastAttacker);
+            output.store("LastAttacker", UUIDUtil.CODEC, this.lastAttacker);
         }
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
-        super.readAdditionalSaveData(compound);
-        this.entityData.set(DATA_HAS_REVENGE, compound.getBoolean("HasRevenge"));
-        this.entityData.set(DATA_HAS_SHOWN_JOIN_MESSAGE, compound.getBoolean("HasShownJoinMessage"));
-        this.revengeCooldown = compound.getInt("RevengeCooldown");
-        this.attackStrengthTicker = compound.getInt("AttackStrengthTicker");
-        if (compound.hasUUID("LastAttacker")) {
-            this.lastAttacker = compound.getUUID("LastAttacker");
-        }
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.entityData.set(DATA_HAS_REVENGE, input.getBooleanOr("HasRevenge", false));
+        this.entityData.set(DATA_HAS_SHOWN_JOIN_MESSAGE, input.getBooleanOr("HasShownJoinMessage", false));
+        this.revengeCooldown = input.getIntOr("RevengeCooldown", 0);
+        this.attackStrengthTicker = input.getIntOr("AttackStrengthTicker", 0);
+        this.lastAttacker = input.read("LastAttacker", UUIDUtil.CODEC).orElse(null);
     }
 
     
@@ -282,24 +267,16 @@ public class YawningNya extends PathfinderMob implements IParasite {
         return true;
     }
 
-    @Override
-    public boolean canTakeItem(ItemStack itemstack) {
-        return true;
-    }
 
     @Override
-    protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHit) {
-        super.dropCustomDeathLoot(source, looting, recentlyHit);
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean killedByPlayer) {
+        super.dropCustomDeathLoot(level, source, killedByPlayer);
         
         if (!this.getMainHandItem().isEmpty()) {
-            this.spawnAtLocation(this.getMainHandItem().copy());
+            this.spawnAtLocation(level, this.getMainHandItem().copy());
         }
     }
 
-    @Override
-    public MobType getMobType() {
-        return MobType.UNDEFINED;
-    }
 
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
@@ -355,7 +332,7 @@ public class YawningNya extends PathfinderMob implements IParasite {
     }
 
     @Override
-    public void kill() {
+    public void kill(ServerLevel level) {
         
         
     }
@@ -363,7 +340,7 @@ public class YawningNya extends PathfinderMob implements IParasite {
     public static boolean checkNyaSpawnRules(
             EntityType<YawningNya> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnReason,
             BlockPos pos,
             RandomSource random
     ) {

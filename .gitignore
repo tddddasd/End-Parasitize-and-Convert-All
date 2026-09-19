@@ -1,27 +1,134 @@
-# Gradle / 构建产物
+# 用户特定的文件
+.idea/
+
+*.iml
+*.ipr
+*.iws
+*.maple
+
+# IntelliJ
+out/
+# mpeltonen/sbt-idea 插件
+.idea_modules/
+
+# JIRA 插件
+atlassian-ide-plugin.xml
+
+# 编译后的类文件
+*.class
+
+# 日志文件
+*.log
+
+# BlueJ 文件
+*.ctxt
+
+# 包文件 #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# 虚拟机崩溃日志，参见 http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+*~
+
+# 如果进程仍持有已删除文件的句柄，可能会创建的临时文件
+.fuse_hidden*
+
+# KDE 目录首选项
+.directory
+
+# Linux 回收站文件夹，可能出现在任何分区或磁盘上
+.Trash-*
+
+# .nfs 文件是在删除打开的文件但仍在访问时创建的
+.nfs*
+
+# 通用
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 图标必须以两个
+Icon
+
+# 缩略图
+._*
+
+# 可能出现在卷根目录的文件
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# 可能在远程 AFP 共享上创建的目录
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows 缩略图缓存文件
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# 转储文件
+*.stackdump
+
+# 文件夹配置文件
+[Dd]esktop.ini
+
+# 文件共享上使用的回收站
+$RECYCLE.BIN/
+
+# Windows 安装程序文件
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows 快捷方式
+*.lnk
+
+.gradle
+build/
+
+# 忽略 Gradle GUI 配置
+gradle-app.setting
+
+# 项目缓存
+.gradletasknamecache
+
+**/build/
+
+# 常见工作目录
+run/
+runs/
+
+# 避免忽略 Gradle wrapper jar 文件（.jar 文件通常被忽略）
+!gradle-wrapper.jar
+/secret.properties
+
+# 文档文件
+/docs
+
+# 补充：Gradle / 运行目录（构建产物，不应上传）
 build/
 .gradle/
-out/
-
-# ForgeGradle 运行目录（开发用，含存档与日志）
 run/
 run-data/
 logs/
 crash-reports/
-
-# IDE
-.idea/
-*.iml
-*.ipr
-*.iws
-.eclipse/
-.settings/
-.classpath
-.project
-*.launch
-.vscode/
-
-# 系统 / 杂项
-.DS_Store
-Thumbs.db
+out/
 *.log

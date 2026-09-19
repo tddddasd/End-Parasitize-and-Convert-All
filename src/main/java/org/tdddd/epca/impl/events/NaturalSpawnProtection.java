@@ -1,13 +1,13 @@
 package org.tdddd.epca.impl.events;
 
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.entities.*;
 
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class NaturalSpawnProtection {
     
     private static final Map<Integer, Map<Class<?>, Integer>> STAGE_MINIMUM_SPAWN_CONFIG = new HashMap<>();
@@ -234,18 +234,18 @@ public class NaturalSpawnProtection {
     public static final String NATURAL_SPAWN_TAG = "epca_natural_spawn";
 
     @SubscribeEvent
-    public static void onFinalizeSpawn(MobSpawnEvent.FinalizeSpawn event) {
+    public static void onFinalizeSpawn(FinalizeSpawnEvent event) {
         Mob mob = event.getEntity();
         
         if (!(mob instanceof IParasite)) return;
 
-        MobSpawnType spawnType = event.getSpawnType();
+        EntitySpawnReason spawnType = event.getSpawnType();
         
-        boolean isNatural = spawnType == MobSpawnType.NATURAL ||
-                spawnType == MobSpawnType.CHUNK_GENERATION;
+        boolean isNatural = spawnType == EntitySpawnReason.NATURAL ||
+                spawnType == EntitySpawnReason.CHUNK_GENERATION;
         
         
-        if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
             CompoundTag persistentData = mob.getPersistentData();
             persistentData.putBoolean(NATURAL_SPAWN_TAG, true);
         }
@@ -253,6 +253,6 @@ public class NaturalSpawnProtection {
 
     
     public static boolean isNaturallySpawned(Mob mob) {
-        return mob.getPersistentData().getBoolean(NATURAL_SPAWN_TAG);
+        return mob.getPersistentData().getBoolean(NATURAL_SPAWN_TAG).orElse(false);
     }
 }

@@ -9,7 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,8 +27,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlock, InfestedBlockInterface {
-    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-    private final MultifaceSpreader spreader = new MultifaceSpreader(this);
+    // 26.1.2: MultifaceBlock already declares and registers BlockStateProperties.WATERLOGGED,
+    // so redeclaring it here made the state definition fail with "duplicate property: waterlogged".
+    // The inherited MultifaceBlock.WATERLOGGED is used instead.
 
     
     private static final VoxelShape UP_SHAPE = Block.box(0.0, 15.0, 0.0, 16.0, 16.0, 16.0);
@@ -39,23 +39,40 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
     private static final VoxelShape EAST_SHAPE = Block.box(15.0, 0.0, 0.0, 16.0, 16.0, 16.0);
     private static final VoxelShape WEST_SHAPE = Block.box(0.0, 0.0, 0.0, 1.0, 16.0, 16.0);
 
-    public InfestedVine() {
-        
-        super(Properties.of()
-                .noCollission()
-                .randomTicks()
-                .strength(0.2F)
-                .sound(SoundType.VINE)
-                .noOcclusion()
-                .ignitedByLava());
+    /**
+     * 26.1.2: {@code DeferredRegister.Blocks#registerBlock} needs a
+     * {@code Function<Properties, B>} so the registry id can be attached to the
+     * properties; the plain {@code register(...)} overload leaves it unset and
+     * aborts the whole block registry at runtime ({@code Block id not set}).
+     */
+    public InfestedVine(Properties properties) {
+        super(properties);
 
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, false));
     }
 
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+    protected com.mojang.serialization.MapCodec<? extends MultifaceBlock> codec() {
+        return simpleCodec(InfestedVine::new);
+
+    }
+
+    /** Kept for {@code simpleCodec} / hand construction with the original defaults. */
+    public InfestedVine() {
+        this(Properties.of()
+                .noCollision()
+                .randomTicks()
+                .strength(0.2F)
+                .sound(SoundType.VINE)
+                .noOcclusion()
+                .ignitedByLava());
+    }
+
+    @Override
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         
-        if (!level.isClientSide && entity instanceof LivingEntity livingEntity) {
+        if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
             applyCothEffects(livingEntity, true);
         }
     }
@@ -71,7 +88,7 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
             
             
             MobEffectInstance cothEffect = new MobEffectInstance(
-                    ModEffects.COTH.get(), 
+                    ModEffects.COTH, 
                     600, 
                     0, 
                     false, 
@@ -80,7 +97,7 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
             );
 
             MobEffectInstance slownessEffect = new MobEffectInstance(
-                    MobEffects.MOVEMENT_SLOWDOWN, 
+                    MobEffects.SLOWNESS, 
                     4, 
                     1, 
                     false, 
@@ -89,8 +106,8 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
             );
 
             
-            if (!entity.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) ||
-                    entity.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getAmplifier() == 0) {
+            if (!entity.hasEffect(MobEffects.SLOWNESS) ||
+                    entity.getEffect(MobEffects.SLOWNESS).getAmplifier() == 0) {
                 entity.addEffect(cothEffect);
                 entity.addEffect(slownessEffect);
             }
@@ -101,7 +118,7 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(WATERLOGGED);
+        // WATERLOGGED is added by MultifaceBlock.createBlockStateDefinition(); adding it again is a duplicate.
     }
 
     public boolean canAttachTo(BlockGetter level, BlockState state, BlockPos pos, Direction direction) {
@@ -112,6 +129,11 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
         return attachedState.isFaceSturdy(level, attachedPos, direction.getOpposite());
     }
 
+    /**
+     * 26.1.2: {@code MultifaceBlock#getStateForPlacement} already walks the nearest-looking
+     * directions and attaches whatever face is legal; this override only has to carry the
+     * mod's own "grow downwards from an existing infested vine" rule and the waterlogged flag.
+     */
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Level level = context.getLevel();
@@ -142,7 +164,7 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
             placementState = placementState.setValue(WATERLOGGED, fluidstate.getType() == Fluids.WATER);
 
             
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 level.scheduleTick(blockpos, this, 1);
             }
 
@@ -164,24 +186,25 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
         super.onPlace(state, level, pos, oldState, isMoving);
 
         
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             checkAndConvertVinesBelow(level, pos, state);
         }
     }
 
     public void tick(BlockState state, Level level, BlockPos pos, net.minecraft.util.RandomSource random) {
         
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             checkAndConvertVinesBelow(level, pos, state);
         }
     }
 
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
+                                net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
+        super.neighborChanged(state, level, pos, block, orientation, isMoving);
 
         
-        if (!level.isClientSide && fromPos.equals(pos.above())) {
+        if (!level.isClientSide() && orientation != null
+                && (orientation.getFront() == Direction.DOWN || orientation.getSide() == Direction.UP)) {
             BlockPos abovePos = pos.above();
             BlockState aboveState = level.getBlockState(abovePos);
 
@@ -208,14 +231,16 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
     }
 
     @Override
-    public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+    public boolean propagatesSkylightDown(BlockState state) {
         return state.getFluidState().isEmpty();
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    public BlockState updateShape(BlockState state, LevelReader level, net.minecraft.world.level.ScheduledTickAccess ticks,
+                                  BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos,
+                                  BlockState neighbourState, net.minecraft.util.RandomSource random) {
         if (state.getValue(WATERLOGGED)) {
-            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+            ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
 
         
@@ -242,11 +267,6 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
         }
 
         return state;
-    }
-
-    @Override
-    public MultifaceSpreader getSpreader() {
-        return this.spreader;
     }
 
     @Override
@@ -346,22 +366,6 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
             
         }
         
-    }
-
-    
-    public static boolean hasFace(BlockState state, Direction direction) {
-        BooleanProperty property = getFaceProperty(direction);
-        return state.hasProperty(property) && state.getValue(property);
-    }
-
-    
-    public static boolean hasAnyFace(BlockState state) {
-        for (Direction direction : Direction.values()) {
-            if (hasFace(state, direction)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

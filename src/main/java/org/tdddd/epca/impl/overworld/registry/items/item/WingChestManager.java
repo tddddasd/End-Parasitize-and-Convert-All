@@ -1,27 +1,27 @@
 package org.tdddd.epca.impl.overworld.registry.items.item;
 
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class WingChestManager {
     public static final Map<UUID, WingType> activeWingTypes = new HashMap<>();
     private static final Map<UUID, Boolean> wasFlightEnabledByOtherMod = new HashMap<>();
 
     public static void init() {
-        MinecraftForge.EVENT_BUS.register(WingChestManager.class);
+        // 26.1.2: 该类自带 @EventBusSubscriber，FML 已自动注册；重复注册会让监听器执行两次，故移除。
     }
 
     public static void registerWingPlayer(Player player, WingType type) {
@@ -85,10 +85,9 @@ public class WingChestManager {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
 
-        Player player = event.player;
+        Player player = event.getEntity();
         UUID playerId = player.getUUID();
 
         
@@ -105,7 +104,7 @@ public class WingChestManager {
             
             if (player.getAbilities().flying && player.onGround()) {
                 player.getAbilities().flying = false;
-                if (!player.level().isClientSide) {
+                if (!player.level().isClientSide()) {
                     player.onUpdateAbilities();
                 }
             }

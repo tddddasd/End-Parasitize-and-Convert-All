@@ -1,8 +1,18 @@
 package org.tdddd.epca.impl.overworld.registry.capability;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.common.util.ValueIOSerializable;
 
-public class ShieldCapability implements IShieldCapability {
+/**
+ * 灵魂护盾数值。
+ *
+ * <p><b>26.1.2 改动</b>：原 {@code serializeNBT/deserializeNBT(CompoundTag)} 改为
+ * {@link ValueIOSerializable} 的 {@code serialize(ValueOutput)/deserialize(ValueInput)}
+ * （Forge 的 {@code INBTSerializable} 与 {@code CompoundTag} 存取在 26.1.2 已删除）。
+ * <b>存档字段名与结构不变</b>：{@code shield}（float）。
+ */
+public class ShieldCapability implements IShieldCapability, ValueIOSerializable {
     private float shield = 0.0f;
 
     @Override
@@ -26,13 +36,13 @@ public class ShieldCapability implements IShieldCapability {
         this.shield = Math.max(0, this.shield - amount);
     }
 
-    public CompoundTag serializeNBT() {
-        CompoundTag tag = new CompoundTag();
-        tag.putFloat("shield", shield);
-        return tag;
+    @Override
+    public void serialize(ValueOutput output) {
+        output.putFloat("shield", shield);
     }
 
-    public void deserializeNBT(CompoundTag tag) {
-        this.shield = tag.getFloat("shield");
+    @Override
+    public void deserialize(ValueInput input) {
+        this.shield = input.getFloatOr("shield", 0.0F);
     }
 }

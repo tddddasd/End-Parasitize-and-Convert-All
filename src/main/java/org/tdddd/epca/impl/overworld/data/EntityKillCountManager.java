@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.data;
 
+import net.minecraft.resources.Identifier;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.nbt.CompoundTag;
@@ -7,7 +8,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,7 +45,7 @@ public class EntityKillCountManager implements ResourceManagerReloadListener {
 
     
     public static int getMaxKillCount(LivingEntity entity) {
-        String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
+        String entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
         return MAX_KILL_COUNTS.getOrDefault(entityId, 0);
     }
 
@@ -56,7 +57,7 @@ public class EntityKillCountManager implements ResourceManagerReloadListener {
     
     public static int getCurrentKillCount(LivingEntity entity) {
         CompoundTag nbt = entity.getPersistentData();
-        return nbt.getInt(KILL_COUNT_KEY);
+        return nbt.getInt(KILL_COUNT_KEY).orElse(0);
     }
 
     
@@ -82,7 +83,7 @@ public class EntityKillCountManager implements ResourceManagerReloadListener {
 
     
     public static boolean hasKillCount(LivingEntity entity) {
-        String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
+        String entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
         return MAX_KILL_COUNTS.containsKey(entityId);
     }
 

@@ -108,9 +108,9 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
         return Shapes.empty();
     }
 
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean isMoving) {
-        if (!level.isClientSide) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                               net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
+        if (!level.isClientSide()) {
             boolean isTop = true;
             BlockState aboveState = level.getBlockState(pos.above());
             if (aboveState.getBlock() == this || aboveState.getBlock() == Blocks.SUGAR_CANE) {
@@ -118,7 +118,7 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
             }
             level.setBlock(pos, state.setValue(TOP, isTop), 2);
         }
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, isMoving);
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, isMoving);
     }
 
     @Override
@@ -154,8 +154,9 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
     }
 
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        if (level.isClientSide) return;
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+        if (level.isClientSide()) return;
 
         if (!(entity instanceof LivingEntity living) || living instanceof IParasite && living instanceof Player) {
             return;
@@ -180,8 +181,8 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
         if (currentTick - lastTime >= 10) {
             if (Math.abs(currentY - lastY) > 0.001) {
                 living.hurt(living.damageSources().cactus(), 1.0F);
-                if (level.random.nextFloat() < 0.7F) {
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 900, 0));
+                if (level.getRandom().nextFloat() < 0.7F) {
+                    living.addEffect(new MobEffectInstance(ModEffects.COTH, 900, 0));
                 }
             }
             LAST_DAMAGE_TIME.put(entity, currentTick);

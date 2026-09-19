@@ -53,16 +53,16 @@ public final class EntityBreakUtils {
      */
     public static double getGroundHeightAt(Level level, BlockPos pos, int maxSearchUp) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
-        int startY = Math.min(pos.getY() + maxSearchUp, level.getMaxBuildHeight());
+        int startY = Math.min(pos.getY() + maxSearchUp, level.getMaxY());
         mutable.setY(startY);
-        while (mutable.getY() > level.getMinBuildHeight()) {
+        while (mutable.getY() > level.getMinY()) {
             BlockState state = level.getBlockState(mutable);
             if (state.isSolid()) {
                 return mutable.getY() + 1;
             }
             mutable.setY(mutable.getY() - 1);
         }
-        return level.getMinBuildHeight();
+        return level.getMinY();
     }
 
     /**

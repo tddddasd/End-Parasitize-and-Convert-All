@@ -1,23 +1,27 @@
 package org.tdddd.epca.impl.client.entity.model;
 
-import net.minecraft.resources.ResourceLocation;
+import com.geckolib.renderer.base.GeoRenderState;
+import net.minecraft.resources.Identifier;
+
 import org.tdddd.epca.impl.epca;
+
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedZombie;
-import software.bernie.geckolib.model.GeoModel;
+
+import com.geckolib.model.GeoModel;
 
 public class InfestedZombieModel extends GeoModel<InfestedZombie> {
     @Override
-    public ResourceLocation getModelResource(InfestedZombie entity) {
-        return new ResourceLocation(epca.MODID, "geo/entity/infested_zombie.geo.json");
+    public Identifier getModelResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "entity/infested_zombie");
     }
 
     @Override
-    public ResourceLocation getTextureResource(InfestedZombie entity) {
-        return new ResourceLocation(epca.MODID, "textures/entity/infested_zombie.png");
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/infested_zombie.png");
     }
 
     @Override
-    public ResourceLocation getAnimationResource(InfestedZombie entity) {
-        return new ResourceLocation(epca.MODID, "animations/infested_zombie.animation.json");
+    public Identifier getAnimationResource(InfestedZombie entity) {
+        return Identifier.fromNamespaceAndPath(epca.MODID, "infested_zombie");
     }
 }

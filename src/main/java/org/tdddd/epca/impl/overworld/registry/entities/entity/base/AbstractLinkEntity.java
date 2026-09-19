@@ -84,15 +84,15 @@ public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements I
     // ────────── Synched data ──────────
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(TICK_COUNT, 0);
-        this.entityData.define(ANIMATION_STATE, ANIM_STATE_IDLE);
-        this.entityData.define(IS_RISING, false);
-        this.entityData.define(RISE_TIMER, 0);
-        this.entityData.define(TARGET_Y, 0.0f);
-        this.entityData.define(TARGET_X, 0.0f);
-        this.entityData.define(TARGET_Z, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        super.defineSynchedData(entityData);
+        entityData.define(TICK_COUNT, 0);
+        entityData.define(ANIMATION_STATE, ANIM_STATE_IDLE);
+        entityData.define(IS_RISING, false);
+        entityData.define(RISE_TIMER, 0);
+        entityData.define(TARGET_Y, 0.0f);
+        entityData.define(TARGET_X, 0.0f);
+        entityData.define(TARGET_Z, 0.0f);
     }
 
     // ────────── Persistence ──────────

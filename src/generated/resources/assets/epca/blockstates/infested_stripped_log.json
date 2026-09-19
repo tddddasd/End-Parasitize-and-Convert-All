@@ -1,7 +1,7 @@
 {
   "variants": {
     "axis=x": {
-      "model": "epca:block/infested_stripped_log_horizontal",
+      "model": "epca:block/infested_stripped_log",
       "x": 90,
       "y": 90
     },
@@ -9,7 +9,7 @@
       "model": "epca:block/infested_stripped_log"
     },
     "axis=z": {
-      "model": "epca:block/infested_stripped_log_horizontal",
+      "model": "epca:block/infested_stripped_log",
       "x": 90
     }
   }

@@ -1,7 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.special;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -15,17 +16,17 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.util.GeckoLibUtil;
 
 import java.util.stream.Collectors;
 
@@ -56,22 +57,20 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
 
     @Override
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        if (effectInstance.getEffect() == ModEffects.COTH.get()) {
+        if (effectInstance.getEffect() == ModEffects.COTH) {
             return false;
         }
         return super.canBeAffected(effectInstance);
     }
-
-    
     @Override
-    public boolean doHurtTarget(Entity target) {
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
         
         if (!(target instanceof Player)) {
             target.remove(RemovalReason.UNLOADED_TO_CHUNK); 
             return true; 
         }
         
-        return super.doHurtTarget(target);
+        return super.doHurtTarget(level, target);
     }
 
     @Override
@@ -96,19 +95,13 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
         });
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
-
-        
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, this::canAttack));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (entity, serverLevel) -> this.canAttack(entity)));
     }
-
-    
     public boolean canAttack(LivingEntity target) {
         return !(target instanceof Nullthing) &&
                 target != null &&
                 target.isAlive();
     }
-
-    
     @Override
     public void tick() {
         super.tick();
@@ -116,24 +109,18 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
         if (this.getHealth() < this.getMaxHealth()) {
             super.setHealth(this.getMaxHealth());
         }
-
-        
         if (this.getAttribute(Attributes.MAX_HEALTH).getBaseValue() != 800.0D) {
             this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(800.0D);
         }
 
-        if (!this.level().isClientSide) {
-            
-            
+        if (!this.level().isClientSide()) {
             this.getActiveEffects().stream()
                     .map(MobEffectInstance::getEffect)
-                    .filter(effect -> !isEpcaEffect(effect))
+                    .filter(effect -> !isEpcaEffect(effect.value()))
                     .collect(Collectors.toList()) 
                     .forEach(this::removeEffect);
 
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001D;
-
-            
             if (this.isAttacking && this.getTarget() != null && this.distanceToSqr(this.getTarget()) < 8.0D) {
                 if (attackSoundCooldown <= 0) {
                     if (this.random.nextBoolean()) {
@@ -144,11 +131,7 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
                     attackSoundCooldown--; 
                 }
             } else {
-                
-                
             }
-
-            
             if (isMoving) {
                 if (runSoundCooldown <= 0) {
                     this.playSound(ModSoundEvents.NULLTHING_RUN.get(), 0.8F, 1.0F);
@@ -184,37 +167,25 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
             wasMoving = isMoving;
         }
     }
-
-    
     private boolean isEpcaEffect(MobEffect effect) {
-        ResourceLocation key = ForgeRegistries.MOB_EFFECTS.getKey(effect);
+        Identifier key = BuiltInRegistries.MOB_EFFECT.getKey(effect);
         return key != null && "epca".equals(key.getNamespace());
     }
-
-    
     public void setAttacking(boolean attacking) {
         this.isAttacking = attacking;
     }
-
-    
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         
         return false;
     }
-
-    
     @Override
     public void setHealth(float health) {
         
         super.setHealth(this.getMaxHealth());
     }
-
-    
     @Override
     public void die(DamageSource damageSource) {
-        
-        
     }
 
     @Override
@@ -230,41 +201,31 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
     }
 
     @Override
-    public void kill() {
-        
-        
+    public void kill(ServerLevel level) {
     }
-
-    
     @Override
     public void remove(Entity.RemovalReason reason) {
-        
-        
     }
-
-    
     @Override
     public void checkDespawn() {
         
         this.noActionTime = 0;
     }
-
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 3, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 3, this::animationPredicate));
     }
 
-    private PlayState animationPredicate(AnimationState<Nullthing> event) {
+    private PlayState animationPredicate(AnimationTest<Nullthing> event) {
         boolean isMoving = event.isMoving();
 
         if (this.isAttacking && this.getTarget() != null && this.distanceToSqr(this.getTarget()) < 8.0D) {
             
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("attack"));
+            event.setAnimation(RawAnimation.begin().thenLoop("attack"));
         } else if (isMoving) {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("trot"));
+            event.setAnimation(RawAnimation.begin().thenLoop("trot"));
         } else {
-            event.getController().setAnimation(RawAnimation.begin().thenLoop("idle"));
+            event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
 
         return PlayState.CONTINUE;
@@ -278,10 +239,10 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
     public static boolean checkNullthingSpawnRules(
             EntityType<Nullthing> entityType,
             ServerLevelAccessor level,
-            MobSpawnType spawnType,
+            EntitySpawnReason spawnType,
             BlockPos pos,
             RandomSource random
     ) {
-        return spawnType == MobSpawnType.SPAWN_EGG || spawnType == MobSpawnType.COMMAND;
+        return spawnType == EntitySpawnReason.SPAWN_ITEM_USE || spawnType == EntitySpawnReason.COMMAND;
     }
 }

@@ -1,44 +1,44 @@
 package org.tdddd.epca.impl.client.entity.renderer;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
+import com.geckolib.renderer.base.RenderPassInfo;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.world.entity.Entity;
+import org.tdddd.epca.impl.client.entity.EpcaGeoModel;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
 import org.tdddd.epca.impl.client.entity.model.ReshapeLongarmsModel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLongarms;
-import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 
+/**
+ * Renderer for the reshape longarms.
+ *
+ * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <p>GeckoLib 4 hid the removed back parts by mutating bones before rendering
+ * ({@code model.getAnimationProcessor().getBone(name).setHidden(hide)}). GeckoLib 5 bones are
+ * immutable while rendering, so the same effect is expressed as a
+ * {@code RenderPassInfo.BoneUpdater} that calls {@code BoneSnapshot#skipRender} — which is exactly
+ * what {@link EpcaGeoRenderer#addBoneHider} installs.</p>
+ */
 public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
 
-    // 直接持有模型实例，方便操作骨骼
-    private final ReshapeLongarmsModel model;
+    private static final String[] BACK_PART_BONES = {
+            "pustule1", "pustule2", "pustule3", "streaks4", "streaks5", "streaks6"
+    };
 
     public ReshapeLongarmsRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new ReshapeLongarmsModel());
-        this.model = (ReshapeLongarmsModel) getGeoModel();
     }
 
     @Override
-    public void render(ReshapeLongarms entity, float entityYaw, float partialTick,
-                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        boolean hide = entity.isBackPartRemoved();
-        setBoneHidden("pustule1", hide);
-        setBoneHidden("pustule2", hide);
-        setBoneHidden("pustule3", hide);
-        setBoneHidden("streaks4", hide);
-        setBoneHidden("streaks5", hide);
-        setBoneHidden("streaks6", hide);
+    public void preRenderPass(RenderPassInfo passInfo, SubmitNodeCollector collector) {
+        super.preRenderPass(passInfo, collector);
 
-        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
-    }
+        Entity entity = EpcaGeoModel.entityOf(passInfo.renderState());
+        if (!(entity instanceof ReshapeLongarms longarms)) return;
 
-    /**
-     * 辅助方法：通过骨骼名称设置隐藏状态
-     */
-    private void setBoneHidden(String boneName, boolean hide) {
-        CoreGeoBone bone = this.model.getAnimationProcessor().getBone(boneName);
-        if (bone != null) {
-            bone.setHidden(hide);
+        boolean hide = longarms.isBackPartRemoved();
+        for (String boneName : BACK_PART_BONES) {
+            addBoneHider(passInfo, boneName, hide);
         }
     }
 }

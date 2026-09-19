@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.events;
 
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -8,10 +10,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.fluid.AcidDamageSystem;
@@ -19,7 +20,7 @@ import org.tdddd.epca.impl.fluid.AcidSolutionBlock;
 
 import java.util.*;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class WaterInteractionHandler {
     private static final int DAMAGE_INTERVAL = 10; 
 
@@ -27,12 +28,12 @@ public class WaterInteractionHandler {
     private static final Map<UUID, Long> lastDamageTickMap = new HashMap<>();
 
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
-        LivingEntity entity = event.getEntity();
+    public static void onLivingTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
         Level level = entity.level();
 
         
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         
         if (entity.isInWater()) {
@@ -53,9 +54,9 @@ public class WaterInteractionHandler {
     }
 
     @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && !event.level.isClientSide()) {
-            Level level = event.level;
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        if (!event.getLevel().isClientSide()) {
+            Level level = event.getLevel();
 
             
             if (level.getGameTime() % 600 == 0) {
@@ -160,7 +161,7 @@ public class WaterInteractionHandler {
 
             
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.COTH,
                     600, 
                     0,    
                     false,
@@ -169,7 +170,7 @@ public class WaterInteractionHandler {
 
             
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.CORROSIVE.get(),
+                    ModEffects.CORROSIVE,
                     100, 
                     0,   
                     false,
@@ -178,7 +179,7 @@ public class WaterInteractionHandler {
 
             
             int viralLevel = 0;
-            MobEffectInstance viralEffect = entity.getEffect(ModEffects.VIRAL.get());
+            MobEffectInstance viralEffect = entity.getEffect(ModEffects.VIRAL);
             if (viralEffect != null) {
                 viralLevel = viralEffect.getAmplifier() + 1;
             }

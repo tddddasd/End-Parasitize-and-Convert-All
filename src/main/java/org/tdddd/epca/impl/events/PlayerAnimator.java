@@ -6,25 +6,26 @@ import dev.kosmx.playerAnim.api.layered.IAnimation;
 import dev.kosmx.playerAnim.api.layered.ModifierLayer;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationFactory;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.events.playeranimator.FirstPersonModifier;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public class PlayerAnimator {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event)
     {
         PlayerAnimationFactory.ANIMATION_DATA_FACTORY.registerFactory(
-                new ResourceLocation(epca.MODID, "stab"),
+                Identifier.fromNamespaceAndPath(epca.MODID, "stab"),
                 50,
                 PlayerAnimator::registerPlayerAnimation);
 
         PlayerAnimationFactory.ANIMATION_DATA_FACTORY.registerFactory(
-                new ResourceLocation(epca.MODID, "kill_stick"),
+                Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"),
                 50,
                 PlayerAnimator::registerPlayerAnimation);
     }

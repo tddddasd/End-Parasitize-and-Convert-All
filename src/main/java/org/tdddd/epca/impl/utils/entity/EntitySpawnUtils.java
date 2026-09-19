@@ -5,7 +5,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
@@ -19,7 +19,7 @@ public final class EntitySpawnUtils {
     /** Standard monster spawn check: low light level. */
     public static boolean checkMonsterSpawnRules(
             EntityType<?> type, ServerLevelAccessor level,
-            MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+            EntitySpawnReason spawnType, BlockPos pos, RandomSource random) {
         return level.getMaxLocalRawBrightness(pos) < 8;
     }
 
@@ -34,10 +34,10 @@ public final class EntitySpawnUtils {
     public static <T extends Entity> T spawnEntity(EntityType<T> type, Level level,
                                                      double x, double y, double z,
                                                      boolean randomOffset, boolean randomVelocity) {
-        T entity = type.create(level);
+        T entity = type.create(level, EntitySpawnReason.MOB_SUMMONED);
         if (entity == null) return null;
 
-        RandomSource rand = level.random;
+        RandomSource rand = level.getRandom();
         double ox = randomOffset ? rand.nextDouble() - 0.5 : 0;
         double oz = randomOffset ? rand.nextDouble() - 0.5 : 0;
         entity.setPos(x + ox, y, z + oz);

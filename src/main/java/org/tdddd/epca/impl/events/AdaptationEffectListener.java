@@ -4,8 +4,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
@@ -14,13 +14,13 @@ import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import org.tdddd.epca.impl.utils.ParticleHelper;
 import org.tdddd.yawning_neko_api.events.AdaptationEffectEvent;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class AdaptationEffectListener {
 
     @SubscribeEvent
     public static void onAdaptationEffect(AdaptationEffectEvent event) {
         LivingEntity entity = event.getEntity();
-        if (entity.level().isClientSide) return; 
+        if (entity.level().isClientSide()) return; 
 
         
         entity.hurtTime = 0;

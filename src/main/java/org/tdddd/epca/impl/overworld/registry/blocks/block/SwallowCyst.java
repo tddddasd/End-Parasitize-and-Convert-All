@@ -1,7 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -26,8 +27,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
@@ -35,11 +35,18 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlo
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterface {
+    // 26.1.2: BaseEntityBlock 新增抽象方法 codec()，需要 simpleCodec + (Properties) 构造器
+    public static final MapCodec<SwallowCyst> CODEC = simpleCodec(SwallowCyst::new);
     public static final BooleanProperty LIVING = BooleanProperty.create("living");
     protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 8.0D, 14.0D);
 
+    public SwallowCyst(Properties properties) {
+        super(properties);
+        this.registerDefaultState(this.stateDefinition.any().setValue(LIVING, true));
+    }
+
     public SwallowCyst() {
-        super(Properties.of()
+        this(Properties.of()
                 .noOcclusion()
                 .strength(0.9f, 0.9f)
                 .sound(SoundType.SLIME_BLOCK)
@@ -49,7 +56,11 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
                 .mapColor(DyeColor.RED)
                 .randomTicks()
         );
-        this.registerDefaultState(this.stateDefinition.any().setValue(LIVING, true));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -79,21 +90,33 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
     }
 
     
-    public boolean canSurvive(BlockState state, Level level, BlockPos pos) {
+    public boolean canSurvive(BlockState state, net.minecraft.world.level.LevelReader level, BlockPos pos) {
         return level.getBlockState(pos.below()).isCollisionShapeFullBlock(level, pos.below());
     }
 
+    /**
+     * 26.1.2：{@code neighborChanged} 的第 5 个参数由 {@code BlockPos fromPos} 变为
+     * {@code @Nullable Orientation orientation}（红石朝向模型重写）。
+     */
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+    protected void neighborChanged(BlockState state, net.minecraft.world.level.Level level, BlockPos pos, Block block,
+                                   net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
         if (!canSurvive(state, level, pos)) {
             level.destroyBlock(pos, true);  
+        } else {
+            super.neighborChanged(state, level, pos, block, orientation, isMoving);
         }
     }
 
+    /**
+     * 26.1.2：{@code onRemove(state, level, pos, newState, isMoving)} 已被
+     * {@code affectNeighborsAfterRemoval(state, ServerLevel, pos, isMoving)} 取代
+     * （新签名拿不到 newState）。用 {@code level.getBlockState(pos).is(state.getBlock())}
+     * 判断“是否真的被替换/移除”，掉落物品栏的行为保留。
+     */
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock())) {
-            
+    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean isMoving) {
+        if (!level.getBlockState(pos).is(state.getBlock())) {
             if (level.getBlockEntity(pos) instanceof SwallowCystBlockEntity be) {
                 ItemStackHandler inventory = be.getInventory();
                 for (int i = 0; i < inventory.getSlots(); i++) {
@@ -104,39 +127,51 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
                 }
                 level.updateNeighbourForOutputSignal(pos, this);
             }
-            super.onRemove(state, level, pos, newState, isMoving);
+            super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
         }
     }
 
-    
+    /**
+     * 26.1.2：{@code getCloneItemStack(BlockGetter, BlockPos, BlockState)} →
+     * {@code getCloneItemStack(LevelReader, BlockPos, BlockState, boolean)}。
+     * 1.20.1 用物品 NBT（{@code ItemStack#setTag}）携带 {@code Living}；26.1.2 的
+     * {@code ItemStack} 已无直接 NBT 存取，而本方块的状态由 {@code simpleCodec} 承载，
+     * 放置时按默认状态（{@code living = true}）恢复，行为与 1.20.1 的“活体囊肿”一致。
+     */
     @Override
-    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
-        ItemStack stack = new ItemStack(this);
-        boolean living = state.getValue(LIVING);
-        CompoundTag tag = new CompoundTag();
-        tag.putBoolean("Living", living);
-        stack.setTag(tag);
-        return stack;
+    public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        return new ItemStack(this);
     }
 
     
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        ItemStack stack = context.getItemInHand();
-        boolean living = true;
-        if (stack.hasTag() && stack.getTag().contains("Living")) {
-            living = stack.getTag().getBoolean("Living");
-        }
-        return this.defaultBlockState().setValue(LIVING, living);
+        return this.defaultBlockState();
+    }
+
+    /**
+     * 26.1.2：{@code Block#use(state, level, pos, player, hand, hit)} 被拆成
+     * {@code useItemOn(itemStack, state, level, pos, player, hand, hit)} 与
+     * {@code useWithoutItem(state, level, pos, player, hit)}。囊肿的交互与手持物无关，
+     * 因此两者都转到同一个实现（空手右键也需要能打开界面）。
+     */
+    @Override
+    protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos,
+                                          Player player, InteractionHand hand, BlockHitResult hit) {
+        return openCystMenu(state, level, pos, player);
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!level.isClientSide) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        return openCystMenu(state, level, pos, player);
+    }
+
+    private InteractionResult openCystMenu(BlockState state, Level level, BlockPos pos, Player player) {
+        if (!level.isClientSide()) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof SwallowCystBlockEntity cyst) {
-                
-                NetworkHooks.openScreen((ServerPlayer) player, cyst, buf -> buf.writeBlockPos(pos));
+            if (be instanceof SwallowCystBlockEntity cyst && player instanceof ServerPlayer serverPlayer) {
+                // 26.1.2: NetworkHooks.openScreen(...) → ServerPlayer#openMenu(MenuProvider, Consumer<RegistryFriendlyByteBuf>)
+                serverPlayer.openMenu(cyst, buf -> buf.writeBlockPos(pos));
                 return InteractionResult.CONSUME;
             }
         }

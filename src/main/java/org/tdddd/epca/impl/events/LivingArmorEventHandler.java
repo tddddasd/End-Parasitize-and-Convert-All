@@ -1,21 +1,22 @@
 package org.tdddd.epca.impl.events;
 
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorAdaptation;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorBox;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorItem;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class LivingArmorEventHandler {
 
     @SubscribeEvent
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
         
         if (event.getEntity() instanceof Player player) {
             
@@ -64,7 +65,8 @@ public class LivingArmorEventHandler {
     
     private static void addAdaptationToAllLivingArmor(Player player) {
         
-        for (ItemStack armorStack : player.getArmorSlots()) {
+        for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+            ItemStack armorStack = player.getItemBySlot(slot);
             
             if (armorStack.getItem() instanceof LivingArmorItem) {
                 

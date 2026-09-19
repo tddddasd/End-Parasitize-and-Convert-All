@@ -9,11 +9,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.BiomassSyncPacket;
 import org.tdddd.epca.impl.overworld.data.BiomassManager;
@@ -25,7 +25,7 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.Random;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class BiomassEventHandler {
     private static final long COOLDOWN_TICKS = 200;
 
@@ -41,7 +41,7 @@ public class BiomassEventHandler {
     }
 
     @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (!(event.getSource().getEntity() instanceof Player player)) return;
         if (!NestLeaderManager.isNestLeader(player.getUUID())) return;
         if (!player.getMainHandItem().isEmpty()) return;
@@ -51,9 +51,9 @@ public class BiomassEventHandler {
         if (!(target instanceof IParasite) || target instanceof Player) return;
 
         Level level = player.level();
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
-        long lastInteract = player.getPersistentData().getLong("LastParasiteInteract");
+        long lastInteract = player.getPersistentData().getLong("LastParasiteInteract").orElse(0L);
         long now = level.getGameTime();
         if (now - lastInteract < COOLDOWN_TICKS) {
             return;
@@ -84,7 +84,7 @@ public class BiomassEventHandler {
         }
 
         addPointsAndSync(player, basePoints);
-        player.displayClientMessage(Component.literal("获得 " + basePoints + " 生物质点数"), true);
+        player.sendSystemMessage(Component.literal("获得 " + basePoints + " 生物质点数"));
 
         player.getPersistentData().putLong("LastParasiteInteract", now);
     }

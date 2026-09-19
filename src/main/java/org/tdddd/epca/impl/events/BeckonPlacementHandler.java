@@ -7,9 +7,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.BiomassSyncPacket;
 import org.tdddd.epca.impl.overworld.data.BiomassManager;
@@ -19,7 +19,7 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.BeckonCore;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBlockEntity;
 import org.tdddd.epca.impl.epca;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class BeckonPlacementHandler {
     private static final long COOLDOWN_TICKS = 60 * 20;
     private static final int BECKON_COST = 15;
@@ -29,13 +29,13 @@ public class BeckonPlacementHandler {
     public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         Player player = event.getEntity();
         Level level = player.level();
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         if (!NestLeaderManager.isNestLeader(player.getUUID())) return;
 
         if (!player.getMainHandItem().isEmpty()) return;
 
-        if (!player.getPersistentData().getBoolean("VKeyPressed")) return;
+        if (!player.getPersistentData().getBoolean("VKeyPressed").orElse(false)) return;
 
         BlockPos pos = event.getPos();
         BlockState state = level.getBlockState(pos);
@@ -49,11 +49,11 @@ public class BeckonPlacementHandler {
             // 检查生物质点数
             int points = BiomassManager.getBiomassPoints(player);
             if (points < BECKON_COST) {
-                player.displayClientMessage(Component.literal("需" + BECKON_COST + "生物质点数"), true);
+                player.sendOverlayMessage(Component.literal("需" + BECKON_COST + "生物质点数"));
                 return;
             }
 
-            long lastPlace = player.getPersistentData().getLong("BeckonPlaceCooldown");
+            long lastPlace = player.getPersistentData().getLong("BeckonPlaceCooldown").orElse(0L);
             long now = level.getGameTime();
             if (now - lastPlace < COOLDOWN_TICKS) {
                 return;
@@ -66,7 +66,7 @@ public class BeckonPlacementHandler {
                     new BiomassSyncPacket(true, BiomassManager.getBiomassPoints(player)));
 
             player.getPersistentData().putLong("BeckonPlaceCooldown", now);
-            player.displayClientMessage(Component.literal("已放置召唤柱核心"), true);
+            player.sendOverlayMessage(Component.literal("已放置召唤柱核心"));
             event.setCanceled(true);
             return;
         }

@@ -1,23 +1,24 @@
 package org.tdddd.epca.impl.events;
 
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
-@Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = epca.MODID)
 public class InfestedBlockHandler {
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
-        LivingEntity entity = event.getEntity();
+    public static void onLivingTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
         if (entity == null || !entity.isAlive()) return;
 
         if (IParasite.isParasiteByTagOrInterface(entity)) return;
@@ -27,7 +28,7 @@ public class InfestedBlockHandler {
         Block block = state.getBlock();
         if (!(block instanceof InfestedBlockInterface)) return;
 
-        if (entity.hasEffect(ModEffects.COTH.get())) return;
-        entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 0));
+        if (entity.hasEffect(ModEffects.COTH)) return;
+        entity.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 0));
     }
 }
