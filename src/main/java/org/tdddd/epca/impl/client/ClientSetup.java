@@ -1,7 +1,6 @@
 package org.tdddd.epca.impl.client;
 
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,8 +12,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
-import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
-import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.renderer.ItemDisplayRenderer;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystScreen;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
@@ -28,8 +25,6 @@ public class ClientSetup {
     public static void onClientSetup1(FMLClientSetupEvent event) {
         
         event.enqueueWork(() -> {
-            BlockEntityRenderers.register(ModBlockEntities.PACKED_MUD_PEDESTAL.get(),
-                    ItemDisplayRenderer::new);
             MenuScreens.register(ModMenus.SWALLOW_CYST.get(), SwallowCystScreen::new);
             Item bloodyClock = ModItems.BLOODY_CLOCK.get();
             ItemProperties.register(bloodyClock, new ResourceLocation("stage"),

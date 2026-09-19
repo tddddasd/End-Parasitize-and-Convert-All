@@ -1,6 +1,0 @@
-{
-  "from": "minecraft:iron_golem",
-  "mozzie_to": "epca:small_incomplete_form",
-  "priority": 0,
-  "small_entity_priority": true
-}

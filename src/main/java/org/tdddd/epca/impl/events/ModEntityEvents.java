@@ -7,7 +7,6 @@ import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedPlayer;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.Nullthing;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.*;
@@ -86,7 +85,6 @@ public class ModEntityEvents {
         event.register(ModEntities.WALKING_ENDERMAN_HEAD.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WalkingEndermanHead::checkWalkingEndermanHeadSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_ENDERMITE.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedEndermite::checkInfestedEndermiteSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_SILVERFISH.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSilverfish::checkInfestedSilverfishSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
-        event.register(ModEntities.INFESTED_PLAYER.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedPlayer::checkMonsterSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.LIGHT_CARRIER.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, LightCarrier::checkLightCarrierSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_SKELETON.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSkeleton::checkInfestedSkeletonSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.WALKING_SKELETON_HEAD.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WalkingSkeletonHead::checkWalkingSkeletonHeadSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);

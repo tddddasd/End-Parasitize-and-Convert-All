@@ -31,3 +31,11 @@ mandatory = true
 versionRange = "[1,)"
 ordering = "NONE"
 side = "BOTH"
+
+# 必选前置：祭坛方块、祭坛合成与祭坛 JEI 适配
+[[dependencies.epca]]
+modId = "eej"
+mandatory = true
+versionRange = "[1.0.0,)"
+ordering = "AFTER"
+side = "BOTH"

@@ -27,6 +27,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
+import org.tdddd.eej.api.AltarBlockTags;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.InfestedSourcePacket;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
@@ -117,7 +118,7 @@ public class BlockConversionManager {
             return false; // 不转化
         }
         float multiplier = 1.0f;
-        if (state.is(PackedMudPedestal.PEDESTAL_TAG) || state.is(PackedMudPedestal.ALTAR_STONE_TAG)) {
+        if (state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG)) {
             multiplier = 2.0f;
         }
         return convertBlockUsingMap(level, pos, state, stageIConfig.conversions, multiplier);
@@ -138,7 +139,7 @@ public class BlockConversionManager {
     
     public boolean convertBlockUsingStageIIConfig(ServerLevel level, BlockPos pos, BlockState state) {
         float multiplier = 1.0f;
-        if (state.is(PackedMudPedestal.PEDESTAL_TAG) || state.is(PackedMudPedestal.ALTAR_STONE_TAG)) {
+        if (state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG)) {
             multiplier = 2.0f;
         }
         return convertBlockUsingMap(level, pos, state, stageIIConfig.conversions, multiplier);
@@ -158,7 +159,7 @@ public class BlockConversionManager {
 
     public boolean convertBlockUsingGeneralConfig(ServerLevel level, BlockPos pos, BlockState state) {
         float multiplier = 1.0f;
-        if (state.is(PackedMudPedestal.PEDESTAL_TAG) || state.is(PackedMudPedestal.ALTAR_STONE_TAG)) {
+        if (state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG)) {
             multiplier = 2.0f;
         }
         return convertBlockUsingMap(level, pos, state, generalConfig.conversions, multiplier);
@@ -206,7 +207,9 @@ public class BlockConversionManager {
                 return false;
             }
             ResourceLocation id = ForgeRegistries.BLOCKS.getKey(state.getBlock());
-            if (id.getNamespace().equals("minecraft") || id.getNamespace().equals("epca") && !(state.is(PackedMudPedestal.PEDESTAL_TAG) || state.is(PackedMudPedestal.ALTAR_STONE_TAG))) {
+            boolean isAltarBlock = state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG);
+            if (id.getNamespace().equals("minecraft")
+                    || (id.getNamespace().equals("epca") || id.getNamespace().equals("eej")) && !isAltarBlock) {
                 return false;
             }
             float hardness = state.getDestroySpeed(level, pos) * hardnessMultiplier;

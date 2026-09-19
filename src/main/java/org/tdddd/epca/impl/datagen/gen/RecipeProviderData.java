@@ -17,6 +17,7 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.overworld.registry.ModItems;
 
 import java.util.function.Consumer;
 
@@ -49,12 +50,12 @@ public class RecipeProviderData extends RecipeProvider {
         spearCraftingTag(c, ItemTags.STONE_CRAFTING_MATERIALS, modItem("stone_spear"));
 
         // ── 矛回收烧炼 ──
-        spearRecycling(c, modItem("copper_spear"),  Items.COPPER_INGOT, 0.7F);
+        spearRecycling(c, modItem("copper_spear"),  ModItems.COPPER_NUGGET.get(), 0.1F);
         spearRecycling(c, modItem("iron_spear"),    Items.IRON_NUGGET,  0.1F);
         spearRecycling(c, modItem("golden_spear"),  Items.GOLD_NUGGET,  0.1F);
 
         // ── 受染原矿回收烧炼 ──
-        rawRecycling(c, modItem("infested_raw_copper"), Items.COPPER_INGOT, 0.7F);
+        rawRecycling(c, modItem("infested_raw_copper"), ModItems.COPPER_NUGGET.get(), 0.1F);
         rawRecycling(c, modItem("infested_raw_iron"),   Items.IRON_NUGGET,  0.1F);
         rawRecycling(c, modItem("infested_raw_gold"),   Items.GOLD_NUGGET,  0.1F);
 

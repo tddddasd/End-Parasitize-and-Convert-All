@@ -63,7 +63,9 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
     @Override
     public boolean onClimbable() {
-        // 仅当有攻击目标且水平碰撞时，才视为可攀爬
+        if (this.climbCooldown > 0) {
+            return false;
+        }
         return this.isNearWall() && this.getTarget() != null;
     }
 
@@ -73,7 +75,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
     @Override
     public void travel(Vec3 travelVector) {
-        // 完全采用原版蜘蛛的 travel 逻辑，提供攀爬时的垂直速度
         if (this.isControlledByLocalInstance()) {
             if (this.isInWater()) {
                 this.moveRelative(0.01F, travelVector);
@@ -88,7 +89,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
     @Override
     protected PathNavigation createNavigation(Level level) {
-        // 原版蜘蛛使用地面导航，攀爬由碰撞和 travel 控制
         return new GroundPathNavigation(this, level);
     }
 
@@ -106,22 +106,19 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     private static final EntityDataAccessor<Integer> DATA_VARIANT = SynchedEntityData.defineId(
             Ripper.class, EntityDataSerializers.INT
     );
-    // 仅保留用于攻击动画的跳跃状态
     private static final EntityDataAccessor<Boolean> DATA_IS_LEAPING = SynchedEntityData.defineId(Ripper.class, EntityDataSerializers.BOOLEAN);
-
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int attackTime = 0;
-
     private double normalSpeed = 0.30D;
     private int cothCloudCooldown = 0;
     private static final int COTH_CLOUD_COOLDOWN = 20;
-
     private int leapDirectionTicks = 0;
     private float leapTargetYaw = 0;
     private int stepSoundDelay = 0;
     private int jumpCooldown = 0;
+    private static final int CLIMB_COOLDOWN_TICKS = 200;
+    private int climbCooldown = 0;
 
-    // ==================== 构造器 ====================
     public Ripper(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 5;
@@ -282,11 +279,8 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         public boolean canUse() {
             LivingEntity target = ripper.getTarget();
             if (target == null || !target.isAlive()) return false;
-            // 目标至少比实体高 1.5 格才触发攀爬引导
             if (target.getY() - ripper.getY() < 1.5) return false;
-            // 如果已经贴墙，则由 onClimbable 直接处理，不再引导
             if (ripper.isNearWall()) return false;
-            // 冷却，避免每 tick 搜索
             if (--cooldown > 0) return false;
             cooldown = 10;
             return findClimbableWall();
@@ -341,6 +335,23 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
         if (jumpCooldown > 0) {
             jumpCooldown--;
+        }
+
+        if (this.climbCooldown > 0) {
+            this.climbCooldown--;
+        }
+
+        if (!this.level().isClientSide
+                && this.climbCooldown <= 0
+                && this.isNearWall()
+                && this.getTarget() != null
+                && !this.onGround()
+                && this.isBlockedAbove()) {
+            this.climbCooldown = CLIMB_COOLDOWN_TICKS;
+            Vec3 dm = this.getDeltaMovement();
+            if (dm.y > 0) {
+                this.setDeltaMovement(dm.x, 0, dm.z);
+            }
         }
 
         if (leapDirectionTicks > 0) {
@@ -433,9 +444,29 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return false;
     }
 
-    // ==================== 战斗相关 ====================
-    protected double getAttackReachSqr(LivingEntity target) {
-        return 1.4;
+    private boolean isBlockedAbove() {
+        AABB bb = this.getBoundingBox();
+        int blockY = Mth.ceil(bb.maxY);
+        int minX = Mth.floor(bb.minX + 0.01);
+        int maxX = Mth.floor(bb.maxX - 0.01);
+        int minZ = Mth.floor(bb.minZ + 0.01);
+        int maxZ = Mth.floor(bb.maxZ - 0.01);
+
+        BlockPos.MutableBlockPos mp = new BlockPos.MutableBlockPos();
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                mp.set(x, blockY, z);
+                BlockState state = this.level().getBlockState(mp);
+                if (!state.isSolid()) {
+                    continue;
+                }
+                VoxelShape shape = state.getCollisionShape(this.level(), mp);
+                if (!shape.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-06T11:17:31.6625611	Block States: epca
+// 1.20.1	2026-09-19T15:15:50.2771884	Block States: epca
 41144d4a06f8e975e48a517e4e0f6fd13a47d8f7 assets/epca/blockstates/beckon_core.json
 8731cab9209eb44603329fb421459c454137ac55 assets/epca/blockstates/infested_chiseled_deepslate.json
 e3a33c3a14804c5c23dd4fa34a7caa8e5dd3f57e assets/epca/blockstates/infested_chiseled_stone_bricks.json
@@ -80,7 +80,6 @@ ede22027f950e8b9318196ddb238ca036863a74c assets/epca/blockstates/infested_stone_
 fc9a45388ab7554e8ff30cf2a63c407362eb30f6 assets/epca/blockstates/infested_stone_stairs.json
 78d8e93429a5e2c5abe0b6396cf4a3ca4de24f53 assets/epca/blockstates/infested_stone_wall.json
 eb1a492dd4815fd35dab281ca63c40c2b19f19bb assets/epca/blockstates/infested_stripped_log.json
-4d7244d935ac9220a11c2f205bee17bbb9e89009 assets/epca/blockstates/packed_mud_altar_stone.json
 f8081fce5f2a7f148a48bdf910533ec578278b02 assets/epca/models/block/acid_solution.json
 f1109226716b9490f9e3219bb94fdfafe3534ce0 assets/epca/models/block/beckon_core.json
 b27be939642fcfec02c72b598dde727048f827f5 assets/epca/models/block/infested_chiseled_deepslate.json
@@ -220,7 +219,6 @@ cf563083969dd3e4b5b448d2313bdf5d44e88718 assets/epca/models/block/infested_stone
 b2f4bd9541fee860dd88ed1d5aa1bdbaa08c2ff1 assets/epca/models/block/infested_stone_wall_side_tall.json
 a1c8f0afe6e36c59b925845b2fd2296bb521af16 assets/epca/models/block/infested_stripped_log.json
 6896feae7609fff3758575c547cd5d8b3aae5b94 assets/epca/models/block/infested_stripped_log_horizontal.json
-72fd2a08e39a785a12832e0bad0a3723a2fd6c0a assets/epca/models/block/packed_mud_altar_stone.json
 d6a3c489a2b5fbc48850fa4ba2146d5123e2eb89 assets/epca/models/item/beckon_core.json
 2481edf94884d710dd58617c382f9d2fd2c14f04 assets/epca/models/item/infested_chiseled_deepslate.json
 0ea6e0aad516bb297c7c249fcaa07310280ac608 assets/epca/models/item/infested_chiseled_stone_bricks.json
@@ -302,4 +300,3 @@ d39f7bb989ab3a892d1e5a9dd66d61ea259121dd assets/epca/models/item/infested_stone_
 f0c9ae4e6662c28a49cc4a22c5eb1b5d5b49f6cb assets/epca/models/item/infested_stone_stairs.json
 65a71342ae500217f6a6892a9bfeff3b189ddb7a assets/epca/models/item/infested_stone_wall.json
 95121f65a92901821bbd4cdd62a27ef15fc45a97 assets/epca/models/item/infested_stripped_log.json
-294bc1b87cc6221545a3f4f38ebbc4a52e4a4aee assets/epca/models/item/packed_mud_altar_stone.json

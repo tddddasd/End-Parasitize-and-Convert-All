@@ -1,10 +1,11 @@
-// 1.20.1	2026-09-07T18:54:02.4945158	Item Models: epca
+// 1.20.1	2026-09-19T15:15:50.2741903	Item Models: epca
 f4132b573a5fa261240b879009374168493ad16e assets/epca/models/item/acid_bucket.json
 a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/afterimage_module.json
 55e35e00b8b11144a722c026d152dc68e341a4be assets/epca/models/item/beckon_membrane.json
 a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/biomass_medium_spawn_egg.json
 a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/biomass_small_spawn_egg.json
 8c9b6f83c7b74cba4db4c2ced4c7320a0b12fed9 assets/epca/models/item/cluster.json
+ad315c54fcaad6b33c2207a1c1e2aadd75135a2f assets/epca/models/item/copper_nugget.json
 30a079ec1a79ee10fbb8bec967a545cea6049e16 assets/epca/models/item/curbug_spawn_egg.json
 52bad7f2d2974fcf880bc204106c9ec077a746d1 assets/epca/models/item/diseased_heart.json
 8aeee9cddc973e91862ae5c7a406e491eadfe685 assets/epca/models/item/ender_blade_scrap.json
@@ -34,7 +35,6 @@ cf5304e1799d3bde86d30af15050127e25267267 assets/epca/models/item/infested_nether
 bd1d7aa4ce2eefbc712f88d30c5647fcb38964cb assets/epca/models/item/infested_nethersea_icecream.json
 83fe52ee02797c856bd6d1b704dcfef9b40589fe assets/epca/models/item/infested_pig_spawn_egg.json
 5c62f4249c09794903133b89be5620c64f39a4a3 assets/epca/models/item/infested_pillager_spawn_egg.json
-a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/infested_player_spawn_egg.json
 585ff9dbe22c731b263eb12fc14be22290ef318e assets/epca/models/item/infested_raw_copper.json
 1dee764aec85dd096fab6df8dd3b238cacc036f6 assets/epca/models/item/infested_raw_gold.json
 690f29c4accaf243a2069dc536628c193ab59a03 assets/epca/models/item/infested_raw_iron.json
@@ -72,7 +72,6 @@ ec20ec8533f39901b39475e315be877e986ccb12 assets/epca/models/item/reshape_longarm
 2c2bb5b7089479097f1f8e6e952e8d82556d7906 assets/epca/models/item/reshape_yelloweye_spawn_egg.json
 cc9d4f9ef6f88f94e75c73d4069d952834cded56 assets/epca/models/item/ripper_spawn_egg.json
 cf2f5a418e4c837578390f0a31adbcc51837218f assets/epca/models/item/small_incomplete_form_spawn_egg.json
-6198d610c2051694761e43d742afa17242ac50a1 assets/epca/models/item/small_item_frame.json
 f98d03ede00e4d95905945cbee6817b843b5ffae assets/epca/models/item/stage_ii_beckon_spawn_egg.json
 cbca8a0d17e90891994ac7a118a45e41dbfb7451 assets/epca/models/item/stage_i_beckon_spawn_egg.json
 d625096e4aee6b1a26dc9a68a66c525fe877b6e6 assets/epca/models/item/tight_tendons.json

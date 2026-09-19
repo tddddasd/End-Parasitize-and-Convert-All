@@ -1,0 +1,27 @@
+# Gradle / 构建产物
+build/
+.gradle/
+out/
+
+# ForgeGradle 运行目录（开发用，含存档与日志）
+run/
+run-data/
+logs/
+crash-reports/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.eclipse/
+.settings/
+.classpath
+.project
+*.launch
+.vscode/
+
+# 系统 / 杂项
+.DS_Store
+Thumbs.db
+*.log

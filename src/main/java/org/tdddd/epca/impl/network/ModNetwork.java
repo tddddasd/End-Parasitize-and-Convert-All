@@ -75,12 +75,6 @@ public class ModNetwork {
                 SyncEvolutionStagePacket::handle
         );
 
-        INSTANCE.registerMessage(id++, PedestalItemSyncPacket.class,
-                PedestalItemSyncPacket::encode,
-                PedestalItemSyncPacket::decode,
-                PedestalItemSyncPacket::handle
-        );
-
         INSTANCE.registerMessage(id++, SyncNoteTabsPacket.class,
                 SyncNoteTabsPacket::encode,
                 SyncNoteTabsPacket::decode,
@@ -90,12 +84,6 @@ public class ModNetwork {
                 ColorEffectPacket::encode,
                 ColorEffectPacket::new,
                 ColorEffectPacket::handle);
-
-        INSTANCE.messageBuilder(SmallItemFrameDataPacket.class, id++)
-                .encoder(SmallItemFrameDataPacket::encode)
-                .decoder(SmallItemFrameDataPacket::decode)
-                .consumerMainThread(SmallItemFrameDataPacket::handle)
-                .add();
 
         INSTANCE.registerMessage(id++, InfestedSourcePacket.AddInfestedSourcePacket.class,
                 InfestedSourcePacket.AddInfestedSourcePacket::encode,
@@ -127,6 +115,10 @@ public class ModNetwork {
                 ToggleFollowPacket::encode,
                 ToggleFollowPacket::new,
                 ToggleFollowPacket::handle);
+        INSTANCE.registerMessage(id++, SyncNestLeadersPacket.class,
+                SyncNestLeadersPacket::encode,
+                SyncNestLeadersPacket::new,
+                SyncNestLeadersPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {

@@ -4,22 +4,27 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.util.Mth;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.BoneArrow;
 
 public class BoneArrowRenderer extends EpcaGeoRenderer<BoneArrow> {
 
     public BoneArrowRenderer(EntityRendererProvider.Context context) {
-        super(context); // 使用默认模型（由 EpcaEntityManager 自动生成）
-        // 若需指定特定模型，可传入 GeoModel，但这里用默认
+        super(context);
     }
 
     @Override
     public void render(BoneArrow entity, float entityYaw, float partialTicks,
                        PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         poseStack.pushPose();
-        // 绕 Y 轴旋转 180°（弧度 PI）
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+
+        float yaw = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
+        float pitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(pitch));
+
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
         poseStack.popPose();
     }

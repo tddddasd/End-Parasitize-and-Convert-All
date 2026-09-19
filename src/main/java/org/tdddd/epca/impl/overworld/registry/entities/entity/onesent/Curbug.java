@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -16,6 +17,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
@@ -31,6 +35,7 @@ import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,10 +43,13 @@ public class Curbug extends AbstractOnesentEntity {
 
     private final Map<Integer, Integer> touchingEntities = new HashMap<>();
     private static final int TOUCH_THRESHOLD = 2;
-
     private int growTimer = -1;
     private int spawnAnimationTimer = 0;
-    private static final int SPAWN_ANIMATION_DURATION = 20;
+    private boolean isHiding = false;
+    private BlockPos hidingPos = null;
+    private int hideTimer = 0;
+    private static final int HIDE_DURATION = 200;
+    private int hideSearchCooldown = 0;
 
     public Curbug(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -52,12 +60,6 @@ public class Curbug extends AbstractOnesentEntity {
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    public void triggerSpawnAnimation() {
-        this.spawnAnimationTimer = SPAWN_ANIMATION_DURATION;
-    }
-
-    // ────────── Attributes ──────────
-
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 7.0D)
@@ -67,11 +69,10 @@ public class Curbug extends AbstractOnesentEntity {
                 .build();
     }
 
-    // ────────── AI Goals ──────────
-
     @Override
     protected void registerGoals() {
         super.registerGoals();
+        this.goalSelector.addGoal(0, new FleeFromTargetersGoal(this, 16.0F, 1.2D, 1.4D));
         this.goalSelector.addGoal(3, new FloatGoal(this));
         this.goalSelector.addGoal(1, new AvoidEntityGoal<Player>(this, Player.class, 7.0F, 1.0D, 1.2D) {
             @Override
@@ -84,18 +85,36 @@ public class Curbug extends AbstractOnesentEntity {
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D, 0.008F));
+        this.goalSelector.addGoal(2, new HideInFoliageGoal(this, 12.0D, 1.0D));
+        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D, 0.008F) {
+            @Override
+            public boolean canUse() {
+                if (Curbug.this.isHiding) return false;
+                return super.canUse();
+            }
+            @Override
+            public boolean canContinueToUse() {
+                if (Curbug.this.isHiding) return false;
+                return super.canContinueToUse();
+            }
+        });
         this.goalSelector.addGoal(2, new RandomLookAroundGoal(this));
         this.goalSelector.addGoal(4, new RandomSoundGoal(this, ModSoundEvents.CURBUG_SAY.get()));
     }
-
-    // ────────── Tick ──────────
 
     @Override
     public void tick() {
         super.tick();
 
         if (spawnAnimationTimer > 0) spawnAnimationTimer--;
+
+        if (hideTimer > 0) {
+            hideTimer--;
+            if (hideTimer <= 0) {
+                isHiding = false;
+                hidingPos = null;
+            }
+        }
 
         if (!this.level().isClientSide) {
             handleEntityContact();
@@ -112,9 +131,57 @@ public class Curbug extends AbstractOnesentEntity {
         }
     }
 
-    // ────────── Hurt (delegated to AbstractEpcaEntity) ──────────
+    static class FleeFromTargetersGoal extends AvoidEntityGoal<LivingEntity> {
+        private final Curbug curbug;
+        private final double radius;
+        private int searchCooldown = 0;
+        private static final int SEARCH_INTERVAL = 5;
 
-    // ────────── Die ──────────
+        public FleeFromTargetersGoal(Curbug curbug, float maxDist, double walkSpeed, double sprintSpeed) {
+            super(curbug, LivingEntity.class, maxDist, walkSpeed, sprintSpeed, e -> false);
+            this.curbug = curbug;
+            this.radius = maxDist;
+        }
+
+        @Override
+        public boolean canUse() {
+            if (--searchCooldown > 0) return false;
+            searchCooldown = SEARCH_INTERVAL;
+
+            LivingEntity nearest = null;
+            double bestDist = Double.MAX_VALUE;
+            for (Mob mob : curbug.level().getEntitiesOfClass(
+                    Mob.class,
+                    curbug.getBoundingBox().inflate(radius, 4.0D, radius),
+                    m -> m != null && m.isAlive() && m.getTarget() == curbug)) {
+                double d = curbug.distanceToSqr(mob);
+                if (d < bestDist) {
+                    bestDist = d;
+                    nearest = mob;
+                }
+            }
+            if (nearest != null) {
+                this.toAvoid = nearest;
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (this.toAvoid == null || !this.toAvoid.isAlive()) return false;
+            if (this.toAvoid instanceof Mob mob && mob.getTarget() != curbug) {
+                return false;
+            }
+            return super.canContinueToUse();
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            this.toAvoid = null;
+        }
+    }
 
     @Override
     public void die(DamageSource source) {
@@ -122,7 +189,16 @@ public class Curbug extends AbstractOnesentEntity {
         this.onDeath(source);
     }
 
-    // ────────── Entity contact ──────────
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        boolean result = super.hurt(source, amount);
+        if (result && !this.level().isClientSide && this.isHiding) {
+            this.isHiding = false;
+            this.hideTimer = 0;
+            this.hidingPos = null;
+        }
+        return result;
+    }
 
     private void handleEntityContact() {
         touchingEntities.keySet().removeIf(id -> {
@@ -150,8 +226,6 @@ public class Curbug extends AbstractOnesentEntity {
         target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 400, newAmplifier, false, true, true));
     }
 
-    // ────────── Growth ──────────
-
     private void growIntoFins() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         Fins fins = ModEntities.FINS.get().create(serverLevel);
@@ -178,15 +252,11 @@ public class Curbug extends AbstractOnesentEntity {
         }
     }
 
-    // ────────── Sounds ──────────
-
     @Override
     protected SoundEvent getDeathSound() { return ModSoundEvents.RIPPER_DEATH.get(); }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource source) { return ModSoundEvents.RIPPER_HUNT.get(); }
-
-    // ────────── Animation ──────────
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -208,8 +278,6 @@ public class Curbug extends AbstractOnesentEntity {
         return PlayState.CONTINUE;
     }
 
-    // ────────── Spawn Rules ──────────
-
     public static boolean checkBuglinSpawnRules(
             EntityType<Curbug> entityType, ServerLevelAccessor levelAccessor,
             MobSpawnType spawnType, BlockPos pos, RandomSource random) {
@@ -226,5 +294,127 @@ public class Curbug extends AbstractOnesentEntity {
             if (stage < 0 || stage > 2) return false;
         }
         return levelAccessor.getMaxLocalRawBrightness(pos) < 8;
+    }
+
+    static class HideInFoliageGoal extends Goal {
+        private final Curbug curbug;
+        private final double searchRadius;
+        private final double speed;
+        private BlockPos targetPos;
+        private int searchCooldown = 0;
+        private static final int SEARCH_INTERVAL = 20;
+
+        public HideInFoliageGoal(Curbug curbug, double searchRadius, double speed) {
+            this.curbug = curbug;
+            this.searchRadius = searchRadius;
+            this.speed = speed;
+            this.setFlags(EnumSet.of(Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            if (curbug.getTarget() != null) return false;
+            if (curbug.isHiding) return false;
+            if (curbug.isInWater()) return false;
+
+            if (--searchCooldown > 0) return false;
+            searchCooldown = SEARCH_INTERVAL;
+
+            targetPos = findFoliage();
+            return targetPos != null;
+        }
+
+        private BlockPos findFoliage() {
+            BlockPos origin = curbug.blockPosition();
+            int r = (int) searchRadius;
+            BlockPos.MutableBlockPos mp = new BlockPos.MutableBlockPos();
+
+            BlockPos best = null;
+            double bestDist = Double.MAX_VALUE;
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dz = -r; dz <= r; dz++) {
+                    for (int dy = -2; dy <= 2; dy++) {
+                        mp.set(origin.getX() + dx, origin.getY() + dy, origin.getZ() + dz);
+                        if (!isFoliage(mp)) continue;
+                        double d = origin.distSqr(mp);
+                        if (d < bestDist) {
+                            bestDist = d;
+                            best = mp.immutable();
+                        }
+                    }
+                }
+            }
+            return best;
+        }
+
+        private boolean isFoliage(BlockPos pos) {
+            BlockState state = curbug.level().getBlockState(pos);
+            if (state.isAir()) return false;
+            if (!state.getFluidState().isEmpty()) return false;
+
+            VoxelShape shape = state.getCollisionShape(curbug.level(), pos);
+            if (!shape.isEmpty()) return false;
+
+            Block block = state.getBlock();
+            if (block instanceof BaseRailBlock) return false;
+            if (block instanceof RedStoneWireBlock) return false;
+            if (block instanceof TripWireBlock) return false;
+
+            if (block instanceof BushBlock
+                    || block instanceof TallGrassBlock
+                    || block instanceof FlowerBlock
+                    || block instanceof DoublePlantBlock) {
+                return true;
+            }
+            if (state.is(BlockTags.FLOWERS)
+                    || state.is(BlockTags.SMALL_FLOWERS)
+                    || state.is(BlockTags.TALL_FLOWERS)) {
+                return true;
+            }
+            return !state.isSolid();
+        }
+
+        @Override
+        public void start() {
+            if (targetPos != null) {
+                curbug.getNavigation().moveTo(
+                        targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5,
+                        speed);
+            }
+        }
+
+        @Override
+        public void tick() {
+            if (targetPos == null) return;
+            double distSqr = curbug.distanceToSqr(
+                    targetPos.getX() + 0.5,
+                    targetPos.getY(),
+                    targetPos.getZ() + 0.5);
+            if (distSqr < 1.0) {
+                curbug.isHiding = true;
+                curbug.hidingPos = targetPos.immutable();
+                curbug.hideTimer = HIDE_DURATION;
+                curbug.getNavigation().stop();
+                curbug.getLookControl().setLookAt(
+                        targetPos.getX() + 0.5,
+                        targetPos.getY() + 0.5,
+                        targetPos.getZ() + 0.5);
+            }
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (curbug.isHiding) return false;
+            if (targetPos == null) return false;
+            return !curbug.getNavigation().isDone();
+        }
+
+        @Override
+        public void stop() {
+            targetPos = null;
+            if (!curbug.isHiding) {
+                curbug.getNavigation().stop();
+            }
+        }
     }
 }

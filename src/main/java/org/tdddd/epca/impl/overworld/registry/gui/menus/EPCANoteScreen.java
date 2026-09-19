@@ -26,12 +26,9 @@ import java.util.regex.Pattern;
 @OnlyIn(Dist.CLIENT)
 public class EPCANoteScreen extends Screen {
 
-    private static final ResourceLocation OUTER_FRAME = new ResourceLocation(epca.MODID, "textures/gui/epca_note/outer_frame.png");
+    // 只有内页贴图随模组一起提供；封面与选项卡改为用 inner_frame.png 的同色系程序化绘制，
+    // 避免引用不存在的 outer_frame.png / parent_tab.png / child_tab.png 而每帧报警并画出空白。
     private static final ResourceLocation INNER_FRAME = new ResourceLocation(epca.MODID, "textures/gui/epca_note/inner_frame.png");
-    private static final ResourceLocation PARENT_TAB = new ResourceLocation(epca.MODID, "textures/gui/epca_note/parent_tab.png");
-    private static final ResourceLocation PARENT_TAB_SELECTED = new ResourceLocation(epca.MODID, "textures/gui/epca_note/parent_tab_selected.png");
-    private static final ResourceLocation CHILD_TAB = new ResourceLocation(epca.MODID, "textures/gui/epca_note/child_tab.png");
-    private static final ResourceLocation CHILD_TAB_SELECTED = new ResourceLocation(epca.MODID, "textures/gui/epca_note/child_tab_selected.png");
     private static final ResourceLocation BTN_UP = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_up.png");
     private static final ResourceLocation BTN_DOWN = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_down.png");
     private static final ResourceLocation BTN_LEFT = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_left.png");
@@ -51,17 +48,35 @@ public class EPCANoteScreen extends Screen {
     private static final int BUTTON_H = 24;
     private static final int PAGE_BTN_SIZE = 18;
 
-    private static final int OUTER_TEX_W = 540;
-    private static final int OUTER_TEX_H = 360;
     private static final int INNER_TEX_W = 420;
     private static final int INNER_TEX_H = 270;
-    private static final int PARENT_TAB_TEX_W = 90;
-    private static final int PARENT_TAB_TEX_H = 60;
-    private static final int CHILD_TAB_TEX_W = 45;
-    private static final int CHILD_TAB_TEX_H = 75;
     private static final int BTN_TEX_W = 24;
     private static final int BTN_TEX_H = 24;
     private static final int PAGE_BTN_TEX_SIZE = 18;
+
+    // ---- 封面与选项卡配色（取自 inner_frame.png 的羊皮纸 / 皮革色调）----
+    private static final int COVER_SHADOW = 0xFF1E0D05;
+    private static final int COVER_DARK = 0xFF3C1C0E;
+    private static final int COVER = 0xFF5C2E18;
+    private static final int COVER_LIGHT = 0xFF7B4423;
+    private static final int COVER_EDGE = 0xFFCCB998;
+    private static final int COVER_LINE = 0xFF8A6A46;
+
+    private static final int TAB_BG = 0xFF6E3B21;
+    private static final int TAB_BG_HOVER = 0xFF83502F;
+    private static final int TAB_BG_SELECTED = 0xFFC9A46B;
+    private static final int TAB_HI = 0xFF9A6238;
+    private static final int TAB_LO = 0xFF2A1308;
+    private static final int TAB_HI_SELECTED = 0xFFE7D3A6;
+    private static final int TAB_LO_SELECTED = 0xFF8A6A46;
+    private static final int TAB_TEXT = 0xFFFFF4DC;
+    private static final int TAB_TEXT_SELECTED = 0xFF2B1608;
+
+    private static final int PAGE_TEXT = 0xFF3A2412;
+    private static final int PAGE_TEXT_DIM = 0xFF6B4A2E;
+    private static final int PAGE_TEXT_WARN = 0xFF8C2F12;
+    private static final int TITLE_TEXT = 0xFFE7D3A6;
+    private static final int PAGE_GROOVE = 7;
 
     private static final int MAX_PARENT_VISIBLE = 4;
     private static final int MAX_CHILD_VISIBLE = 8;
@@ -471,8 +486,11 @@ public class EPCANoteScreen extends Screen {
             pose.translate(-width / 2.0f, -height / 2.0f, 0);
         }
 
-        RenderSystem.setShaderTexture(0, OUTER_FRAME);
-        guiGraphics.blit(OUTER_FRAME, outerX, outerY, 0, 0, OUTER_W, OUTER_H, OUTER_TEX_W, OUTER_TEX_H);
+        // 悬停检测（画选项卡高亮 + 底部显示完整名称）
+        int hoveredParent = getClickedParentIndex((int) layoutX, (int) layoutY);
+        int hoveredChild = getClickedChildIndex((int) layoutX, (int) layoutY);
+
+        drawCover(guiGraphics);
 
 
         RenderSystem.setShaderTexture(0, INNER_FRAME);
@@ -484,15 +502,14 @@ public class EPCANoteScreen extends Screen {
             if (idx >= parentTabs.size()) break;
             EPCANoteTabData.ParentTab tab = parentTabs.get(idx);
             int y = parentListStartY + i * PARENT_TAB_H;
-            ResourceLocation tex = (selectedParentIndex == idx) ? PARENT_TAB_SELECTED : PARENT_TAB;
-            RenderSystem.setShaderTexture(0, tex);
-            guiGraphics.blit(tex, parentListStartX, y, 0, 0, PARENT_TAB_W, PARENT_TAB_H, PARENT_TAB_TEX_W, PARENT_TAB_TEX_H);
-            String displayName = translateName(tab.name);
+            boolean selected = selectedParentIndex == idx;
+            drawTab(guiGraphics, parentListStartX, y, PARENT_TAB_W, PARENT_TAB_H, selected, hoveredParent == idx);
+            String displayName = fit(font, translateName(tab.name), PARENT_TAB_W - 8);
             int textWidth = font.width(displayName);
             guiGraphics.drawString(font, displayName,
                     parentListStartX + (PARENT_TAB_W - textWidth) / 2,
-                    y + (PARENT_TAB_H - 8) / 2,
-                    0xFFFFFF);
+                    y + (PARENT_TAB_H - font.lineHeight) / 2,
+                    selected ? TAB_TEXT_SELECTED : TAB_TEXT);
         }
 
 
@@ -503,30 +520,21 @@ public class EPCANoteScreen extends Screen {
             int idx = childScrollOffset + i;
             EPCANoteTabData.ChildTab child = currentChildTabs.get(idx);
             int x = startX + i * CHILD_TAB_W;
-            ResourceLocation tex = (selectedChildIndex == idx) ? CHILD_TAB_SELECTED : CHILD_TAB;
-            RenderSystem.setShaderTexture(0, tex);
-            guiGraphics.blit(tex, x, childListStartY, 0, 0, CHILD_TAB_W, CHILD_TAB_H, CHILD_TAB_TEX_W, CHILD_TAB_TEX_H);
-            String displayName = translateName(child.name);
+            boolean selected = selectedChildIndex == idx;
+            drawTab(guiGraphics, x, childListStartY, CHILD_TAB_W, CHILD_TAB_H, selected, hoveredChild == idx);
+            String displayName = fit(font, translateName(child.name), CHILD_TAB_W - 4);
             int textWidth = font.width(displayName);
             guiGraphics.drawString(font, displayName,
                     x + (CHILD_TAB_W - textWidth) / 2,
-                    childListStartY + 10,
-                    0xFFFFFF);
+                    childListStartY + 6,
+                    selected ? TAB_TEXT_SELECTED : TAB_TEXT);
         }
 
 
-        if (!pages.isEmpty()) {
-            PageContent page = pages.get(currentPage);
-            renderElements(guiGraphics, page.leftElements, leftAreaX, leftAreaY);
-            renderElements(guiGraphics, page.rightElements, rightAreaX, rightAreaY);
-        }
+        drawPages(guiGraphics);
 
 
-        String pageStr = (currentPage + 1) + "/" + pages.size();
-        int pageStrWidth = font.width(pageStr);
-        int pageX = innerX + (INNER_W - pageStrWidth) / 2;
-        int pageY = innerY + INNER_H - font.lineHeight - 2;
-        guiGraphics.drawString(font, pageStr, pageX, pageY, 0xCCCCCC);
+        drawFooter(guiGraphics, hoveredParent, hoveredChild);
 
         super.render(guiGraphics, (int) layoutX, (int) layoutY, partialTick);
 
@@ -590,27 +598,118 @@ public class EPCANoteScreen extends Screen {
         return super.mouseReleased(layoutX, layoutY, button);
     }
 
-    private void renderElements(GuiGraphics guiGraphics, List<RenderElement> elements, int baseX, int baseY) {
+    /** 封面：皮革底 + 米色描边 + 内页凹槽（书页像嵌在封面里） */
+    private void drawCover(GuiGraphics guiGraphics) {
+        guiGraphics.fill(outerX - 2, outerY - 2, outerX + OUTER_W + 2, outerY + OUTER_H + 2, COVER_SHADOW);
+        guiGraphics.fill(outerX, outerY, outerX + OUTER_W, outerY + OUTER_H, COVER_DARK);
+        guiGraphics.fill(outerX + 3, outerY + 3, outerX + OUTER_W - 3, outerY + OUTER_H - 3, COVER);
+        guiGraphics.fill(outerX + 6, outerY + 6, outerX + OUTER_W - 6, outerY + OUTER_H - 6, COVER_LIGHT);
+        guiGraphics.fill(outerX + 10, outerY + 10, outerX + OUTER_W - 10, outerY + OUTER_H - 10, COVER);
+        // 1.20.1 没有 GuiGraphics#outline，对应的是 renderOutline(x, y, width, height, color)
+        guiGraphics.renderOutline(outerX, outerY, OUTER_W, OUTER_H, COVER_EDGE);
+        guiGraphics.renderOutline(outerX + 6, outerY + 6, OUTER_W - 12, OUTER_H - 12, COVER_LINE);
+
+        int g = PAGE_GROOVE;
+        int left = innerX - g;
+        int top = innerY - g;
+        int right = innerX + INNER_W + g;
+        int bottom = innerY + INNER_H + g;
+        guiGraphics.fill(left, top, right, innerY - 2, COVER_SHADOW);
+        guiGraphics.fill(left, innerY + INNER_H + 2, right, bottom, COVER_SHADOW);
+        guiGraphics.fill(left, top, innerX - 2, bottom, COVER_SHADOW);
+        guiGraphics.fill(innerX + INNER_W + 2, top, right, bottom, COVER_SHADOW);
+        guiGraphics.fill(innerX - 2, innerY - 2, innerX + INNER_W + 2, innerY + INNER_H + 2, COVER_EDGE);
+    }
+
+    /** 选项卡：底色 + 高光/阴影立体边 + 米色描边；选中用羊皮纸色，悬停提亮 */
+    private void drawTab(GuiGraphics guiGraphics, int x, int y, int w, int h,
+                         boolean selected, boolean hovered) {
+        int bg = selected ? TAB_BG_SELECTED : (hovered ? TAB_BG_HOVER : TAB_BG);
+        int hi = selected ? TAB_HI_SELECTED : TAB_HI;
+        int lo = selected ? TAB_LO_SELECTED : TAB_LO;
+        guiGraphics.fill(x, y, x + w, y + h, COVER_EDGE);
+        guiGraphics.fill(x + 1, y + 1, x + w - 1, y + h - 1, bg);
+        guiGraphics.fill(x + 1, y + 1, x + w - 1, y + 3, hi);
+        guiGraphics.fill(x + 1, y + 1, x + 3, y + h - 1, hi);
+        guiGraphics.fill(x + 1, y + h - 3, x + w - 1, y + h - 1, lo);
+        guiGraphics.fill(x + w - 3, y + 1, x + w - 1, y + h - 1, lo);
+        if (selected) {
+            guiGraphics.renderOutline(x, y, w, h, COVER_EDGE);
+        }
+    }
+
+    /** 书页内容：左右两页分别绘制，并用裁剪框住溢出内页的文字/图片 */
+    private void drawPages(GuiGraphics guiGraphics) {
+        if (pages.isEmpty()) return;
+        PageContent page = pages.get(currentPage);
+        if (!page.leftElements.isEmpty()) {
+            guiGraphics.enableScissor(leftAreaX, leftAreaY, leftAreaX + leftAreaW, leftAreaY + leftAreaH);
+            renderElements(guiGraphics, page.leftElements, leftAreaX, leftAreaY, leftAreaW);
+            guiGraphics.disableScissor();
+        }
+        if (!page.rightElements.isEmpty()) {
+            guiGraphics.enableScissor(rightAreaX, rightAreaY, rightAreaX + rightAreaW, rightAreaY + rightAreaH);
+            renderElements(guiGraphics, page.rightElements, rightAreaX, rightAreaY, rightAreaW);
+            guiGraphics.disableScissor();
+        }
+    }
+
+    /** 封面底部：默认显示笔记标题，悬停选项卡时显示该选项卡全名；内页底部居中显示页码 */
+    private void drawFooter(GuiGraphics guiGraphics, int hoveredParent, int hoveredChild) {
+        String hovered = null;
+        if (hoveredChild >= 0 && hoveredChild < currentChildTabs.size()) {
+            hovered = translateName(currentChildTabs.get(hoveredChild).name);
+        } else if (hoveredParent >= 0 && hoveredParent < parentTabs.size()) {
+            hovered = translateName(parentTabs.get(hoveredParent).name);
+        }
+        String titleText = (hovered != null && !hovered.isEmpty())
+                ? hovered
+                : (this.title == null ? "" : this.title.getString());
+
+        int lineY = innerY + INNER_H + 12;
+        guiGraphics.fill(outerX + 24, lineY - 5, outerX + OUTER_W - 24, lineY - 4, COVER_LINE);
+        guiGraphics.drawCenteredString(font, fit(font, titleText, OUTER_W - 80), outerX + OUTER_W / 2, lineY, TITLE_TEXT);
+
+        if (!pages.isEmpty()) {
+            String pageStr = (currentPage + 1) + "/" + pages.size();
+            guiGraphics.drawCenteredString(font, pageStr, innerX + INNER_W / 2,
+                    innerY + INNER_H - font.lineHeight - 3, PAGE_TEXT_DIM);
+        }
+    }
+
+    /** 选项卡宽度有限：超宽的名称按像素截断并加省略号 */
+    private static String fit(Font font, String text, int maxWidth) {
+        if (text == null || text.isEmpty()) return "";
+        if (font.width(text) <= maxWidth) return text;
+        return font.plainSubstrByWidth(text, Math.max(0, maxWidth - 6)) + "…";
+    }
+
+    private void renderElements(GuiGraphics guiGraphics, List<RenderElement> elements, int baseX, int baseY, int areaWidth) {
         int yOffset = 0;
         for (RenderElement e : elements) {
             if (e instanceof TextLine text) {
-                guiGraphics.drawString(font, text.formatted, baseX, baseY + yOffset, 0xFFFFFF);
+                // 书页是浅色羊皮纸：正文用深色墨水，字符串里的 §0 等颜色代码仍然生效
+                guiGraphics.drawString(font, text.formatted, baseX, baseY + yOffset, PAGE_TEXT);
                 yOffset += font.lineHeight;
             } else if (e instanceof ImageElement img) {
                 ResourceLocation tex = img.texture;
+                int drawW = Math.max(1, Math.min(img.width, areaWidth));
+                int drawH = img.width <= 0 ? img.height : Math.max(1, img.height * drawW / img.width);
                 boolean valid = false;
                 try {
                     Optional<Resource> resource = Minecraft.getInstance().getResourceManager().getResource(tex);
                     if (resource.isPresent()) {
                         RenderSystem.setShaderTexture(0, tex);
-                        guiGraphics.blit(tex, baseX, baseY + yOffset, 0, 0, img.width, img.height, img.width, img.height);
+                        guiGraphics.blit(tex,
+                                baseX + (areaWidth - drawW) / 2, baseY + yOffset, 0, 0,
+                                drawW, drawH, img.width, img.height);
                         valid = true;
                     }
                 } catch (Exception ignored) {}
                 if (!valid) {
-                    guiGraphics.drawString(font, "Texture missing", baseX, baseY + yOffset, 0xFF5555);
+                    guiGraphics.drawString(font, "Texture missing", baseX, baseY + yOffset, PAGE_TEXT_WARN);
                 }
-                yOffset += img.height;
+                yOffset += drawH;
             }
         }
     }

@@ -311,8 +311,6 @@ public class ModEntities {
             registerMobWithRender("nullthing", 0.9F, 0.9F, Nullthing::new, MobCategory.MONSTER, 12, Nullthing::setAttributes);
     public static final RegistryObject<EntityType<YawningNya>> YAWNING_NYA =
             registerMobAttributes("yawning_nya", 0.6F, 1.8F, YawningNya::new, MobCategory.AMBIENT, 8, YawningNya::createAttributes);
-    public static final RegistryObject<EntityType<InfestedPlayer>> INFESTED_PLAYER =
-            registerMobAttributes("infested_player", 0.6F, 1.8F, InfestedPlayer::new, MobCategory.MONSTER, 12, InfestedPlayer::setAttributes);
 
     // --- Misc entities (no attributes, custom renderers) ---
     public static final RegistryObject<EntityType<ContaminatedWater>> CONTAMINATED_WATER =

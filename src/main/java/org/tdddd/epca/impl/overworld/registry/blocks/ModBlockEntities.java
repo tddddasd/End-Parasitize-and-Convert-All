@@ -9,16 +9,12 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBloc
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.InfestedSweetBerryBushBlockEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
 import org.tdddd.epca.impl.epca;
-import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.PackedMudPedestalBlockEntity;
 
 public class ModBlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, epca.MODID);
 
-    public static final RegistryObject<BlockEntityType<PackedMudPedestalBlockEntity>> PACKED_MUD_PEDESTAL =
-            BLOCK_ENTITIES.register("packed_mud_pedestal", () ->
-                        BlockEntityType.Builder.of(PackedMudPedestalBlockEntity::new, ModBlocks.PACKED_MUD_PEDESTAL.get())
-                                .build(null));
+    // packed_mud_pedestal 的方块实体已随祭坛方块分离到前置模组 eej。
 
     public static final RegistryObject<BlockEntityType<SwallowCystBlockEntity>> SWALLOW_CYST =
             BLOCK_ENTITIES.register("swallow_cyst",

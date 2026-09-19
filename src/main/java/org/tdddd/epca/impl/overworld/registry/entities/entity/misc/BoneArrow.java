@@ -1,10 +1,10 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
+
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.IMotionAligned;
-
-
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,7 +12,6 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -46,25 +45,17 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
     @Override
     public void tick() {
         super.tick();
-
-        
         age++;
         if (age >= MAX_AGE && !this.level().isClientSide) {
             this.discard();
         }
 
-        
-        if (!this.inGround) {
-            Vec3 deltaMovement = this.getDeltaMovement();
-            double length = deltaMovement.length();
-            if (length > 0.0D) {
-                double horizontalLength = deltaMovement.horizontalDistance();
-                this.setYRot((float)(Mth.atan2(deltaMovement.x, deltaMovement.z) * (180F / Math.PI)));
-                this.setXRot((float)(Mth.atan2(deltaMovement.y, horizontalLength) * (180F / Math.PI)));
-
-                
-                this.yRotO = this.getYRot();
-                this.xRotO = this.getXRot();
+        if (!this.inGround && age > 1) {
+            Vec3 dm = this.getDeltaMovement();
+            double horizontal = dm.horizontalDistance();
+            if (dm.lengthSqr() > 1.0E-6D) {
+                this.setYRot((float)(Mth.atan2(dm.x, dm.z) * (180F / Math.PI)));
+                this.setXRot((float)(Mth.atan2(dm.y, horizontal) * (180F / Math.PI)));
             }
         }
     }

@@ -1,23 +1,17 @@
 package org.tdddd.epca.impl.client;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.FallingBlockRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
-import org.tdddd.epca.impl.client.entity.layer.PlayerAfterimageLayer;
 import org.tdddd.epca.impl.client.entity.model.*;
 import org.tdddd.epca.impl.client.entity.renderer.*;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
@@ -26,7 +20,6 @@ import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.InfestedSpiderWebProjectile;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
 import java.util.Map;
@@ -57,7 +50,6 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.INFESTED_ENDERMITE.get(), InfestedEndermiteRenderer::new);
         event.registerEntityRenderer(ModEntities.WALKING_ENDERMAN_HEAD.get(), WalkingEndermanHeadRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_ZOMBIE.get(), InfestedZombieRenderer::new);
-        event.registerEntityRenderer(ModEntities.INFESTED_PLAYER.get(), InfestedPlayerRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_LONGARMS.get(), ReshapeLongarmsRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_PART.get(), ReshapeLongarmsCustomPartRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_BAT.get(), InfestedBatRenderer::new);
@@ -106,14 +98,25 @@ public class ClientHandler {
                 }
                 return 1;
             });
-            Map<String, EntityRenderer<? extends Player>> skinMap = Minecraft.getInstance()
-                    .getEntityRenderDispatcher().getSkinMap();
-            for (EntityRenderer<? extends Player> renderer : skinMap.values()) {
-                if (renderer instanceof PlayerRenderer playerRenderer) {
-                    playerRenderer.addLayer(new PlayerAfterimageLayer(playerRenderer));
-                }
-            }
+
+            // 长矛蓄力（投掷）时切换到 *_spear_throwing 模型：投掷姿势 THROW_TRIDENT
+            // 会把手臂绕 X 轴转 180°，物品再绕 X 轴转 180° 抵消它，手持方向/位置与 26.1.2 版一致。
+            registerThrowingProperty(ModItems.WOODEN_SPEAR.get());
+            registerThrowingProperty(ModItems.STONE_SPEAR.get());
+            registerThrowingProperty(ModItems.FLINT_SPEAR.get());
+            registerThrowingProperty(ModItems.COPPER_SPEAR.get());
+            registerThrowingProperty(ModItems.IRON_SPEAR.get());
+            registerThrowingProperty(ModItems.GOLDEN_SPEAR.get());
+            registerThrowingProperty(ModItems.DIAMOND_SPEAR.get());
+            registerThrowingProperty(ModItems.NETHERITE_SPEAR.get());
             }
         );
+    }
+
+    /** 值为 1 表示“正在蓄力投掷这把长矛”（与原版三叉戟的 throwing 判定一致）。 */
+    private static void registerThrowingProperty(Item item) {
+        ItemProperties.register(item, new ResourceLocation(epca.MODID, "throwing"),
+                (stack, level, entity, seed) ->
+                        entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1.0F : 0.0F);
     }
 }

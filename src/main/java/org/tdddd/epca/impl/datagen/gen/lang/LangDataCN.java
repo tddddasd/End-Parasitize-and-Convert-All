@@ -14,8 +14,6 @@ public class LangDataCN extends LanguageProvider {
         // 物品组 / 基本 UI
         add("itemGroup." + epca.MODID + ".main_tab", "终末-归寄万物");
 
-        add("category.epca.altar_crafting", "祭坛合成");
-
         // 游戏规则
         add("gamerule.epca_hardnessConversionBlock", "根据硬度转化模组方块");
         add("gamerule.epca_hardnessConversionBlock.description", "当模组方块没有转化配置映射时，是否允许根据硬度将其转化为虫染残渣、类岩、类板等方块");
@@ -34,10 +32,6 @@ public class LangDataCN extends LanguageProvider {
         add("tooltip.epca.biomass", "消耗：%s");
         add("tooltip.epca.negative", "负面：%s");
         add("tooltip.epca.item_proficiency", "熟练度: %d/%d [伤害 +%s%%]");
-        add("item.small_item_frame.added", "已记录：%s");
-        add("item.small_item_frame.max_reached", "无法添加（已达上限或已存在）");
-        add("item.small_item_frame.no_offhand", "副手无物品");
-        add("item.small_item_frame.count", "已存 %d/%d");
 
         // Jade 插件
         add("config.jade.plugin_epca.damage_adaptation_info", "伤害适应性信息");
@@ -224,6 +218,7 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.infested_bat_spawn_egg", "虫染蝙蝠刷怪蛋");
 
         // 材料与特殊物品
+        add("item.epca.copper_nugget", "铜粒");
         add("item.epca.parasite_viscera", "寄体内脏");
         add("item.epca.infested_bone", "虫染骨");
         add("item.epca.weird_minced_flesh", "怪异肉沫");
@@ -289,7 +284,6 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.epca_note", "寄巢笔记");
         add("item.epca.infested_ender_pearl", "虫染末影珍珠");
         add("item.epca.ender_blade_scrap", "影刃残片");
-        add("item.epca.small_item_frame", "小型物品过滤展示框");
 
         // 方块
         add("block.epca.infested_dirt", "虫染泥土");
@@ -354,8 +348,6 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.infested_infested_stone_bricks", "虫染虫蚀石砖");
         add("block.epca.infested_infested_cracked_stone_bricks", "虫染虫蚀裂纹石砖");
         add("block.epca.infested_infested_chiseled_stone_bricks", "虫染虫蚀雕纹石砖");
-        add("block.epca.packed_mud_pedestal", "泥坯祭台");
-        add("block.epca.packed_mud_altar_stone", "泥坯祭坛石");
         add("block.epca.swallow_cyst", "吞食囊包");
         add("block.epca.infested_nethersea_brand_grown", "虫染涌动的溟痕");
         add("block.epca.infested_nethersea_brand_solid", "虫染深蚀的溟痕");
@@ -463,8 +455,8 @@ public class LangDataCN extends LanguageProvider {
 
         // 图鉴内容（含换行与图像占位符）
         add("epca.content.onesent",
-                "§l§0初探种§r\n$[page]$\n§0诅虫\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§r上图中是一只诅虫。");
+                "§l§0初探种§r\n$[page]$\n§0诅虫\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0上图中是一只诅虫。");
         add("epca.content.test3",
-                "\n${img:epca:textures/gui/note_pic/yawning_neko.png,512}$\n作者\n${img:epca:textures/gui/note_pic/xiao_ku_kmc.png,512}$\n美术\n${img:epca:textures/gui/note_pic/thomas_lovlin.png,512}$\n音效师");
+                "§0\n${img:epca:textures/gui/note_pic/yawning_neko.png,512}$\n§0作者\n${img:epca:textures/gui/note_pic/xiao_ku_kmc.png,512}$\n§0美术\n${img:epca:textures/gui/note_pic/thomas_lovlin.png,512}$\n§0音效师");
     }
 }

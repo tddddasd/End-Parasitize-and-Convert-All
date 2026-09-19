@@ -25,7 +25,7 @@ public class BlockStateData extends BlockStateProvider {
      * - 雪层（高度属性）
      * - 藤蔓（多方块面）
      * - 滴水石锥
-     * - 方块实体渲染器（swallow_cyst, packed_mud_pedestal）
+     * - 方块实体渲染器（swallow_cyst）
      * - 自定义 BBmodel 元素模型
      */
     private static final Set<String> MANUAL_BLOCKS = Set.of(
@@ -38,7 +38,6 @@ public class BlockStateData extends BlockStateProvider {
             "infested_remains_small", "infested_remains_medium", "infested_remains_large",
             "infested_residue",
             "infested_nethersea_brand_grown",
-            "packed_mud_pedestal",
             "infested_sandstone", "infested_sandstone_slab", "infested_sandstone_stairs", "infested_chiseled_red_sandstone", "infested_chiseled_sandstone", "infested_cut_sandstone", "infested_cut_sandstone_slab",
             "infested_tall_grass", "infested_tall_fern"
     );

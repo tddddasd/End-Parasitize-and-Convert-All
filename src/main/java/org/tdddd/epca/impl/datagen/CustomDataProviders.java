@@ -531,22 +531,4 @@ public class CustomDataProviders {
         }
         @Override public String getName() { return "EPCA Biomass Spawns"; }
     }
-
-    // ═══════════════════ 6. Altar Points ═══════════════════
-
-    public static class AltarPointDataProvider implements DataProvider {
-        private final PackOutput out;
-        public AltarPointDataProvider(PackOutput out) { this.out = out; }
-
-        @Override
-        public CompletableFuture<?> run(CachedOutput cache) {
-            JsonObject root = new JsonObject();
-            var p = new JsonObject(); p.addProperty("points", 30);
-            var a = new JsonObject(); a.addProperty("points", 20);
-            root.add("epca:packed_mud_pedestal", p);
-            root.add("epca:packed_mud_altar_stone", a);
-            return saveStable(cache, root, dataPath(out, "altar_points", "epca_altar_points"));
-        }
-        @Override public String getName() { return "EPCA Altar Points"; }
-    }
 }

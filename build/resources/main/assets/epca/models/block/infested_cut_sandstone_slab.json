@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/slab",
-  "textures": {
-    "bottom": "epca:block/infested_sandstone_top",
-    "top": "epca:block/infested_sandstone_top",
-    "side": "epca:block/infested_cut_sandstone"
-  }
-}

@@ -209,7 +209,6 @@ public interface IParasite {
 
     
     default float onHurt(DamageSource source, float amount) {
-        
         return handleParasiteDamage(source, amount);
     }
 

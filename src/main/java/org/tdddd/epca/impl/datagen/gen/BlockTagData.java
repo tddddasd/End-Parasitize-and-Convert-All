@@ -83,17 +83,5 @@ public class BlockTagData extends BlockTagsProvider {
                 if (isWoodLike(name)) tag(BlockTags.WOODEN_FENCES).add(block);
             }
         }
-
-        // ── 自定义标签 ──
-        blockTag("altar_stones", "packed_mud_altar_stone");
-        blockTag("pedestals",    "packed_mud_pedestal");
-    }
-
-    private void blockTag(String tagName, String blockName) {
-        Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(epca.MODID, blockName));
-        if (block != null) {
-            tag(TagKey.create(ForgeRegistries.BLOCKS.getRegistryKey(),
-                    new ResourceLocation(epca.MODID, tagName))).add(block);
-        }
     }
 }

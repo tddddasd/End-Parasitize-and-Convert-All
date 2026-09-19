@@ -21,5 +21,13 @@
 				"layer0": "epca:item/iron_spear_item"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"predicate": {
+				"epca:throwing": 1
+			},
+			"model": "epca:item/iron_spear_throwing"
+		}
+	]
 }

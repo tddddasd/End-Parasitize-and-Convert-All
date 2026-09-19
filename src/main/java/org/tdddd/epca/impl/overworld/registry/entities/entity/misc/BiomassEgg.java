@@ -55,18 +55,14 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
             this.discard();
         }
 
-        
+
         if (!this.inGround) {
             Vec3 deltaMovement = this.getDeltaMovement();
             double length = deltaMovement.length();
-            if (length > 0.0D) {
+            if (length > 1.0E-6D) {
                 double horizontalLength = deltaMovement.horizontalDistance();
                 this.setYRot((float)(Mth.atan2(deltaMovement.x, deltaMovement.z) * (180F / Math.PI)));
                 this.setXRot((float)(Mth.atan2(deltaMovement.y, horizontalLength) * (180F / Math.PI)));
-
-                
-                this.yRotO = this.getYRot();
-                this.xRotO = this.getXRot();
             }
         }
     }

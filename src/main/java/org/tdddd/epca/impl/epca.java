@@ -24,7 +24,9 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixins;
+import org.tdddd.eej.api.AltarInteractionRegistry;
 import org.tdddd.epca.impl.overworld.data.*;
+import org.tdddd.epca.impl.overworld.registry.blocks.EpcaAltarInteractionHandler;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.capability.ILifetimeCapability;
@@ -73,6 +75,9 @@ public class epca {
 
         ModConfig.register();
         WingChestManager.init();
+
+        // 祭坛方块本体在前置模组 eej 中，这里把 EPCA 的献祭仪式等交互挂上去
+        AltarInteractionRegistry.register(new EpcaAltarInteractionHandler());
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.register(ClientSetup.class);
@@ -144,7 +149,6 @@ public class epca {
         event.addListener(new EntityKillCountManager());
         event.addListener(CarryConfigManager.INSTANCE);
         event.addListener(new BiomassSpawnManager());
-        event.addListener(new AltarPointManager());
     }
 
     // Attribute registration is now handled by ModEntityEvents.onEntityAttributeCreation()

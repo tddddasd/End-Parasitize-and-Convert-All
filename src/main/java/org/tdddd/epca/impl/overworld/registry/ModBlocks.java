@@ -380,15 +380,7 @@ public class ModBlocks {
             () -> new InfestedPointedDripstone(BlockBehaviour.Properties.copy(Blocks.POINTED_DRIPSTONE).mapColor(DyeColor.LIGHT_GRAY))
     );
 
-    public static final RegistryObject<Block> PACKED_MUD_PEDESTAL = BLOCKS.register(
-            "packed_mud_pedestal",
-            PackedMudPedestal::new
-    );
-
-    public static final RegistryObject<Block> PACKED_MUD_ALTAR_STONE = BLOCKS.register(
-            "packed_mud_altar_stone",
-            () -> new PackedMudAltarStone(Block.Properties.of().strength(1.0f, 1.0f).randomTicks().sound(SoundType.PACKED_MUD).mapColor(DyeColor.ORANGE).requiresCorrectToolForDrops())
-    );
+    // 祭坛方块（packed_mud_pedestal / packed_mud_altar_stone）已分离到前置模组 eej。
 
     public static final RegistryObject<Block> BECKON_CORE = BLOCKS.register(
             "beckon_core",

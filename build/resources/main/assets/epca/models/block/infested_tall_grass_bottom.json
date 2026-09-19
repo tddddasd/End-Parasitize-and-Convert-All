@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "epca:block/infested_tall_grass_bottom"
-  },
-  "render_type": "cutout"
-}

@@ -1,6 +1,0 @@
-{
-  "variants": {
-    "half=lower": { "model": "epca:block/infested_tall_fern_bottom" },
-    "half=upper": { "model": "epca:block/infested_tall_fern_top" }
-  }
-}

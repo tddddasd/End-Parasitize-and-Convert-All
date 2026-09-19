@@ -15,7 +15,7 @@ public class WaterColorEffectsManager {
 
     // ---- 虫染方块索引缓存（仅由网络包/方块事件更新） ----
     private static final Map<ChunkPos, Set<BlockPos>> INFESTED_BY_CHUNK = new ConcurrentHashMap<>();
-    private static final int INFESTED_PURPLE = 0xFF8066AA;
+    //private static final int INFESTED_PURPLE = 0xFF8066AA;
 
     // ---- 外部 API（仅由网络包或方块更新事件调用） ----
 
@@ -109,12 +109,13 @@ public class WaterColorEffectsManager {
                 mixed = mixColors(mixed, bloodColor, intensity * 0.7f);
             }
         }
-
+/*
         float dist = getNearestInfestedDistance(pos);
         if (dist >= 0) {
             float intensity = 1.0f - (dist / 7.0f);
             mixed = mixColors(mixed, INFESTED_PURPLE, intensity);
         }
+ */
         return mixed;
     }
 

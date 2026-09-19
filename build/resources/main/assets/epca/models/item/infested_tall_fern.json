@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "epca:block/infested_tall_fern_top"
-  }
-}

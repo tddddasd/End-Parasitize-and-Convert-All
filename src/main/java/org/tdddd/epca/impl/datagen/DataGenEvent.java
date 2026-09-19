@@ -46,7 +46,5 @@ public class DataGenEvent {
                 new CustomDataProviders.BlockConversionDataProvider(out));
         event.getGenerator().addProvider(event.includeServer(),
                 new CustomDataProviders.BiomassSpawnDataProvider(out));
-        event.getGenerator().addProvider(event.includeServer(),
-                new CustomDataProviders.AltarPointDataProvider(out));
     }
 }

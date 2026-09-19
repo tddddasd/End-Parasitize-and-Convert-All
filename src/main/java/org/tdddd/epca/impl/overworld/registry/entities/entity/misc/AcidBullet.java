@@ -141,6 +141,15 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
 
         ticksInAir++;
 
+        if (this.tickCount > 1) {
+            Vec3 dm = this.getDeltaMovement();
+            double horizontal = dm.horizontalDistance();
+            if (dm.lengthSqr() > 1.0E-6D) {
+                this.setYRot((float)(Mth.atan2(dm.x, dm.z) * (180F / Math.PI)));
+                this.setXRot((float)(Mth.atan2(dm.y, horizontal) * (180F / Math.PI)));
+            }
+        }
+
         if (this.level().isClientSide && ticksInAir > 2) {
             
             ParticleOptions particle = ParticleTypes.ITEM_SLIME;

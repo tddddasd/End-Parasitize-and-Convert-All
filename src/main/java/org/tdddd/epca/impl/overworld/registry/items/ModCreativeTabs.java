@@ -23,7 +23,8 @@ public class ModCreativeTabs {
                 CustomTab.Builder builder = (CustomTab.Builder) new CustomTab.Builder(CreativeModeTab.Row.TOP, 0)
                         .icon(() -> new ItemStack(ModItems.PARASITE_VISCERA.get()))
                         .title(Component.translatable("itemGroup.epca.main_tab"));
-                
+
+                builder.add(i(ModItems.COPPER_NUGGET));
                 builder.add(i(ModItems.PARASITE_VISCERA));
                 builder.add(i(ModItems.FINS_FIN));
                 builder.add(i(ModItems.DISEASED_HEART));
@@ -68,7 +69,6 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_NETHERSEA_ICECREAM));
                 builder.add(i(ModItems.KILL_STICK));
                 builder.add(i(ModItems.EPCA_NOTE));
-                builder.add(i(ModItems.SMALL_ITEM_FRAME));
 
                 
                 builder.add(new CustomTab.ITabEntry.Subheading1(
@@ -242,8 +242,6 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_HARDLIKE));
                 builder.add(i(ModItems.BECKON_CORE));
                 builder.add(i(ModItems.ACID_SOLUTION_BUCKET));
-                builder.add(i(ModItems.PACKED_MUD_PEDESTAL));
-                builder.add(i(ModItems.PACKED_MUD_ALTAR_STONE));
 
                 return builder.build();
             }

@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "epca:block/infested_cave_spider_web"
-  },
-  "render_type": "cutout"
-}

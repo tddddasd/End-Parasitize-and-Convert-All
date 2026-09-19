@@ -1,8 +1,0 @@
-{
-  "parent": "block/cube_column",
-  "textures": {
-    "end": "epca:block/infested_mangrove_roots_top",
-    "side": "epca:block/infested_mangrove_roots_side"
-  },
-  "render_type": "cutout"
-}

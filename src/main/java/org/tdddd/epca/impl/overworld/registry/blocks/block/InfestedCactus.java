@@ -19,9 +19,7 @@ import net.minecraft.world.level.block.CactusBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -35,20 +33,18 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedS
 public class InfestedCactus extends Block implements InfestedBlockInterface {
 
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
-    public static final IntegerProperty AGE = BlockStateProperties.AGE_15;
 
     protected static final VoxelShape SHAPE = Block.box(1.0, 0.0, 1.0, 15.0, 16.0, 15.0);
     protected static final VoxelShape COLLISION_SHAPE = Block.box(1.0, 0.0, 1.0, 15.0, 15.0, 15.0);
 
     public InfestedCactus(BlockBehaviour.Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(AGE, 0));
         this.registerDefaultState(this.stateDefinition.any().setValue(NATURAL_SPAWN, true));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(AGE, NATURAL_SPAWN);
+        builder.add( NATURAL_SPAWN);
     }
 
     @Override
@@ -142,12 +138,6 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (level.isClientSide) return;
-        int age = state.getValue(AGE);
-        if (age < 15) {
-            if (random.nextInt(4) == 0) {
-                level.setBlock(pos, state.setValue(AGE, age + 1), 2);
-            }
-        } else {
             BlockPos above = pos.above();
             if (level.getBlockState(above).isAir()) {
                 int height = 1;
@@ -157,11 +147,10 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
                     checkPos = checkPos.below();
                 }
                 if (height < 3) {
-                    level.setBlock(above, this.defaultBlockState().setValue(AGE, 0), 2);
-                    level.setBlock(pos, state.setValue(AGE, 0), 2);
+                    level.setBlock(above, state, 2);
+                    level.setBlock(pos, state, 2);
                 }
             }
-        }
     }
 
     @Override

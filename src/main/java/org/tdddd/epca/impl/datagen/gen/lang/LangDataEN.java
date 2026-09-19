@@ -14,8 +14,6 @@ public class LangDataEN extends LanguageProvider {
         // Item groups / basic UI
         add("itemGroup." + epca.MODID + ".main_tab", "E-PCA");
 
-        add("category.epca.altar_crafting", "Altar Crafting");
-
         // Gamerules
         add("gamerule.epca_hardnessConversionBlock", "Convert blocks based on hardness");
         add("gamerule.epca_hardnessConversionBlock.description", "When a block doesn't have a transformation configuration mapping, is it allowed to convert it into Infested Residue, Rocklike, or Plankslike blocks based on its hardness");
@@ -34,10 +32,6 @@ public class LangDataEN extends LanguageProvider {
         add("tooltip.epca.biomass", "Consume: %s");
         add("tooltip.epca.negative", "Negative: %s");
         add("tooltip.epca.item_proficiency", "Proficiency: %d/%d [Damage Bonus +%s%%]");
-        add("item.small_item_frame.added", "Recorded: %s");
-        add("item.small_item_frame.max_reached", "Cannot add (limit reached or duplicate)");
-        add("item.small_item_frame.no_offhand", "No item in offhand");
-        add("item.small_item_frame.count", "%d/%d stored");
 
         // Jade plugins
         add("config.jade.plugin_epca.damage_adaptation_info", "Damage Adaptation Info");
@@ -224,6 +218,7 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.infested_bat_spawn_egg", "Infested Bat Spawn Egg");
 
         // Materials & special items
+        add("item.epca.copper_nugget", "Copper Nugget");
         add("item.epca.parasite_viscera", "Parasite Viscera");
         add("item.epca.infested_bone", "Infested Bone");
         add("item.epca.weird_minced_flesh", "Weird Minced Flesh");
@@ -289,7 +284,6 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.epca_note", "E-PCA Note");
         add("item.epca.infested_ender_pearl", "Infested Ender Pearl");
         add("item.epca.ender_blade_scrap", "Ender Blade Scrap");
-        add("item.epca.small_item_frame", "Small Item Filter Frame");
 
         // Blocks
         add("block.epca.infested_dirt", "Infested Dirt");
@@ -349,8 +343,6 @@ public class LangDataEN extends LanguageProvider {
         add("block.epca.infested_diamond_ore", "Infested Diamond Ore");
         add("block.epca.infested_snow_block", "Infested Snow Block");
         add("block.epca.infested_snow", "Infested Snow");
-        add("block.epca.packed_mud_pedestal", "Packed Mud Pedestal");
-        add("block.epca.packed_mud_altar_stone", "Packed Mud Altar Stone");
         add("block.epca.swallow_cyst", "Swallow Cyst");
         add("block.epca.infested_infested_cobblestone", "Infested Infested Cobblestone");
         add("block.epca.infested_infested_stone", "Infested Infested Stone");
@@ -462,7 +454,7 @@ public class LangDataEN extends LanguageProvider {
         add("epca.message.stage_too_low", "The erosion stage here is below level 3...");
 
         // Bestiary contents (with images and formatting)
-        add("epca.content.onesent", "§l§0Onesent§r\n$[page]$\n§0Curbug\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§rThe image above shows a Curbug.");
-        add("epca.content.test3", "\n${img:epca:textures/gui/note_pic/yawning_neko.png,512}$\nAuthor\n${img:epca:textures/gui/note_pic/xiao_ku_kmc.png,512}$\nArtist\n${img:epca:textures/gui/note_pic/thomas_lovlin.png,512}$\nSound Designer");
+        add("epca.content.onesent", "§l§0Onesent§r\n$[page]$\n§0Curbug\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0The image above shows a Curbug.");
+        add("epca.content.test3", "§0\n${img:epca:textures/gui/note_pic/yawning_neko.png,512}$\n§0Author\n${img:epca:textures/gui/note_pic/xiao_ku_kmc.png,512}$\n§0Artist\n${img:epca:textures/gui/note_pic/thomas_lovlin.png,512}$\n§0Sound Designer");
     }
 }

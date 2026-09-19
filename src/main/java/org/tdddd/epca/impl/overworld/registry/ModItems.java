@@ -78,8 +78,8 @@ public class ModItems {
     public static final RegistryObject<Item> EPCA_ICON = customItem("epca_icon", () -> new EPCAIcon(new Item.Properties()));
     public static final RegistryObject<Item> INFESTED_NETHERSEA_BRAND_MOR = customItem("infested_nethersea_brand_mor", () -> new InfestedNetherseaBrandMor(new Item.Properties()));
     public static final RegistryObject<Item> INFESTED_NETHERSEA_ICECREAM = customItem("infested_nethersea_icecream", () -> new InfestedNetherseaIcecream(new Item.Properties().stacksTo(16).rarity(Rarity.COMMON)));
-    public static final RegistryObject<Item> SMALL_ITEM_FRAME = customItem("small_item_frame", () -> new SmallItemFrame(new Item.Properties()));
     public static final RegistryObject<Item> INFESTED_SWEET_BERRIES = customItem("infested_sweet_berries", () -> new InfestedSweetBerries(new Item.Properties()));
+    public static final RegistryObject<Item> COPPER_NUGGET = customItem("copper_nugget", () -> new CopperNugget(new Item.Properties()));
 
     // 特殊物品（有特定堆叠或稀有度）
     public static final RegistryObject<Item> BLOODY_CLOCK = ITEMS.register("erosion_clock",
@@ -192,7 +192,6 @@ public class ModItems {
     public static final RegistryObject<Item> LIGHT_CARRIER_SPAWN_EGG = spawnEgg("light_carrier", ModEntities.LIGHT_CARRIER);
     public static final RegistryObject<Item> INFESTED_SKELETON_SPAWN_EGG = spawnEgg("infested_skeleton", ModEntities.INFESTED_SKELETON);
     public static final RegistryObject<Item> WALKING_SKELETON_HEAD_SPAWN_EGG = spawnEgg("walking_skeleton_head", ModEntities.WALKING_SKELETON_HEAD);
-    public static final RegistryObject<Item> INFESTED_PLAYER_SPAWN_EGG = spawnEgg("infested_player", ModEntities.INFESTED_PLAYER);
     public static final RegistryObject<Item> WALKING_FOX_HEAD_SPAWN_EGG = spawnEgg("walking_fox_head", ModEntities.WALKING_FOX_HEAD);
     public static final RegistryObject<Item> RESHAPE_YELLOWEYE_SPAWN_EGG = spawnEgg("reshape_yelloweye", ModEntities.RESHAPE_YELLOWEYE);
     public static final RegistryObject<Item> INFESTED_FOX_SPAWN_EGG = spawnEgg("infested_fox", ModEntities.INFESTED_FOX);
@@ -264,8 +263,6 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_NETHERSEA_BRAND_GROWN = blockItem("infested_nethersea_brand_grown", ModBlocks.INFESTED_NETHERSEA_BRAND_GROWN);
     public static final RegistryObject<Item> INFESTED_NETHERSEA_BRAND_SOLID = blockItem("infested_nethersea_brand_solid", ModBlocks.INFESTED_NETHERSEA_BRAND_SOLID);
     public static final RegistryObject<Item> SWALLOW_CYST = blockItem("swallow_cyst", ModBlocks.SWALLOW_CYST);
-    public static final RegistryObject<Item> PACKED_MUD_PEDESTAL = blockItem("packed_mud_pedestal", ModBlocks.PACKED_MUD_PEDESTAL);
-    public static final RegistryObject<Item> PACKED_MUD_ALTAR_STONE = blockItem("packed_mud_altar_stone", ModBlocks.PACKED_MUD_ALTAR_STONE);
     public static final RegistryObject<Item> INFESTED_POINTED_DRIPSTONE = blockItem("infested_pointed_dripstone", ModBlocks.INFESTED_POINTED_DRIPSTONE);
     public static final RegistryObject<Item> BECKON_CORE = blockItem("beckon_core", ModBlocks.BECKON_CORE);
     public static final RegistryObject<Item> INFESTED_HEAVY_STONE = blockItem("infested_heavy_stone", ModBlocks.INFESTED_HEAVY_STONE);

@@ -250,15 +250,10 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
                                 0,    
                                 false, true
                         ));
-
                         serverLevel.addFreshEntity(cloud);
-
-                        
                         spawnChickenHeads(serverLevel, deathPos, 2);
                     }
                 }
-
-                
                 this.discard();
                 return; 
             }
@@ -266,12 +261,10 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
             return;
         }
 
-        
         if (retreatCooldown > 0) {
             retreatCooldown--;
         }
 
-        
         if (!this.level().isClientSide) {
             LivingEntity target = this.getTarget();
 
@@ -279,11 +272,9 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
                 
                 if (shootCooldown > 0) shootCooldown--;
                 if (meleeCooldown > 0) meleeCooldown--;
-
                 
                 double distance = this.distanceTo(target);
 
-                
                 if (distance < SAFE_DISTANCE) {
                     
                     if (retreatCooldown <= 0) {
@@ -291,7 +282,6 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
                         retreatCooldown = RETREAT_COOLDOWN;
                     }
 
-                    
                     if (shootCooldown <= 0 && this.hasLineOfSight(target)) {
                         shootBiomassEgg(target);
 
@@ -302,33 +292,32 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
                             shootCooldown = NORMAL_SHOOT_COOLDOWN;
                         }
                     }
-
                     
                     if (isRetreating) {
                         updateRetreatMovement();
                     }
                 } else {
-                    
-                    stopRetreating();
-
-                    
-                    
-                    if (distance < 1.25 && meleeCooldown <= 0) {
-                        performMeleeAttack(target);
-                        meleeCooldown = MELEE_COOLDOWN;
+                    if (isRetreating) {
+                        isRetreating = false;
+                        retreatDirection = Vec3.ZERO;
                     }
 
-                    
-                    if (shootCooldown <= 0 && this.hasLineOfSight(target)) {
-                        shootBiomassEgg(target);
+                    this.getNavigation().stop();
 
-                        
-                        if (this.hasEffect(ModEffects.RAGE.get())) {
-                            shootCooldown = BUFFED_SHOOT_COOLDOWN;
-                        } else {
-                            shootCooldown = NORMAL_SHOOT_COOLDOWN;
-                        }
+                    Vec3 dm = this.getDeltaMovement();
+                    if (dm.horizontalDistanceSqr() > 1.0E-6D) {
+                        this.setDeltaMovement(dm.x * 0.5D, dm.y, dm.z * 0.5D);
                     }
+
+                    if (this.isShooting()) {
+                        this.setShooting(false);
+                    }
+
+                    this.shootCooldown = NORMAL_SHOOT_COOLDOWN;
+
+                    this.bodyRotationX = 0.0F;
+
+                    this.setRunning(false);
                 }
 
                 
@@ -460,17 +449,13 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
         }
     }
 
-    
     private void stopRetreating() {
         if (isRetreating) {
             isRetreating = false;
             retreatDirection = Vec3.ZERO;
-
-            
-            this.getNavigation().recomputePath();
+            this.getNavigation().stop();
         }
     }
-
     
     private void shootBiomassEgg(LivingEntity target) {
         if (!this.level().isClientSide) {

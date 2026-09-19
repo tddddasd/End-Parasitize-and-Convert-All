@@ -104,8 +104,11 @@ public class KillStick extends Item {
                 List<Entity> entities = serverLevel.getEntitiesOfClass(Entity.class, area,
                         e -> e != player && e.isAlive());
                 for (Entity e : entities) {
-                    e.remove(Entity.RemovalReason.KILLED);
+                    if (e instanceof Player) {
+                        return;
+                    }
 
+                    e.remove(Entity.RemovalReason.KILLED);
                     double x = 1000000;
                     double y = -4800;
                     double z = 1000000;
