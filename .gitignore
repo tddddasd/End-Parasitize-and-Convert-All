@@ -132,3 +132,5 @@ logs/
 crash-reports/
 out/
 *.log
+# 构建依赖的 jar 必须随仓库提供（build.gradle 用 files('libs/...') 引用）
+!libs/*.jar
