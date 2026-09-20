@@ -1,5 +1,6 @@
 {
   "from": "minecraft:ender_dragon",
+  "meat_particles": false,
   "priority": 1,
   "small_entity_priority": true
 }

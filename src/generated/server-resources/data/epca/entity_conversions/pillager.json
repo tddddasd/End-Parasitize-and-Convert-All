@@ -1,6 +1,7 @@
 {
   "fins_to": "epca:infested_pillager",
   "from": "minecraft:pillager",
+  "meat_particles": false,
   "mozzie_to": "epca:infested_pillager",
   "priority": 1,
   "small_entity_priority": true,

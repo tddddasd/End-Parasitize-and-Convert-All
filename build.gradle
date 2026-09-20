@@ -17,10 +17,6 @@ java {
 sourceSets.main.java.srcDir 'compat/playeranimator'
 
 sourceSets.main.resources {
-    // src/generated/resources        <- 客户端数据生成输出 (gradlew runData)
-    // src/generated/server-resources <- 服务端数据生成输出 (gradlew runDataServer)
-    // 两个 run 必须用不同的输出目录：datagen 的 HashCache 会把「本次运行没有写」的文件当 stale 删掉，
-    // 若共用一个目录，client/server 轮流跑会互相清空对方的产物。
     srcDirs 'src/main/resources', 'src/generated/resources', 'src/generated/server-resources'
     exclude 'META-INF/mods.toml.1.20.1'
 }
@@ -55,16 +51,8 @@ neoForge {
                     '--existing', file('src/main/resources/').getAbsolutePath()
         }
         dataServer {
-            // 26.1.2: 客户端与服务端数据生成是两个不同的事件（GatherDataEvent.Client / .Server）。
-            // 同一个 run 里同时写 serverData() 和 clientData() 时只有后者生效（dist 只有一个），
-            // 所以 runData 实际上只跑客户端 provider，服务端那一半
-            // （tags / recipes / worldgen，以及 CustomDataProviders 的
-            //   entity_conversions / entity_carry / block_conversions / biomass_spawns）
-            // 必须用这个独立的 run 生成。
             //
-            //   gradlew runDataServer                     -> 写入 src/generated/server-resources
             //   gradlew runDataServer -PdatagenOutput=build/datagen-server
-            //                                             -> 先写到临时目录核对，不动源码
             serverData()
             def datagenOut = providers.gradleProperty('datagenOutput').getOrElse('src/generated/server-resources')
             programArguments.addAll '--mod', mod_id, '--all',
@@ -97,7 +85,6 @@ dependencies {
     runtimeOnly files('libs/Jade-mc26.1-NeoForge-26.1.11.jar')
 
     // Sibling mods, ported and built for 26.1.2 in this same session.
-    // YawningNekoAPI 内置（jar-in-jar）：随 epca 一起分发，玩家无需单独安装
     jarJar(implementation files('libs/yawning_neko_api-1.0.5.jar'))
     implementation files('libs/eej-26.1.2.jar')
 

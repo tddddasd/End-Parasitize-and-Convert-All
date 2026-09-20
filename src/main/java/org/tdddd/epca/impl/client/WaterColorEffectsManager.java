@@ -13,25 +13,21 @@ public class WaterColorEffectsManager {
     private static final Map<BlockPos, Integer> acidSources = new ConcurrentHashMap<>();
     private static final Map<UUID, Vec3> contaminationSources = new ConcurrentHashMap<>();
 
-    // ---- 虫染方块索引缓存（仅由网络包/方块事件更新） ----
+    
     private static final Map<ChunkPos, Set<BlockPos>> INFESTED_BY_CHUNK = new ConcurrentHashMap<>();
     //private static final int INFESTED_PURPLE = 0xFF8066AA;
 
-    // ---- 外部 API（仅由网络包或方块更新事件调用） ----
+    
 
-    /**
-     * 添加单个虫染源（由网络包调用）
-     */
+    
     public static void addInfestedSource(BlockPos pos) {
         // 26.1.2: ChunkPos is a record (x, z) and lost its BlockPos constructor; use ChunkPos#containing.
         ChunkPos cp = ChunkPos.containing(pos);
         INFESTED_BY_CHUNK.computeIfAbsent(cp, k -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
-        refreshArea(pos, 8); // 刷新周围受影响的水域
+        refreshArea(pos, 8); 
     }
 
-    /**
-     * 移除单个虫染源（由网络包调用）
-     */
+    
     public static void removeInfestedSource(BlockPos pos) {
         ChunkPos cp = ChunkPos.containing(pos);
         Set<BlockPos> set = INFESTED_BY_CHUNK.get(cp);
@@ -42,9 +38,7 @@ public class WaterColorEffectsManager {
         refreshArea(pos, 8);
     }
 
-    /**
-     * 批量添加虫染源（用于服务器全量同步，减少刷新次数）
-     */
+    
     public static void addInfestedSourcesBatch(Collection<BlockPos> positions) {
         if (positions.isEmpty()) return;
         BlockPos first = null;
@@ -58,14 +52,12 @@ public class WaterColorEffectsManager {
         }
     }
 
-    /**
-     * 清空所有虫染缓存（仅用于调试或退出时）
-     */
+    
     public static void clearInfestedCache() {
         INFESTED_BY_CHUNK.clear();
     }
 
-    // ---- 核心距离查询（仅查相邻9个区块） ----
+    
     private static float getNearestInfestedDistance(BlockPos pos) {
         int cx = pos.getX() >> 4;
         int cz = pos.getZ() >> 4;
@@ -95,7 +87,7 @@ public class WaterColorEffectsManager {
         return -1f;
     }
 
-    // ---- 颜色混合逻辑 ----
+    
     public static int getWaterColor(BlockPos pos, int originalColor) {
         int acidColor = getAcidColor(pos);
         int bloodColor = getContaminationColor(pos);
@@ -120,7 +112,7 @@ public class WaterColorEffectsManager {
         return mixed;
     }
 
-    // ---- 酸液和污染效果（保持不变） ----
+    
     public static void updateClientEffect(BlockPos waterPos, BlockPos acidPos, int distance) {
         acidSources.put(waterPos.immutable(), Math.min(distance, 8));
         forceChunkUpdate(waterPos);
@@ -197,7 +189,7 @@ public class WaterColorEffectsManager {
         return (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
 
-    // ---- 区块渲染更新（仅由增删操作触发） ----
+    
     private static void forceChunkUpdate(BlockPos pos) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null && mc.levelRenderer != null) {

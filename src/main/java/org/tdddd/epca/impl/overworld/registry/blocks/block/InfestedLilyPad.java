@@ -60,7 +60,7 @@ public class InfestedLilyPad extends LilyPadBlock implements InfestedBlockInterf
         return Blocks.LILY_PAD.getSoundType(Blocks.LILY_PAD.defaultBlockState(), level, pos, entity);
     }
 
-    // 虫染银鱼可穿过该方块（无碰撞箱）
+    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {

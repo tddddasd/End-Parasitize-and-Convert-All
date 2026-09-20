@@ -35,11 +35,7 @@ InfestedLeaves
 ::new);
     }
 
-    /**
-     * 26.1.2: {@code LeavesBlock} is abstract again (it needs the falling-leaf particle) and its
-     * constructor takes the particle chance first. The original block used the vanilla
-     * spruce-leaf look; the pink cherry-leaf particle restores the 铏煋 tint.
-     */
+    
     @Override
     protected void spawnFallingLeavesParticle(Level level, BlockPos pos, RandomSource random) {
         net.minecraft.util.ParticleUtils.spawnParticleBelow(level, pos, random,

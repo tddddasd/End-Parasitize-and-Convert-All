@@ -64,15 +64,15 @@ public class epca {
                         "epca_hardness_conversion_block", GameRuleCategory.MISC, true);
             }
         });
-        // 26.1.2 用 neoforge.mods.toml 的 [[mixins]] 声明 Mixin 配置（FML 会读），
-        // 不再需要运行期手工 Mixins.addConfiguration(...)。
-        // 保留原调用会与 FML 的配置加载重复，故删除。
+        
+        
+        
 
         IEventBus forgeBus = NeoForge.EVENT_BUS;
-        // 26.1.2 的负载注册事件 RegisterPayloadHandlersEvent 是模组总线事件，
-        // 原 FMLCommonSetupEvent 里的 ModNetwork.register() 直接搬到这里。
+        
+        
         ModNetwork.register(modEventBus);
-        // 数据附件必须在模组总线注册
+        
         EpcaAttachments.register(modEventBus);
         ModCreativeTabs.CREATIVE_TABS.register(modEventBus);
         ModParticles.REGISTRY.register(modEventBus);
@@ -89,19 +89,19 @@ public class epca {
         ModConfig.register(modContainer);
         WingChestManager.init();
 
-        // 祭坛方块本体在前置模组 eej 中，这里把 EPCA 的献祭仪式等交互挂上去
+        
         AltarInteractionRegistry.register(new EpcaAltarInteractionHandler());
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
-        // 26.1.2: ClientSetup 自带 @EventBusSubscriber，FML 会自动注册；这里再注册会导致
-        // RegisterMenuScreensEvent 处理器执行两次 -> "Duplicate attempt to register screen"。故移除。
+        
+        
         }
 
         modEventBus.addListener(this::clientSetup);
-        // 数据生成：GatherDataEvent 拆成 Client/Server 两个模组总线事件
+        
         modEventBus.addListener(org.tdddd.epca.impl.datagen.DataGenEvent::gatherClientData);
         modEventBus.addListener(org.tdddd.epca.impl.datagen.DataGenEvent::gatherServerData);
-        // 26.1.2: 该类自带 @EventBusSubscriber，FML 已自动注册；重复注册会让监听器执行两次，故移除。
+        
         forgeBus.addListener(this::onRegisterCommands);
         forgeBus.addListener(this::onServerStarted);
         forgeBus.addListener(this::onAddReloadListeners);
@@ -109,11 +109,7 @@ public class epca {
         forgeBus.addListener(this::onPlayerTick);
     }
 
-    /**
-     * 26.1.2：Forge Capability 已删除，{@code LIFETIME_CAPABILITY} 现在指向注册在
-     * {@code NeoForgeRegistries.Keys.ATTACHMENT_TYPES} 上的数据附件类型。
-     * 读取方式：{@code livingEntity.getData(EpcaAttachments.LIFETIME)}。
-     */
+    
     public static final net.neoforged.neoforge.registries.DeferredHolder<
             net.neoforged.neoforge.attachment.AttachmentType<?>,
             net.neoforged.neoforge.attachment.AttachmentType<
@@ -144,7 +140,7 @@ public class epca {
     
     @SubscribeEvent
     public void onServerTickForAttraction(ServerTickEvent.Post event) {
-        // 26.1.2: TickEvent.Phase 被 Pre/Post 取代，等价于原来的 Phase.END
+        
         MinecraftServer server = event.getServer();
 
         for (ServerLevel level : server.getAllLevels()) {
@@ -154,13 +150,13 @@ public class epca {
 
     @SubscribeEvent
     public void onPlayerTick(PlayerTickEvent.Post event) {
-        // 26.1.2: TickEvent.Phase 被 Pre/Post 取代，等价于原来的 Phase.END
+        
         LivingArmorBox.applyBiomassEffects(event.getEntity());
     }
 
     @SubscribeEvent
     public void onAddReloadListeners(AddServerReloadListenersEvent event) {
-        // 26.1.2: addListener 需要显式的 Identifier key（原 API 不需要）
+        
         event.addListener(asResource("entity_conversion"), new EntityConversionManager());
         event.addListener(asResource("entity_integration"), new EntityIntegrationManager());
         event.addListener(asResource("entity_kill_count"), new EntityKillCountManager());
@@ -172,8 +168,8 @@ public class epca {
     // which delegates to both EpcaEntityManager.createAttributes() (auto-registration)
     // and registerManualAttributes() (backward compat for existing entities).
 
-    // 26.1.2: GameRules.register 变成了按类型分名的 registerBoolean/registerInteger，
-    // Category 改名为 GameRuleCategory，并且布尔规则直接返回 GameRule<Boolean>。
+    
+    
     // 26.1.2: game rules live in the built-in minecraft:game_rule registry, which is frozen
     // before the mod constructor runs. The rule therefore cannot be created in a static
     // initializer; it is registered by the RegisterEvent listener in the constructor.

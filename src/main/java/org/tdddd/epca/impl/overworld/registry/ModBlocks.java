@@ -499,7 +499,7 @@ public class ModBlocks {
             () -> BlockBehaviour.Properties.ofFullCopy(Blocks.POINTED_DRIPSTONE).mapColor(DyeColor.LIGHT_GRAY)
     );
 
-    // 祭坛方块（packed_mud_pedestal / packed_mud_altar_stone）已分离到前置模组 eej。
+    
 
     public static final DeferredBlock<Block> BECKON_CORE = BLOCKS.registerBlock(
             "beckon_core",

@@ -11,7 +11,7 @@ import net.minecraft.util.RandomSource;
 // FacingCameraMode instead of hand-written vertices; the sprite corner order is preserved by
 // SingleQuadParticle#extractRotatedQuad.
 public class WaveParticle extends SingleQuadParticle {
-    /** 1.20.1 的 render() 里对四边形做的固定旋转：绕 X 轴 90 度。 */
+    
     private static final SingleQuadParticle.FacingCameraMode FIXED_X =
             (target, camera, partialTickTime) -> target.rotationX((float) Math.toRadians(90.0F));
 

@@ -22,37 +22,30 @@ import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.items.item.KillStick;
 import org.tdddd.epca.impl.utils.ShieldProtectionHelper;
 
-/**
- * 26.1.2 迁移记录（三处注入点都按 26.1.2 的 {@code minecraft-patched-26.1.2.76} 源码核对过）：
- * <ul>
- *   <li>{@code addEffect}：1.20.1 有两个可注入的重载
- *       （{@code addEffect(MobEffectInstance)} 与
- *       {@code addEffect(MobEffectInstance, Entity)}），26.1.2 合并成一个
- *       {@code boolean addEffect(MobEffectInstance, @Nullable Entity)}，
- *       无源参数的调用点都是 {@code addEffect(effect, null)}。原来的两个 {@code @Inject}
- *       现在注入同一个方法，故合并为一处；<b>取消原始添加、替换成 V 级 60 秒 COTH 的行为完全保留</b>。</li>
- *   <li>{@code getEffect}/{@code removeEffect} 的参数由 {@code MobEffect} 变成
- *       {@code Holder<MobEffect>}；{@code ModEffects.COTH} 本身就是
- *       {@code DeferredHolder<MobEffect, MobEffect>}（即 {@code Holder<MobEffect>}），
- *       所以直接传 holder、不再 {@code .get()}。</li>
- *   <li>{@code setHealth}/{@code aiStep} 的名称与签名未变，注入原样保留。</li>
- * </ul>
- */
+
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
     private static final ThreadLocal<Boolean> applyingCustomCoth = ThreadLocal.withInitial(() -> false);
 
-    // ========== addEffect 拦截（26.1.2 只有一个重载） ==========
+    
+    
+    @Inject(method = "canBeSeenAsEnemy", at = @At("HEAD"), cancellable = true)
+    private void epca$untargetableWhileConverting(CallbackInfoReturnable<Boolean> cir) {
+        if (org.tdddd.epca.impl.events.PendingConversionManager.isPending((LivingEntity) (Object) this)) {
+            cir.setReturnValue(false);
+        }
+    }
+
     @Inject(method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
             at = @At("HEAD"),
             cancellable = true)
     private void onAddEffect(MobEffectInstance effectInstance, Entity source, CallbackInfoReturnable<Boolean> cir) {
-        // 如果正在应用自定义COTH，放行（避免递归）
+        
         if (applyingCustomCoth.get()) {
             return;
         }
 
-        // 只处理 COTH 效果
+        
         if (effectInstance == null || !effectInstance.getEffect().is(ModEffects.COTH)) {
             return;
         }
@@ -60,35 +53,35 @@ public abstract class LivingEntityMixin {
         LivingEntity self = (LivingEntity) (Object) this;
         Level level = self.level();
 
-        // 条件：服务器、非玩家、非IParasite、传说难度
+        
         if (level.isClientSide()) return;
         if (self instanceof Player) return;
         if (self instanceof IParasite) return;
         if (!DifficultyEffects.isCothEffectEnabled(level)) return;
 
-        // ---- 传说难度：强制替换为 V级 60秒 COTH ----
-        // 1. 取消原始添加
+        
+        
         cir.setReturnValue(false);
         cir.cancel();
 
-        // 2. 移除已有的 COTH（如果有）
+        
         MobEffectInstance existing = self.getEffect(ModEffects.COTH);
         if (existing != null) {
             self.removeEffect(ModEffects.COTH);
         }
 
-        // 3. 标记正在添加自定义效果
+        
         applyingCustomCoth.set(true);
         try {
-            // 创建 V级（amplifier=4），1200 ticks（60秒）的效果
+            
             MobEffectInstance customCoth = new MobEffectInstance(
                     ModEffects.COTH,
-                    1200,      // 60秒
-                    4,         // V级
+                    1200,      
+                    4,         
                     false, false, true
             );
             self.addEffect(customCoth);
-            // 附加 COTH 标签（可选）
+            
             self.getPersistentData().putBoolean("COTH", true);
         } finally {
             applyingCustomCoth.set(false);

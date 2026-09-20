@@ -14,14 +14,7 @@ import org.tdddd.epca.impl.overworld.registry.ModTags;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * 方块标签数据生成器。
- *
- * <p><b>26.1.2 改动</b>：{@code BlockTagsProvider} 的构造器去掉了
- * {@code ExistingFileHelper}（该类已被平台删除），变成
- * {@code (PackOutput, CompletableFuture<HolderLookup.Provider>, String modId)}。
- * {@code addTags/tag(...)} 用法不变。
- */
+
 public class BlockTagData extends BlockTagsProvider {
     public BlockTagData(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
         super(output, lookupProvider, epca.MODID);
@@ -52,7 +45,7 @@ public class BlockTagData extends BlockTagsProvider {
             if (!isModBlock(block)) continue;
             String name = entry.getKey().identifier().getPath();
 
-            // ── 可挖掘工具标签 ──
+            
             if (block instanceof RotatedPillarBlock || block instanceof FenceBlock
                     || block instanceof FenceGateBlock || isWoodLike(name) ||
                     name.contains("pumpkin") || name.contains("carved_pumpkin") ||
@@ -71,7 +64,7 @@ public class BlockTagData extends BlockTagsProvider {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block);
             }
 
-            // ── 工具等级标签 ──
+            
             if (isOre(name) && block.defaultDestroyTime() >= 3.0F) {
                 if (name.contains("iron") || name.contains("copper") || name.contains("lapis")) {
                     tag(BlockTags.NEEDS_STONE_TOOL).add(block);
@@ -81,7 +74,7 @@ public class BlockTagData extends BlockTagsProvider {
                 }
             }
 
-            // ── 结构标签 ──
+            
             if (block instanceof WallBlock) tag(BlockTags.WALLS).add(block);
             if (block instanceof FenceBlock) {
                 tag(BlockTags.FENCES).add(block);

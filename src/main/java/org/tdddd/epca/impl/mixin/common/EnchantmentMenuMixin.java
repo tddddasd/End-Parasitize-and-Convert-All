@@ -17,22 +17,7 @@ import org.tdddd.epca.impl.overworld.registry.items.item.InfestedLapisLazuli;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 用虫染青金石附魔时额外附加两条诅咒。
- *
- * <p><b>26.1.2 重写</b>（附魔在 26.1.2 是数据包注册表）：
- * <ul>
- *   <li>{@code Enchantment} 引用一律变成 {@code Holder<Enchantment>}；</li>
- *   <li>{@code EnchantmentHelper.getEnchantments(ItemStack)} 返回 {@code Map<Enchantment,Integer>}
- *       已删除，改为 {@code ItemEnchantments}（不可变）；
- *       {@code setEnchantments(Map, ItemStack)} 已删除，改为
- *       {@code updateEnchantments(ItemStack, Consumer<ItemEnchantments.Mutable>)}；</li>
- *   <li>诅咒列表不再来自 {@code BuiltInRegistries.ENCHANTMENTS}（该注册表在 26.1.2 不存在），
- *       而是按标签 {@code minecraft:curse} 取 {@code HolderSet}（与原版
- *       {@code Enchantment#isCurse()} 的定义一致）。</li>
- * </ul>
- * 行为保留：只有副手槽是虫染青金石时才触发；随机选 1~2 条诅咒；已存在的诅咒不重复写等级。
- */
+
 @Mixin(EnchantmentMenu.class)
 public abstract class EnchantmentMenuMixin {
     @Shadow
@@ -56,7 +41,7 @@ public abstract class EnchantmentMenuMixin {
         if (enchantedItem.isEmpty()) return;
 
         List<Holder<Enchantment>> curses = new ArrayList<>();
-        // 26.1.2: 附魔是数据包注册表，Registry#get(TagKey) 返回 Optional<HolderSet.Named>
+        
         player.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                 .get(net.minecraft.tags.EnchantmentTags.CURSE)
                 .ifPresent(set -> set.forEach(curses::add));

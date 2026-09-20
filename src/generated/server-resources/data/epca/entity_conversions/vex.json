@@ -1,5 +1,6 @@
 {
   "from": "minecraft:vex",
+  "meat_particles": false,
   "mozzie_to": "epca:small_incomplete_form",
   "priority": 0,
   "small_entity_priority": true

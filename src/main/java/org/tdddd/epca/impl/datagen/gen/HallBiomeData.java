@@ -19,9 +19,7 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 public class HallBiomeData {
 
 
-    /**
-     * 在 datagen 的 bootstrap 阶段注册群系。
-     */
+    
     public static void bootstrap(BootstrapContext<Biome> context) {
         HolderGetter<PlacedFeature> placedFeatures = context.lookup(Registries.PLACED_FEATURE);
         HolderGetter<ConfiguredWorldCarver<?>> configuredCarvers = context.lookup(Registries.CONFIGURED_CARVER);

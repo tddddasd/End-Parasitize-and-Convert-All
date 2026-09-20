@@ -14,14 +14,7 @@ import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.List;
 
-/**
- * 客户端 → 服务端：巢穴领袖切换随从跟随。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}（无字段负载）。
- * {@code player.level()} 在 26.1.2 返回 {@code Level}，这里改为
- * {@code ctx.player().level()} 并直接取 {@link ServerLevel} 语义等价的玩家所在维度
- * （服务端负载的 {@code ctx.player()} 一定是 {@link ServerPlayer}）。
- */
+
 public class ToggleFollowPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<ToggleFollowPacket> TYPE =

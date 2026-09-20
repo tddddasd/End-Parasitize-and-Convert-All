@@ -21,6 +21,9 @@ public class CothEffectTickHandler {
         
 
         
+        PendingConversionManager.tick(event.getServer());
+
+        
         if (!removalRequests.isEmpty()) {
             List<EffectRemovalRequest> toRemove = new ArrayList<>(removalRequests);
             removalRequests.clear();

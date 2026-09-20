@@ -440,7 +440,7 @@ public class ModEntities {
                     () -> EntityType.Builder.<ReshapeLongarms.CustomPart>of(
                                     ReshapeLongarms.CustomPart::new, MobCategory.MISC)
                             .sized(2.0F, 2.0F) // pre-init placeholder only: ReshapeLongarms.CustomPart#getDimensions supplies the real per-part box
-                            .clientTrackingRange(12) // 确保客户端同步
+                            .clientTrackingRange(12) 
                             .build(entityKey("reshape_part"))
             );
 

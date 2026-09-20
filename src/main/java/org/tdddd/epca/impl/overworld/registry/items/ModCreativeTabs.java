@@ -24,9 +24,9 @@ public class ModCreativeTabs {
                         .icon(() -> new ItemStack(ModItems.PARASITE_VISCERA.get()))
                         .title(Component.translatable("itemGroup.epca.main_tab"));
 
-                // 26.1.2: 铜粒（minecraft:copper_nugget）不再出现在 EPCA 的创造模式标签页里。
-                // 模组自己的 copper_nugget 已删除，而原版标签页（CreativeModeTabs.INGREDIENTS）
-                // 本来就自带原版铜粒，所以这里既不再添加、也不做任何注入。
+                
+                
+                
                 builder.add(i(ModItems.PARASITE_VISCERA));
                 builder.add(i(ModItems.FINS_FIN));
                 builder.add(i(ModItems.DISEASED_HEART));

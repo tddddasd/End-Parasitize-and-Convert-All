@@ -7,12 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-/**
- * 客户端 → 服务端：同步 V 键状态（写入玩家的 persistentData）。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
- * <b>线上字段与顺序不变</b>：单个 {@code boolean}。
- */
+
 public class VKeyStatePacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<VKeyStatePacket> TYPE =

@@ -11,13 +11,7 @@ import org.tdddd.epca.impl.overworld.registry.items.item.WingChestManager;
 
 import java.util.UUID;
 
-/**
- * 客户端 → 服务端：同步飞行状态。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}；
- * {@code ctx.get().getSender()} → {@link IPayloadContext#player()}。
- * <b>线上字段与顺序不变</b>：{@code uuid} + {@code boolean flying}。
- */
+
 public class FlightStatePacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<FlightStatePacket> TYPE =
@@ -52,7 +46,7 @@ public class FlightStatePacket implements CustomPacketPayload {
     public static void handle(FlightStatePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sender) {
-                // 26.1.2: ServerPlayer#serverLevel() 已改名/移除，等价物是 ServerPlayer#level()
+                
                 ServerLevel level = sender.level();
                 ServerPlayer player = level.getServer().getPlayerList().getPlayer(packet.playerId);
 

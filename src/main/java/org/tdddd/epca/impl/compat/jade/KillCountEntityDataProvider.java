@@ -8,16 +8,7 @@ import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IServerDataProvider;
 
-/**
- * 服务端专用（击杀数 / 实体）。
- *
- * <p>只实现 Jade 的服务端数据接口 {@link IServerDataProvider}：签名、字段与 import 都不含任何
- * 客户端类型（{@code ITooltip}、{@code JadeUI}、{@code LayoutElement} 等），因此可以在专用服务器上
- * 被 {@code register(IWailaCommonRegistration)} 安全加载。
- *
- * <p>UID 与 NBT 键保持不变，客户端渲染端见
- * {@link KillCountEntityComponentProvider}。
- */
+
 public class KillCountEntityDataProvider implements IServerDataProvider<EntityAccessor> {
 
     public static final KillCountEntityDataProvider INSTANCE = new KillCountEntityDataProvider();

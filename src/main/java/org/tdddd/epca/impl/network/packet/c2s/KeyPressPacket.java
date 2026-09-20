@@ -10,14 +10,7 @@ import org.tdddd.epca.impl.network.ModNetwork;
 
 import java.util.UUID;
 
-/**
- * 客户端 → 服务端：同步空格/潜行键状态。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}；
- * 接收方向由 {@code context.getDirection().getReceptionSide().isServer()} 判断改为
- * “注册在 {@code playToServer} 上”（方向由注册决定，不再需要运行时判断）。
- * <b>线上字段与顺序不变</b>：{@code uuid} + 两个 {@code boolean}。
- */
+
 public class KeyPressPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<KeyPressPacket> TYPE =

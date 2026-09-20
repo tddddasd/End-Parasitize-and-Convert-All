@@ -9,14 +9,7 @@ import org.tdddd.epca.impl.network.ModNetwork;
 
 import java.util.UUID;
 
-/**
- * 服务端 → 客户端：清除某玩家的侵蚀显示数据。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}；
- * 原 {@code context.getDirection().getReceptionSide().isClient()} 判断由
- * “注册在 {@code playToClient}”取代。
- * <b>线上字段与顺序不变</b>：单个 {@code uuid}。
- */
+
 public class ClearErosionDisplayPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<ClearErosionDisplayPacket> TYPE =

@@ -9,14 +9,7 @@ import org.tdddd.epca.impl.overworld.data.EPCANoteTabData;
 
 import java.util.List;
 
-/**
- * 服务端 → 客户端：笔记标签页同步。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
- * 读写仍走 {@code EPCANoteTabData#writeParentTabList/readParentTabList}
- * （它们接收的 {@code FriendlyByteBuf} 是 {@code RegistryFriendlyByteBuf} 的父类型，
- * 调用点无需改动，线上格式不变）。
- */
+
 public class SyncNoteTabsPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncNoteTabsPacket> TYPE =

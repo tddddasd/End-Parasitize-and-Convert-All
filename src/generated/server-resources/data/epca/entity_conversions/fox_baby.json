@@ -1,6 +1,7 @@
 {
   "fins_to": "epca:infested_fox",
   "from": "minecraft:fox",
+  "meat_particles": false,
   "mozzie_to": "epca:infested_fox",
   "priority": 0,
   "small_entity_priority": true,

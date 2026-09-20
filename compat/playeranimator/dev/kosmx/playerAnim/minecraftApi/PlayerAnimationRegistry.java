@@ -4,18 +4,7 @@ import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
 import dev.kosmx.playerAnim.impl.ShimBridge;
 import net.minecraft.resources.Identifier;
 
-/**
- * Compile-time downgrade shim for <b>player-animator</b> (no 26.1.2 release).
- *
- * <p>EPCA calls {@code PlayerAnimationRegistry.getAnimation(id)} and null-checks the result before
- * wrapping it in a {@code KeyframeAnimationPlayer}. Always returning {@code null} makes both call
- * sites no-ops.
- *
- * <p>The reflective guard is here on purpose: if a genuine player-animator implementation ever
- * becomes visible, the call is delegated to it and any failure degrades back to {@code null}
- * instead of crashing the client.
- * See {@code PORT-STATUS.md} -> "player-animator 降级".
- */
+
 public final class PlayerAnimationRegistry {
 
     private PlayerAnimationRegistry() {}

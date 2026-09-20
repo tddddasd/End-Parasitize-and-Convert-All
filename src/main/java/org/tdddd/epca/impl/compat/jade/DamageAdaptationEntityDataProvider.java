@@ -14,15 +14,7 @@ import org.tdddd.yawning_neko_api.events.CapabilityEventHandler;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IServerDataProvider;
 
-/**
- * 服务端专用（伤害适应性 / 实体）。
- *
- * <p>这里承载原来的 {@code appendServerData(...)} 逻辑：只往 NBT 里写数据，不做任何渲染，
- * 签名 / 字段 / import 里没有客户端类型，因此可在专用服务器上被 register 加载。
- *
- * <p>NBT 载荷键保持原样（{@code EPCA_DamageAdaptation} 及其子键），客户端读取端见
- * {@link DamageAdaptationEntityComponentProvider}。
- */
+
 public class DamageAdaptationEntityDataProvider implements IServerDataProvider<EntityAccessor> {
 
     public static final DamageAdaptationEntityDataProvider INSTANCE = new DamageAdaptationEntityDataProvider();

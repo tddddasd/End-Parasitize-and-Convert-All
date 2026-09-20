@@ -30,19 +30,19 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
     }
 
     private UUID targetUUID;
-    private int attractCooldown = 0; // 冷却tick
+    private int attractCooldown = 0; 
 
     public static void tick(Level level, BlockPos pos, BlockState state, InfestedSweetBerryBushBlockEntity entity) {
         if (level.isClientSide()) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
 
-        // 只有 age=2 才进行吸引
+        
         if (state.getValue(InfestedSweetBerryBush.AGE) < 3) {
             entity.targetUUID = null;
             return;
         }
 
-        // ---------- 有目标时 ----------
+        
         if (entity.targetUUID != null) {
             Entity target = serverLevel.getEntity(entity.targetUUID);
             if (target == null || !target.isAlive() || !(target instanceof Animal)) {
@@ -51,28 +51,28 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
             }
 
             double dist = target.distanceToSqr(Vec3.atCenterOf(pos));
-            if (dist <= 1.5 * 1.5) { // 达到 1.5 格内
-                // 触发：变回未结果，播放音效，施加 COTH I级 10秒
+            if (dist <= 1.5 * 1.5) { 
+                
                 serverLevel.setBlock(pos, state.setValue(InfestedSweetBerryBush.AGE, 0), 3);
                 serverLevel.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (target instanceof LivingEntity living) {
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH, 200, 0)); // 10秒=200 ticks
+                    living.addEffect(new MobEffectInstance(ModEffects.COTH, 200, 0)); 
                 }
                 entity.targetUUID = null;
                 return;
-            } else if (dist > 24 * 24) { // 太远则放弃
+            } else if (dist > 24 * 24) { 
                 entity.targetUUID = null;
             }
             return;
         }
 
-        // ---------- 无目标，尝试吸引 ----------
+        
         if (entity.attractCooldown > 0) {
             entity.attractCooldown--;
             return;
         }
 
-        // 搜索 8 格内的 Animal（且非 IParasite）
+        
         AABB box = new AABB(pos).inflate(12.0);
         List<Animal> animals = serverLevel.getEntitiesOfClass(Animal.class, box,
                 animal -> !(animal instanceof IParasite) && animal.isAlive());
@@ -87,17 +87,17 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
                 }
             }
             if (chosen != null) {
-                // 让生物走向方块中心
+                
                 chosen.getNavigation().moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1.0);
                 entity.targetUUID = chosen.getUUID();
-                entity.attractCooldown = 20; // 20tick后若未触发则重新搜索
+                entity.attractCooldown = 20; 
             }
         } else {
-            entity.attractCooldown = 40; // 无生物，冷却2秒再搜
+            entity.attractCooldown = 40; 
         }
     }
 
-    // ---------- NBT 存储 ----------
+    
     /** 26.1.2: {@code BlockEntity#load(CompoundTag)} became {@code loadAdditional(ValueInput)}. */
     @Override
     protected void loadAdditional(ValueInput input) {

@@ -1,6 +1,7 @@
 {
   "fins_to": "epca:infested_slime_size3",
   "from": "minecraft:slime",
+  "meat_particles": false,
   "mozzie_to": "epca:infested_slime_size3",
   "nbt_conditions": {
     "Size": 3

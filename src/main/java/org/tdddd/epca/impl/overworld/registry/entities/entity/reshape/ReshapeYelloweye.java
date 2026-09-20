@@ -173,7 +173,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         setExploding(true);
         explosionTimer = 24;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);
@@ -181,7 +181,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     }
     private void executeExplosionEffects() {
         if (this.level() instanceof ServerLevel serverLevel) {
-            // 原有爆炸音效和粒子
+            
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.BIG_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
@@ -205,16 +205,16 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
             serverLevel.addFreshEntity(cloud);
 
-            // ========== 新增：向下斜 50° 内随机发射 4~5 枚酸液弹 ==========
-            int count = 4 + this.random.nextInt(2); // 4 或 5
-            Vec3 origin = this.position().add(0, 0.5, 0); // 发射位置（略高于身体中心）
+            
+            int count = 4 + this.random.nextInt(2); 
+            Vec3 origin = this.position().add(0, 0.5, 0); 
             for (int i = 0; i < count; i++) {
-                // 随机水平偏转角（0~360°）
+                
                 float yaw = this.random.nextFloat() * 2 * (float) Math.PI;
-                // 随机俯仰角：范围 -90°（垂直向下） ~ -40°（与垂直向下夹角 50°）
+                
                 float pitchDeg = -90 + this.random.nextFloat() * 50; // [-90, -40]
                 float pitch = (float) Math.toRadians(pitchDeg);
-                // 计算方向向量
+                
                 Vec3 direction = new Vec3(
                         Math.cos(pitch) * Math.sin(yaw),
                         Math.sin(pitch),

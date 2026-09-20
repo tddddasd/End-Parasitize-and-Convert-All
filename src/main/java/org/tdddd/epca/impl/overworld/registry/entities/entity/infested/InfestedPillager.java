@@ -561,7 +561,7 @@ public class InfestedPillager  extends PathfinderMob implements GeoEntity, IPara
         setInvulnerable(true);
         fakeDeathTimer = 30; 
         deathPosition = this.blockPosition(); 
-        this.setHealth(0.02F);
+        this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);

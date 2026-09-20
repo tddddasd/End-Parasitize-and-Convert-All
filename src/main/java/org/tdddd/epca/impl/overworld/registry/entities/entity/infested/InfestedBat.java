@@ -59,7 +59,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
             SynchedEntityData.defineId(InfestedBat.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_CURRENT_STATE =
             SynchedEntityData.defineId(InfestedBat.class, EntityDataSerializers.INT);
-    // ========== 新增：倒挂数据 ==========
+    
     private static final EntityDataAccessor<Boolean> DATA_IS_RESTING =
             SynchedEntityData.defineId(InfestedBat.class, EntityDataSerializers.BOOLEAN);
     // ==================================
@@ -119,7 +119,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         entityData.define(DATA_IS_FAKING_DEATH, false);
         entityData.define(DATA_IS_INVULNERABLE, false);
         entityData.define(DATA_CURRENT_STATE, BatState.IDLE.ordinal());
-        // ========== 新增 ==========
+        
         entityData.define(DATA_IS_RESTING, false);
         // ===========================
     }
@@ -152,7 +152,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         this.entityData.set(DATA_IS_INVULNERABLE, invulnerable);
     }
 
-    // ========== 新增：倒挂相关方法 ==========
+    
     public boolean isResting() {
         return this.entityData.get(DATA_IS_RESTING);
     }
@@ -240,7 +240,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         setInvulnerable(true);
         fakeDeathTimer = 14;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);
@@ -369,7 +369,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                             Math.sin(pitch),
                             Math.sin(yaw) * Math.cos(pitch)
                     ).normalize();
-                    flyTimer = 40 + this.random.nextInt(40); // 2~4 秒
+                    flyTimer = 40 + this.random.nextInt(40); 
                 } else {
                     flyTimer--;
                 }

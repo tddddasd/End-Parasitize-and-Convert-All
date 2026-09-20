@@ -25,20 +25,7 @@ import org.tdddd.epca.impl.overworld.registry.items.item.InfestedRedstone;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * 26.1.2 迁移记录（对 {@code minecraft-patched-26.1.2.76} 的 {@code LightningRodBlock} 源码核对过）：
- * <ul>
- *   <li>{@code onLightningStrike(BlockState, Level, BlockPos)} 签名不变，注入点保留。</li>
- *   <li>{@code new MobEffectInstance(MobEffect, ...)} → {@code MobEffectInstance(Holder<MobEffect>, ...)}：
- *       {@code ModEffects.RAGE} 本身就是 {@code Holder<MobEffect>}，直接传；原版
- *       {@code MobEffects.DIG_SPEED}/{@code DAMAGE_BOOST} 现在也是 {@code Holder<MobEffect>}，用法不变。</li>
- *   <li>原代码里 {@code List<LivingEntity> entities instanceof Player} 恒为 false（死代码），
- *       这里按真正会执行的分支重写：范围内所有 {@link IParasite} 都获得加成效果；
- *       巢穴领袖只额外决定是否用同一组效果再施加一遍（1.20.1 实际就是无条件施加一次）。</li>
- *   <li>延迟落雷：原来是裸线程 + {@code serverLevel.getServer().execute(...)}，
- *       保留同一语义（{@code getServer()} 在 {@link ServerLevel} 上返回 {@code MinecraftServer}）。</li>
- * </ul>
- */
+
 @Mixin(LightningRodBlock.class)
 public class LightningRodBlockMixin {
     @Inject(method = "onLightningStrike", at = @At("HEAD"))
@@ -56,7 +43,7 @@ public class LightningRodBlockMixin {
         int total = items.stream().mapToInt(e -> e.getItem().getCount()).sum();
 
         if (total >= 64) {
-            // 消耗64个
+            
             int toConsume = 64;
             for (ItemEntity itemEntity : items) {
                 if (toConsume <= 0) break;
@@ -96,7 +83,7 @@ public class LightningRodBlockMixin {
 
         for (LivingEntity entity : entities) {
             entity.addEffect(new MobEffectInstance(ModEffects.RAGE, 600, finalLevel - 1, false, true));
-            // 26.1.2: MobEffects.DIG_SPEED → HASTE，DAMAGE_BOOST → STRENGTH（仅改名，语义相同）
+            
             entity.addEffect(new MobEffectInstance(MobEffects.HASTE, 600, finalLevel - 1, false, true));
             entity.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 600, finalLevel - 1, false, true));
         }

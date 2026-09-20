@@ -9,12 +9,7 @@ import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.ui.JadeUI;
 
-/**
- * 客户端专用（击杀数 / 方块）。
- *
- * <p>只实现 {@link IBlockComponentProvider}，负责 {@code appendTooltip} 渲染；只在
- * {@code registerClient(...)} 里被引用。数据端见 {@link KillCountBlockDataProvider}（同一个 UID）。
- */
+
 public class KillCountBlockComponentProvider implements IBlockComponentProvider {
 
     public static final KillCountBlockComponentProvider INSTANCE = new KillCountBlockComponentProvider();

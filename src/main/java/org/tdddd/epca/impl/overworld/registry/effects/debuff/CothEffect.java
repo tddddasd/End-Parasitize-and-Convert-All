@@ -1,7 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -45,7 +44,11 @@ import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.utils.EffectApplicationInterceptor;
 import org.tdddd.epca.impl.utils.EntityConversionUtil;
 import org.tdddd.epca.impl.utils.ParasiteHelper;
+import org.tdddd.epca.impl.events.PendingConversionManager;
+import org.tdddd.epca.impl.network.ModNetwork;
+import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
 
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CothEffect extends MobEffect implements RemovableEffect {
@@ -62,6 +65,18 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     private static final double LEVEL3_SPREAD_RADIUS = 2.5;  
     private static final int LEVEL3_DURATION = 600;          
     private static final int LEVEL3_AMPLIFIER = 2;           
+
+    /** COTH II: 0.5s delay before the conversion actually happens. */
+    private static final int CONVERSION_DELAY_COTH_II = 10;
+    /** COTH III and above: 0.2s delay. */
+    private static final int CONVERSION_DELAY_COTH_III = 4;
+    /** 0.3s purple fade on the freshly converted entity (6 ticks). */
+    private static final int CONVERSION_FADE_TICKS = 6;
+
+    /** ClientColorEffect type for the purple fade-in during the delay. */
+    public static final int COLOR_TYPE_CONVERSION = 2;
+    /** ClientColorEffect type for the purple fade-out on the new entity. */
+    public static final int COLOR_TYPE_CONVERSION_FADE = 3;
 
     public CothEffect() {
         super(MobEffectCategory.BENEFICIAL, 0x990000);
@@ -112,9 +127,9 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     // 26.1.2: applyEffectTick(ServerLevel,LivingEntity,int):boolean. MobEffectInstance#tickServer is the
     // only caller, so the body is now always server side; the returned boolean replaces the old void
     // contract (true == keep ticking).
-    // 26.1.2 行为变化：MobEffectInstance#tickClient 不再调用 applyEffectTick，1.20.1 里“客户端分支只负责
-    // 生成粒子”的写法已不可达，粒子改为在服务端按同一节奏通过 ServerLevel#sendParticles 下发
-    // （见 spawnCothParticles）。显示效果等价，分布细节见文件头说明。
+    
+    
+    
     @Override
     public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         Level level = entity.level();
@@ -124,7 +139,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             return true;
         }
 
-        // 粒子（原客户端分支，每 PARTICLE_SPAWN_INTERVAL tick 一次）
+        
         if (level.getGameTime() % PARTICLE_SPAWN_INTERVAL == 0) {
             spawnCothParticles(entity);
         }
@@ -157,18 +172,18 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
         int duration = effect.getDuration();
 
-        // 升级处理
+        
         if (duration <= 1) {
             handleUpgrade(entity, amplifier);
             return;
         }
 
-        // 扩散（等级≥1）
+        
         if (amplifier >= 1 && duration % SPREAD_INTERVAL == 0) {
             spreadEffect(entity, amplifier);
         }
 
-        // 等级3特殊扩散
+        
         if (amplifier >= 5 && !level.isClientSide()) {
             long gameTime = level.getGameTime();
             if (gameTime % LEVEL3_SPREAD_INTERVAL == 0) {
@@ -176,7 +191,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             }
         }
 
-        // 等级4触发（原等级3的逻辑）
+        
         if (amplifier >= 3) {
             CompoundTag tag = entity.getPersistentData();
             String key = "CothLevel4Triggered";
@@ -197,7 +212,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             }
         }
 
-        // 普通转化尝试（原有条件）
+        
         if (amplifier > 0) {
             tryConvertEntity(entity, amplifier, false);
         }
@@ -244,7 +259,13 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         
         if (amplifier >= 4 && entity.isAlive()) {
             
-            performConversion(entity);
+            CompoundTag forceNbt = saveEntityTag(entity);
+            EntityConversionManager.EntityConversionRule forceRule = EntityConversionManager.getConversionRule(entity.getType(), forceNbt);
+            boolean forceSmall = entity.getBbWidth() < SMALL_ENTITY_THRESHOLD || entity.getBbHeight() < SMALL_ENTITY_THRESHOLD;
+            boolean forceLarge = entity.getBbWidth() > LARGE_ENTITY_THRESHOLD || entity.getBbHeight() > LARGE_ENTITY_THRESHOLD;
+                ConversionPlan forcePlan = planConversion(entity, forceRule, forceNbt, forceSmall, forceLarge);
+                scheduleConversion(entity, forcePlan,
+                        isConfiguredConversion(forceRule, forcePlan) ? conversionDelayTicks(amplifier) : 0);
             return;
         }
         
@@ -291,48 +312,126 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         }
 
         if (canConvert) {
-            performConversion(entity, rule, nbt, isSmallEntity, isLargeEntity);
+            ConversionPlan plan = planConversion(entity, rule, nbt, isSmallEntity, isLargeEntity);
+                
+                int delay = isConfiguredConversion(rule, plan) ? conversionDelayTicks(amplifier) : 0;
+            if (delay <= 0) {
+                executePlan(entity, plan);
+            } else {
+                PendingConversionManager.schedule(entity, plan, delay);
+            }
             persistentData.remove("KilledByParasite");
         }
     }
 
+    /**
+     * Delay in ticks between the moment the conversion conditions pass and the moment the
+     * conversion is executed.
+     *
+     * <ul>
+     *   <li>{@code amplifier <= 0} (COTH I / no amplification) - 0 ticks, immediate as before;</li>
+     *   <li>{@code amplifier == 1} (COTH II) - 10 ticks (0.5s);</li>
+     *   <li>{@code amplifier >= 2} (COTH III and above) - 4 ticks (0.2s).</li>
+     * </ul>
+     */
     
-    private static void performConversion(LivingEntity entity) {
-        
-        CompoundTag nbt = saveEntityTag(entity);
-        EntityType<?> entityType = entity.getType();
-        EntityConversionManager.EntityConversionRule rule = EntityConversionManager.getConversionRule(entityType, nbt);
-        boolean isSmallEntity = entity.getBbWidth() < SMALL_ENTITY_THRESHOLD || entity.getBbHeight() < SMALL_ENTITY_THRESHOLD;
-        boolean isLargeEntity = entity.getBbWidth() > LARGE_ENTITY_THRESHOLD || entity.getBbHeight() > LARGE_ENTITY_THRESHOLD;
-        performConversion(entity, rule, nbt, isSmallEntity, isLargeEntity);
+    private static void scheduleConversion(LivingEntity entity, ConversionPlan plan, int delayTicks) {
+        if (delayTicks <= 0) {
+            executePlan(entity, plan);
+        } else {
+            PendingConversionManager.schedule(entity, plan, delayTicks);
+        }
+    }
+    public static int conversionDelayTicks(int amplifier) {
+        if (amplifier <= 0) return 0;
+        if (amplifier == 1) return CONVERSION_DELAY_COTH_II;
+        return CONVERSION_DELAY_COTH_III;
     }
 
-    private static void performConversion(LivingEntity entity, EntityConversionManager.EntityConversionRule rule, CompoundTag nbt, boolean isSmallEntity, boolean isLargeEntity) {
+    /**
+     * Resolves what {@link #performConversion(LivingEntity, EntityConversionManager.EntityConversionRule,
+     * CompoundTag, boolean, boolean)} would do, without doing it.
+     *
+     * <p>Kept branch for branch identical to the original method, including the
+     * {@code small_entity_priority} quirk where a generic conversion happens and the data pack
+     * target is still resolved afterwards.</p>
+     */
+    private static ConversionPlan planConversion(LivingEntity entity, EntityConversionManager.EntityConversionRule rule,
+                                                 CompoundTag nbt, boolean isSmallEntity, boolean isLargeEntity) {
+        boolean doGeneric = false;
+        String target = null;
+
         
         boolean isFinsConversion = hasFinsNearby(entity) && entity.hasEffect(ModEffects.COTH);
         if (isFinsConversion && rule != null && rule.fins_to != null && !rule.fins_to.isEmpty()) {
-            convertUsingDataPackRule(entity, rule.fins_to);
-            return;
+            return new ConversionPlan(true, rule.fins_to);
         }
 
         
         if (rule != null) {
             if (rule.small_entity_priority && isSmallEntity) {
-                
-                performGenericConversion(entity, isSmallEntity, isLargeEntity);
+                doGeneric = true;
             }
-            String target = EntityConversionManager.getConversionTarget(rule, nbt);
-            if (target != null && !target.isEmpty()) {
-                
-                convertUsingDataPackRule(entity, target);
-            } else if (target == null){
-                return;
-            }
+            target = EntityConversionManager.getConversionTarget(rule, nbt);
+        } else {
+            
+            doGeneric = true;
+        }
+
+        return new ConversionPlan(doGeneric, target);
+    }
+
+    /**
+     * Executes a plan produced by {@link #planConversion}. Called either immediately (delay 0) or
+     * later by {@link PendingConversionManager}.
+     */
+    public static void executePlan(LivingEntity entity, ConversionPlan plan) {
+        if (plan == null || plan.isEmpty()) {
             return;
         }
 
-        
-        performGenericConversion(entity, isSmallEntity, isLargeEntity);
+        if (plan.targetEntity != null && !plan.targetEntity.isEmpty()) {
+            convertUsingDataPackRule(entity, plan.targetEntity);
+        }
+
+        if (plan.generic) {
+            performGenericConversion(entity);
+        }
+    }
+
+    /**
+     * A deferred conversion: what to convert into, and whether the generic
+     * (small/medium/large incomplete form) conversion still applies.
+     *
+     * <p>{@code targetEntity == null && !generic} means the original code did nothing for this
+     * entity (unresolvable target), and must keep doing nothing.</p>
+     */
+    public static final class ConversionPlan {
+        public static final ConversionPlan NONE = new ConversionPlan(false, null);
+
+        final boolean generic;
+        final String targetEntity;
+
+        ConversionPlan(boolean generic, String targetEntity) {
+            this.generic = generic;
+            this.targetEntity = targetEntity;
+        }
+
+        boolean isEmpty() {
+            return !generic && (targetEntity == null || targetEntity.isEmpty());
+        }
+    }
+
+    
+    
+    
+    public static boolean isConfiguredConversion(
+            EntityConversionManager.EntityConversionRule rule, ConversionPlan plan) {
+        return rule != null && !planIsEmpty(plan);
+    }
+
+    public static boolean planIsEmpty(ConversionPlan plan) {
+        return plan == null || plan.isEmpty();
     }
 
     private static boolean hasNbtConditions(EntityConversionManager.EntityConversionRule rule) {
@@ -417,6 +516,8 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                     entity.teleportTo(1000000, -4000, 1000000);
                     
                     serverLevel.addFreshEntity(newEntity);
+
+                    notifyConvertedEntity(newEntity);
                 }
             } catch (Exception e) {
             }
@@ -442,6 +543,13 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         }
     }
 
+    /** Recomputes the size classification; used when only the entity is known (delayed plans). */
+    private static void performGenericConversion(LivingEntity entity) {
+        boolean isSmallEntity = entity.getBbWidth() < SMALL_ENTITY_THRESHOLD || entity.getBbHeight() < SMALL_ENTITY_THRESHOLD;
+        boolean isLargeEntity = entity.getBbWidth() > LARGE_ENTITY_THRESHOLD || entity.getBbHeight() > LARGE_ENTITY_THRESHOLD;
+        performGenericConversion(entity, isSmallEntity, isLargeEntity);
+    }
+
     
     private static void playConversionEffects(LivingEntity entity) {
         
@@ -451,13 +559,34 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         spawnConversionParticles(entity);
     }
 
+    
     private static void spawnConversionParticles(LivingEntity entity) {
-        if (entity.level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.EXPLOSION,
-                    entity.getX(), entity.getY(), entity.getZ(),
-                    5,
-                    0.5, 0.5, 0.5,
-                    0.1);
+        if (!(entity.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        CompoundTag nbt = saveEntityTag(entity);
+        EntityConversionManager.EntityConversionRule rule =
+                EntityConversionManager.getConversionRule(entity.getType(), nbt);
+        if (rule != null && !rule.shouldSpawnMeatParticles()) {
+            return;
+        }
+
+        Random random = ThreadLocalRandom.current();
+        int count = 3 + random.nextInt(3);
+        serverLevel.sendParticles(ModParticles.LIVING_FLESH.get(),
+                entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(),
+                count, 0.5, 0.5, 0.5, 0.05);
+    }
+
+    /**
+     * Tells tracking clients that a freshly converted entity should fade out its purple tint
+     * over 0.3s. Non-living results (contaminated water) have no colour layer and are skipped.
+     */
+    public static void notifyConvertedEntity(Entity newEntity) {
+        if (newEntity instanceof LivingEntity living) {
+            ModNetwork.sendToAllTracking(living,
+                    new ColorEffectPacket(living, COLOR_TYPE_CONVERSION_FADE, CONVERSION_FADE_TICKS));
         }
     }
 
@@ -641,6 +770,8 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
             
             serverLevel.addFreshEntity(newEntity);
+
+            notifyConvertedEntity(newEntity);
         }
     }
 

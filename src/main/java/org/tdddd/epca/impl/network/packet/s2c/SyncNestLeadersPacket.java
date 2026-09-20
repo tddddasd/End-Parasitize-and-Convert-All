@@ -11,12 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * 服务端 → 客户端：巢穴领袖 UUID 集合。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
- * <b>线上字段与顺序不变</b>：{@code int size} + 依次 {@code uuid}。
- */
+
 public class SyncNestLeadersPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncNestLeadersPacket> TYPE =

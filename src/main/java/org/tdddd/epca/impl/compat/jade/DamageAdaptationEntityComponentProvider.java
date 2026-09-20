@@ -11,14 +11,7 @@ import snownee.jade.api.IEntityComponentProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
-/**
- * 客户端专用（伤害适应性 / 实体）。
- *
- * <p>这里承载原来的 {@code appendTooltip(...)} 渲染逻辑与伤害类型格式化；只实现
- * {@link IEntityComponentProvider}，且只在 {@code registerClient(...)} 里被引用。
- *
- * <p>NBT 键与 UID 保持不变，读取的是 {@link DamageAdaptationEntityDataProvider} 写入的载荷。
- */
+
 public class DamageAdaptationEntityComponentProvider implements IEntityComponentProvider {
 
     public static final DamageAdaptationEntityComponentProvider INSTANCE =

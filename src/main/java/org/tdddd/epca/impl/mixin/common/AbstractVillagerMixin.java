@@ -10,15 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.utils.MerchantOfferMixinAccess;
 
-/**
- * 村民交易后：如果这笔交易用过虫染绿宝石，就给村民挂 COTH。
- *
- * <p><b>26.1.2 改动</b>：{@code notifyTrade(MerchantOffer)} 签名不变。
- * {@code new MobEffectInstance(MobEffect, ...)} → {@code MobEffectInstance(Holder<MobEffect>, ...)}：
- * {@code ModEffects.COTH} 本身就是 {@code DeferredHolder<MobEffect, MobEffect>}
- * （即 {@code Holder<MobEffect>}），直接传即可，原来的 {@code .get()} 与空值判断都去掉了
- * （{@code DeferredHolder} 在模组加载完成后一定已绑定，容器本身不可能为 null）。
- */
+
 @Mixin(AbstractVillager.class)
 public class AbstractVillagerMixin {
 

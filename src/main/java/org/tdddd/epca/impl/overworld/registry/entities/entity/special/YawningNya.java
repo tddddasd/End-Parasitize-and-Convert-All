@@ -154,7 +154,7 @@ public class YawningNya extends PathfinderMob implements IParasite {
         this.playSound(SoundEvents.PLAYER_ATTACK_WEAK, 1.0F, 1.0F);
 
         DamageSource damageSource = this.damageSources().mobAttack(this);
-        // 26.1.2: enchantment damage (閿嬪埄 / 浜＄伒鏉€鎵?/ ...) is data driven and applied by
+        
         // EnchantmentHelper#modifyDamage inside the damage pipeline, so it is no longer
         // computed here with EnchantmentHelper#getDamageBonus.
         float totalDamage = EnchantmentHelper.modifyDamage(level, mainHandItem, target, damageSource, baseDamage);

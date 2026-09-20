@@ -16,17 +16,7 @@ import org.tdddd.epca.impl.overworld.data.SafetyDaySavedData;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.events.NaturalSpawnProtection;
 
-/**
- * 26.1.2 迁移记录（对 {@code minecraft-patched-26.1.2.76} 的 {@code Mob} 源码核对过）：
- * <ul>
- *   <li>{@code checkDespawn()} 不变，注入保留。</li>
- *   <li>{@code finalizeSpawn} 的签名由
- *       {@code (ServerLevelAccessor, DifficultyInstance, MobSpawnType, SpawnGroupData, CompoundTag)}
- *       变为 {@code (ServerLevelAccessor, DifficultyInstance, EntitySpawnReason, SpawnGroupData)}
- *       —— 枚举 {@code MobSpawnType} 改名为 {@link EntitySpawnReason}，且不再有 {@code CompoundTag} 参数。
- *       {@code NATURAL}/{@code CHUNK_GENERATION} 两个常量名在 26.1.2 中仍存在，判定语义不变。</li>
- * </ul>
- */
+
 @Mixin(Mob.class)
 public abstract class MobMixin {
 

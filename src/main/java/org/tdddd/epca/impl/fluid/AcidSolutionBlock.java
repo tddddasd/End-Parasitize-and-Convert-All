@@ -29,11 +29,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class AcidSolutionBlock extends LiquidBlock {
-    /**
-     * 26.1.2：{@code LiquidBlock} 的构造器由 {@code (Supplier<? extends FlowingFluid>, Properties)}
-     * 变为 {@code (FlowingFluid, Properties)}，且 {@code simpleCodec(LiquidBlock::new)} 也要求
-     * 直接传流体实例。这里保留 {@code Supplier} 参数的类形状，在构造器里立即取值。
-     */
+    
     public AcidSolutionBlock(Supplier<? extends FlowingFluid> fluid, Properties properties) {
         super(fluid.get(), properties);
     }
@@ -103,11 +99,7 @@ public class AcidSolutionBlock extends LiquidBlock {
         return result;
     }
 
-    /**
-     * 26.1.2：{@code Block#entityInside(state, level, pos, entity)} 增加了
-     * {@code InsideBlockEffectApplier} 与 {@code boolean isPrecise} 两个参数。
-     * 本模组不使用 effect applier，只是把原逻辑（非寄生生物 + 非创造/旁观者时施加酸液效果）原样保留。
-     */
+    
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
                                 net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {

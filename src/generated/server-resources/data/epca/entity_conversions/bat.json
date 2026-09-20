@@ -1,6 +1,7 @@
 {
   "fins_to": "epca:infested_bat",
   "from": "minecraft:bat",
+  "meat_particles": false,
   "mozzie_to": "epca:infested_bat",
   "priority": 1,
   "small_entity_priority": true,

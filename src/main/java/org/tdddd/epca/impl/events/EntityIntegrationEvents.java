@@ -34,7 +34,7 @@ public class EntityIntegrationEvents {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH = Paths.get("config", "E-PCA", "entity_check_namespaces.json");
-    private static Set<String> checkedNamespaces = new HashSet<>(Collections.singletonList("epca")); // 默认值
+    private static Set<String> checkedNamespaces = new HashSet<>(Collections.singletonList("epca")); 
     private static long lastConfigLoadTime = -1;
     private static final long CONFIG_RELOAD_INTERVAL = 1200;
 
@@ -182,7 +182,7 @@ public class EntityIntegrationEvents {
         if (event.getEntity() instanceof Mob mob &&
                 mob.level() instanceof ServerLevel serverLevel) {
             String entityId = getEntityId(mob);
-            // 提取命名空间并检查是否在配置列表中
+            
             String namespace = entityId.contains(":") ? entityId.split(":")[0] : "";
             if (checkedNamespaces.contains(namespace)) {
                 if (serverLevel.getGameTime() % 5 == 0) {

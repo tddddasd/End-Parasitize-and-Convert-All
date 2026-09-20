@@ -8,13 +8,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.ClientEvolutionData;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-/**
- * 服务端 → 客户端：维度进化阶段。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}；
- * {@code writeResourceLocation/readResourceLocation} → {@code writeIdentifier/readIdentifier}。
- * <b>线上字段与顺序不变</b>：{@code Identifier dimension} + {@code int stage}。
- */
+
 public class SyncEvolutionStagePacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncEvolutionStagePacket> TYPE =

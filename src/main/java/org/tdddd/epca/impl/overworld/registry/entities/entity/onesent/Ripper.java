@@ -147,7 +147,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    // ==================== 数据同步 ====================
+    
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
@@ -155,7 +155,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         entityData.define(DATA_IS_LEAPING, false);
     }
 
-    // ==================== 变种相关 ====================
+    
     public Variant getVariant() {
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
         if (variantOrdinal == null) {
@@ -188,7 +188,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    // ==================== 跳跃与攻击状态 ====================
+    
     public void setLeaping(boolean leaping) {
         this.entityData.set(DATA_IS_LEAPING, leaping);
     }
@@ -201,7 +201,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         this.leapDirectionTicks = ticks;
     }
 
-    // ==================== 属性 ====================
+    
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 10.0D)
@@ -213,7 +213,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                 .build();
     }
 
-    // ==================== 生成规则 ====================
+    
     public static boolean checkRupterSpawnRules(
             EntityType<Ripper> entityType,
             ServerLevelAccessor levelAccessor,
@@ -230,7 +230,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return levelAccessor.getMaxLocalRawBrightness(pos) < 8;
     }
 
-    // ==================== 目标与 AI（移除 ClimbToTargetGoal） ====================
+    
     @Override
     protected void registerGoals() {
         super.registerGoals();
@@ -300,13 +300,13 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
         private boolean findClimbableWall() {
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-            // 在水平 5 格范围内寻找合适的墙壁底部
+            
             for (int dx = -5; dx <= 5; dx++) {
                 for (int dz = -5; dz <= 5; dz++) {
                     pos.set(ripper.blockPosition().offset(dx, 0, dz));
                     BlockState state = ripper.level().getBlockState(pos);
                     if (state.isSolid() && ripper.level().getBlockState(pos.above()).isAir()) {
-                        // 检查墙壁是否在实体可到达的高度（通常直接前往底部）
+                        
                         wallBase = pos.immutable();
                         return true;
                     }
@@ -318,7 +318,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         @Override
         public void start() {
             if (wallBase != null) {
-                // 移动到墙壁底部中心位置
+                
                 Vec3 targetPos = new Vec3(wallBase.getX() + 0.5, wallBase.getY(), wallBase.getZ() + 0.5);
                 ripper.getNavigation().moveTo(targetPos.x, targetPos.y, targetPos.z, 1.2);
             }
@@ -326,7 +326,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
         @Override
         public boolean canContinueToUse() {
-            // 继续执行直到贴墙或目标消失
+            
             return !ripper.isNearWall() &&
                     ripper.getTarget() != null &&
                     ripper.getTarget().isAlive() &&
@@ -340,7 +340,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    // ==================== 核心 tick ====================
+    
     @Override
     public void tick() {
         super.tick();
@@ -534,7 +534,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return result;
     }
 
-    // ==================== 效果应用 ====================
+    
     private void applyBleedingEffect(LivingEntity target) {
         MobEffectInstance existingEffect = target.getEffect(ModEffects.BLEEDING);
         int newAmplifier = 0;
@@ -563,7 +563,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         ));
     }
 
-    // ==================== COTH 云 ====================
+    
     private void checkPassiveEntityContact() {
         List<Entity> entities = this.level().getEntities(this, this.getBoundingBox());
         for (Entity entity : entities) {
@@ -608,7 +608,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    // ==================== 辅助判断 ====================
+    
     private boolean isPassiveOrNeutral(LivingEntity entity) {
         return entity instanceof Animal ||
                 entity instanceof Villager ||
@@ -692,7 +692,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6;
     }
 
-    // ==================== 内部 AI 类 ====================
+    
     static class MoveToPassiveGoal extends Goal {
         public final Ripper rupter;
         private final double speedModifier;
@@ -926,7 +926,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
         @Override
         public boolean canUse() {
-            // 如果正在攀爬，禁止飞扑
+            
             if (rupter.isClimbing()) {
                 return false;
             }
@@ -1037,14 +1037,11 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    /**
-     * 基于碰撞箱与固体方块的相交检测，判断实体是否紧贴墙壁。
-     * 收缩碰撞箱避免地面干扰。
-     */
+    
     private boolean isNearWall() {
         AABB bb = this.getBoundingBox();
         AABB expanded = bb.inflate(0.05);
-        // 只检查水平相邻方块（上下不检查）
+        
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             BlockPos neighbor = this.blockPosition().relative(dir);
             BlockState state = this.level().getBlockState(neighbor);
@@ -1061,7 +1058,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return false;
     }
 
-    // ==================== 动画 ====================
+    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         AnimationController<Ripper> controller = new AnimationController<>("controller", 4, event -> {
@@ -1091,7 +1088,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return this.factory;
     }
 
-    // ==================== 声音 ====================
+    
     @Override
     protected SoundEvent getDeathSound() {
         return ModSoundEvents.RIPPER_DEATH.get();
@@ -1102,7 +1099,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return ModSoundEvents.RIPPER_HUNT.get();
     }
 
-    // ==================== 纹理 ====================
+    
     public Identifier getTextureResource() {
         switch (getVariant()) {
             case BLEED:
@@ -1114,7 +1111,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    // ==================== 杂项 ====================
+    
     private static boolean isAprilFoolsDay() {
         return LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
     }

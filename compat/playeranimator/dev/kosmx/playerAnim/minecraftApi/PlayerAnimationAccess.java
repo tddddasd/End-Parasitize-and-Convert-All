@@ -7,14 +7,7 @@ import net.minecraft.resources.Identifier;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Compile-time downgrade shim for <b>player-animator</b> (no 26.1.2 release).
- *
- * <p>EPCA calls {@code PlayerAnimationAccess.getPlayerAssociatedData(player).get(id)} and then
- * null-checks the result. Returning an <b>empty immutable map</b> makes those call sites take the
- * "no animation" branch, which is exactly the intended downgrade behaviour.
- * See {@code PORT-STATUS.md} -> "player-animator 降级".
- */
+
 public final class PlayerAnimationAccess {
 
     private PlayerAnimationAccess() {}

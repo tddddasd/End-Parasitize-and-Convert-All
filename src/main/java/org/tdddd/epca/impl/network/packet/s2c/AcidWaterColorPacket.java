@@ -8,13 +8,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.WaterColorEffectsManager;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-/**
- * 服务端 → 客户端：酸液对水体的染色效果。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
- * <b>线上字段与顺序不变</b>：{@code BlockPos waterPos} + {@code BlockPos acidPos}
- * + {@code int distance} + {@code boolean add}。
- */
+
 public class AcidWaterColorPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<AcidWaterColorPacket> TYPE =

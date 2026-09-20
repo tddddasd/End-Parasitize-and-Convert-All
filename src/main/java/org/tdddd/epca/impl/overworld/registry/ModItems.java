@@ -21,52 +21,47 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-/**
- * 26.1.2 起注册表项必须带上自己的 id（{@code Item.Properties#setId}），
- * 否则注册表事件会以 {@code NullPointerException: Item id not set} 中止。
- * 因此这里用 {@link DeferredRegister.Items} 的 {@code registerItem}（它会 setId），
- * 而不是继承自 {@code DeferredRegister<Item>} 的 {@code register}。
- */
+
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(epca.MODID);
 
-    // ==================== 便捷注册静态方法 ====================
+    
 
-    /** 注册最基础的 Item（无特殊属性，堆叠 64） */
+    
     private static DeferredItem<Item> simpleItem(String name) {
         return ITEMS.registerItem(name, Item::new);
     }
 
-    /** 注册自定义 Item 子类（使用默认属性，堆叠 64） */
+    
     private static <T extends Item> DeferredItem<T> customItem(String name, Function<Item.Properties, T> factory) {
         return ITEMS.registerItem(name, factory);
     }
 
-    /** 注册自定义 Item 子类（自定义属性） */
+    
     private static <T extends Item> DeferredItem<T> customItem(String name, Function<Item.Properties, T> factory,
                                                               UnaryOperator<Item.Properties> properties) {
         return ITEMS.registerItem(name, factory, properties);
     }
 
-    /** 注册刷怪蛋（实体类型通过 {@code Item.Properties#spawnEgg} 携带，背景色/斑点色不再有参数） */
+    
     private static DeferredItem<Item> spawnEgg(String name, Supplier<? extends EntityType<? extends Mob>> entitySupplier) {
         return ITEMS.registerItem(name + "_spawn_egg",
                 properties -> new SpawnEggItem(properties.spawnEgg(entitySupplier.get())));
     }
 
-    /** 注册普通方块物品（使用默认属性） */
+    
     private static DeferredItem<Item> blockItem(String name, DeferredHolder<Block, ? extends Block> block) {
         return ITEMS.registerItem(name, properties -> new BlockItem(block.get(), properties.useBlockDescriptionPrefix()));
     }
 
-    /** 注册特殊 BlockItem 子类（如 InfestedLogItem） */
+    
     private static <T extends BlockItem> DeferredItem<T> customBlockItem(String name, Function<Item.Properties, T> factory) {
         return ITEMS.registerItem(name, factory, () -> new Item.Properties().useBlockDescriptionPrefix());
     }
 
-    // ==================== 物品注册 ====================
+    
 
-    // 特殊物品（自定义 Item 子类，无特殊属性）
+    
     public static final DeferredItem<Item> CLUSTER = customItem("cluster", Cluster::new);
     public static final DeferredItem<Item> PARASITE_VISCERA = customItem("parasite_viscera", ParasiteViscera::new);
     public static final DeferredItem<Item> FINS_FIN = customItem("fins_fin", FinsFin::new);
@@ -98,9 +93,9 @@ public class ModItems {
                     properties -> properties.stacksTo(16).rarity(Rarity.COMMON));
     public static final DeferredItem<Item> INFESTED_SWEET_BERRIES = customItem("infested_sweet_berries", InfestedSweetBerries::new);
 
-    // 26.1.2: 铜粒改由原版提供（minecraft:copper_nugget），本模组不再注册自己的 copper_nugget。
+    
 
-    // 特殊物品（有特定堆叠或稀有度）
+    
     public static final DeferredItem<Item> BLOODY_CLOCK = ITEMS.registerItem("erosion_clock",
             properties -> new BloodyClock(properties.stacksTo(1).rarity(Rarity.UNCOMMON)));
     public static final DeferredItem<Item> KILL_STICK = ITEMS.registerItem("endless_wand",
@@ -126,7 +121,7 @@ public class ModItems {
     public static final DeferredItem<Item> ENDER_BLADE_SCRAP = ITEMS.registerItem("ender_blade_scrap",
             properties -> new EnderBladeScrap(properties.rarity(Rarity.UNCOMMON)));
 
-    // 工具 / 武器（耐久、堆叠 1）
+    
     public static final DeferredItem<Item> WOODEN_SPEAR = ITEMS.registerItem("wooden_spear",
             properties -> new WoodenSpear(properties.stacksTo(1).durability(64)));
     public static final DeferredItem<Item> STONE_SPEAR = ITEMS.registerItem("stone_spear",
@@ -144,7 +139,7 @@ public class ModItems {
     public static final DeferredItem<Item> NETHERITE_SPEAR = ITEMS.registerItem("netherite_spear",
             properties -> new NetheriteSpear(properties.stacksTo(1).durability(2031)));
 
-    // 盔甲（26.1.2: ArmorItem 已删除，盔甲属性由 Item.Properties#humanoidArmor 提供）
+    
     public static final DeferredItem<LivingArmorItem> LIVING_HELMET = ITEMS.registerItem("living_helmet",
             properties -> new LivingArmorItem(LivingArmorMaterial.MATERIAL, ArmorType.HELMET,
                     properties.humanoidArmor(LivingArmorMaterial.MATERIAL, ArmorType.HELMET)));
@@ -158,7 +153,7 @@ public class ModItems {
             properties -> new LivingArmorItem(LivingArmorMaterial.MATERIAL, ArmorType.BOOTS,
                     properties.humanoidArmor(LivingArmorMaterial.MATERIAL, ArmorType.BOOTS)));
 
-    // 流体桶
+    
     public static final DeferredItem<Item> ACID_SOLUTION_BUCKET = ITEMS.registerItem("acid_bucket",
             properties -> new BucketItem(ModFluids.ACID_SOLUTION.get(), properties.stacksTo(1)));
     public static final DeferredItem<Item> INFESTED_SPIDER_WEB_PROJECTILE =
@@ -167,7 +162,7 @@ public class ModItems {
             ITEMS.registerItem("infested_spider_web_blood_projectile", Item::new);
     public static final DeferredItem<Item> INFESTED_CAVE_SPIDER_WEB_PROJECTILE =
             ITEMS.registerItem("infested_cave_spider_web_projectile", Item::new);
-    // ==================== 刷怪蛋 ====================
+    
     public static final DeferredItem<Item> BUGLIN_SPAWN_EGG = spawnEgg("curbug", ModEntities.CURBUG);
     public static final DeferredItem<Item> YAWNING_NYA_SPAWN_EGG = spawnEgg("yawning_nya", ModEntities.YAWNING_NYA);
     public static final DeferredItem<Item> RUPTER_SPAWN_EGG = spawnEgg("ripper", ModEntities.RIPPER);
@@ -223,7 +218,7 @@ public class ModItems {
                     properties -> new SpawnEggItem(properties.spawnEgg(ModEntities.LIVING_FLESH_SIZE0.get())));
     public static final DeferredItem<Item> INFESTED_BAT_SPAWN_EGG = spawnEgg("infested_bat", ModEntities.INFESTED_BAT);
 
-    // ==================== 方块物品 ====================
+    
 
     public static final DeferredItem<Item> INFESTED_REMAINS_SMALL = blockItem("infested_remains_small", ModBlocks.INFESTED_REMAINS_SMALL);
     public static final DeferredItem<Item> INFESTED_REMAINS_MEDIUM = blockItem("infested_remains_medium", ModBlocks.INFESTED_REMAINS_MEDIUM);
@@ -334,7 +329,7 @@ public class ModItems {
     public static final DeferredItem<Item> INFESTED_MUDDY_MANGROVE_ROOTS = blockItem("infested_muddy_mangrove_roots", ModBlocks.INFESTED_MUDDY_MANGROVE_ROOTS);
     public static final DeferredItem<Item> INFESTED_DEAD_BUSH = blockItem("infested_dead_bush", ModBlocks.INFESTED_DEAD_BUSH);
 
-    // 特殊 BlockItem 子类（使用自定义的 Item 内部类）
+    
     public static final DeferredItem<InfestedLog.InfestedLogItem> INFESTED_LOG =
             customBlockItem("infested_log", properties -> new InfestedLog.InfestedLogItem(ModBlocks.INFESTED_LOG.get(), properties));
     public static final DeferredItem<InfestedWood.InfestedWoodItem> INFESTED_WOOD =

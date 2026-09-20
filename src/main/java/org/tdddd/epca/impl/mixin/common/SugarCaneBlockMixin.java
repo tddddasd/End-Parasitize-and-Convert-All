@@ -51,7 +51,7 @@ public class SugarCaneBlockMixin {
     private void onRandomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
         int age = state.getValue(SugarCaneBlock.AGE);
         if (age < 15) {
-            if (random.nextInt(3) == 0) { // 1/3 概率增长年龄
+            if (random.nextInt(3) == 0) { 
                 level.setBlock(pos, state.setValue(SugarCaneBlock.AGE, age + 1), 2);
             }
             ci.cancel();

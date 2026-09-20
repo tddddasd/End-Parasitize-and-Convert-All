@@ -8,7 +8,7 @@ import net.minecraft.util.RandomSource;
 // 26.1.2: TextureSheetParticle -> SingleQuadParticle, and the per-vertex `render(...)` hook is gone.
 // The fixed 90-degree X rotation of the quad is expressed as a FacingCameraMode (see WaveParticle).
 public class WaveSmallParticle extends SingleQuadParticle {
-    /** 1.20.1 的 render() 里对四边形做的固定旋转：绕 X 轴 90 度。 */
+    
     private static final SingleQuadParticle.FacingCameraMode FIXED_X =
             (target, camera, partialTickTime) -> target.rotationX((float) Math.toRadians(90.0F));
 

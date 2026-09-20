@@ -178,7 +178,7 @@ public class LightCarrier extends PathfinderMob implements GeoEntity, IParasite,
         setExploding(true);
         explosionTimer = 20;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);
@@ -416,7 +416,8 @@ public class LightCarrier extends PathfinderMob implements GeoEntity, IParasite,
             if (target != null && target.isAlive() && !isBoomTriggered && boomAnimationTimer == 0) {
                 double distance = this.distanceTo(target);
                 boolean healthLow = this.getHealth() / this.getMaxHealth() < 0.25F;
-                boolean tooClose = distance <= 5.0;
+                boolean tooClose = distance <= 5.0
+                        && this.getHealth() / this.getMaxHealth() < 0.5F;
                 if (healthLow || tooClose) {
                     isBoomTriggered = true;
                     boomAnimationTimer = 20; 

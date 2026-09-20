@@ -1,7 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -21,8 +20,10 @@ import org.tdddd.epca.impl.ModConfig;
 import org.tdddd.epca.impl.overworld.data.EntityConversionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ContemptInorganicEffect extends MobEffect {
@@ -176,11 +177,12 @@ public class ContemptInorganicEffect extends MobEffect {
 
     private static void spawnConversionParticles(LivingEntity entity) {
         if (entity.level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.EXPLOSION,
-                    entity.getX(), entity.getY(), entity.getZ(),
-                    5,
-                    0.5, 0.5, 0.5,
-                    0.1);
+            // 26.1.2: the conversion burst is EPCA meat particles (3~5) instead of explosions.
+            net.minecraft.util.RandomSource random = entity.getRandom();
+            int count = 3 + random.nextInt(3);
+            serverLevel.sendParticles(ModParticles.LIVING_FLESH.get(),
+                    entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(),
+                    count, 0.5, 0.5, 0.5, 0.05);
         }
     }
 }

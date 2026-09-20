@@ -31,7 +31,7 @@ public class ItemEffectHandler {
         boolean hasInfested = false;
 
         if (entity instanceof Player player) {
-            // 玩家检查整个背包
+            
             for (ItemStack stack : player.getInventory()) {
                 if (!stack.isEmpty() && isInfestedItem(stack)) {
                     hasInfested = true;
@@ -39,7 +39,7 @@ public class ItemEffectHandler {
                 }
             }
         } else {
-            // 非玩家生物检查主手、副手、盔甲栏
+            
             for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
             ItemStack stack = entity.getItemBySlot(slot);
                 if (!stack.isEmpty() && isInfestedItem(stack)) {

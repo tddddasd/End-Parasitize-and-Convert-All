@@ -13,14 +13,7 @@ import org.tdddd.epca.impl.overworld.registry.items.item.InfestedFlesh;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorBox;
 import org.tdddd.epca.impl.overworld.registry.items.item.ParasiteViscera;
 
-/**
- * 客户端 → 服务端：无数据的按键动作包（活体护甲箱左键交互）。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
- * 负载本身没有字段（{@code encode} 什么也不写），线上格式与 1.20.1 一致。
- * {@code ItemStack#isEdible()} 在 26.1.2 已删除，等价判断改为
- * {@code stack.get(DataComponents.FOOD) != null}（食物现在由 {@code minecraft:food} 数据组件表达）。
- */
+
 public class KeyPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<KeyPacket> TYPE =
@@ -54,7 +47,7 @@ public class KeyPacket implements CustomPacketPayload {
         });
     }
 
-    /** 26.1.2 的“可食用”判断：{@code minecraft:food} 组件存在即视为食物。 */
+    
     private static boolean isEdible(ItemStack stack) {
         return stack.get(DataComponents.FOOD) != null;
     }

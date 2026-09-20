@@ -6,13 +6,7 @@ import net.minecraft.resources.Identifier;
 
 import java.util.function.Function;
 
-/**
- * Compile-time downgrade shim for <b>player-animator</b> (no 26.1.2 release).
- *
- * <p>EPCA registers two animation factories in {@code PlayerAnimator#onClientSetup}
- * ({@code epca:stab}, {@code epca:kill_stick}). Registration is accepted and discarded.
- * See {@code PORT-STATUS.md} -> "player-animator 降级".
- */
+
 public final class PlayerAnimationFactory {
 
     /** Singleton factory EPCA reaches through {@code PlayerAnimationFactory.ANIMATION_DATA_FACTORY}. */

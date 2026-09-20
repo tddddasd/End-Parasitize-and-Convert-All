@@ -10,14 +10,7 @@ import org.tdddd.epca.impl.network.ModNetwork;
 
 import java.util.UUID;
 
-/**
- * 客户端 → 服务端：把某个玩家的速度写回服务端。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
- * {@code ctx.getSender().server.getPlayerList()} → {@code sender.level().getServer().getPlayerList()}
- * （{@code ServerPlayer#server} 字段在 26.1.2 已私有化）。
- * <b>线上字段与顺序不变</b>：{@code uuid} + 三个 {@code double}（motion.x/y/z）。
- */
+
 public class PlayerMotionPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<PlayerMotionPacket> TYPE =

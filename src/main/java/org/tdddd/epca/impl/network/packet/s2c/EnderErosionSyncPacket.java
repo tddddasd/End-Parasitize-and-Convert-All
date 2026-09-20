@@ -9,15 +9,7 @@ import org.tdddd.epca.impl.network.ModNetwork;
 
 import java.util.UUID;
 
-/**
- * 服务端 → 客户端：终末侵蚀数值同步。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}；
- * 原 {@code getDirection().getReceptionSide().isClient()} 判断由
- * “注册在 {@code playToClient}”取代。
- * <b>线上字段与顺序不变</b>：{@code uuid} + {@code float erosionValue} + {@code int effectLevel}
- * + {@code float maxHealth} + {@code float currentHealth}。
- */
+
 public class EnderErosionSyncPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<EnderErosionSyncPacket> TYPE =

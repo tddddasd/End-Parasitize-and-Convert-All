@@ -6,48 +6,20 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.RandomSource;
 import org.joml.Matrix4fc;
 
-/**
- * 26.1.2 渲染管线下的「紫色闪电」几何体。
- *
- * <p><b>1.20.1 原版行为。</b> {@code LightningBoltRendererMixin} 在
- * {@code LightningBoltRenderer#render(...)} 的开头把「脚下是 {@code InfestedBlockInterface}」
- * 记进一个 {@code ThreadLocal<Boolean>}，然后 {@code @Redirect} 私有的静态辅助方法
- * {@code quad(Matrix4f, VertexConsumer, float, float, int, float, float, float r, float g, float b, ...)}
- * ——把它的第 7/8/9 个参数（原版恒为 {@code 0.45F, 0.45F, 0.5F}）换成 {@code 0.8F, 0.2F, 1.0F}。
- * alpha 一直是 {@code quad} 内部的 {@code 0.3F}，从未改动；几何体完全不变。
- *
- * <p><b>为什么不能照搬 {@code @Redirect quad}。</b> 26.1.2 里 {@code submit} 只负责算出 8 个
- * 横向偏移，真正的 {@code quad} 调用被搬进
- * {@code SubmitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (pose, buffer) -> ...)}
- * 这个 lambda 里，也就是合成方法 {@code lambda$submit$0}。{@code submit} 自身的方法体里只有一条
- * {@code invokedynamic}（创建 lambda），没有 {@code quad} 的调用点，所以按 {@code method = "submit"}
- * 去 {@code @Redirect quad} 是找不到注入点的。
- *
- * <p><b>本实现。</b> 由 {@code LightningBoltRendererMixin} 在 {@code submit} 里
- * {@code @Redirect} 那次 {@code submitCustomGeometry} 调用：不是紫色的闪电<b>原样调用原来的
- * {@code CustomGeometryRenderer}</b>（即 {@code LightningBoltRenderer#lambda$submit$0} 绑定的实例，
- * 逐字节等同于原版），只有紫色闪电才换成这个类。本类的 {@code render} 逐行照抄
- * {@code LightningBoltRenderer} 的 lambda 方法体与 {@code quad} 方法体，只把颜色参数化，
- * 因此几何体（8 段偏移表、4 圈 × 3 层 × 每层若干 quad、{@code RandomSource} 的重建位置与消耗顺序、
- * {@code rr1}/{@code rr2} 的缩放）与原版完全一致，唯一差别是 RGB。
- *
- * <p>{@code RandomSource.createThreadLocalInstance(seed)} 是可重放的：原版在 {@code submit} 里
- * 建一个实例算偏移表，在 lambda 里每个 {@code r} 再各建一个新实例；这里用同一个 seed 在同样的位置
- * 重建，得到同样的序列。（这也是为什么不需要把偏移表从 {@code submit} 传进来。）
- */
+
 public final class PurpleLightningGeometry implements SubmitNodeCollector.CustomGeometryRenderer {
 
-    /** 原版 {@code LightningBoltRenderer} 写死的闪电颜色，逐字保留。 */
+    
     public static final float VANILLA_RED = 0.45F;
     public static final float VANILLA_GREEN = 0.45F;
     public static final float VANILLA_BLUE = 0.5F;
 
-    /** 1.20.1 混入替换后的颜色。 */
+    
     public static final float PURPLE_RED = 0.8F;
     public static final float PURPLE_GREEN = 0.2F;
     public static final float PURPLE_BLUE = 1.0F;
 
-    /** 原版 {@code quad} 内部的顶点 alpha，两个分支都不动。 */
+    
     private static final float BOLT_ALPHA = 0.3F;
 
     private final long seed;
@@ -55,7 +27,7 @@ public final class PurpleLightningGeometry implements SubmitNodeCollector.Custom
     private final float green;
     private final float blue;
 
-    /** 虫染紫：{@code (0.8, 0.2, 1.0)}。 */
+    
     public PurpleLightningGeometry(long seed) {
         this(seed, PURPLE_RED, PURPLE_GREEN, PURPLE_BLUE);
     }
@@ -137,7 +109,7 @@ public final class PurpleLightningGeometry implements SubmitNodeCollector.Custom
         }
     }
 
-    /** {@code LightningBoltRenderer#quad} 的逐字副本，只把颜色改成参数。 */
+    
     private static void quad(Matrix4fc pose, VertexConsumer buffer,
                              float xo0, float zo0, int h, float xo1, float zo1,
                              float boltRed, float boltGreen, float boltBlue,

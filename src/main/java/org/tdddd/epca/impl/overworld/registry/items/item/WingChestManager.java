@@ -21,7 +21,7 @@ public class WingChestManager {
     private static final Map<UUID, Boolean> wasFlightEnabledByOtherMod = new HashMap<>();
 
     public static void init() {
-        // 26.1.2: 该类自带 @EventBusSubscriber，FML 已自动注册；重复注册会让监听器执行两次，故移除。
+        
     }
 
     public static void registerWingPlayer(Player player, WingType type) {

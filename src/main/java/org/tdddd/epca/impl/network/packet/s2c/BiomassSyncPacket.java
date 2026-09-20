@@ -7,12 +7,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.overworld.data.BiomassClientData;
 
-/**
- * 服务端 → 客户端：生物质点数与巢穴领袖标记。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
- * <b>线上字段与顺序不变</b>：{@code boolean isNestLeader} + {@code int points}。
- */
+
 public class BiomassSyncPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<BiomassSyncPacket> TYPE =

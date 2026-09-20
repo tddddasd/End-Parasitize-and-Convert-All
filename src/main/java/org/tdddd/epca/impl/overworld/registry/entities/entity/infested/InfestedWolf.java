@@ -182,7 +182,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
             }
         }
 
-        // 其他情况正常设置目标
+        
         super.setTarget(target);
     }
     
@@ -650,7 +650,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         // on the first hole. Entity's own ids are registered by Entity's constructor; the rest of the
         // chain is reached through this super call, and every accessor this class declares must be
         // registered here too. DATA_IDLE_ANIM_TYPE was missing, which made every attempt to construct
-        // this entity fail ("无法生成虫染狼").
+        
         super.defineSynchedData(entityData);
         entityData.define(DATA_IS_FAKING_DEATH, false);
         
@@ -725,7 +725,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         setInvulnerable(true);
         fakeDeathTimer = 30; 
         deathPosition = this.blockPosition(); 
-        this.setHealth(0.02F);
+        this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);

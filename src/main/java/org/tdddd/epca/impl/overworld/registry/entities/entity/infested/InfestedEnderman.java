@@ -305,7 +305,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             if (arayaBuffTimer >= 60 * 20) {
                 arayaBuffTimer = 0;
                 this.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 120, 1, false, false));
-                damageIncreaseTimer = 120; // 6秒
+                damageIncreaseTimer = 120; 
             }
             if (damageIncreaseTimer > 0) damageIncreaseTimer--;
 
@@ -519,7 +519,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         }
         setPos(newPos.x, newPos.y, newPos.z);
         chargeDistanceCovered += step;
-        // 原有的碰撞伤害和音效
+        
         AABB aabb = getBoundingBox();
         List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, aabb,
                 e -> e != this && e.isAlive() && !IParasite.isParasiteByTagOrInterface(e));
@@ -1286,7 +1286,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         setInvulnerable(true);
         fakeDeathTimer = 27;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);
@@ -1406,10 +1406,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         LivingEntity victim = event.getEntity();
         if (victim == null) return;
 
-        // ----- 剑痕残像增伤（除 Araya 自身外） -----
+        
         int scar = victim.getPersistentData().getIntOr("SwordScar", 0);
         if (scar > 0) {
-            // 若受害者是 Araya 形态则跳过自身增伤（但自身增伤由另一个逻辑处理）
+            
             if (!(victim instanceof InfestedEnderman && ((InfestedEnderman) victim).isArayaMode())) {
                 int bonus = (scar / 10) * 10;
                 if (bonus > 50) bonus = 50;

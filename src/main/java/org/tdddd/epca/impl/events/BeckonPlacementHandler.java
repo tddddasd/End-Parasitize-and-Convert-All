@@ -46,7 +46,7 @@ public class BeckonPlacementHandler {
             if (hardness <= 0 || hardness > 4) return;
             if (!state.isCollisionShapeFullBlock(level, pos)) return;
 
-            // 检查生物质点数
+            
             int points = BiomassManager.getBiomassPoints(player);
             if (points < BECKON_COST) {
                 player.sendOverlayMessage(Component.literal("需" + BECKON_COST + "生物质点数"));

@@ -2,14 +2,7 @@ package dev.kosmx.playerAnim.api.layered;
 
 import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
 
-/**
- * Compile-time downgrade shim for <b>player-animator</b> (no 26.1.2 release).
- *
- * <p>EPCA constructs this as {@code new KeyframeAnimationPlayer(keyframe)} with the value returned
- * by {@code PlayerAnimationRegistry.getAnimation(Identifier)} (which this shim always returns
- * {@code null} for, so the constructor is never reached at runtime).
- * See {@code PORT-STATUS.md} -> "player-animator 降级".
- */
+
 public class KeyframeAnimationPlayer implements IAnimation {
 
     private final KeyframeAnimation animation;

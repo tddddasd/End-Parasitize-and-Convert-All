@@ -75,10 +75,10 @@ public class NestLeaderHandler {
     public static void onEffectApplicable(MobEffectEvent.Applicable event) {
         if (!(event.getEntity() instanceof Player player)) return;
         if (!NestLeaderManager.isNestLeader(player.getUUID())) return;
-        // 26.1.2: MobEffects.X and ModEffects.X 都是 Holder<MobEffect>，因此必须比较 Holder
-        // 本身（DeferredHolder.equals 按 ResourceKey 比较，与静态注册的 Holder 相等）。
-        // 旧代码把 .get() / .value() 解包成 MobEffect 再与 Holder 比较，编译得过但永远不相等，
-        // 会让整个分支失效（NestLeader 对毒素/饥饿等免疫的保护静默消失）。
+        
+        
+        
+        
         Holder<MobEffect> effect = event.getEffectInstance().getEffect();
         if (effect == MobEffects.POISON || effect == MobEffects.HUNGER || effect == MobEffects.NAUSEA ||
                 effect == ModEffects.COTH || effect == ModEffects.VIRAL || effect == ModEffects.FEAR ||

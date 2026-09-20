@@ -14,7 +14,7 @@ public class ModBlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, epca.MODID);
 
-    // packed_mud_pedestal 的方块实体已随祭坛方块分离到前置模组 eej。
+    
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SwallowCystBlockEntity>> SWALLOW_CYST =
             BLOCK_ENTITIES.register("swallow_cyst",

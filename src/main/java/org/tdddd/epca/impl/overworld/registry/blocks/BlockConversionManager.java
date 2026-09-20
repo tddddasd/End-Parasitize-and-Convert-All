@@ -65,11 +65,11 @@ public class BlockConversionManager {
         loadStageIConfig();
         loadStageIIConfig();
         loadGeneralConfig();
-        // 26.1.2: 原来用 NeoForge.EVENT_BUS.register(this) 注册本实例上的 @SubscribeEvent。
-        // 这里改成逐个 addListener，语义完全相同，但不会把「这个单例」整体交给事件总线
-        // （register(Object) 在构造期间可能立刻回调，属于隐式构造期副作用）。
-        // 注意：单例是在 addSacrificeTask/handleServerStarted 首次被引用时（服务端已就绪之后）
-        // 才构造的，因此构造里直接挂监听是安全的。
+        
+        
+        
+        
+        
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::handleServerStarted);
         NeoForge.EVENT_BUS.addListener(this::handlePlayerLoggedOut);
@@ -130,7 +130,7 @@ public class BlockConversionManager {
     public boolean convertBlockUsingStageIConfig(ServerLevel level, BlockPos pos, BlockState state) {
         float hardness = state.getDestroySpeed(level, pos);
         if (hardness < 0.0f || hardness > 2.0f) {
-            return false; // 不转化
+            return false; 
         }
         float multiplier = 1.0f;
         if (state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG)) {
@@ -204,7 +204,7 @@ public class BlockConversionManager {
                 BlockState newState = targetBlock.defaultBlockState();
                 newState = copyCommonBlockProperties(state, newState);
                 level.setBlock(pos, newState, 3);
-                // 发送添加包给附近玩家（或所有玩家）
+                
                 sendInfestedPacketToClients(level, pos, true);
                 afterBlockConverted(level, pos, newState);
                 return true;
@@ -284,11 +284,7 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * 从指定虫染方块向上扫描 7 格，将发现的原版睡莲转化为虫染睡莲。
-     * @param level 服务端世界
-     * @param infestedPos 虫染方块位置
-     */
+    
     public void convertLilyPadsAboveInfested(ServerLevel level, BlockPos infestedPos) {
         for (int i = 1; i <= 7; i++) {
             BlockPos checkPos = infestedPos.above(i);
@@ -299,11 +295,9 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * 转化指定位置的睡莲，复制下方虫染方块的朝向。
-     */
+    
     private void convertLilyPadWithBelow(ServerLevel level, BlockPos pos) {
-        // 获取配置映射（使用通用配置）
+        
         String fullBlockId = BuiltInRegistries.BLOCK.getKey(Blocks.LILY_PAD).toString();
         String targetBlockId = generalConfig.conversions.get(fullBlockId);
         Block targetBlock = null;
@@ -642,9 +636,7 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * 获取配置中睡莲对应的目标方块，若未配置则返回默认虫染睡莲
-     */
+    
     public Block getTargetLilyPadBlock() {
         String targetId = generalConfig.conversions.get("minecraft:lily_pad");
         if (targetId != null) {
@@ -656,9 +648,7 @@ public class BlockConversionManager {
         return Blocks.LILY_PAD;
     }
 
-    /**
-     * 检测指定位置下方七格内是否有虫染方块
-     */
+    
     @Nullable
     public BlockState findInfestedBlockBelow(Level level, BlockPos pos, int range) {
         for (int i = 1; i <= range; i++) {
@@ -673,35 +663,22 @@ public class BlockConversionManager {
 
 
 
-    // ═══════════════════ 献祭仪式：转换队列（I18 / I19a / I19b） ═══════════════════
+    
 
-    /**
-     * 一次献祭仪式的方块转换任务。
-     *
-     * <p>与移植前相比的改动（都不改变「最终转换了哪些方块」这一结果）：
-     * <ul>
-     *   <li>位置从 {@code List<BlockPos>} 换成预先排好序的 {@code BlockPos[]}，便于整体写进
-     *       {@link SacrificeSavedData}；运行时元素引用与下标语义完全一致。</li>
-     *   <li>不再持有 {@link ServerLevel} 强引用：队列的 key 是维度 {@link ResourceKey}，
-     *       推进时再从当前服务器拿 {@code ServerLevel}。这修掉了原来「{@code ServerLevel} 作为
-     *       {@code Map} key 被永久强引用」以及跨服务器实例拿到过期 level 的问题。</li>
-     *   <li>新增 {@link #tick} 用于节奏型反馈（粒子/心跳/进度条），以及
-     *       {@link #lastReportedPercent} 用于去重。</li>
-     * </ul>
-     */
+    
     private static final class SacrificeTask {
-        /** 每个服务器刻处理的方块数（与原实现一致）。 */
+        
         static final int BATCH_SIZE = 700;
-        /** 反馈间隔（刻）：每 1 秒一次环境粒子，每 3 秒一次心跳音效 + 进度提示。 */
+        
         private static final int PARTICLE_INTERVAL = 20;
         private static final int HEARTBEAT_INTERVAL = 60;
-        /** 进度提示的间隔百分比，避免刷屏。 */
+        
         private static final int PERCENT_STEP = 10;
 
         final ResourceKey<Level> dimension;
         final BlockPos center;
         final UUID playerId;
-        /** 快照坐标，按到 {@link #center} 的距离升序（与移植前一致）。 */
+        
         final BlockPos[] positions;
         int index;
         int tick;
@@ -726,32 +703,18 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * 每个维度一条队列；同一维度同一时刻只推进队首任务（与原实现一致）。
-     */
+    
     private final Map<ResourceKey<Level>, Queue<SacrificeTask>> sacrificeTasks = new HashMap<>();
 
-    /**
-     * 落盘节流：每 100 个服务器刻（5 秒）才把一次坐标快照真正写进 SavedData。
-     *
-     * <p>为什么要节流：每条记录都要带完整的坐标快照，而 {@code setTasksForDimension} 会
-     * {@code setDirty()}；如果每刻都写，像原实现那样一次仪式跑 10~70 秒就会产生几十次
-     * 几百 KB ~ 数 MB 的 NBT 全量写盘。代价是崩服最多回退 5 秒的进度，而这 5 秒的方块
-     * 已经转换完毕、不影响最终结果（只是恢复时会被再走一遍，转换本身是幂等的）。
-     */
+    
     private static final int PERSIST_INTERVAL_TICKS = 100;
     private int persistCounter;
 
-    /** 已经从 SavedData 恢复过队列的服务器实例，用于给两条恢复路径去重。 */
+    
     @Nullable
     private net.minecraft.server.MinecraftServer recoveredServer;
 
-    /**
-     * 排入一次献祭转换任务。{@code positions} 必须是已经按到 {@code center} 距离升序排好的快照。
-     *
-     * @return 是否成功入队；若该祭坛已经有一个任务在跑（或存档里还有未完成的），返回 {@code false}
-     *         并调用 {@code conflictHandler}（I19b：不再叠加重复队列）
-     */
+    
     public boolean addSacrificeTask(ServerLevel level, BlockPos center, UUID playerId, List<BlockPos> positions,
                                     @Nullable Runnable conflictHandler) {
         BlockPos[] snapshot = positions.toArray(new BlockPos[0]);
@@ -765,17 +728,17 @@ public class BlockConversionManager {
             }
             queue.add(new SacrificeTask(level.dimension(), center, playerId, snapshot));
         }
-        // I19a：立刻把新任务落进 SavedData，这样「刚触发就崩服」也不会丢。
+        
         persistedTasks(level).setTasksForDimension(level.dimension(), toSavedEntries(level));
         return true;
     }
 
-    /** 兼容旧签名（没有「已有任务」冲突回调）。 */
+    
     public boolean addSacrificeTask(ServerLevel level, BlockPos center, UUID playerId, List<BlockPos> positions) {
         return addSacrificeTask(level, center, playerId, positions, null);
     }
 
-    /** 该维度是否已有任务在跑（含存档恢复出来的）。 */
+    
     public boolean hasSacrificeTask(ServerLevel level, BlockPos center) {
         synchronized (sacrificeTasks) {
             Queue<SacrificeTask> queue = sacrificeTasks.get(level.dimension());
@@ -787,15 +750,7 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * I19b：取消指定中心的仪式（祭坛被破坏等）。
-     *
-     * <p><b>接入方式</b>：本类不依赖祭坛方块，调用方（eej 的 {@code AbstractAltarBlock} 或 epca）
-     * 在方块被移除时调用本方法即可。当前工作区里 {@code AbstractAltarBlock} 由另一批改动负责，
-     * 因此这里只提供入口、没有强制接线。
-     *
-     * @return 是否真的取消了某个任务
-     */
+    
     public boolean cancelSacrificeTask(ResourceKey<Level> dimension, BlockPos center) {
         boolean cancelled = false;
         synchronized (sacrificeTasks) {
@@ -812,11 +767,7 @@ public class BlockConversionManager {
         return cancelled;
     }
 
-    /**
-     * I19b：取消某个玩家发起的所有仪式（玩家退出 / 死亡）。
-     *
-     * @return 被取消的中心位置列表（调用方可用于逐个提示玩家）
-     */
+    
     public List<BlockPos> cancelSacrificeTasksForPlayer(ResourceKey<Level> dimension, UUID playerId) {
         List<BlockPos> cancelled = new ArrayList<>();
         synchronized (sacrificeTasks) {
@@ -834,26 +785,26 @@ public class BlockConversionManager {
         }
         ServerLevel level = levelOf(dimension);
         if (level != null && persistedTasks(level).removeTasksForPlayer(dimension, playerId) && cancelled.isEmpty()) {
-            // 存档里有、内存里没有（例如刚被恢复但还没入队）时也返回中心点
+            
             cancelled.add(BlockPos.ZERO);
         }
         return cancelled;
     }
 
-    /** 把所有维度里仍在跑的献祭队列丢弃（服务器停止 / 调试用）。 */
+    
     public void clearSacrificeTasks() {
         synchronized (sacrificeTasks) {
             sacrificeTasks.clear();
         }
     }
 
-    // ─────────────── I19a：持久化 ───────────────
+    
 
     private static SacrificeSavedData persistedTasks(ServerLevel level) {
         return SacrificeSavedData.get(level);
     }
 
-    /** 与该维度当前队列对应的持久化条目（含进度）。 */
+    
     private List<SacrificeSavedData.SacrificeEntry> toSavedEntries(ServerLevel level) {
         List<SacrificeSavedData.SacrificeEntry> entries = new ArrayList<>();
         synchronized (sacrificeTasks) {
@@ -874,7 +825,7 @@ public class BlockConversionManager {
                     packed[i] = SacrificeSavedData.encodeOffset(dx, dy, dz);
                 }
                 if (!encodable) {
-                    // 理论上不可能出现（触发快照半径 72 < 编码上限），真出现时宁可丢弃任务也不能写出错坐标。
+                    
                     epca.LOGGER.error("Sacrifice task at {} has positions outside the encodable range; not persisting it",
                             task.center);
                     continue;
@@ -886,15 +837,7 @@ public class BlockConversionManager {
         return entries;
     }
 
-    /**
-     * I19a：服务端启动时把存档里未完成的仪式重新入队。
-     *
-     * <p>这样「重启导致仪式永久半途而废、闪电与效果永不出现」不再发生。恢复出来的任务
-     * 会向对应维度里在线的玩家提示一次 {@code ritual.epca.resumed}。
-     *
-     * <p>{@link #advanceSacrificeTasks()} 里还有一条等价的时间兜底路径（针对本单例在事件之后
-     * 才被加载的情况），两条路径用 {@link #recoveredServer} 去重，不会重复入队。
-     */
+    
     @SubscribeEvent
     public void handleServerStarted(ServerStartedEvent event) {
         net.minecraft.server.MinecraftServer server = event.getServer();
@@ -902,7 +845,7 @@ public class BlockConversionManager {
         restoreSacrificeTasks(server);
     }
 
-    /** 见 {@link #handleServerStarted}。 */
+    
     private void restoreSacrificeTasks(net.minecraft.server.MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels()) {
             SacrificeSavedData data = persistedTasks(level);
@@ -914,7 +857,7 @@ public class BlockConversionManager {
                 if (!entry.dimension().equals(level.dimension())) continue;
                 BlockPos[] positions = SacrificeSavedData.decodePositions(entry.positions(), entry.center());
                 if (entry.nextIndex() >= positions.length) {
-                    // 已经跑完但没来得及清理/触发完成逻辑：补一次完成，而不是静默丢弃。
+                    
                     restored.add(new SacrificeTask(entry.dimension(), entry.center(), entry.playerId(), positions,
                             positions.length));
                     continue;
@@ -937,7 +880,7 @@ public class BlockConversionManager {
             for (SacrificeTask task : restored) {
                 epca.LOGGER.info("Restored in-progress sacrifice ritual at {} in {} ({}%)",
                         task.center, level.dimension().identifier(), task.percent());
-                // 给该维度里在线的玩家一次「仪式仍在继续」的提示（这是原来完全缺失的恢复反馈）
+                
                 for (ServerPlayer player : level.players()) {
                     sendRitualMessage(player, Component.translatable("ritual.epca.resumed", task.percent()));
                 }
@@ -945,13 +888,7 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * I19b：玩家退出时取消他发起的、仍在进行的仪式。
-     *
-     * <p>理由：{@code completeSacrifice} 的奖励（{@code NestLeaderManager.addNestLeader}）依赖发起者在线，
-     * 玩家一走流程就成了无人认领的后台任务；且「退出游戏不影响任务」正是计划里点名的缺陷之一。
-     * 取消时会向该玩家发一条提示（如果还能发）。
-     */
+    
     @SubscribeEvent
     public void handlePlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         Player player = event.getEntity();
@@ -965,11 +902,11 @@ public class BlockConversionManager {
         }
     }
 
-    // ─────────────── 每刻推进 ───────────────
+    
 
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Post event) {
-        // 26.1.2: TickEvent.Phase 已被 Pre/Post 事件取代，本监听器等价于原来的 Phase.END
+        
         if (!pendingDoublePlantConversions.isEmpty()) {
             Map<ServerLevel, Set<BlockPos>> toProcess;
             synchronized (pendingDoublePlantConversions) {
@@ -988,23 +925,14 @@ public class BlockConversionManager {
         advanceSacrificeTasks();
     }
 
-    /**
-     * 推进每个维度的队首献祭任务。
-     *
-     * <p>与移植前的差异：
-     * <ul>
-     *   <li>队列 key 是维度而不是 {@code ServerLevel}，每刻从当前服务器解析真实 level；</li>
-     *   <li>转换循环放在 {@code synchronized} 之外执行，避免长时间持锁（{@code positions} 入队后只读）；</li>
-     *   <li>同一个 tick 内可能同时推进多个维度（原来也是，因为 map 里每个维度一项）。</li>
-     * </ul>
-     */
+    
     private void advanceSacrificeTasks() {
         persistCounter++;
         net.minecraft.server.MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server != null && server != recoveredServer) {
-            // 兜底恢复：万一本单例是在 ServerStartedEvent 之后才第一次被加载（例如某个方块/实体
-            // 类型在注册期就引用了 getInstance()），事件路径会错过。这里在「服务器实例第一次
-            // 出现在 tick 里」时再补一次，保证恢复一定发生。
+            
+            
+            
             recoveredServer = server;
             restoreSacrificeTasks(server);
         }
@@ -1025,7 +953,7 @@ public class BlockConversionManager {
 
                 ServerLevel level = levelOf(entry.getKey());
                 if (level == null || level.isClientSide()) {
-                    // 维度没加载时先不动队列（原实现遇到 isClientSide 会直接丢弃任务）
+                    
                     continue;
                 }
 
@@ -1054,7 +982,7 @@ public class BlockConversionManager {
         }
     }
 
-    /** 推进一个任务一个批次，并发放过程反馈（I18）。 */
+    
     private void tickAndConvert(ServerLevel level, SacrificeTask task) {
         int end = Math.min(task.index + SacrificeTask.BATCH_SIZE, task.positions.length);
         for (int i = task.index; i < end; i++) {
@@ -1077,7 +1005,7 @@ public class BlockConversionManager {
         task.index = end;
         task.tick++;
 
-        // 每 20 刻：中心附近的「仪式正在发生」粒子（数量刻意压得很低，见 I18 的风险提示）
+        
         if (task.tick % SacrificeTask.PARTICLE_INTERVAL == 0) {
             double x = task.center.getX() + 0.5;
             double y = task.center.getY() + 1.0;
@@ -1086,7 +1014,7 @@ public class BlockConversionManager {
             level.sendParticles(ModParticles.COTH.get(), x, y, z, 1, 0.5, 0.5, 0.5, 0.0);
         }
 
-        // 每 3 秒：心跳音效 + 进度提示（只在百分比发生 10% 级变化时提示）
+        
         if (task.tick % SacrificeTask.HEARTBEAT_INTERVAL == 0) {
             level.playSound(null, task.center, SoundEvents.BEACON_AMBIENT, SoundSource.BLOCKS, 0.6F, 0.6F);
             int percent = task.percent();
@@ -1096,7 +1024,7 @@ public class BlockConversionManager {
                 if (owner != null) {
                     sendRitualMessage(owner, Component.translatable("ritual.epca.progress", percent));
                 }
-                // 让附近玩家也能感知「有事情在发生」，但不刷屏
+                
                 for (Player nearby : nearbyPlayers(level, task.center, NEARBY_MESSAGE_RADIUS)) {
                     if (nearby != owner) {
                         sendRitualMessage(nearby, Component.translatable("ritual.epca.progress_nearby"));
@@ -1128,7 +1056,7 @@ public class BlockConversionManager {
             NestLeaderManager.addNestLeader(player.getUUID());
         }
 
-        // 任务结束：从存档里移除（否则下次启动会把它当成「没跑完」再补一次完成效果）
+        
         persistedTasks(level).removeTasksAt(level.dimension(), center);
         level.playSound(null, center, SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.WEATHER, 1.0F, 1.0F);
         if (player != null) {
@@ -1141,7 +1069,7 @@ public class BlockConversionManager {
         }
     }
 
-    /** 反馈用的邻近半径（比效果半径小很多，避免整片区域被提示淹没）。 */
+    
     private static final double NEARBY_MESSAGE_RADIUS = 32.0;
 
     private static List<Player> nearbyPlayers(ServerLevel level, BlockPos center, double radius) {
@@ -1161,11 +1089,7 @@ public class BlockConversionManager {
         return server == null ? null : server.getLevel(dimension);
     }
 
-    /**
-     * 26.1.2: {@code Player#displayClientMessage(Component, boolean)} 已删除，
-     * 动作栏变体由 {@code ServerPlayer#sendSystemMessage(Component, boolean)} 承担
-     * （与 {@code EpcaAltarInteractionHandler#sendTo} 同一适配写法）。
-     */
+    
     private static void sendRitualMessage(Player player, Component message) {
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.sendSystemMessage(message, true);

@@ -11,12 +11,7 @@ import org.tdddd.epca.impl.network.ModNetwork;
 import java.util.ArrayList;
 import java.util.Collection;
 
-/**
- * 服务端 → 客户端：全量虫染来源位置。
- *
- * <p><b>26.1.2 改动</b>：{@code SimpleChannel} → {@link CustomPacketPayload}。
- * <b>线上字段与顺序不变</b>：{@code int size} + 依次 {@code BlockPos}。
- */
+
 public class SyncAllInfestedSourcesPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncAllInfestedSourcesPacket> TYPE =

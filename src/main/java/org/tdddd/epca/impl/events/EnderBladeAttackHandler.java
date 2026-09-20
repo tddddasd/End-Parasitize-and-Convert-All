@@ -38,10 +38,10 @@ public class EnderBladeAttackHandler {
 
         ItemStack weapon = player.getMainHandItem();
         if (weapon.isEmpty()) return;
-        // 检测 NBT 标记
+        
         CompoundTag tag = weapon.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         if (!tag.getBooleanOr("epca:ender_blade", false)) return;
-        // 获取武器基础攻击力（面板）
+        
         float baseAttack = getWeaponAttackDamage(weapon);
         float extra = (baseAttack + 1) * 0.25f;
 

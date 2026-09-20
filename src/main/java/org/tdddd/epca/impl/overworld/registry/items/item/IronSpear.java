@@ -64,11 +64,11 @@ public class IronSpear extends Item {
         // ItemUseAnimation.TRIDENT to ArmPose.THROW_TRIDENT (the trident charge pose) and
         // ItemInHandRenderer draws the matching first-person pull-back; nothing here touches
         // the arm itself. The mod's old HumanoidModelMixin (which forced an extra 180 degree
-        // 蓄力时第三人称会整个倒过来：ArmPose.THROW_TRIDENT 把手臂绕 X 轴转了 180°，
-        // 而物品自己的 display 变换没有补偿。资源包用 assets/epca/items/*_spear.json 的
-        // minecraft:using_item 条件在蓄力期间切到 *_spear_throwing 模型，该模型的第三人称
-        // display 变换 = 平时变换再绕 X 轴加 180°（正好抵消手臂那 180°），于是蓄力时长矛
-        // 仍然朝上；第一人称与平时手持的变换完全不变（第一人称本来就是对的）。
+        
+        
+        
+        
+        
         return ItemUseAnimation.TRIDENT; 
     }
 

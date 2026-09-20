@@ -33,22 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 26.1.2 迁移记录（对 {@code minecraft-patched-26.1.2.76} 的 {@code BeaconBlockEntity} 源码核对过）：
- * <ul>
- *   <li>{@code load(CompoundTag)} → {@code loadAdditional(ValueInput)}；
- *       {@code saveAdditional(CompoundTag)} → {@code saveAdditional(ValueOutput)}。
- *       存档字段名保持 {@code PaymentItem}（字符串 id）与 {@code ParasiteEffectTime}（long）。</li>
- *   <li>{@code getUpdateTag()} → {@code getUpdateTag(HolderLookup.Provider)}，返回值仍是 {@code CompoundTag}。</li>
- *   <li>{@code applyEffects(Level, BlockPos, int, MobEffect, MobEffect)} →
- *       {@code applyEffects(Level, BlockPos, int, Holder&lt;MobEffect&gt;, Holder&lt;MobEffect&gt;)}
- *       且方法在 26.1.2 是 {@code private static}（1.20.1 是 {@code protected static}）。</li>
- *   <li>原方法里 {@code List<LivingEntity> entities instanceof Player} 这类判断恒为 false
- *       （List 永远不可能是 Player），属于 1.20.1 就存在的死代码；这里按“只保留真正会执行的分支”
- *       重写，可观察行为与 1.20.1 一致：向范围内 {@link IParasite} 施加（巢穴领袖时）伪装/灵魂保护，
- *       向范围内非 {@link IParasite} 生物施加 COTH。</li>
- * </ul>
- */
+
 @Mixin(BeaconBlockEntity.class)
 public abstract class BeaconBlockEntityMixin implements IBeaconMixin {
     private static final Map<BlockPos, Item> PAYMENT_MAP = new HashMap<>();
