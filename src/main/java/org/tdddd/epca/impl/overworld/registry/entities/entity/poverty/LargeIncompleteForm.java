@@ -46,6 +46,7 @@ import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IParasite, IPoverty, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -455,7 +456,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         setExploding(true);
         explosionTimer = 30;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);

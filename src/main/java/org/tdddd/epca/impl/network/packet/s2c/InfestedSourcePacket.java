@@ -27,14 +27,14 @@ public class InfestedSourcePacket {
 
         public void handle(Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
-                // 客户端执行
+                
                 WaterColorEffectsManager.addInfestedSource(pos);
             });
             ctx.get().setPacketHandled(true);
         }
     }
 
-    // 移除虫染方块包（类似，用于反转换或破坏时同步）
+    
     public static class RemoveInfestedSourcePacket {
         private final BlockPos pos;
 
@@ -51,7 +51,7 @@ public class InfestedSourcePacket {
 
         public void handle(Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
-                // 客户端执行
+                
                 WaterColorEffectsManager.removeInfestedSource(pos);
             });
             ctx.get().setPacketHandled(true);
@@ -60,7 +60,7 @@ public class InfestedSourcePacket {
 
     public static class RequestAllInfestedSourcesPacket {
         public void encode(FriendlyByteBuf buf) {
-            // 无数据
+            
         }
 
         public static RequestAllInfestedSourcesPacket decode(FriendlyByteBuf buf) {

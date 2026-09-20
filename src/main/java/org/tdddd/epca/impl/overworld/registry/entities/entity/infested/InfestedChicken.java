@@ -57,6 +57,7 @@ import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -851,7 +852,7 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
         setInvulnerable(true);
         fakeDeathTimer = 20;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);

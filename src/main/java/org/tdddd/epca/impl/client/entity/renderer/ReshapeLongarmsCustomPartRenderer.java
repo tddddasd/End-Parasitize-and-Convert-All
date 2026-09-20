@@ -14,12 +14,12 @@ public class ReshapeLongarmsCustomPartRenderer extends EntityRenderer<ReshapeLon
 
     @Override
     public ResourceLocation getTextureLocation(ReshapeLongarms.CustomPart entity) {
-        return null; // 不需要纹理
+        return null; 
     }
 
     @Override
     public void render(ReshapeLongarms.CustomPart entity, float entityYaw, float partialTick,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        // 不渲染任何东西
+        
     }
 }

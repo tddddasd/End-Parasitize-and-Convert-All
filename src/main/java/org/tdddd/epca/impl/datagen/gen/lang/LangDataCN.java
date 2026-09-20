@@ -11,14 +11,14 @@ public class LangDataCN extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        // 物品组 / 基本 UI
+        
         add("itemGroup." + epca.MODID + ".main_tab", "终末-归寄万物");
 
-        // 游戏规则
+        
         add("gamerule.epca_hardnessConversionBlock", "根据硬度转化模组方块");
         add("gamerule.epca_hardnessConversionBlock.description", "当模组方块没有转化配置映射时，是否允许根据硬度将其转化为虫染残渣、类岩、类板等方块");
 
-        // 工具提示
+        
         add("tooltip.epca.max_damage_type", "最大受击倍率伤害类型: %s (\u00d7%s)");
         add("tooltip.epca.min_kill_count", "至少击杀数: %d");
         add("tooltip.epca.broken_adaptation_time", "破适应性剩余: %.1f秒");
@@ -33,11 +33,11 @@ public class LangDataCN extends LanguageProvider {
         add("tooltip.epca.negative", "负面：%s");
         add("tooltip.epca.item_proficiency", "熟练度: %d/%d [伤害 +%s%%]");
 
-        // Jade 插件
+        
         add("config.jade.plugin_epca.damage_adaptation_info", "伤害适应性信息");
         add("config.jade.plugin_epca.kill_count_info", "击杀计数信息");
 
-        // 进度
+        
         add("advancements.epca.root.description", "末日的开始");
         add("advancements.epca.root.title", "如常？");
         add("advancements.epca.sense_of_crisis.title", "危机感");
@@ -45,10 +45,10 @@ public class LangDataCN extends LanguageProvider {
         add("advancements.epca.master_difficulty.title", "只奉给献的上的人...");
         add("advancements.epca.master_difficulty.description", "在未开启作弊的情况下进入困难模式-大师难度的世界");
 
-        // 生物群系
+        
         add("biome.epca.parasite_biome", "寄生体生物群系");
 
-        // 创造模式物品分类
+        
         add("item.epca.category.spawn_eggs", "\u00a7l刷怪蛋");
         add("item.epca.category.materials_gear", "\u00a7l材料与装备");
         add("item.epca.category.blocks", "\u00a7l方块");
@@ -58,11 +58,11 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.category_reshape", "种阶：重塑");
         add("item.epca.category_link", "种阶：连结");
 
-        // 图鉴
+        
         add("epca.tab.parent.main_tab", "寄生体图鉴");
         add("epca.tab.child.onesent", "初探种");
 
-        // 实体名称
+        
         add("entity.epca.yawning_nya.join", "\u00a7eYawning_Nya加入了世界");
         add("entity.epca.yawning_nya", "Yawning_Nya");
         add("entity.epca.curbug", "诅虫");
@@ -130,7 +130,7 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.infested_cave_spider_web_projectile", "虫染洞穴蜘蛛网团");
         add("entity.epca.infested_bat", "虫染蝙蝠");
 
-        // 投掷矛
+        
         add("entity.epca.thrown_wooden_spear", "木矛");
         add("entity.epca.thrown_stone_spear", "石矛");
         add("entity.epca.thrown_flint_spear", "燧石矛");
@@ -140,7 +140,7 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.thrown_diamond_spear", "钻石矛");
         add("entity.epca.thrown_netherite_spear", "下界合金矛");
 
-        // 状态效果
+        
         add("effect.epca.bleeding", "流血");
         add("effect.epca.viral", "病毒");
         add("effect.epca.fear", "恐慌");
@@ -157,7 +157,7 @@ public class LangDataCN extends LanguageProvider {
         add("effect.epca.soul_protection", "灵魂格护");
         add("effect.epca.fear.message", "你正处于恐慌状态！");
 
-        // 物品
+        
         add("item.epca.wooden_spear", "木矛");
         add("item.epca.stone_spear", "石矛");
         add("item.epca.flint_spear", "燧石矛");
@@ -167,7 +167,7 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.diamond_spear", "钻石矛");
         add("item.epca.netherite_spear", "下界合金矛");
 
-        // 刷怪蛋
+        
         add("item.epca.ripper_spawn_egg", "裂兽刷怪蛋");
         add("item.epca.curbug_spawn_egg", "诅虫刷怪蛋");
         add("item.epca.small_incomplete_form_spawn_egg", "小块未成形寄生体刷怪蛋");
@@ -217,7 +217,7 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.walking_fox_head_spawn_egg", "虫染狐狸头颅刷怪蛋");
         add("item.epca.infested_bat_spawn_egg", "虫染蝙蝠刷怪蛋");
 
-        // 材料与特殊物品
+        
         add("item.epca.copper_nugget", "铜粒");
         add("item.epca.parasite_viscera", "寄体内脏");
         add("item.epca.infested_bone", "虫染骨");
@@ -241,7 +241,7 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.living_armor_box_module", "盔甲盒模块");
         add("item.epca.infested_sweet_berries", "虫染甜浆果");
 
-        // 活体盔甲盒提示
+        
         add("item.epca.living_armor_box.tooltip.storage_info", "存储信息:");
         add("item.epca.living_armor_box.tooltip.storage_space", "  %s/%s 个物品");
         add("item.epca.living_armor_box.tooltip.stored_items", "存储的物品:");
@@ -259,13 +259,13 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.living_armor_box.tooltip.state_equipped", "已装备");
         add("item.epca.living_armor_box.tooltip.state_unequipped", "未装备");
 
-        // 活体盔甲
+        
         add("item.epca.living_helmet", "活体头盔");
         add("item.epca.living_chestplate", "活体胸甲");
         add("item.epca.living_leggings", "活体护腿");
         add("item.epca.living_boots", "活体靴子");
 
-        // 其他物品
+        
         add("item.epca.acid_bucket", "酸液桶");
         add("item.epca.infested_rubbish", "虫染垃圾");
         add("item.epca.infested_stick", "虫染木棍");
@@ -285,7 +285,7 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.infested_ender_pearl", "虫染末影珍珠");
         add("item.epca.ender_blade_scrap", "影刃残片");
 
-        // 方块
+        
         add("block.epca.infested_dirt", "虫染泥土");
         add("block.epca.infested_sand", "虫染沙子");
         add("block.epca.infested_leaves", "虫染树叶");
@@ -405,7 +405,7 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.acid_solution", "酸液");
         add("fluid_type.epca.acid_solution", "酸液");
 
-        // 命令
+        
         add("commands.negativedamage.damage.success", "成功使用 %3$s 对 %1$s 造成了 %2$s 点伤害");
         add("commands.negativedamage.damage.success.unknown", "成功对 %1$s 造成了 %2$s 点伤害");
         add("commands.negativedamage.damage.success.simple", "对 %1$s 造成了 %2$s 点伤害");
@@ -417,7 +417,7 @@ public class LangDataCN extends LanguageProvider {
         add("commands.negativedamage.heal.success.simple", "对 %1$s 造成了 %2$s 点伤害");
         add("commands.negativedamage.no_entities", "未找到有效的生物实体");
 
-        // 世界阶段
+        
         add("epca.stage.-2", "世界结界完好无损");
         add("epca.stage.-1", "世界结界完好无损");
         add("epca.stage.0", "世界结界出现松动...");
@@ -435,7 +435,7 @@ public class LangDataCN extends LanguageProvider {
         add("epca.stage.12", "世界结界完整度<1%");
         add("epca.stage.13", "世界结界已完全损坏...");
 
-        // 难度
+        
         add("epca.difficulty.button", "额外难度 - %s");
         add("epca.difficulty.easy", "简单");
         add("epca.difficulty.normal", "普通");
@@ -449,11 +449,11 @@ public class LangDataCN extends LanguageProvider {
         add("key.epca.follow", "寄生虫跟随");
         add("key.epca.follow_cancel", "取消寄生体跟随");
 
-        // 笔记
+        
         add("epca.note.title", "寄巢笔记");
         add("epca.message.stage_too_low", "这里的侵蚀阶段小于3级...");
 
-        // 图鉴内容（含换行与图像占位符）
+        
         add("epca.content.onesent",
                 "§l§0初探种§r\n$[page]$\n§0诅虫\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0上图中是一只诅虫。");
         add("epca.content.test3",

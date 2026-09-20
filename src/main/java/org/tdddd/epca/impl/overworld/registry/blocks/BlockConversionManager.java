@@ -115,7 +115,7 @@ public class BlockConversionManager {
     public boolean convertBlockUsingStageIConfig(ServerLevel level, BlockPos pos, BlockState state) {
         float hardness = state.getDestroySpeed(level, pos);
         if (hardness < 0.0f || hardness > 2.0f) {
-            return false; // 不转化
+            return false; 
         }
         float multiplier = 1.0f;
         if (state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG)) {
@@ -189,7 +189,7 @@ public class BlockConversionManager {
                 BlockState newState = targetBlock.defaultBlockState();
                 newState = copyCommonBlockProperties(state, newState);
                 level.setBlock(pos, newState, 3);
-                // 发送添加包给附近玩家（或所有玩家）
+                
                 sendInfestedPacketToClients(level, pos, true);
                 afterBlockConverted(level, pos, newState);
                 return true;
@@ -269,11 +269,7 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * 从指定虫染方块向上扫描 7 格，将发现的原版睡莲转化为虫染睡莲。
-     * @param level 服务端世界
-     * @param infestedPos 虫染方块位置
-     */
+    
     public void convertLilyPadsAboveInfested(ServerLevel level, BlockPos infestedPos) {
         for (int i = 1; i <= 7; i++) {
             BlockPos checkPos = infestedPos.above(i);
@@ -284,11 +280,9 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * 转化指定位置的睡莲，复制下方虫染方块的朝向。
-     */
+    
     private void convertLilyPadWithBelow(ServerLevel level, BlockPos pos) {
-        // 获取配置映射（使用通用配置）
+        
         String fullBlockId = BuiltInRegistries.BLOCK.getKey(Blocks.LILY_PAD).toString();
         String targetBlockId = generalConfig.conversions.get(fullBlockId);
         Block targetBlock = null;
@@ -627,9 +621,7 @@ public class BlockConversionManager {
         }
     }
 
-    /**
-     * 获取配置中睡莲对应的目标方块，若未配置则返回默认虫染睡莲
-     */
+    
     public Block getTargetLilyPadBlock() {
         String targetId = generalConfig.conversions.get("minecraft:lily_pad");
         if (targetId != null) {
@@ -641,9 +633,7 @@ public class BlockConversionManager {
         return Blocks.LILY_PAD;
     }
 
-    /**
-     * 检测指定位置下方七格内是否有虫染方块
-     */
+    
     @Nullable
     public BlockState findInfestedBlockBelow(Level level, BlockPos pos, int range) {
         for (int i = 1; i <= range; i++) {

@@ -136,13 +136,10 @@ dependencies {
 
     implementation fg.deobf("org.tdddd.yawning_neko_api:yawningapi:1.0.5")
 
-    // 祭坛前置模组 eej（End:Element Journey）：祭坛方块、祭坛合成与祭坛 JEI 适配。
-    // 构建 eej 后把 eej-<version>.jar 放进 libs/ 即可。
     implementation fg.deobf("org.tdddd.eej:eej:1.0.0")
 
     // Other external mods
     implementation fg.deobf("curse.maven:jade-324717:6855440")
-    // JEI 相关代码（祭坛合成分类）已随祭坛部分移入前置模组 eej
 
     // Photon + LDLib (explicit ldlib version for Forge 47.2.0 compatibility)
     implementation fg.deobf("curse.maven:ldlib-626676:6417175")  // ldlib 1.0.39, compatible with Forge 47.2.0

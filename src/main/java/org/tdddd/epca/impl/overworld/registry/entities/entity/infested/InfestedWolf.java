@@ -61,6 +61,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.UUID;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -204,7 +205,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
             }
         }
 
-        // 其他情况正常设置目标
+        
         super.setTarget(target);
     }
     
@@ -843,7 +844,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         deathPosition = this.blockPosition(); 
 
         
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
 
         
         this.setNoAi(true);

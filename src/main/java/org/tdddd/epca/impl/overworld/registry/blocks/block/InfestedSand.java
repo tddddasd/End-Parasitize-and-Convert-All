@@ -87,10 +87,10 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
 
         if (hasWaterAround(level, pos) && level.getBlockState(pos.above()).isAir()) {
             if (random.nextFloat() < 0.0075f) {
-                spawnSugarCanes(level, pos, random, 5 + random.nextInt(2), 2, 1, 2); // 5~6个，x/z半径2，y半径1
+                spawnSugarCanes(level, pos, random, 5 + random.nextInt(2), 2, 1, 2); 
             }
             if (random.nextFloat() < 0.005f) {
-                spawnSugarCanes(level, pos, random, 2 + random.nextInt(3), 1, 1, 1); // 2~4个，x/z半径1，y半径1
+                spawnSugarCanes(level, pos, random, 2 + random.nextInt(3), 1, 1, 1); 
             }
         }
     }
@@ -114,7 +114,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                 if (!level.isEmptyBlock(targetPos)) continue;
 
                 Biome biome = level.getBiome(targetPos).value();
-                // 在 spawnCactus 方法中：
+                
                 Registry<Biome> biomeRegistry = level.registryAccess().registryOrThrow(Registries.BIOME);
 
                 Holder<Biome> holder = biomeRegistry.getHolderOrThrow(biomeRegistry.getResourceKey(biome).get());
@@ -154,7 +154,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
     }
 
     private void spawnSugarCanes(ServerLevel level, BlockPos center, RandomSource random, int count, int rangeX, int rangeY, int rangeZ) {
-        // 收集周围48格内已有的虫染甘蔗，用于距离检查
+        
         Set<BlockPos> existingCanes = new HashSet<>();
         BlockPos.betweenClosedStream(center.offset(-48, -48, -48), center.offset(48, 48, 48))
                 .forEach(p -> {
@@ -164,7 +164,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                 });
 
         int placed = 0;
-        for (int i = 0; i < count * 20; i++) { // 尝试多次，最多 count*20 次
+        for (int i = 0; i < count * 20; i++) { 
             if (placed >= count) break;
 
             int dx = random.nextInt(2 * rangeX + 1) - rangeX;
@@ -172,10 +172,10 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
             int dz = random.nextInt(2 * rangeZ + 1) - rangeZ;
             BlockPos targetPos = center.offset(dx, dy, dz);
 
-            // 必须为空气
+            
             if (!level.isEmptyBlock(targetPos)) continue;
 
-            // 下方必须为 InfestedDirt 或 InfestedSand
+            
             BlockPos below = targetPos.below();
             BlockState belowState = level.getBlockState(below);
             if (!(belowState.getBlock() == ModBlocks.INFESTED_DIRT.get() ||
@@ -183,10 +183,10 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                 continue;
             }
 
-            // 检查 targetPos 下方方块的水平方向是否有水
+            
             if (!hasWaterAround(level, targetPos.below())) continue;
 
-            // 距离已有甘蔗至少 48 格（48^2 = 2304）
+            
             boolean tooClose = false;
             for (BlockPos canePos : existingCanes) {
                 if (canePos.distSqr(targetPos) < 48 * 48) {
@@ -196,7 +196,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
             }
             if (tooClose) continue;
 
-            // 放置甘蔗（默认 age=0, natural_spawn=true, top=true 由方块默认状态决定）
+            
             level.setBlock(targetPos, ModBlocks.INFESTED_SUGAR_CANE.get()
                     .defaultBlockState()
                     .setValue(InfestedSugarCane.AGE, 0)
@@ -207,9 +207,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
         }
     }
 
-    /**
-     * 检查方块水平四周是否有水源
-     */
+    
     private boolean hasWaterAround(LevelReader level, BlockPos pos) {
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             BlockState sideState = level.getBlockState(pos.relative(dir));

@@ -72,6 +72,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasite, IReshape, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -137,12 +138,12 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         this.navigation = new GroundPathNavigation(this, level);
 
         if (!level.isClientSide()) {
-            // 创建前部部件 (2x2x2)
+            
             this.frontPart = new CustomPart(ModEntities.RESHAPE_PART.get(), level);
             this.frontPart.init(this, 2.0F, 2.0F, false);
             level.addFreshEntity(frontPart);
 
-            // 创建后部部件 (1x1x1)
+            
             this.backPart = new CustomPart(ModEntities.RESHAPE_PART.get(), level);
             this.backPart.init(this, 1.0F, 1.0F, true);
             level.addFreshEntity(backPart);
@@ -174,10 +175,10 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         if (idleAfterStomp > 0) idleAfterStomp--;
 
 
-        // 原有触发代码（大约在 customServerAiStep 开头附近）
+        
         if (!this.level().isClientSide && shouldCheckGassing && !isGassing() && !isAttacking() && !isShockwaveAttacking() && !isStomping()) {
             if (this.random.nextFloat() < 0.004f) {
-                // 如果后部部件已被移除，则禁止使用喷气
+                
                 if (!backPartRemoved) {
                     startGassingSkill();
                 }
@@ -359,34 +360,34 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             }
         }
 
-        // 更新部件位置（服务端执行）
+        
         if (!this.level().isClientSide) {
-            // 计算水平朝向向量（忽略俯仰）
+            
             float yaw = this.getYRot();
             double forwardX = -Math.sin(Math.toRadians(yaw));
             double forwardZ = Math.cos(Math.toRadians(yaw));
             Vec3 forward = new Vec3(forwardX, 0, forwardZ).normalize();
 
-            // 生物中心（脚部 + 身高一半）
+            
             Vec3 center = this.position().add(0, this.getBbHeight() / 2, 0);
 
-            // 前部：中心 + 向前 0.1 格 + 向上 1 格
+            
             if (frontPart != null && !frontPart.isRemoved()) {
                 Vec3 frontPos = center.add(forward.scale(0.2)).add(0, 0.6, 0);
                 frontPart.setPos(frontPos);
             }
 
-            // 后部：中心 + 向后 0.1 格（贴于后方），不向上偏移
+            
             if (backPart != null && !backPart.isRemoved()) {
                 Vec3 backPos = center.add(forward.scale(-0.2));
                 backPart.setPos(backPos);
             }
         }
 
-        // 后部被移除后的气体喷发（每秒一次）
+        
         if (!this.level().isClientSide && backPartRemoved) {
             gasEmitTimer++;
-            if (gasEmitTimer >= 20) { // 20 ticks = 1 秒
+            if (gasEmitTimer >= 20) { 
                 emitGasAfterBackRemoved();
                 gasEmitTimer = 0;
             }
@@ -400,24 +401,24 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         int radius = 3; // 7×7×7
         AABB area = new AABB(center).inflate(radius);
 
-        // 获取范围内的所有活体实体（排除自身和创造/旁观玩家）
+        
         List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, area,
                 e -> e.isAlive() &&
                         !(e instanceof Player && (((Player) e).isCreative() || ((Player) e).isSpectator())));
 
         for (LivingEntity entity : entities) {
             if (IParasite.isParasiteByTagOrInterface(entity)) {
-                // 寄生体：15秒力量I (300 ticks, 等级0)
+                
                 entity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 300, 0, false, true, true));
             } else {
-                // 非寄生体：30秒COTH II、15秒虚弱I、15秒饥饿I
+                
                 entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 1, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 300, 0, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 300, 0, false, true, true));
             }
         }
 
-        // 粒子数量减半（原 4~8，现 2~4）
+        
         int count = 2 + this.random.nextInt(3);
         for (int i = 0; i < count; i++) {
             double x = center.getX() + 0.5 + (this.random.nextDouble() - 0.5) * 6;
@@ -1412,7 +1413,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         setInvulnerable(true);
         fakeDeathTimer = 30;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);
@@ -1516,11 +1517,11 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         return null;
     }
 
-    // 额外受击体积
+    
     private CustomPart frontPart;
     private CustomPart backPart;
     private boolean backPartRemoved = false;
-    private int gasEmitTimer = 0; // 用于每秒喷发气体
+    private int gasEmitTimer = 0; 
 
     @Override
     public void remove(RemovalReason reason) {
@@ -1538,7 +1539,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     public static class CustomPart extends Entity {
-        // 同步数据：父实体ID（0表示无效）
+        
         private static final EntityDataAccessor<Integer> DATA_PARENT_ID =
                 SynchedEntityData.defineId(CustomPart.class, EntityDataSerializers.INT);
         private static final EntityDataAccessor<Boolean> DATA_IS_BACK =
@@ -1548,11 +1549,11 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         private static final EntityDataAccessor<Float> DATA_HEIGHT =
                 SynchedEntityData.defineId(CustomPart.class, EntityDataSerializers.FLOAT);
 
-        // 本地缓存字段（客户端从 Data 中读取）
+        
         private float partWidth = 1.0F;
         private float partHeight = 1.0F;
         private boolean partIsBack = false;
-        private ReshapeLongarms parent; // 服务端直接赋值，客户端通过ID查找
+        private ReshapeLongarms parent; 
 
         public CustomPart(EntityType<?> type, Level level) {
             super(type, level);
@@ -1565,7 +1566,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             this.partHeight = height;
             this.partIsBack = isBack;
 
-            // 写入同步数据
+            
             this.entityData.set(DATA_PARENT_ID, parent.getId());
             this.entityData.set(DATA_IS_BACK, isBack);
             this.entityData.set(DATA_WIDTH, width);
@@ -1589,19 +1590,19 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
 
         @Override
         protected void readAdditionalSaveData(CompoundTag tag) {
-            // 空实现（部件不保存）
+            
         }
 
         @Override
         protected void addAdditionalSaveData(CompoundTag tag) {
-            // 空实现（部件不保存）
+            
         }
 
         @Override
         public void tick() {
-            // ========== 客户端逻辑 ==========
+            
             if (this.level().isClientSide) {
-                // 1. 同步尺寸和类型
+                
                 this.partIsBack = this.entityData.get(DATA_IS_BACK);
                 float w = this.entityData.get(DATA_WIDTH);
                 float h = this.entityData.get(DATA_HEIGHT);
@@ -1611,7 +1612,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                     this.refreshDimensions();
                 }
 
-                // 2. 通过 ID 查找父实体（仅当 parent 为 null 时尝试）
+                
                 if (parent == null) {
                     int parentId = this.entityData.get(DATA_PARENT_ID);
                     if (parentId != 0 && this.level() instanceof ClientLevel clientLevel) {
@@ -1622,7 +1623,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                     }
                 }
 
-                // 3. 若找到父实体，计算并设置位置
+                
                 if (parent != null) {
                     float yaw = parent.getYRot();
                     double forwardX = -Math.sin(Math.toRadians(yaw));
@@ -1641,7 +1642,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 return;
             }
 
-            // ========== 服务端逻辑 ==========
+            
             if (parent == null) {
                 this.discard();
                 return;
@@ -1649,7 +1650,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             if (!parent.isAlive() && parent.tickCount > 5) {
                 this.discard();
             }
-            // 服务端位置由父实体的 customServerAiStep 每帧通过 setPos 驱动，无需额外操作
+            
         }
 
         @Override
@@ -1679,7 +1680,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             backPart.discard();
             backPart = null;
             backPartRemoved = true;
-            gasEmitTimer = 0; // 重置计时器
+            gasEmitTimer = 0; 
         }
     }
 

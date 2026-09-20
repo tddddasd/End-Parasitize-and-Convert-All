@@ -56,6 +56,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
     private int stepSoundDelay = 0;
@@ -622,7 +623,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
         setInvulnerable(true);
         fakeDeathTimer = 30;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);

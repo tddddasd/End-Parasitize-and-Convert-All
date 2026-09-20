@@ -110,17 +110,17 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
             double dx = this.getX() - this.xo;
             double dz = this.getZ() - this.zo;
             double speed = Math.sqrt(dx * dx + dz * dz);
-            final float ROLL_SPEED = -1.0f;        // 每移动1格旋转的弧度数
-            final float DECAY = 0.92f;            // 静止时每帧衰减系数（0~1，越小归正越快）
-            final float MIN_ANGLE = 0.001f;        // 角度小于此值直接归零，避免浮点余留
+            final float ROLL_SPEED = -1.0f;        
+            final float DECAY = 0.92f;            
+            final float MIN_ANGLE = 0.001f;        
 
             if (speed > 0.001) {
-                // 移动时累加角度
+                
                 this.rollAngle += (float) (speed * ROLL_SPEED);
-                // 限制范围，防止溢出
+                
                 this.rollAngle %= (float) (2 * Math.PI);
             } else {
-                // 静止时逐渐归正
+                
                 this.rollAngle *= DECAY;
                 if (Math.abs(this.rollAngle) < MIN_ANGLE) {
                     this.rollAngle = 0.0f;
@@ -157,7 +157,7 @@ public class InfestedPumpkinHead extends PathfinderMob implements GeoEntity, IPa
             };
             net.minecraft.core.Direction facing = directions[this.random.nextInt(directions.length)];
 
-            // 使用您的方块注册引用
+            
             net.minecraft.world.level.block.state.BlockState blockState =
                     org.tdddd.epca.impl.overworld.registry.ModBlocks.INFESTED_CARVED_PUMPKIN.get()
                             .defaultBlockState()

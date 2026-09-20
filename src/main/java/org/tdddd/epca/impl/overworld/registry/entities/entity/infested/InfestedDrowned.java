@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -988,7 +989,7 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
         deathPosition = this.blockPosition(); 
 
         
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
 
         
         this.setNoAi(true);

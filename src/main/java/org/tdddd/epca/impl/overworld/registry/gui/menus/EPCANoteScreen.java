@@ -26,8 +26,8 @@ import java.util.regex.Pattern;
 @OnlyIn(Dist.CLIENT)
 public class EPCANoteScreen extends Screen {
 
-    // 只有内页贴图随模组一起提供；封面与选项卡改为用 inner_frame.png 的同色系程序化绘制，
-    // 避免引用不存在的 outer_frame.png / parent_tab.png / child_tab.png 而每帧报警并画出空白。
+    
+    
     private static final ResourceLocation INNER_FRAME = new ResourceLocation(epca.MODID, "textures/gui/epca_note/inner_frame.png");
     private static final ResourceLocation BTN_UP = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_up.png");
     private static final ResourceLocation BTN_DOWN = new ResourceLocation(epca.MODID, "textures/gui/epca_note/button_down.png");
@@ -54,7 +54,7 @@ public class EPCANoteScreen extends Screen {
     private static final int BTN_TEX_H = 24;
     private static final int PAGE_BTN_TEX_SIZE = 18;
 
-    // ---- 封面与选项卡配色（取自 inner_frame.png 的羊皮纸 / 皮革色调）----
+    
     private static final int COVER_SHADOW = 0xFF1E0D05;
     private static final int COVER_DARK = 0xFF3C1C0E;
     private static final int COVER = 0xFF5C2E18;
@@ -476,7 +476,7 @@ public class EPCANoteScreen extends Screen {
         var pose = guiGraphics.pose();
         pose.pushPose();
 
-        // 计算转换后的鼠标坐标（用于可能传递给 super.render 的 tooltip 等）
+        
         double layoutX = convertMouseX(mouseX);
         double layoutY = convertMouseY(mouseY);
 
@@ -486,7 +486,7 @@ public class EPCANoteScreen extends Screen {
             pose.translate(-width / 2.0f, -height / 2.0f, 0);
         }
 
-        // 悬停检测（画选项卡高亮 + 底部显示完整名称）
+        
         int hoveredParent = getClickedParentIndex((int) layoutX, (int) layoutY);
         int hoveredChild = getClickedChildIndex((int) layoutX, (int) layoutY);
 
@@ -558,7 +558,7 @@ public class EPCANoteScreen extends Screen {
         double layoutX = convertMouseX(mouseX);
         double layoutY = convertMouseY(mouseY);
 
-        // 自己的点击检测（父标签/子标签）
+        
         int clickedParent = getClickedParentIndex((int) layoutX, (int) layoutY);
         if (clickedParent != -1) {
             selectedParentIndex = clickedParent;
@@ -573,7 +573,7 @@ public class EPCANoteScreen extends Screen {
             return true;
         }
 
-        // 传递给父类以处理按钮等组件
+        
         return super.mouseClicked(layoutX, layoutY, button);
     }
 
@@ -598,14 +598,14 @@ public class EPCANoteScreen extends Screen {
         return super.mouseReleased(layoutX, layoutY, button);
     }
 
-    /** 封面：皮革底 + 米色描边 + 内页凹槽（书页像嵌在封面里） */
+    
     private void drawCover(GuiGraphics guiGraphics) {
         guiGraphics.fill(outerX - 2, outerY - 2, outerX + OUTER_W + 2, outerY + OUTER_H + 2, COVER_SHADOW);
         guiGraphics.fill(outerX, outerY, outerX + OUTER_W, outerY + OUTER_H, COVER_DARK);
         guiGraphics.fill(outerX + 3, outerY + 3, outerX + OUTER_W - 3, outerY + OUTER_H - 3, COVER);
         guiGraphics.fill(outerX + 6, outerY + 6, outerX + OUTER_W - 6, outerY + OUTER_H - 6, COVER_LIGHT);
         guiGraphics.fill(outerX + 10, outerY + 10, outerX + OUTER_W - 10, outerY + OUTER_H - 10, COVER);
-        // 1.20.1 没有 GuiGraphics#outline，对应的是 renderOutline(x, y, width, height, color)
+        
         guiGraphics.renderOutline(outerX, outerY, OUTER_W, OUTER_H, COVER_EDGE);
         guiGraphics.renderOutline(outerX + 6, outerY + 6, OUTER_W - 12, OUTER_H - 12, COVER_LINE);
 
@@ -621,7 +621,7 @@ public class EPCANoteScreen extends Screen {
         guiGraphics.fill(innerX - 2, innerY - 2, innerX + INNER_W + 2, innerY + INNER_H + 2, COVER_EDGE);
     }
 
-    /** 选项卡：底色 + 高光/阴影立体边 + 米色描边；选中用羊皮纸色，悬停提亮 */
+    
     private void drawTab(GuiGraphics guiGraphics, int x, int y, int w, int h,
                          boolean selected, boolean hovered) {
         int bg = selected ? TAB_BG_SELECTED : (hovered ? TAB_BG_HOVER : TAB_BG);
@@ -638,7 +638,7 @@ public class EPCANoteScreen extends Screen {
         }
     }
 
-    /** 书页内容：左右两页分别绘制，并用裁剪框住溢出内页的文字/图片 */
+    
     private void drawPages(GuiGraphics guiGraphics) {
         if (pages.isEmpty()) return;
         PageContent page = pages.get(currentPage);
@@ -654,7 +654,7 @@ public class EPCANoteScreen extends Screen {
         }
     }
 
-    /** 封面底部：默认显示笔记标题，悬停选项卡时显示该选项卡全名；内页底部居中显示页码 */
+    
     private void drawFooter(GuiGraphics guiGraphics, int hoveredParent, int hoveredChild) {
         String hovered = null;
         if (hoveredChild >= 0 && hoveredChild < currentChildTabs.size()) {
@@ -677,7 +677,7 @@ public class EPCANoteScreen extends Screen {
         }
     }
 
-    /** 选项卡宽度有限：超宽的名称按像素截断并加省略号 */
+    
     private static String fit(Font font, String text, int maxWidth) {
         if (text == null || text.isEmpty()) return "";
         if (font.width(text) <= maxWidth) return text;
@@ -688,7 +688,7 @@ public class EPCANoteScreen extends Screen {
         int yOffset = 0;
         for (RenderElement e : elements) {
             if (e instanceof TextLine text) {
-                // 书页是浅色羊皮纸：正文用深色墨水，字符串里的 §0 等颜色代码仍然生效
+                
                 guiGraphics.drawString(font, text.formatted, baseX, baseY + yOffset, PAGE_TEXT);
                 yOffset += font.lineHeight;
             } else if (e instanceof ImageElement img) {

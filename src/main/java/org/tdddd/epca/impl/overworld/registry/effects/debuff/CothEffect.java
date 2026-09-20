@@ -1,6 +1,5 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -23,6 +22,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.ModConfig;
+import org.tdddd.epca.impl.events.PendingConversionManager;
+import org.tdddd.epca.impl.network.ModNetwork;
+import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedFox;
@@ -57,6 +59,11 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     private static final double LEVEL3_SPREAD_RADIUS = 2.5;  
     private static final int LEVEL3_DURATION = 600;          
     private static final int LEVEL3_AMPLIFIER = 2;           
+
+    
+    public static final int TYPE_CONVERSION = 2;
+    
+    public static final int TYPE_CONVERSION_FADE = 3;
 
     public CothEffect() {
         super(MobEffectCategory.BENEFICIAL, 0x990000);
@@ -99,7 +106,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     public void applyEffectTick(LivingEntity entity, int amplifier) {
         Level level = entity.level();
 
-        // 客户端：仅生成粒子
+        
         if (level.isClientSide) {
             if (level.getGameTime() % PARTICLE_SPAWN_INTERVAL == 0) {
                 spawnCothParticles(entity);
@@ -134,18 +141,18 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
         int duration = effect.getDuration();
 
-        // 升级处理
+        
         if (duration <= 1) {
             handleUpgrade(entity, amplifier);
             return;
         }
 
-        // 扩散（等级≥1）
+        
         if (amplifier >= 1 && duration % SPREAD_INTERVAL == 0) {
             spreadEffect(entity, amplifier);
         }
 
-        // 等级3特殊扩散
+        
         if (amplifier >= 5 && !level.isClientSide) {
             long gameTime = level.getGameTime();
             if (gameTime % LEVEL3_SPREAD_INTERVAL == 0) {
@@ -153,7 +160,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             }
         }
 
-        // 等级4触发（原等级3的逻辑）
+        
         if (amplifier >= 3) {
             CompoundTag tag = entity.getPersistentData();
             String key = "CothLevel4Triggered";
@@ -174,7 +181,7 @@ public class CothEffect extends MobEffect implements RemovableEffect {
             }
         }
 
-        // 普通转化尝试（原有条件）
+        
         if (amplifier > 0) {
             tryConvertEntity(entity, amplifier, false);
         }
@@ -212,7 +219,17 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         
         if (amplifier >= 4 && entity.isAlive()) {
             
-            performConversion(entity);
+            CompoundTag earlyNbt = entity.saveWithoutId(new CompoundTag());
+            boolean earlySmall = entity.getBbWidth() < SMALL_ENTITY_THRESHOLD ||
+                    entity.getBbHeight() < SMALL_ENTITY_THRESHOLD;
+            boolean earlyLarge = entity.getBbWidth() > LARGE_ENTITY_THRESHOLD ||
+                    entity.getBbHeight() > LARGE_ENTITY_THRESHOLD;
+            EntityConversionManager.EntityConversionRule earlyRule =
+                    EntityConversionManager.getConversionRule(entity.getType(), earlyNbt);
+                ConversionPlan earlyPlan = planConversion(entity, earlyRule, earlyNbt, earlySmall, earlyLarge);
+                scheduleOrExecute(entity, earlyPlan,
+                        isConfiguredConversion(earlyRule, earlyPlan) ? conversionDelayTicks(amplifier) : 0);
+            entity.getPersistentData().remove("KilledByParasite");
             return;
         }
         
@@ -259,48 +276,107 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         }
 
         if (canConvert) {
-            performConversion(entity, rule, nbt, isSmallEntity, isLargeEntity);
+            ConversionPlan plan = planConversion(entity, rule, nbt, isSmallEntity, isLargeEntity);
+            
+            scheduleOrExecute(entity, plan,
+                    isConfiguredConversion(rule, plan) ? conversionDelayTicks(amplifier) : 0);
             persistentData.remove("KilledByParasite");
         }
     }
 
     
-    private static void performConversion(LivingEntity entity) {
-        
-        CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
-        EntityType<?> entityType = entity.getType();
-        EntityConversionManager.EntityConversionRule rule = EntityConversionManager.getConversionRule(entityType, nbt);
-        boolean isSmallEntity = entity.getBbWidth() < SMALL_ENTITY_THRESHOLD || entity.getBbHeight() < SMALL_ENTITY_THRESHOLD;
-        boolean isLargeEntity = entity.getBbWidth() > LARGE_ENTITY_THRESHOLD || entity.getBbHeight() > LARGE_ENTITY_THRESHOLD;
-        performConversion(entity, rule, nbt, isSmallEntity, isLargeEntity);
+    private static int conversionDelayTicks(int amplifier) {
+        if (amplifier == 1) return 10;
+        if (amplifier >= 2) return 4;
+        return 0;
     }
 
-    private static void performConversion(LivingEntity entity, EntityConversionManager.EntityConversionRule rule, CompoundTag nbt, boolean isSmallEntity, boolean isLargeEntity) {
-        
+    
+    private static void scheduleOrExecute(LivingEntity entity, ConversionPlan plan, int delayTicks) {
+        if (delayTicks <= 0) {
+            executePlan(entity, plan);
+        } else {
+            PendingConversionManager.schedule(entity, plan, delayTicks);
+        }
+    }
+
+    
+    private static ConversionPlan planConversion(LivingEntity entity,
+                                                 EntityConversionManager.EntityConversionRule rule,
+                                                 CompoundTag nbt,
+                                                 boolean isSmallEntity,
+                                                 boolean isLargeEntity) {
         boolean isFinsConversion = hasFinsNearby(entity) && entity.hasEffect(ModEffects.COTH.get());
         if (isFinsConversion && rule != null && rule.fins_to != null && !rule.fins_to.isEmpty()) {
-            convertUsingDataPackRule(entity, rule.fins_to);
-            return;
+            return new ConversionPlan(rule.fins_to, false, isSmallEntity, isLargeEntity);
         }
 
-        
+        boolean generic = false;
         if (rule != null) {
             if (rule.small_entity_priority && isSmallEntity) {
-                
-                performGenericConversion(entity, isSmallEntity, isLargeEntity);
+                generic = true;
             }
             String target = EntityConversionManager.getConversionTarget(rule, nbt);
             if (target != null && !target.isEmpty()) {
-                
-                convertUsingDataPackRule(entity, target);
-            } else if (target == null){
-                return;
+                return new ConversionPlan(target, generic, isSmallEntity, isLargeEntity);
             }
+            return new ConversionPlan(null, generic, isSmallEntity, isLargeEntity);
+        }
+
+        return new ConversionPlan(null, true, isSmallEntity, isLargeEntity);
+    }
+
+    
+    public static void executePlan(LivingEntity entity, ConversionPlan plan) {
+        if (plan == null) {
             return;
         }
 
-        
-        performGenericConversion(entity, isSmallEntity, isLargeEntity);
+        if (plan.targetEntity != null && !plan.targetEntity.isEmpty()) {
+            if (plan.generic) {
+                performGenericConversion(entity, plan.isSmallEntity, plan.isLargeEntity);
+            }
+            convertUsingDataPackRule(entity, plan.targetEntity);
+            return;
+        }
+
+        if (plan.targetEntity == null) {
+            return;
+        }
+
+        if (plan.generic) {
+            performGenericConversion(entity, plan.isSmallEntity, plan.isLargeEntity);
+            return;
+        }
+
+        performGenericConversion(entity, plan.isSmallEntity, plan.isLargeEntity);
+    }
+
+    
+    public static final class ConversionPlan {
+        public final String targetEntity;
+        public final boolean generic;
+        public final boolean isSmallEntity;
+        public final boolean isLargeEntity;
+
+        public ConversionPlan(String targetEntity, boolean generic,
+                              boolean isSmallEntity, boolean isLargeEntity) {
+            this.targetEntity = targetEntity;
+            this.generic = generic;
+            this.isSmallEntity = isSmallEntity;
+            this.isLargeEntity = isLargeEntity;
+        }
+    }
+
+    
+    
+    public static boolean isConfiguredConversion(
+            EntityConversionManager.EntityConversionRule rule, ConversionPlan plan) {
+        return rule != null && !planIsEmpty(plan);
+    }
+
+    public static boolean planIsEmpty(ConversionPlan plan) {
+        return plan == null || (!plan.generic && (plan.targetEntity == null || plan.targetEntity.isEmpty()));
     }
 
     private static boolean hasNbtConditions(EntityConversionManager.EntityConversionRule rule) {
@@ -376,6 +452,9 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                     entity.teleportTo(1000000, -4000, 1000000);
                     
                     serverLevel.addFreshEntity(newEntity);
+
+                    
+                    sendConversionFade(newEntity);
                 }
             } catch (Exception e) {
             }
@@ -407,16 +486,25 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 SoundEvents.ZOMBIE_INFECT, SoundSource.HOSTILE, 1.0F, 1.0F);
 
-        spawnConversionParticles(entity);
+        if (shouldSpawnMeatParticles(entity)) {
+            spawnConversionParticles(entity);
+        }
+    }
+
+    
+    private static boolean shouldSpawnMeatParticles(LivingEntity entity) {
+        CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
+        EntityConversionManager.EntityConversionRule rule =
+                EntityConversionManager.getConversionRule(entity.getType(), nbt);
+        return rule == null || rule.shouldSpawnMeatParticles();
     }
 
     private static void spawnConversionParticles(LivingEntity entity) {
         if (entity.level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.EXPLOSION,
-                    entity.getX(), entity.getY(), entity.getZ(),
-                    5,
-                    0.5, 0.5, 0.5,
-                    0.1);
+            int count = 3 + serverLevel.getRandom().nextInt(3);
+            serverLevel.sendParticles(ModParticles.LIVING_FLESH.get(),
+                    entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(),
+                    count, 0.5, 0.5, 0.5, 0.05);
         }
     }
 
@@ -600,6 +688,17 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
             
             serverLevel.addFreshEntity(newEntity);
+
+            
+            sendConversionFade(newEntity);
+        }
+    }
+
+    
+    public static void sendConversionFade(Entity newEntity) {
+        if (newEntity instanceof LivingEntity livingNew) {
+            ModNetwork.sendToAllTracking(
+                    new ColorEffectPacket(livingNew, TYPE_CONVERSION_FADE, 6), livingNew);
         }
     }
 

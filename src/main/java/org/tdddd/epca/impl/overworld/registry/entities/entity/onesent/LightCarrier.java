@@ -48,6 +48,7 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class LightCarrier extends PathfinderMob implements GeoEntity, IParasite, IOnesent, Enemy {
     
@@ -196,7 +197,7 @@ public class LightCarrier extends PathfinderMob implements GeoEntity, IParasite,
         setExploding(true);
         explosionTimer = 20;
         deathPosition = this.blockPosition();
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);
@@ -468,7 +469,8 @@ public class LightCarrier extends PathfinderMob implements GeoEntity, IParasite,
             if (target != null && target.isAlive() && !isBoomTriggered && boomAnimationTimer == 0) {
                 double distance = this.distanceTo(target);
                 boolean healthLow = this.getHealth() / this.getMaxHealth() < 0.25F;
-                boolean tooClose = distance <= 5.0;
+                boolean tooClose = distance <= 5.0
+                        && this.getHealth() / this.getMaxHealth() < 0.5F;   
                 if (healthLow || tooClose) {
                     isBoomTriggered = true;
                     boomAnimationTimer = 20; 

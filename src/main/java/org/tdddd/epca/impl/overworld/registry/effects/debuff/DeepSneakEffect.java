@@ -82,7 +82,7 @@ public class DeepSneakEffect extends MobEffect implements RemovableEffect{
         AttributeInstance instance = entity.getAttribute(Attributes.MOVEMENT_SPEED);
         if (instance == null) return;
 
-        // 移除旧修饰符，防止重复
+        
         instance.removeModifier(UUID.fromString(SPEED_MODIFIER_UUID));
 
         double amount = -0.0125 * (amplifier + 1);

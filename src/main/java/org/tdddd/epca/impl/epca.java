@@ -36,6 +36,7 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.ParasiteAttractionManager;
 import org.tdddd.epca.impl.events.EvolutionStageEvents;
+import org.tdddd.epca.impl.events.PendingConversionManager;
 import org.tdddd.epca.impl.events.ShieldAttachHandler;
 import org.tdddd.epca.impl.fluid.ModFluids;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
@@ -76,7 +77,7 @@ public class epca {
         ModConfig.register();
         WingChestManager.init();
 
-        // 祭坛方块本体在前置模组 eej 中，这里把 EPCA 的献祭仪式等交互挂上去
+        
         AltarInteractionRegistry.register(new EpcaAltarInteractionHandler());
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
@@ -132,6 +133,9 @@ public class epca {
             for (ServerLevel level : server.getAllLevels()) {
                 ParasiteAttractionManager.tick(level);
             }
+
+            
+            PendingConversionManager.tick(server);
         }
     }
 

@@ -81,18 +81,16 @@ public interface IInfested {
     }
 
 
-    /**
-     * 破坏自身碰撞箱范围内的光源方块。
-     */
+    
     default int tryBreakLightSources(Mob mob, int currentCooldown) {
         if (currentCooldown > 0) {
             return currentCooldown - 1;
         }
 
-        // 保存原始碰撞箱（未扩展）
+        
         AABB originalBox = mob.getBoundingBox();
 
-        // 获取搜索范围内所有方块位置
+        
         List<BlockPos> blockPositions = BlockPos.betweenClosedStream(originalBox)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toList());

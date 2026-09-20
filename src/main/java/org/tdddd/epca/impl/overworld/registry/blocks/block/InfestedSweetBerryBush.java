@@ -69,7 +69,7 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
         return 60;
     }
 
-    // ========== EntityBlock 实现（关联 BlockEntity） ==========
+    
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -89,7 +89,7 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
         return null;
     }
 
-    // ========== 原有交互（减速 + 伤害 + 30秒COTH） ==========
+    
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (!(entity instanceof LivingEntity living)) {
@@ -97,14 +97,14 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
         }
 
         if (!IParasite.isParasiteByTagOrInterface(living)) {
-            // 减速（所有 age 均生效，因为只有 1 和 2）
+            
             living.makeStuckInBlock(state, new Vec3(0.8, 0.75, 0.8));
 
-            // 当 age=2 且移动时造成伤害 + 30秒 COTH
+            
             if (!level.isClientSide && state.getValue(AGE) >= 3) {
                 if (living.xOld != living.getX() || living.zOld != living.getZ()) {
                     living.hurt(level.damageSources().sweetBerryBush(), 1.0F);
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0)); // I级 30秒
+                    living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0)); 
                 }
             }
         }

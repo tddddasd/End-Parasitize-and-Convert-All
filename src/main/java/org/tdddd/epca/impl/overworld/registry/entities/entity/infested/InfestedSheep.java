@@ -54,6 +54,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -672,7 +673,7 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
         deathPosition = this.blockPosition(); 
 
         
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
 
         
         this.setNoAi(true);

@@ -38,10 +38,10 @@ public class ShieldProtectionHelper {
     }
 
     public static void syncShieldToDuration(LivingEntity entity) {
-        // 【新增】如果实体是 ServerPlayer 且连接未初始化，则跳过
+        
         if (entity instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             if (serverPlayer.connection == null) {
-                return; // 安全退出，避免后续操作触发 NPE
+                return; 
             }
         }
 

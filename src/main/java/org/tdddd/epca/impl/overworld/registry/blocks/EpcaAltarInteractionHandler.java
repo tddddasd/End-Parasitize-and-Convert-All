@@ -35,24 +35,18 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * EPCA 侧的祭坛交互：献祭仪式、小型物品展示框过滤器、调试用击杀棒。
- * <p>
- * 祭坛方块本体已经分离到前置模组 eej 中，这里通过 eej 的
- * {@link org.tdddd.eej.api.AltarInteractionRegistry} 注册处理器接入祭坛右键交互，
- * 因此 eej 不需要知道 EPCA 的任何内容。
- */
+
 public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
 
     @Override
     public InteractionResult onAltarUse(Level level, BlockPos pos, BlockState state,
                                         Player player, InteractionHand hand, ItemStack heldItem) {
-        // 1. 献祭仪式
+        
         if (tryPerformSacrifice(level, pos, player)) {
             return InteractionResult.SUCCESS;
         }
 
-        // 2. 击杀棒：输出当前祭坛结构的信息（调试）
+        
         if (heldItem.is(ModItems.KILL_STICK.get())) {
             if (!(state.getBlock() instanceof AbstractAltarBlock altarBlock)) {
                 return InteractionResult.PASS;
@@ -76,7 +70,7 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         return InteractionResult.PASS;
     }
 
-    // ═══════════════════ 献祭仪式 ═══════════════════
+    
 
     private boolean tryPerformSacrifice(Level level, BlockPos pos, Player player) {
         if (level.isClientSide) return false;

@@ -12,22 +12,10 @@ import org.tdddd.epca.impl.epca;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * 数据生成器：自动为模组中所有方块生成 blockstates 和 models JSON。
- * 遍历 ForgeRegistries.BLOCKS 中属于本模组的方块，根据方块类型自动调用对应生成方法。
- * 特殊方块（自定义 BBmodel、多模型变体等）通过 MANUAL_BLOCKS 跳过。
- */
+
 public class BlockStateData extends BlockStateProvider {
 
-    /**
-     * 需手动维护模型/blockstate 的方块：
-     * - 多模型变体（dirt 随机纹理）
-     * - 雪层（高度属性）
-     * - 藤蔓（多方块面）
-     * - 滴水石锥
-     * - 方块实体渲染器（swallow_cyst）
-     * - 自定义 BBmodel 元素模型
-     */
+    
     private static final Set<String> MANUAL_BLOCKS = Set.of(
             "infested_dirt", "infested_log", "infested_stone", "infested_heavy_stone","infested_wood", "infested_stripped_wood",
             "infested_snow", "infested_spider_web", "infested_spider_web_blood", "infested_cave_spider_web",
@@ -61,11 +49,9 @@ public class BlockStateData extends BlockStateProvider {
                 });
     }
 
-    /**
-     * 根据方块类型分发到对应的生成方法。
-     */
+    
     private void generateBlock(Block block) {
-        // 最具体的类型优先匹配
+        
         if (block instanceof SlabBlock slab) {
             slabBlockWithItem(slab);
         } else if (block instanceof StairBlock stair) {
@@ -93,17 +79,14 @@ public class BlockStateData extends BlockStateProvider {
         } else if (block instanceof BushBlock) {
             crossBlockWithItem(block);
         } else {
-            // 默认：普通完整方块
+            
             simpleBlockWithItem(block);
         }
     }
 
-    // ======================== 带默认纹理推断的辅助方法 ========================
+    
 
-    /**
-     * 尝试从方块名推断配套的"完整方块"，用于 slab/stairs/wall 等派生方块的纹理。
-     * 例如 infested_cobblestone_slab -> infested_cobblestone
-     */
+    
     private Block findParentBlock(Block child, String... suffixes) {
         String childName = name(child);
         for (String suffix : suffixes) {
@@ -119,15 +102,15 @@ public class BlockStateData extends BlockStateProvider {
         return child;
     }
 
-    // ======================== 具体类型的生成方法 ========================
+    
 
-    /** 普通完整方块（六面纹理相同） */
+    
     protected void simpleBlockWithItem(Block block) {
         simpleBlock(block);
         simpleBlockItem(block, cubeAll(block));
     }
 
-    /** Slab：自动查找配套 fullBlock 获取纹理 */
+    
     private void slabBlockWithItem(SlabBlock slab) {
         Block fullBlock = findParentBlock(slab, "_slab");
         ResourceLocation tex = blockTexture(fullBlock);
@@ -135,7 +118,7 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(slab, models().slab(name(slab), tex, tex, tex));
     }
 
-    /** Stairs：自动查找配套 fullBlock 获取纹理 */
+    
     private void stairsBlockWithItem(StairBlock stair) {
         Block fullBlock = findParentBlock(stair, "_stairs");
         ResourceLocation tex = blockTexture(fullBlock);
@@ -143,7 +126,7 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(stair, models().stairs(name(stair), tex, tex, tex));
     }
 
-    /** Wall：自动查找配套 fullBlock 获取纹理 */
+    
     private void wallBlockWithItem(WallBlock wall) {
         Block fullBlock = findParentBlock(wall, "_wall");
         ResourceLocation tex = blockTexture(fullBlock);
@@ -151,7 +134,7 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(wall, models().wallInventory(name(wall) + "_inventory", tex));
     }
 
-    /** Fence：自动查找配套 plank 获取纹理 */
+    
     private void fenceBlockWithItem(FenceBlock fence) {
         Block plank = findParentBlock(fence, "_fence");
         ResourceLocation tex = blockTexture(plank);
@@ -159,7 +142,7 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(fence, models().fenceInventory(name(fence) + "_inventory", tex));
     }
 
-    /** RotatedPillarBlock 原木/柱子类 */
+    
     protected void logBlockWithItem(Block block) {
         logBlock((RotatedPillarBlock) block);
         simpleBlockItem(block, models().cubeColumn(
@@ -169,7 +152,7 @@ public class BlockStateData extends BlockStateProvider {
         ));
     }
 
-    /** 树叶方块 — 使用 cutout 渲染 */
+    
     private void leavesBlockWithItem(Block block) {
         ModelFile leavesModel = models().cubeAll(name(block), blockTexture(block))
                 .renderType("cutout");
@@ -177,14 +160,14 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(block, leavesModel);
     }
 
-    /** 交叉植物（花草）— 使用 cutout 渲染 */
+    
     protected void crossBlockWithItem(Block block) {
         simpleBlock(block, models().cross(name(block), blockTexture(block)).renderType("cutout"));
         itemModels().withExistingParent(name(block), "item/generated")
                 .texture("layer0", blockTexture(block));
     }
 
-    /** 栅栏门 */
+    
     private void fenceGateBlockWithItem(FenceGateBlock gate) {
         Block plank = findParentBlock(gate, "_fence_gate");
         ResourceLocation tex = blockTexture(plank);
@@ -192,7 +175,7 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(gate, models().fenceGate(name(gate), tex));
     }
 
-    /** 门 */
+    
     private void doorBlockWithItem(DoorBlock door) {
         Block plank = findParentBlock(door, "_door");
         ResourceLocation tex = blockTexture(plank);
@@ -201,7 +184,7 @@ public class BlockStateData extends BlockStateProvider {
                 .texture("layer0", new ResourceLocation(epca.MODID, "item/" + name(door)));
     }
 
-    /** 活板门 */
+    
     private void trapdoorBlockWithItem(TrapDoorBlock trapdoor) {
         Block plank = findParentBlock(trapdoor, "_trapdoor");
         ResourceLocation tex = blockTexture(plank);
@@ -209,7 +192,7 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(trapdoor, models().trapdoorBottom(name(trapdoor) + "_bottom", tex));
     }
 
-    /** 按钮 */
+    
     private void buttonBlockWithItem(ButtonBlock button) {
         Block plank = findParentBlock(button, "_button");
         ResourceLocation tex = blockTexture(plank);
@@ -219,7 +202,7 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(button, models().buttonInventory(name(button) + "_inventory", tex));
     }
 
-    /** 压力板 */
+    
     private void pressurePlateBlockWithItem(PressurePlateBlock plate) {
         Block plank = findParentBlock(plate, "_pressure_plate");
         ResourceLocation tex = blockTexture(plank);
@@ -229,7 +212,7 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(plate, plateModel);
     }
 
-    /** 玻璃板/铁栏杆 */
+    
     private void paneBlockWithItem(IronBarsBlock pane) {
         Block glass = findParentBlock(pane, "_pane");
         ResourceLocation tex = blockTexture(glass);
@@ -238,7 +221,7 @@ public class BlockStateData extends BlockStateProvider {
                 .texture("layer0", tex);
     }
 
-    // ======================== 工具方法 ========================
+    
 
     protected String name(Block block) {
         return Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(block)).getPath();

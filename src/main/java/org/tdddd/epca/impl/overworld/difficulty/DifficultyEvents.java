@@ -25,10 +25,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class DifficultyEvents {
-    // ===== 定时刷新 Buff =====
+    
     private static final Map<UUID, Long> lastApplyTick = new ConcurrentHashMap<>();
-    private static final int REFRESH_INTERVAL = 29 * 20; // 29 秒（tick）
-    private static final int BUFF_DURATION = 30 * 20;    // 30 秒（tick）
+    private static final int REFRESH_INTERVAL = 29 * 20; 
+    private static final int BUFF_DURATION = 30 * 20;    
     
     @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
@@ -71,16 +71,16 @@ public class DifficultyEvents {
                 }
             }
         }
-        // ===== 传说难度：额外掉落两份掉落物（非玩家实体） =====
+        
         Level level = event.getEntity().level();
         if (!level.isClientSide && DifficultyEffects.isLegendary(level)) {
             LivingEntity entity = event.getEntity();
-            // 排除玩家
+            
             if (entity instanceof Player) return;
-            // 如果需要，也可以排除寄生体？但需求说“所有生物”，可包括寄生体，但不排除
-            // 但原逻辑已处理寄生体，如果寄生体也享受，则叠加。暂且不排除
+            
+            
 
-            // 复制当前掉落物，每个物品额外添加两份
+            
             List<ItemEntity> drops = (List<ItemEntity>) event.getDrops();
             List<ItemEntity> additionalDrops = new ArrayList<>();
             for (ItemEntity drop : drops) {
@@ -96,7 +96,7 @@ public class DifficultyEvents {
         }
     }
 
-    // 玩家tick事件，定期刷新buff
+    
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
@@ -115,9 +115,9 @@ public class DifficultyEvents {
     }
 
     private static void applyBuffs(Player player) {
-        // 幸运 II（amplifier=1）
+        
         player.addEffect(new MobEffectInstance(MobEffects.LUCK, BUFF_DURATION, 1, false, false, true));
-        // SoulProtection II（amplifier=1）
+        
         player.addEffect(new MobEffectInstance(ModEffects.SOUL_PROTECTION.get(), BUFF_DURATION, 1, false, false, true));
     }
 }

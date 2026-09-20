@@ -1,6 +1,7 @@
 {
   "fins_to": "epca:infested_endermite",
   "from": "minecraft:endermite",
+  "meat_particles": false,
   "mozzie_to": "epca:infested_endermite",
   "priority": 1,
   "small_entity_priority": true,

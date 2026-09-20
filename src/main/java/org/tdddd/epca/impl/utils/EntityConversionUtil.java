@@ -1,12 +1,16 @@
 package org.tdddd.epca.impl.utils;
 
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import org.tdddd.epca.impl.network.ModNetwork;
+import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
+import org.tdddd.epca.impl.overworld.registry.ModParticles;
+import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
 
 public class EntityConversionUtil {
     public static void convertTo(LivingEntity entity, EntityType<? extends LivingEntity> targetType) {
@@ -18,16 +22,11 @@ public class EntityConversionUtil {
                 SoundEvents.ZOMBIE_INFECT, SoundSource.HOSTILE, 1.0F, 1.0F);
 
         
-        for (int i = 0; i < 10; i++) {
-            double offsetX = (entity.getRandom().nextDouble() - 0.5) * 1.5;
-            double offsetY = (entity.getRandom().nextDouble() - 0.5) * 1.5;
-            double offsetZ = (entity.getRandom().nextDouble() - 0.5) * 1.5;
-
-            entity.level().addParticle(ParticleTypes.EXPLOSION,
-                    entity.getX() + offsetX,
-                    entity.getY() + 0.5 + offsetY,
-                    entity.getZ() + offsetZ,
-                    0, 0, 0);
+        if (entity.level() instanceof ServerLevel serverLevel) {
+            int count = 3 + serverLevel.getRandom().nextInt(3);
+            serverLevel.sendParticles(ModParticles.LIVING_FLESH.get(),
+                    entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(),
+                    count, 0.5, 0.5, 0.5, 0.05);
         }
 
         
@@ -49,6 +48,10 @@ public class EntityConversionUtil {
 
             
             entity.level().addFreshEntity(newEntity);
+
+            
+            ModNetwork.sendToAllTracking(
+                    new ColorEffectPacket(newEntity, CothEffect.TYPE_CONVERSION_FADE, 6), newEntity);
         }
 
         

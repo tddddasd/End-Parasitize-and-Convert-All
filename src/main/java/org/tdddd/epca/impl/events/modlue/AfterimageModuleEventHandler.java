@@ -129,7 +129,7 @@ public class AfterimageModuleEventHandler {
         }
     }
 
-    // 间接伤害免疫
+    
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;

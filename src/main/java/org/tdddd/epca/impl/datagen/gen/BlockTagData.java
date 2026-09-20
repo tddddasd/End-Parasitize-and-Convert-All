@@ -47,7 +47,7 @@ public class BlockTagData extends BlockTagsProvider {
             if (!isModBlock(block)) continue;
             String name = entry.getKey().location().getPath();
 
-            // ── 可挖掘工具标签 ──
+            
             if (block instanceof RotatedPillarBlock || block instanceof FenceBlock
                     || block instanceof FenceGateBlock || isWoodLike(name) ||
                     name.contains("pumpkin") || name.contains("carved_pumpkin") ||
@@ -66,7 +66,7 @@ public class BlockTagData extends BlockTagsProvider {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block);
             }
 
-            // ── 工具等级标签 ──
+            
             if (isOre(name) && block.defaultDestroyTime() >= 3.0F) {
                 if (name.contains("iron") || name.contains("copper") || name.contains("lapis")) {
                     tag(BlockTags.NEEDS_STONE_TOOL).add(block);
@@ -76,7 +76,7 @@ public class BlockTagData extends BlockTagsProvider {
                 }
             }
 
-            // ── 结构标签 ──
+            
             if (block instanceof WallBlock) tag(BlockTags.WALLS).add(block);
             if (block instanceof FenceBlock) {
                 tag(BlockTags.FENCES).add(block);

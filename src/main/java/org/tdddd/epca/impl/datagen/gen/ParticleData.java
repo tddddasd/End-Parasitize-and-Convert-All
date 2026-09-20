@@ -9,9 +9,7 @@ import net.minecraftforge.registries.RegistryObject;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 
-/**
- * 数据生成器：自动为模组中所有粒子生成 particles/*.json 纹理描述。
- */
+
 public class ParticleData extends ParticleDescriptionProvider {
 
     public ParticleData(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -20,7 +18,7 @@ public class ParticleData extends ParticleDescriptionProvider {
 
     @Override
     protected void addDescriptions() {
-        // 遍历 ModParticles 中注册的粒子
+        
         addParticle(ModParticles.SPLASHI, "splashi");
         addParticle(ModParticles.COTH, "coth");
         addParticle(ModParticles.BLEEDING, "bleeding");

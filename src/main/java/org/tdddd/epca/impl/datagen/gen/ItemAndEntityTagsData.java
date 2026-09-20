@@ -20,12 +20,10 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * 物品标签和实体类型标签数据生成器。
- */
+
 public class ItemAndEntityTagsData {
 
-    /** 物品标签 */
+    
     public static class ItemTagsGen extends ItemTagsProvider {
         public ItemTagsGen(PackOutput output, CompletableFuture<HolderLookup.Provider> lp,
                            BlockTagsProvider blockTags, @javax.annotation.Nullable ExistingFileHelper efh) {
@@ -54,7 +52,7 @@ public class ItemAndEntityTagsData {
         }
     }
 
-    /** 实体类型标签 */
+    
     public static class EntityTagsGen extends EntityTypeTagsProvider {
         public EntityTagsGen(PackOutput output, CompletableFuture<HolderLookup.Provider> lp,
                               @javax.annotation.Nullable ExistingFileHelper efh) {

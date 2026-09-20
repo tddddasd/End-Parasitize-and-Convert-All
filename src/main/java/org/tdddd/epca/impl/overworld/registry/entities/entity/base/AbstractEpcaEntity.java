@@ -21,6 +21,7 @@ import org.tdddd.epca.impl.client.entity.IAutoRenderableEntity;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 import org.tdddd.epca.impl.utils.entity.EntityBreakUtils;
 import org.tdddd.epca.impl.utils.entity.EntityMovementUtils;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -236,10 +237,15 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
         setInvulnerable(true);
         fakeDeathTimer = fakeDeathDuration;
         deathPosition = this.blockPosition();
-        this.setHealth(fakeDeathHealth);
+        this.setBurstHealth(fakeDeathHealth);
         this.setNoAi(true);
         this.setTarget(null);
         this.setPose(Pose.DYING);
+    }
+
+    
+    protected void setBurstHealth(float requested) {
+        this.setHealth(EntityHealthUtils.burstHealth(this, requested));
     }
 
     protected void onFakeDeathEnd() {

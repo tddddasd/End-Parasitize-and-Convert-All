@@ -29,6 +29,13 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         public boolean small_entity_priority = true;
         public Map<String, Object> nbt_conditions; 
         public int priority = 0; 
+        
+        public Boolean meat_particles;
+
+        
+        public boolean shouldSpawnMeatParticles() {
+            return meat_particles == null || meat_particles;
+        }
     }
 
     @Override

@@ -10,7 +10,7 @@ import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 
 public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
 
-    // 直接持有模型实例，方便操作骨骼
+    
     private final ReshapeLongarmsModel model;
 
     public ReshapeLongarmsRenderer(EntityRendererProvider.Context renderManager) {
@@ -32,9 +32,7 @@ public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
-    /**
-     * 辅助方法：通过骨骼名称设置隐藏状态
-     */
+    
     private void setBoneHidden(String boneName, boolean hide) {
         CoreGeoBone bone = this.model.getAnimationProcessor().getBone(boneName);
         if (bone != null) {

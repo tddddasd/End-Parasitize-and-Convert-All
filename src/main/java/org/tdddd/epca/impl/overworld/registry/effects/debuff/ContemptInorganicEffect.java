@@ -1,6 +1,5 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -15,8 +14,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.ModConfig;
+import org.tdddd.epca.impl.network.ModNetwork;
+import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
 import org.tdddd.epca.impl.overworld.data.EntityConversionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
+import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 
@@ -136,6 +138,13 @@ public class ContemptInorganicEffect extends MobEffect {
                         serverLevel.addFreshEntity(newEntity);
 
                         
+                        if (newEntity instanceof LivingEntity livingNew) {
+                            ModNetwork.sendToAllTracking(
+                                    new ColorEffectPacket(livingNew, CothEffect.TYPE_CONVERSION_FADE, 6),
+                                    livingNew);
+                        }
+
+                        
                         entity.getPersistentData().putBoolean(TAG_CONVERTED_BY_CONTEMPT, true);
                     }
                 } catch (Exception e) {
@@ -153,13 +162,22 @@ public class ContemptInorganicEffect extends MobEffect {
         spawnConversionParticles(entity);
     }
 
+    
     private static void spawnConversionParticles(LivingEntity entity) {
-        if (entity.level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.EXPLOSION,
-                    entity.getX(), entity.getY(), entity.getZ(),
-                    5,
-                    0.5, 0.5, 0.5,
-                    0.1);
+        if (!(entity.level() instanceof ServerLevel serverLevel)) {
+            return;
         }
+
+        CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
+        EntityConversionManager.EntityConversionRule rule =
+                EntityConversionManager.getConversionRule(entity.getType(), nbt);
+        if (rule != null && !rule.shouldSpawnMeatParticles()) {
+            return;
+        }
+
+        int count = 3 + serverLevel.getRandom().nextInt(3);
+        serverLevel.sendParticles(ModParticles.LIVING_FLESH.get(),
+                entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(),
+                count, 0.5, 0.5, 0.5, 0.05);
     }
 }

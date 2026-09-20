@@ -85,7 +85,7 @@ public class LivingArmorBox extends Item {
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         EnchantmentCategory category = enchantment.category;
-        // 允许所有盔甲相关类别（含通用、头、胸、腿、足）以及可穿戴诅咒类
+        
         return category == EnchantmentCategory.ARMOR ||
                 category == EnchantmentCategory.ARMOR_HEAD ||
                 category == EnchantmentCategory.ARMOR_CHEST ||

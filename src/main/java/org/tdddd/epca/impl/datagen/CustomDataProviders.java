@@ -16,23 +16,18 @@ import java.util.concurrent.CompletableFuture;
 
 import static net.minecraft.data.DataProvider.saveStable;
 
-/**
- * 统一管理所有自定义数据类型的 DataProvider。
- * 每种数据类型对应一个内部 Provider 类，实现 DataProvider 接口直接写入 JSON。
- *
- * 参考 InfectionCoreFramework 的 EvolutionDataProvider / BlockSpreadDataProvider 模式。
- */
+
 public class CustomDataProviders {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    // ═══════════════════ 工具方法 ═══════════════════
+    
     private static Path dataPath(PackOutput out, String subfolder, String file) {
         return out.getOutputFolder(PackOutput.Target.DATA_PACK)
                 .resolve(epca.MODID + "/" + subfolder + "/" + file + ".json");
     }
 
-    /** 获取实体 → "modid:name" 字符串 */
+    
     private static String regName(EntityType<?> type) {
         return Objects.requireNonNull(ForgeRegistries.ENTITY_TYPES.getKey(type)).toString();
     }
@@ -44,17 +39,31 @@ public class CustomDataProviders {
         public boolean small_entity_priority = true;
         public int priority = 0;
         public Map<String, Object> nbt_conditions;
+        
+        public Boolean meat_particles;
     }
 
     public static class EntityConversionDataProvider implements DataProvider {
         private final PackOutput out;
         public EntityConversionDataProvider(PackOutput out) { this.out = out; }
 
+        
+        private static final Set<String> NO_MEAT_FILES = Set.of(
+                "skeleton", "bat", "villager", "pillager", "vindcator", "enderman", "endermite",
+                "silverfish", "slime_size0", "slime_size1", "slime_size3", "creeper", "iron_golem",
+                "guardian", "elder_guardian", "warden", "magma_cube", "vex", "allay", "blaze",
+                "ender_dragon", "fox", "fox_baby", "wolf", "wolf_baby"
+        );
+
+        private static boolean noMeat(String file) {
+            return NO_MEAT_FILES.contains(file);
+        }
+
         @Override
         public CompletableFuture<?> run(CachedOutput cache) {
             List<CompletableFuture<?>> tasks = new ArrayList<>();
 
-            // 原版实体 → 受染实体
+            
             conv(cache, tasks, "cow",      EntityType.COW,      ModEntities.INFESTED_COW,            true,  1);
             conv(cache, tasks, "chicken",  EntityType.CHICKEN,  ModEntities.INFESTED_CHICKEN,         false, 1);
             conv(cache, tasks, "pig",      EntityType.PIG,      ModEntities.INFESTED_PIG,             true,  1);
@@ -74,12 +83,12 @@ public class CustomDataProviders {
             conv(cache, tasks, "silverfish",EntityType.SILVERFISH,ModEntities.INFESTED_SILVERFISH,    true,  1);
             conv(cache, tasks, "bat",EntityType.BAT ,ModEntities.INFESTED_BAT,    true,  1);
 
-            // slime — nbt_conditions 区分 Size
+            
             convNbt(cache, tasks, "slime_size0", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE0, false, 1, Map.of("Size", 0));
             convNbt(cache, tasks, "slime_size1", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE1, true,  1, Map.of("Size", 1));
             convNbt(cache, tasks, "slime_size3", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE3, true,  1, Map.of("Size", 3));
 
-            // baby 变体（from 相同，priority=0 供 NBT 条件匹配用）
+            
             conv(cache, tasks, "cow_baby",      EntityType.COW,      ModEntities.INFESTED_COW,      true,  0);
             conv(cache, tasks, "chicken_baby",  EntityType.CHICKEN,  ModEntities.INFESTED_CHICKEN,  false, 0);
             conv(cache, tasks, "pig_baby",      EntityType.PIG,      ModEntities.INFESTED_PIG,      true,  0);
@@ -90,10 +99,10 @@ public class CustomDataProviders {
             conv(cache, tasks, "husk_baby",     EntityType.HUSK,     ModEntities.INFESTED_HUSK,     true,  0);
             conv(cache, tasks, "drowned_baby",  EntityType.DROWNED,  ModEntities.INFESTED_DROWNED,  true,  0);
 
-            // 特殊/boss 原版实体 (to=null, 免疫转换, 仅预留)
+            
             convBoss(cache, tasks, "ender_dragon",      EntityType.ENDER_DRAGON,    true, 1);
 
-            // mozzie 转化（to=null, mozzie_to=small_incomplete_form）
+            
             convMozzie(cache, tasks, "creeper", EntityType.CREEPER);
             convMozzie(cache, tasks, "iron_golem", EntityType.IRON_GOLEM);
             convMozzie(cache, tasks, "guardian", EntityType.GUARDIAN);
@@ -107,7 +116,7 @@ public class CustomDataProviders {
             return CompletableFuture.allOf(tasks.toArray(CompletableFuture[]::new));
         }
 
-        // ——— 简写方法 ———
+        
 
         /** from=EntityType, to=RegistryObject */
         private void conv(CachedOutput c, List<CompletableFuture<?>> tasks,
@@ -115,25 +124,25 @@ public class CustomDataProviders {
                           boolean smallPrio, int prio) {
             tasks.add(write(c, file, regName(from), regName(to.get()), smallPrio, prio, null));
         }
-        /** from=RegistryObject, to=RegistryObject (受染→walking_head) */
+        
         private void conv(CachedOutput c, List<CompletableFuture<?>> tasks,
                           String file, RegistryObject<? extends EntityType<?>> from,
                           RegistryObject<? extends EntityType<?>> to,
                           boolean smallPrio, int prio) {
             tasks.add(write(c, file, regName(from.get()), regName(to.get()), smallPrio, prio, null));
         }
-        /** 原版→受染但受染实体未注册 (boss 预留) */
+        
         private void convBoss(CachedOutput c, List<CompletableFuture<?>> tasks,
                               String file, EntityType<?> from, boolean smallPrio, int prio) {
             tasks.add(write(c, file, regName(from), null, smallPrio, prio, null));
         }
-        /** 带 nbt_conditions */
+        
         private void convNbt(CachedOutput c, List<CompletableFuture<?>> tasks,
                              String file, EntityType<?> from, RegistryObject<? extends EntityType<?>> to,
                              boolean smallPrio, int prio, Map<String, Object> nbt) {
             tasks.add(write(c, file, regName(from), regName(to.get()), smallPrio, prio, nbt));
         }
-        /** mozzie 专用: to=null, fins_to=null, mozzie_to=small_incomplete_form */
+        
         private void convMozzie(CachedOutput c, List<CompletableFuture<?>> tasks,
                                 String file, EntityType<?> from) {
             EntityConversionRule rule = new EntityConversionRule();
@@ -143,11 +152,12 @@ public class CustomDataProviders {
             rule.mozzie_to = regName(ModEntities.SMALL_INCOMPLETE_FORM.get());
             rule.small_entity_priority = true;
             rule.priority = 0;
+            rule.meat_particles = applyMeatParticles(file);
             tasks.add(saveStable(c, JsonParser.parseString(GSON.toJson(rule)),
                     dataPath(out, "entity_conversions", file)));
         }
 
-        /** 核心写出方法 (to == fins_to == mozzie_to) */
+        
         private CompletableFuture<?> write(CachedOutput c, String file,
                                             String from, String to, boolean smallPrio, int prio,
                                             Map<String, Object> nbt) {
@@ -159,8 +169,14 @@ public class CustomDataProviders {
             rule.small_entity_priority = smallPrio;
             rule.priority = prio;
             if (nbt != null) rule.nbt_conditions = nbt;
+            rule.meat_particles = applyMeatParticles(file);
             return saveStable(c, JsonParser.parseString(GSON.toJson(rule)),
                     dataPath(out, "entity_conversions", file));
+        }
+
+        
+        private static Boolean applyMeatParticles(String file) {
+            return noMeat(file) ? Boolean.FALSE : null;
         }
 
         @Override public String getName() { return "EPCA Entity Conversions"; }
@@ -268,7 +284,7 @@ public class CustomDataProviders {
             put(general, "minecraft:dirt_path", "epca:infested_dirt");
             put(general, "minecraft:farmland", "epca:infested_dirt");
 
-            // 木板、台阶、楼梯、栅栏
+            
             for (String wood : Arrays.asList("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry")) {
                 put(general, "minecraft:" + wood + "_planks", "epca:infested_planks");
                 put(general, "minecraft:" + wood + "_slab", "epca:infested_planks_slab");
@@ -276,7 +292,7 @@ public class CustomDataProviders {
                 put(general, "minecraft:" + wood + "_fence", "epca:infested_planks_fence");
             }
 
-            // 原木、木头、去皮原木、去皮木头
+            
             for (String wood : Arrays.asList("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry")) {
                 put(general, "minecraft:" + wood + "_log", "epca:infested_log");
                 put(general, "minecraft:" + wood + "_wood", "epca:infested_wood");
@@ -285,12 +301,12 @@ public class CustomDataProviders {
                 put(general, "minecraft:" + wood + "_leaves", "epca:infested_leaves");
             }
 
-            // 沙子
+            
             put(general, "minecraft:sand", "epca:infested_sand");
             put(general, "minecraft:suspicious_sand", "epca:infested_sand");
             put(general, "minecraft:red_sand", "epca:infested_sand");
 
-            // 普通石头及其变种
+            
             put(general, "minecraft:stone", "epca:infested_stone");
             put(general, "minecraft:diorite", "epca:infested_stone");
             put(general, "minecraft:andesite", "epca:infested_stone");
@@ -303,7 +319,7 @@ public class CustomDataProviders {
             put(general, "minecraft:polished_andesite", "epca:infested_polished_stone");
             put(general, "minecraft:polished_granite", "epca:infested_polished_stone");
 
-            // 石台阶
+            
             put(general, "minecraft:stone_slab", "epca:infested_stone_slab");
             put(general, "minecraft:diorite_slab", "epca:infested_stone_slab");
             put(general, "minecraft:andesite_slab", "epca:infested_stone_slab");
@@ -313,7 +329,7 @@ public class CustomDataProviders {
             put(general, "minecraft:polished_andesite_slab", "epca:infested_polished_stone_slab");
             put(general, "minecraft:polished_granite_slab", "epca:infested_polished_stone_slab");
 
-            // 石楼梯
+            
             put(general, "minecraft:stone_stairs", "epca:infested_stone_stairs");
             put(general, "minecraft:diorite_stairs", "epca:infested_stone_stairs");
             put(general, "minecraft:andesite_stairs", "epca:infested_stone_stairs");
@@ -322,12 +338,12 @@ public class CustomDataProviders {
             put(general, "minecraft:polished_andesite_stairs", "epca:infested_polished_stone_stairs");
             put(general, "minecraft:polished_granite_stairs", "epca:infested_polished_stone_stairs");
 
-            // 石墙（包含 diorite, andesite, granite）
+            
             put(general, "minecraft:diorite_wall", "epca:infested_stone_wall");
             put(general, "minecraft:andesite_wall", "epca:infested_stone_wall");
             put(general, "minecraft:granite_wall", "epca:infested_stone_wall");
 
-            // 圆石
+            
             put(general, "minecraft:cobblestone", "epca:infested_cobblestone");
             put(general, "minecraft:mossy_cobblestone", "epca:infested_cobblestone");
             put(general, "minecraft:cobblestone_slab", "epca:infested_cobblestone_slab");
@@ -337,7 +353,7 @@ public class CustomDataProviders {
             put(general, "minecraft:cobblestone_wall", "epca:infested_cobblestone_wall");
             put(general, "minecraft:mossy_cobblestone_wall", "epca:infested_cobblestone_wall");
 
-            // 石砖
+            
             put(general, "minecraft:stone_bricks", "epca:infested_stone_bricks");
             put(general, "minecraft:mossy_stone_bricks", "epca:infested_stone_bricks");
             put(general, "minecraft:stone_brick_slab", "epca:infested_stone_bricks_slab");
@@ -349,7 +365,7 @@ public class CustomDataProviders {
             put(general, "minecraft:cracked_stone_bricks", "epca:infested_cracked_stone_bricks");
             put(general, "minecraft:chiseled_stone_bricks", "epca:infested_chiseled_stone_bricks");
 
-            // 砂岩
+            
             put(general, "minecraft:sandstone", "epca:infested_sandstone");
             put(general, "minecraft:red_sandstone", "epca:infested_sandstone");
             put(general, "minecraft:sandstone_slab", "epca:infested_sandstone_slab");
@@ -371,7 +387,7 @@ public class CustomDataProviders {
             put(general, "minecraft:smooth_sandstone_stairs", "epca:infested_smooth_sandstone_stairs");
             put(general, "minecraft:smooth_red_sandstone_stairs", "epca:infested_smooth_sandstone_stairs");
 
-            // 矿石（普通）
+            
             put(general, "minecraft:coal_ore", "epca:infested_coal_ore");
             put(general, "minecraft:copper_ore", "epca:infested_copper_ore");
             put(general, "minecraft:iron_ore", "epca:infested_iron_ore");
@@ -381,11 +397,11 @@ public class CustomDataProviders {
             put(general, "minecraft:emerald_ore", "epca:infested_emerald_ore");
             put(general, "minecraft:diamond_ore", "epca:infested_diamond_ore");
 
-            // 雪
+            
             put(general, "minecraft:snow", "epca:infested_snow");
             put(general, "minecraft:snow_block", "epca:infested_snow_block");
 
-            // 被感染的方块（原版）→ 自己的感染变种
+            
             put(general, "minecraft:infested_cobblestone", "epca:infested_infested_cobblestone");
             put(general, "minecraft:infested_stone", "epca:infested_infested_stone");
             put(general, "minecraft:infested_stone_bricks", "epca:infested_infested_stone_bricks");
@@ -393,14 +409,14 @@ public class CustomDataProviders {
             put(general, "minecraft:infested_cracked_stone_bricks", "epca:infested_infested_cracked_stone_bricks");
             put(general, "minecraft:infested_chiseled_stone_bricks", "epca:infested_infested_chiseled_stone_bricks");
 
-            // 来自 caerula_arbor 的方块
+            
             put(general, "caerula_arbor:sea_trail_grown", "epca:infested_nethersea_brand_grown");
             put(general, "caerula_arbor:sea_trail_solid", "epca:infested_nethersea_brand_solid");
 
-            // 钟乳石
+            
             put(general, "minecraft:pointed_dripstone", "epca:infested_pointed_dripstone");
 
-            // 深板岩及厚重石头系列
+            
             put(general, "minecraft:deepslate", "epca:infested_heavy_stone");
             put(general, "minecraft:tuff", "epca:infested_heavy_stone");
             put(general, "minecraft:infested_deepslate", "epca:infested_infested_heavy_stone");
@@ -446,7 +462,7 @@ public class CustomDataProviders {
             put(general, "minecraft:large_fern", "epca:infested_lager_fern");
             put(general, "minecraft:chiseled_deepslate", "epca:infested_chiseled_deepslate");
 
-            // beckon — 同 general
+            
             Map<String, String> beckon = new LinkedHashMap<>(general);
 
             return CompletableFuture.allOf(

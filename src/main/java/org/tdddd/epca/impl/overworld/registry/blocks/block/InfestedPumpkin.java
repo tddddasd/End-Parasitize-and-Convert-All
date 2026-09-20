@@ -76,13 +76,13 @@ public class InfestedPumpkin extends Block implements InfestedBlockInterface {
                               @Nullable BlockEntity blockEntity, ItemStack tool) {
         super.playerDestroy(level, player, pos, state, blockEntity, tool);
         if (!level.isClientSide) {
-            // 非精准采集且有 50% 概率生成虫染南瓜头
+            
             if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, tool) == 0) {
                 if (level.random.nextFloat() < 0.5f) {
                     InfestedPumpkinHead entity = ModEntities.INFESTED_PUMPKIN_HEAD.get().create(level);
                     if (entity != null) {
                         entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-                        // 随机朝向
+                        
                         entity.setYRot(level.random.nextFloat() * 360.0F);
                         level.addFreshEntity(entity);
                     }

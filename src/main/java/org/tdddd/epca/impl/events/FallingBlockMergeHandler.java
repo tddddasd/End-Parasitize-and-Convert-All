@@ -19,26 +19,26 @@ import java.util.Set;
 @Mod.EventBusSubscriber(modid = epca.MODID)
 public class FallingBlockMergeHandler {
 
-    private static final double SEARCH_RADIUS = 64.0; // 搜索半径（格）
+    private static final double SEARCH_RADIUS = 64.0; 
 
     @SubscribeEvent
     public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        // 只在服务端且 Phase.END 阶段执行
+        
         if (event.side.isClient()) return;
         if (event.phase != TickEvent.Phase.END) return;
 
         Level level = event.level;
         if (level == null) return;
 
-        // 获取所有玩家
+        
         List<? extends Player> players = level.players();
         if (players.isEmpty()) return;
 
-        // 用于去重（同一实体可能同时被多个玩家的 AABB 命中）
+        
         Set<FallingBlockEntity> processed = new HashSet<>();
 
         for (Player player : players) {
-            // 以玩家为中心构造 AABB
+            
             AABB searchBox = new AABB(
                     player.getX() - SEARCH_RADIUS,
                     player.getY() - SEARCH_RADIUS,
@@ -51,14 +51,14 @@ public class FallingBlockMergeHandler {
             List<FallingBlockEntity> fallingBlocks = level.getEntitiesOfClass(
                     FallingBlockEntity.class,
                     searchBox,
-                    entity -> true // 获取全部，后续再过滤
+                    entity -> true 
             );
 
             for (FallingBlockEntity falling : fallingBlocks) {
-                // 已经处理过的跳过
+                
                 if (!processed.add(falling)) continue;
 
-                // 检查实体有效性
+                
                 BlockState state = falling.getBlockState();
                 if (state == null || state.isAir()) continue;
 

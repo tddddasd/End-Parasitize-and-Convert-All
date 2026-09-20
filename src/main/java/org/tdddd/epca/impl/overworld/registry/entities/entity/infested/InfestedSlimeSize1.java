@@ -50,6 +50,7 @@ import org.tdddd.epca.impl.overworld.registry.ModItems;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
 public class InfestedSlimeSize1 extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
@@ -312,7 +313,7 @@ public class InfestedSlimeSize1 extends PathfinderMob implements GeoEntity, IPar
         deathPosition = this.blockPosition(); 
 
         
-        this.setHealth(0.02F);
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
 
         
         this.setNoAi(true);

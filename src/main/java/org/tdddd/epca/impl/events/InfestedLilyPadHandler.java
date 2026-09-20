@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class InfestedLilyPadHandler {
-    // 记录每个玩家最后所在的虫染睡莲位置
+    
     private static final Map<UUID, BlockPos> PLAYER_LAST_LILY = new ConcurrentHashMap<>();
 
     @SubscribeEvent
@@ -49,11 +49,11 @@ public class InfestedLilyPadHandler {
             UUID uuid = player.getUUID();
             BlockPos lastPos = PLAYER_LAST_LILY.get(uuid);
 
-            // 获取玩家边界框并扩大 0.05 容差
+            
             AABB boundingBox = player.getBoundingBox().inflate(0.05);
             BlockPos foundLilyPos = null;
 
-            // 遍历扩大后的边界框覆盖的所有方块
+            
             int minX = (int) Math.floor(boundingBox.minX);
             int minY = (int) Math.floor(boundingBox.minY);
             int minZ = (int) Math.floor(boundingBox.minZ);
@@ -78,14 +78,14 @@ public class InfestedLilyPadHandler {
 
             if (foundLilyPos != null) {
                 if (lastPos == null || !lastPos.equals(foundLilyPos)) {
-                    // 首次进入
+                    
                     if (level.random.nextFloat() < 0.5f) {
                         level.destroyBlock(foundLilyPos, false);
                     }
                     PLAYER_LAST_LILY.put(uuid, foundLilyPos);
                 }
             } else {
-                // 不在任何睡莲上
+                
                 if (lastPos != null) {
                     PLAYER_LAST_LILY.remove(uuid);
                 }
@@ -95,40 +95,40 @@ public class InfestedLilyPadHandler {
 
     @SubscribeEvent
     public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
-        // 仅在服务端处理
+        
         if (event.getEntity() == null || event.getEntity().level().isClientSide) return;
         Level level = event.getEntity().level();
         if (!(level instanceof ServerLevel)) return;
 
         BlockState placedState = event.getPlacedBlock();
-        // 只处理原版睡莲
+        
         if (!placedState.is(Blocks.LILY_PAD)) return;
 
         BlockPos pos = event.getPos();
         BlockConversionManager manager = BlockConversionManager.getInstance();
 
-        // 查找下方七格内是否有虫染方块
+        
         BlockState infestedBelow = manager.findInfestedBlockBelow(level, pos, 7);
         if (infestedBelow == null) return;
 
-        // 获取目标虫染睡莲方块（优先配置，否则默认）
+        
         Block targetBlock = manager.getTargetLilyPadBlock();
         if (targetBlock == null || targetBlock == Blocks.AIR) return;
 
-        // 构建新状态
+        
         BlockState newState = targetBlock.defaultBlockState();
 
         if (newState.hasProperty(InfestedLilyPad.NATURAL_SPAWN)) {
             newState = newState.setValue(InfestedLilyPad.NATURAL_SPAWN, true);
         }
 
-        event.setCanceled(true); // 取消原放置
-        level.setBlock(pos, newState, 3); // 手动设置
+        event.setCanceled(true); 
+        level.setBlock(pos, newState, 3); 
     }
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        // 仅在服务端执行
+        
         if (event.getSide().isClient()) return;
 
         Player player = event.getEntity();
@@ -141,14 +141,14 @@ public class InfestedLilyPadHandler {
         Direction face = event.getFace();
         if (face == null) return;
 
-        // 1. 判断目标方块是否为静态水源
+        
         BlockState targetState = level.getBlockState(targetPos);
         FluidState fluid = targetState.getFluidState();
         boolean isWaterSource = fluid.getType() == Fluids.WATER && fluid.isSource();
 
         BlockPos placePos;
         if (isWaterSource) {
-            // 点击水方块 → 只能点击顶面，放置在水面上方一格
+            
             if (face == Direction.UP) {
                 placePos = targetPos.above();
             } else {
@@ -156,12 +156,12 @@ public class InfestedLilyPadHandler {
                 return;
             }
         } else {
-            // 非水方块 → 根据点击面计算位置
+            
             if (face == Direction.UP) {
-                // 顶面 → 上方第二格
+                
                 placePos = targetPos.above(2);
             } else if (face.getAxis().isHorizontal()) {
-                // 侧面 → 侧面上方一格
+                
                 placePos = targetPos.relative(face).above();
             } else {
                 event.setCanceled(true);
@@ -169,37 +169,37 @@ public class InfestedLilyPadHandler {
             }
         }
 
-        // 2. 验证放置位置是否合法（下方静态水源、自身为空气）
+        
         if (!isValidPlacement(level, placePos)) {
             event.setCanceled(true);
             return;
         }
 
-        // 3. 执行放置
+        
         BlockState newState = ((InfestedLilyPad) blockItem.getBlock()).defaultBlockState()
                 .setValue(InfestedLilyPad.NATURAL_SPAWN, false);
         level.setBlock(placePos, newState, 3);
         sendInfestedPacketToClients((ServerLevel) level, targetPos, true);
 
-        // 4. 播放放置音效
+        
         SoundType soundType = newState.getSoundType(level, placePos, player);
         level.playSound(null, placePos, soundType.getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
 
-        // 5. 消耗物品（创造模式不消耗）
+        
         if (!player.isCreative()) {
             stack.shrink(1);
         }
 
-        // 6. 取消原事件，阻止原版放置逻辑
+        
         event.setCanceled(true);
     }
 
     private static boolean isValidPlacement(Level level, BlockPos pos) {
-        // 下方必须为静态水源
+        
         BlockState below = level.getBlockState(pos.below());
         FluidState fluid = below.getFluidState();
         if (fluid.getType() != Fluids.WATER || !fluid.isSource()) return false;
-        // 当前位置必须为空气
+        
         return level.getBlockState(pos).isAir();
     }
 

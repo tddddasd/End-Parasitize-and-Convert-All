@@ -20,37 +20,37 @@ public class ModItems {
     public static final DeferredRegister<Item> ITEMS =
             DeferredRegister.create(ForgeRegistries.ITEMS, epca.MODID);
 
-    // ==================== 便捷注册静态方法 ====================
+    
 
-    /** 注册最基础的 Item（无特殊属性，堆叠 64） */
+    
     private static RegistryObject<Item> simpleItem(String name) {
         return ITEMS.register(name, () -> new Item(new Item.Properties()));
     }
 
-    /** 注册自定义 Item 子类（使用默认属性，堆叠 64） */
+    
     private static <T extends Item> RegistryObject<T> customItem(String name, Supplier<T> supplier) {
         return ITEMS.register(name, supplier);
     }
 
-    /** 注册刷怪蛋（背景色、斑点色均为 -1） */
+    
     private static RegistryObject<Item> spawnEgg(String name, Supplier<? extends EntityType<? extends Mob>> entitySupplier) {
         return ITEMS.register(name + "_spawn_egg",
                 () -> new ForgeSpawnEggItem(entitySupplier, -1, -1, new Item.Properties()));
     }
 
-    /** 注册普通方块物品（使用默认属性） */
+    
     private static RegistryObject<Item> blockItem(String name, RegistryObject<? extends Block> block) {
         return ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
     }
 
-    /** 注册特殊 BlockItem 子类（如 InfestedLogItem） */
+    
     private static <T extends BlockItem> RegistryObject<T> customBlockItem(String name, Supplier<T> supplier) {
         return ITEMS.register(name, supplier);
     }
 
-    // ==================== 物品注册 ====================
+    
 
-    // 特殊物品（自定义 Item 子类，无特殊属性）
+    
     public static final RegistryObject<Item> CLUSTER = customItem("cluster", () -> new Cluster(new Item.Properties()));
     public static final RegistryObject<Item> PARASITE_VISCERA = customItem("parasite_viscera", () -> new ParasiteViscera(new Item.Properties()));
     public static final RegistryObject<Item> FINS_FIN = customItem("fins_fin", () -> new FinsFin(new Item.Properties()));
@@ -81,7 +81,7 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_SWEET_BERRIES = customItem("infested_sweet_berries", () -> new InfestedSweetBerries(new Item.Properties()));
     public static final RegistryObject<Item> COPPER_NUGGET = customItem("copper_nugget", () -> new CopperNugget(new Item.Properties()));
 
-    // 特殊物品（有特定堆叠或稀有度）
+    
     public static final RegistryObject<Item> BLOODY_CLOCK = ITEMS.register("erosion_clock",
             () -> new BloodyClock(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
     public static final RegistryObject<Item> KILL_STICK = ITEMS.register("endless_wand",
@@ -107,7 +107,7 @@ public class ModItems {
     public static final RegistryObject<Item> ENDER_BLADE_SCRAP = ITEMS.register("ender_blade_scrap",
             () -> new EnderBladeScrap(new Item.Properties().rarity(Rarity.UNCOMMON)));
 
-    // 工具 / 武器（耐久、堆叠 1）
+    
     public static final RegistryObject<Item> WOODEN_SPEAR = ITEMS.register("wooden_spear",
             () -> new WoodenSpear(new Item.Properties().stacksTo(1).durability(64)));
     public static final RegistryObject<Item> STONE_SPEAR = ITEMS.register("stone_spear",
@@ -125,7 +125,7 @@ public class ModItems {
     public static final RegistryObject<Item> NETHERITE_SPEAR = ITEMS.register("netherite_spear",
             () -> new NetheriteSpear(new Item.Properties().stacksTo(1).durability(2031)));
 
-    // 盔甲
+    
     public static final RegistryObject<LivingArmorItem> LIVING_HELMET = ITEMS.register("living_helmet",
             () -> new LivingArmorItem(new LivingArmorMaterial(), ArmorItem.Type.HELMET, new Item.Properties()));
     public static final RegistryObject<LivingArmorItem> LIVING_CHESTPLATE = ITEMS.register("living_chestplate",
@@ -135,7 +135,7 @@ public class ModItems {
     public static final RegistryObject<LivingArmorItem> LIVING_BOOTS = ITEMS.register("living_boots",
             () -> new LivingArmorItem(new LivingArmorMaterial(), ArmorItem.Type.BOOTS, new Item.Properties()));
 
-    // 流体桶
+    
     public static final RegistryObject<Item> ACID_SOLUTION_BUCKET = ITEMS.register("acid_bucket",
             () -> new BucketItem(ModFluids.ACID_SOLUTION, new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> INFESTED_SPIDER_WEB_PROJECTILE =
@@ -147,7 +147,7 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_CAVE_SPIDER_WEB_PROJECTILE =
             ITEMS.register("infested_cave_spider_web_projectile",
                     () -> new Item(new Item.Properties()));
-    // ==================== 刷怪蛋 ====================
+    
     public static final RegistryObject<Item> BUGLIN_SPAWN_EGG = spawnEgg("curbug", ModEntities.CURBUG);
     public static final RegistryObject<Item> YAWNING_NYA_SPAWN_EGG = spawnEgg("yawning_nya", ModEntities.YAWNING_NYA);
     public static final RegistryObject<Item> RUPTER_SPAWN_EGG = spawnEgg("ripper", ModEntities.RIPPER);
@@ -203,7 +203,7 @@ public class ModItems {
                     () -> new ForgeSpawnEggItem(() -> ModEntities.LIVING_FLESH_SIZE0.get(), -1, -1, new Item.Properties()));
     public static final RegistryObject<Item> INFESTED_BAT_SPAWN_EGG = spawnEgg("infested_bat", ModEntities.INFESTED_BAT);
 
-    // ==================== 方块物品 ====================
+    
 
     public static final RegistryObject<Item> INFESTED_REMAINS_SMALL = blockItem("infested_remains_small", ModBlocks.INFESTED_REMAINS_SMALL);
     public static final RegistryObject<Item> INFESTED_REMAINS_MEDIUM = blockItem("infested_remains_medium", ModBlocks.INFESTED_REMAINS_MEDIUM);
@@ -313,7 +313,7 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_MUDDY_MANGROVE_ROOTS = blockItem("infested_muddy_mangrove_roots", ModBlocks.INFESTED_MUDDY_MANGROVE_ROOTS);
     public static final RegistryObject<Item> INFESTED_DEAD_BUSH = blockItem("infested_dead_bush", ModBlocks.INFESTED_DEAD_BUSH);
 
-    // 特殊 BlockItem 子类（使用自定义的 Item 内部类）
+    
     public static final RegistryObject<InfestedLog.InfestedLogItem> INFESTED_LOG =
             customBlockItem("infested_log", () -> new InfestedLog.InfestedLogItem(ModBlocks.INFESTED_LOG.get(), new Item.Properties()));
     public static final RegistryObject<InfestedWood.InfestedWoodItem> INFESTED_WOOD =

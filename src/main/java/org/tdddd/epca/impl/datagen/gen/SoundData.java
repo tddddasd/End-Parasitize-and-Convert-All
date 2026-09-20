@@ -13,10 +13,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Stream;
 
-/**
- * 数据生成器：自动扫描 sounds 目录中的 .ogg 文件生成 sounds.json。
- * 声音文件按规则分组：去掉尾部数字后缀后的名称即为声音事件名。
- */
+
 public class SoundData extends SoundDefinitionsProvider {
 
     public SoundData(PackOutput output, ExistingFileHelper helper) {
@@ -37,7 +34,7 @@ public class SoundData extends SoundDefinitionsProvider {
             }
             definition.subtitle("subtitles.epca." + eventName);
 
-            // 默认衰减距离32，特殊调整
+            
             if (eventName.equals("small_explosion")) {
                 // 24
             } else if (eventName.equals("big_explosion")) {
@@ -48,16 +45,11 @@ public class SoundData extends SoundDefinitionsProvider {
         }
     }
 
-    /**
-     * 扫描 src/main/resources/assets/epca/sounds/ 下的所有 .ogg 文件，
-     * 按声音事件名分组（去除路径中末尾的数字序号）。
-     *
-     * @return 声音事件名 -> 文件路径列表（相对于 sounds/ 目录，不含扩展名）
-     */
+    
     private Map<String, List<String>> scanSoundFiles() {
         Map<String, List<String>> groups = new TreeMap<>();
 
-        // 尝试多个可能的声音资源路径
+        
         List<Path> searchRoots = new ArrayList<>();
         searchRoots.add(Path.of("src/main/resources/assets/epca/sounds"));
         searchRoots.add(Path.of("../src/main/resources/assets/epca/sounds"));
@@ -70,12 +62,12 @@ public class SoundData extends SoundDefinitionsProvider {
                             .forEach(p -> {
                                 Path relative = root.relativize(p);
                                 String pathStr = relative.toString().replace('\\', '/');
-                                // 去掉 .ogg 扩展名
+                                
                                 String noExt = pathStr.substring(0, pathStr.length() - 4);
-                                // 提取事件名：去掉尾部数字序号
+                                
                                 String eventName = stripTrailingNumber(noExt);
-                                // 使用最后一段（纯文件名）或完整相对路径中独特的部分作为事件名
-                                // 如果 stripTrailingNumber 后的结果不符合预期，使用文件名推断
+                                
+                                
                                 groups.computeIfAbsent(eventName, k -> new ArrayList<>()).add(noExt);
                             });
                 } catch (IOException ignored) {
@@ -84,7 +76,7 @@ public class SoundData extends SoundDefinitionsProvider {
             }
         }
 
-        // 如果文件扫描失败，回退到手动定义的映射
+        
         if (groups.isEmpty()) {
             return buildFallbackMap();
         }
@@ -92,22 +84,17 @@ public class SoundData extends SoundDefinitionsProvider {
         return groups;
     }
 
-    /**
-     * 去掉文件名末尾的数字序号后缀。
-     * 例如: "infested_cow_hurt1" -> "infested_cow_hurt"
-     *       "small_explosion2" -> "small_explosion"
-     *       "phase0" -> "phase" (但 phase 是特例，我们有 phase0~phase10)
-     */
+    
     private String stripTrailingNumber(String name) {
-        // 分离出最后一段路径（文件名）
+        
         int lastSlash = name.lastIndexOf('/');
         String dirPart = lastSlash >= 0 ? name.substring(0, lastSlash + 1) : "";
         String fileName = lastSlash >= 0 ? name.substring(lastSlash + 1) : name;
 
-        // 去掉末尾的数字
+        
         String stripped = fileName.replaceAll("\\d+$", "");
 
-        // 特殊情况：如果 stripped 为空（纯数字文件名），保留原名
+        
         if (stripped.isEmpty()) {
             stripped = fileName;
         }
@@ -115,10 +102,7 @@ public class SoundData extends SoundDefinitionsProvider {
         return stripped;
     }
 
-    /**
-     * 手动回退映射 — 当文件系统扫描不可用时使用。
-     * 基于现有 sounds.json 的内容。
-     */
+    
     private Map<String, List<String>> buildFallbackMap() {
         Map<String, List<String>> map = new LinkedHashMap<>();
 

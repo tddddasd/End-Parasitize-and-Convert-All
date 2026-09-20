@@ -9,9 +9,7 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.Optional;
 
-/**
- * 数据生成器：自动为模组状态效果（MobEffect）生成精灵图源（sprite source）。
- */
+
 public class EffectSpriteData extends SpriteSourceProvider {
 
     public EffectSpriteData(PackOutput output, ExistingFileHelper fileHelper) {
@@ -20,10 +18,10 @@ public class EffectSpriteData extends SpriteSourceProvider {
 
     @Override
     protected void addSources() {
-        // 效果精灵图集
+        
         ResourceLocation effectsAtlas = new ResourceLocation("textures/atlas/mob_effects.png");
 
-        // 所有模组状态效果的纹理
+        
         String[] effectTextures = {
                 "bleeding", "viral", "fear", "coth",
                 "contempt_inorganic", "corrosive", "rage", "needler",

@@ -380,7 +380,7 @@ public class ModBlocks {
             () -> new InfestedPointedDripstone(BlockBehaviour.Properties.copy(Blocks.POINTED_DRIPSTONE).mapColor(DyeColor.LIGHT_GRAY))
     );
 
-    // 祭坛方块（packed_mud_pedestal / packed_mud_altar_stone）已分离到前置模组 eej。
+    
 
     public static final RegistryObject<Block> BECKON_CORE = BLOCKS.register(
             "beckon_core",

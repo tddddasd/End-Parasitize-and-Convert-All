@@ -35,7 +35,7 @@ public class ClientHandler {
         for (EntityType<?> type : EpcaEntityManager.consumeRenderTypes()) {
             @SuppressWarnings({"unchecked", "rawtypes"})
             EntityType rawType = type;
-            event.registerEntityRenderer(rawType, EpcaGeoRenderer::new);//报错不用管，能跑就行
+            event.registerEntityRenderer(rawType, EpcaGeoRenderer::new);
         }
 
         // ── Custom renderers ONLY (entities with special rendering: non-GeckoLib, shaders, etc.) ──
@@ -99,8 +99,8 @@ public class ClientHandler {
                 return 1;
             });
 
-            // 长矛蓄力（投掷）时切换到 *_spear_throwing 模型：投掷姿势 THROW_TRIDENT
-            // 会把手臂绕 X 轴转 180°，物品再绕 X 轴转 180° 抵消它，手持方向/位置与 26.1.2 版一致。
+            
+            
             registerThrowingProperty(ModItems.WOODEN_SPEAR.get());
             registerThrowingProperty(ModItems.STONE_SPEAR.get());
             registerThrowingProperty(ModItems.FLINT_SPEAR.get());
@@ -113,7 +113,7 @@ public class ClientHandler {
         );
     }
 
-    /** 值为 1 表示“正在蓄力投掷这把长矛”（与原版三叉戟的 throwing 判定一致）。 */
+    
     private static void registerThrowingProperty(Item item) {
         ItemProperties.register(item, new ResourceLocation(epca.MODID, "throwing"),
                 (stack, level, entity, seed) ->

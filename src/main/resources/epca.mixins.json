@@ -23,7 +23,8 @@
     "client.BiomeColorsMixin",
     "client.BlockColorsMixin",
     "client.CreateWorldScreenMixin",
-    "client.LightningBoltRendererMixin"
+    "client.LightningBoltRendererMixin",
+    "client.LivingEntityRendererTintMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -51,7 +51,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
 
         if (key == null) return new ResourceLocation("epca", "textures/entity/none.png");
 
-        // 判断是否为 InfestedEndermite 的不稳定变种
+        
         boolean isUnstable = false;
         if (entity instanceof InfestedEndermite endermite) {
             isUnstable = endermite.getVariant() == InfestedEndermite.Variant.UNSTABLE;
@@ -63,7 +63,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
             isUnstable = endermanHead.getVariant() == WalkingEndermanHead.Variant.UNSTABLE;
         }
 
-        // 为防止默认变种与不稳定变种共用缓存，构造不同的缓存键
+        
         ResourceLocation cacheKey = isUnstable ?
                 new ResourceLocation(key.getNamespace(), key.getPath() + "_unstable") :
                 key;
@@ -72,7 +72,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         return TEX_CACHE.computeIfAbsent(cacheKey, k -> {
             String namespace = key.getNamespace();
             String path = key.getPath();
-            // 不稳定变种使用 _unstable_afterimage 后缀
+            
             String suffix = finalIsUnstable ? "_unstable_afterimage" : "_afterimage";
             return new ResourceLocation(namespace, "textures/entity/" + path + suffix + ".png");
         });

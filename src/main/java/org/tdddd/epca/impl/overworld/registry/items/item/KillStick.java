@@ -169,9 +169,7 @@ public class KillStick extends Item {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
     }
 
-    /**
-     * 检查玩家主手是否持有 KillStick
-     */
+    
     private static boolean isHoldingKillStick(Player player) {
         return player.getMainHandItem().getItem() instanceof KillStick;
     }

@@ -21,12 +21,7 @@ import org.tdddd.epca.impl.overworld.registry.ModItems;
 
 import java.util.function.Consumer;
 
-/**
- * 数据生成器：自动生成模组配方。
- * - 矛的合成（材料+木棍）
- * - 矛/受染原矿的回收烧炼
- * - 狱髓矛锻造升级
- */
+
 public class RecipeProviderData extends RecipeProvider {
     public RecipeProviderData(PackOutput output) { super(output); }
 
@@ -39,7 +34,7 @@ public class RecipeProviderData extends RecipeProvider {
 
     @Override
     protected void buildRecipes(Consumer<FinishedRecipe> c) {
-        // ── 矛合成 ──
+        
         spearCrafting(c, Items.FLINT,          modItem("flint_spear"));
         spearCrafting(c, Items.COPPER_INGOT,   modItem("copper_spear"));
         spearCrafting(c, Items.IRON_INGOT,     modItem("iron_spear"));
@@ -49,23 +44,23 @@ public class RecipeProviderData extends RecipeProvider {
         spearCraftingTag(c, ItemTags.PLANKS,            modItem("wooden_spear"));
         spearCraftingTag(c, ItemTags.STONE_CRAFTING_MATERIALS, modItem("stone_spear"));
 
-        // ── 矛回收烧炼 ──
+        
         spearRecycling(c, modItem("copper_spear"),  ModItems.COPPER_NUGGET.get(), 0.1F);
         spearRecycling(c, modItem("iron_spear"),    Items.IRON_NUGGET,  0.1F);
         spearRecycling(c, modItem("golden_spear"),  Items.GOLD_NUGGET,  0.1F);
 
-        // ── 受染原矿回收烧炼 ──
+        
         rawRecycling(c, modItem("infested_raw_copper"), ModItems.COPPER_NUGGET.get(), 0.1F);
         rawRecycling(c, modItem("infested_raw_iron"),   Items.IRON_NUGGET,  0.1F);
         rawRecycling(c, modItem("infested_raw_gold"),   Items.GOLD_NUGGET,  0.1F);
 
-        // ── 狱髓矛锻造升级 ──
+        
         netheriteSmithing(c, modItem("diamond_spear"), modItem("netherite_spear"));
     }
 
-    // ═══════════════════════ 合成 ═══════════════════════
+    
 
-    /** 单物品材料合成矛 pattern: [W  ] [ S ] [  S] */
+    
     private void spearCrafting(Consumer<FinishedRecipe> c, Item material, Item result) {
         String matName = ForgeRegistries.ITEMS.getKey(material).getPath();
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
@@ -76,7 +71,7 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(c, modId(resultName + "_crafting_shaped"));
     }
 
-    /** 标签材料合成矛 */
+    
     private void spearCraftingTag(Consumer<FinishedRecipe> c, TagKey<Item> materialTag, Item result) {
         String tagPath = materialTag.location().getPath();
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
@@ -87,9 +82,9 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(c, modId(resultName + "_crafting_shaped"));
     }
 
-    // ═══════════════════════ 烧炼回收 ═══════════════════════
+    
 
-    /** 矛熔炼回收 (smelting 200t + blasting 100t) */
+    
     private void spearRecycling(Consumer<FinishedRecipe> c, Item spear, Item result, float xp) {
         String spearName = ForgeRegistries.ITEMS.getKey(spear).getPath();
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
@@ -106,7 +101,7 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(c, modId(spearName + "_blasting"));
     }
 
-    /** 受染原矿回收 */
+    
     private void rawRecycling(Consumer<FinishedRecipe> c, Item raw, Item result, float xp) {
         String rawName = ForgeRegistries.ITEMS.getKey(raw).getPath();
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
@@ -123,9 +118,9 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(c, modId(rawName + "_blasting"));
     }
 
-    // ═══════════════════════ 锻造 ═══════════════════════
+    
 
-    /** 狱髓锻造台升级 */
+    
     private void netheriteSmithing(Consumer<FinishedRecipe> c, Item base, Item result) {
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
         SmithingTransformRecipeBuilder.smithing(

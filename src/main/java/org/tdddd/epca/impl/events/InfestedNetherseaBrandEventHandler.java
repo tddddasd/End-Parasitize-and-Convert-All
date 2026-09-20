@@ -46,9 +46,7 @@ public class InfestedNetherseaBrandEventHandler {
         }
     }
 
-    /**
-     * 移除玩家身上的指定药水效果
-     */
+    
     private static void removeEffect(Player player, String modid, String path) {
         MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation(modid, path));
         if (effect != null) {
@@ -62,7 +60,7 @@ public class InfestedNetherseaBrandEventHandler {
         }
     }
 
-    // ========== 破坏虫染溟痕方块时的理智伤害 ==========
+    
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         BlockState state = event.getState();
@@ -77,36 +75,36 @@ public class InfestedNetherseaBrandEventHandler {
         }
     }
 
-    // ========== 食用物品事件 ==========
+    
     @SubscribeEvent
     public static void onPlayerEat(LivingEntityUseItemEvent.Finish event) {
         if (event.getEntity().level().isClientSide) return;
         if (!(event.getEntity() instanceof Player player)) return;
 
-        // 处理虫染溟痕冰淇淋：每5tick扣5理智，共50点，并移除效果
+        
         if (event.getItem().getItem() == ModItems.INFESTED_NETHERSEA_ICECREAM.get()) {
             if (sanityAvailable) {
-                // 初始化玩家数据：剩余10次，冷却5tick
+                
                 var data = player.getPersistentData();
                 data.putInt("icecream_damage_remaining", 10);
                 data.putInt("icecream_damage_cooldown", 5);
             }
-            // 移除两个药水效果
+            
             removeEffect(player, "caerula_arbor", "frozen");
             removeEffect(player, "epca", "deep_sneak");
 
             giveItem(player, new ItemStack(ModItems.RESHAPE_SHELL.get()));
 
-            return; // 冰淇淋处理完毕，不再执行后续
+            return; 
         }
 
-        // 处理原有的虫染溟痕块（MOR）——一次性扣50理智，不处理效果
+        
         if (event.getItem().getItem() == ModItems.INFESTED_NETHERSEA_BRAND_MOR.get() && sanityAvailable) {
             applySanityDamage(player, player.level(), 50.0);
         }
     }
 
-    // ========== 玩家每Tick事件：处理冰淇淋持续伤害 ==========
+    
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         if (event.getEntity().level().isClientSide) return;
@@ -115,7 +113,7 @@ public class InfestedNetherseaBrandEventHandler {
         var data = player.getPersistentData();
         int remaining = data.getInt("icecream_damage_remaining");
         if (remaining <= 0) {
-            // 清除残留数据
+            
             if (data.contains("icecream_damage_remaining")) {
                 data.remove("icecream_damage_remaining");
                 data.remove("icecream_damage_cooldown");
@@ -123,18 +121,18 @@ public class InfestedNetherseaBrandEventHandler {
             return;
         }
 
-        // 冷却递减
+        
         int cooldown = data.getInt("icecream_damage_cooldown");
         cooldown--;
         if (cooldown <= 0) {
-            // 造成5点理智伤害
+            
             applySanityDamage(player, player.level(), 5.0);
             remaining--;
-            // 重置冷却为5tick
+            
             cooldown = 5;
         }
 
-        // 更新数据
+        
         data.putInt("icecream_damage_remaining", remaining);
         data.putInt("icecream_damage_cooldown", cooldown);
     }

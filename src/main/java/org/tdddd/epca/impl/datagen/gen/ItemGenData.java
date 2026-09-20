@@ -10,43 +10,33 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.Set;
 
-/**
- * 数据生成器：自动为模组中所有物品生成 models/item/*.json。
- * - 手持工具类（Sword/Pickaxe/Axe/Shovel/Hoe）→ item/handheld
- * - 普通物品 → item/generated
- * - BlockItem → 跳过（由 BlockStateData 处理）
- * - 特殊物品（模型复杂，无法自动生成）→ MANUAL_WHITELIST 跳过
- */
+
 public class ItemGenData extends ItemModelProvider {
 
     public ItemGenData(PackOutput output, ExistingFileHelper efh) {
         super(output, epca.MODID, efh);
     }
 
-    /**
-     * 需要手动维护模型的物品（复杂模型、overrides、特殊 transform 等）。
-     */
+    
     private static final Set<String> MANUAL_WHITELIST = Set.of(
-            // --- 矛（使用 forge:separate_transforms） ---
+            
             "wooden_spear", "stone_spear", "flint_spear", "copper_spear",
             "iron_spear", "golden_spear", "diamond_spear", "netherite_spear",
 
-            // --- 特殊物品（有 overrides / 自定义模型结构） ---
+            
             "erosion_clock",
             "biomass_count_icon",
             "epca_icon",
             "swallow_cyst",
 
-            // --- 模块物品（无独立纹理，使用特殊渲染） ---
+            
             "feeding_module_i", "flesh_armor_module_i",
             "netherite_module_i", "flight_module_i",
 
             "infested_carved_pumpkin"
     );
 
-    /**
-     * 额外应使用 handheld 风格的物品（不继承原版工具类）。
-     */
+    
     private static final Set<String> EXTRA_HANDHELD = Set.of(
             "endless_wand"
     );
@@ -57,10 +47,10 @@ public class ItemGenData extends ItemModelProvider {
             ResourceLocation loc = ForgeRegistries.ITEMS.getKey(item);
             if (loc != null && loc.getNamespace().equals(epca.MODID)) {
                 String path = loc.getPath();
-                // 跳过方块物品（由 BlockStateData 处理）和手动维护物品
+                
                 if (item instanceof BlockItem || MANUAL_WHITELIST.contains(path)) return;
                 try {
-                    // 武器工具类或额外手持风格 → handheld
+                    
                     if (isHandheld(item) || EXTRA_HANDHELD.contains(path)) {
                         handheldItem(path);
                     } else {
@@ -74,7 +64,7 @@ public class ItemGenData extends ItemModelProvider {
         });
     }
 
-    /** 运行时发现的缺失纹理物品，防止重复日志 */
+    
     private static final Set<String> MANUAL_WHITELIST_DYNAMIC = new java.util.HashSet<>();
 
     private boolean isHandheld(Item item) {

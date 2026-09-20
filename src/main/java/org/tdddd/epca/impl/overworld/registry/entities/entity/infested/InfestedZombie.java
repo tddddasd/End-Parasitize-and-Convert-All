@@ -419,7 +419,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
                                         MobSpawnType pSpawnType, @Nullable SpawnGroupData pSpawnGroupData,
                                         @Nullable CompoundTag pDataTag) {
         pSpawnGroupData = super.finalizeSpawn(pLevel, pDifficulty, pSpawnType, pSpawnGroupData, pDataTag);
-        // 1% 概率标记为稀有
+        
         if (this.random.nextFloat() < 0.01f) {
             this.isHim = true;
         }

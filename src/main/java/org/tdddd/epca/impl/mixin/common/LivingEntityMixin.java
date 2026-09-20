@@ -26,17 +26,25 @@ import org.tdddd.epca.impl.utils.ShieldProtectionHelper;
 public abstract class LivingEntityMixin {
     private static final ThreadLocal<Boolean> applyingCustomCoth = ThreadLocal.withInitial(() -> false);
 
-    // ========== 不带源参数的 addEffect 拦截 ==========
+    
+    
+    @Inject(method = "canBeSeenAsEnemy", at = @At("HEAD"), cancellable = true)
+    private void epca$untargetableWhileConverting(CallbackInfoReturnable<Boolean> cir) {
+        if (org.tdddd.epca.impl.events.PendingConversionManager.isPending((LivingEntity) (Object) this)) {
+            cir.setReturnValue(false);
+        }
+    }
+
     @Inject(method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;)Z",
             at = @At("HEAD"),
             cancellable = true)
     private void onAddEffect(MobEffectInstance effectInstance, CallbackInfoReturnable<Boolean> cir) {
-        // 如果正在应用自定义COTH，放行（避免递归）
+        
         if (applyingCustomCoth.get()) {
             return;
         }
 
-        // 只处理 COTH 效果
+        
         if (effectInstance == null || effectInstance.getEffect() != ModEffects.COTH.get()) {
             return;
         }
@@ -44,47 +52,47 @@ public abstract class LivingEntityMixin {
         LivingEntity self = (LivingEntity) (Object) this;
         Level level = self.level();
 
-        // 条件：服务器、非玩家、非IParasite、传说难度
+        
         if (level.isClientSide()) return;
         if (self instanceof Player) return;
         if (self instanceof IParasite) return;
         if (!DifficultyEffects.isCothEffectEnabled(level)) return;
 
-        // ---- 传说难度：强制替换为 V级 60秒 COTH ----
-        // 1. 取消原始添加
+        
+        
         cir.setReturnValue(false);
         cir.cancel();
 
-        // 2. 移除已有的 COTH（如果有）
+        
         MobEffectInstance existing = self.getEffect(ModEffects.COTH.get());
         if (existing != null) {
             self.removeEffect(ModEffects.COTH.get());
         }
 
-        // 3. 标记正在添加自定义效果
+        
         applyingCustomCoth.set(true);
         try {
-            // 创建 V级（amplifier=4），1200 ticks（60秒）的效果
+            
             MobEffectInstance customCoth = new MobEffectInstance(
                     ModEffects.COTH.get(),
-                    1200,      // 60秒
-                    4,         // V级
+                    1200,      
+                    4,         
                     false, false, true
             );
             self.addEffect(customCoth);
-            // 附加 COTH 标签（可选）
+            
             self.getPersistentData().putBoolean("COTH", true);
         } finally {
             applyingCustomCoth.set(false);
         }
     }
 
-    // ========== 带源参数的 addEffect 拦截 ==========
+    
     @Inject(method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
             at = @At("HEAD"),
             cancellable = true)
     private void onAddEffectWithSource(MobEffectInstance effectInstance, Entity source, CallbackInfoReturnable<Boolean> cir) {
-        // 如果正在应用自定义COTH，放行
+        
         if (applyingCustomCoth.get()) {
             return;
         }
@@ -101,7 +109,7 @@ public abstract class LivingEntityMixin {
         if (self instanceof IParasite) return;
         if (!DifficultyEffects.isCothEffectEnabled(level)) return;
 
-        // ---- 传说难度强制替换 ----
+        
         cir.setReturnValue(false);
         cir.cancel();
 

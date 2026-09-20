@@ -338,8 +338,8 @@ public class ModEntities {
             ENTITIES.register("reshape_part",
                     () -> EntityType.Builder.<ReshapeLongarms.CustomPart>of(
                                     ReshapeLongarms.CustomPart::new, MobCategory.MISC)
-                            .sized(2.0F, 2.0F) // 默认尺寸，会被 init 覆盖
-                            .clientTrackingRange(12) // 确保客户端同步
+                            .sized(2.0F, 2.0F) 
+                            .clientTrackingRange(12) 
                             .build("reshape_part")
             );
 

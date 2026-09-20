@@ -17,7 +17,7 @@ public class DataGenEvent {
         PackOutput out = event.getGenerator().getPackOutput();
         var lp = event.getLookupProvider();
 
-        // ── 客户端 ──
+        
         var blockState = new BlockStateData(out, efh);
         event.getGenerator().addProvider(event.includeClient(), blockState);
         event.getGenerator().addProvider(event.includeClient(), new ItemGenData(out, efh));
@@ -27,7 +27,7 @@ public class DataGenEvent {
         event.getGenerator().addProvider(event.includeClient(), new ParticleData(out, efh));
         event.getGenerator().addProvider(event.includeClient(), new EffectSpriteData(out, efh));
 
-        // ── 服务端 ──
+        
         var blockTags = new BlockTagData(out, lp, efh);
         event.getGenerator().addProvider(event.includeServer(), blockTags);
         event.getGenerator().addProvider(event.includeServer(),
@@ -37,7 +37,7 @@ public class DataGenEvent {
         event.getGenerator().addProvider(event.includeServer(), new RecipeProviderData(out));
         event.getGenerator().addProvider(event.includeServer(), new HallWorldGenData(out, lp));
 
-        // ── 自定义数据 ──
+        
         event.getGenerator().addProvider(event.includeServer(),
                 new CustomDataProviders.EntityConversionDataProvider(out));
         event.getGenerator().addProvider(event.includeServer(),

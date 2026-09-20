@@ -44,7 +44,7 @@ public class LightningRodBlockMixin {
         int total = items.stream().mapToInt(e -> e.getItem().getCount()).sum();
 
         if (total >= 64) {
-            // 消耗64个
+            
             int toConsume = 64;
             for (ItemEntity itemEntity : items) {
                 if (toConsume <= 0) break;

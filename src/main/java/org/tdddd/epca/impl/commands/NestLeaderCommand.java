@@ -15,7 +15,7 @@ public class NestLeaderCommand {
     @SubscribeEvent
     public static void register(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-        dispatcher.register(Commands.literal("epca_nestleader")
+        dispatcher.register(Commands.literal("epca_hiveleader")
                 .requires(s -> s.hasPermission(2))
                 .then(Commands.literal("add")
                         .then(Commands.argument("player", EntityArgument.player())
