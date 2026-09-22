@@ -67,6 +67,10 @@ public class ModNetwork {
                 BiomassSyncPacket::handle);
         registrar.playToClient(SyncNestLeadersPacket.TYPE, SyncNestLeadersPacket.STREAM_CODEC,
                 SyncNestLeadersPacket::handle);
+        // Vanilla never syncs a mob's active effects to other clients, so the visible
+        // epca:soul_protection aura needs its own batch sync; see SoulProtectionSyncHandler.
+        registrar.playToClient(SyncSoulProtectionPacket.TYPE, SyncSoulProtectionPacket.STREAM_CODEC,
+                SyncSoulProtectionPacket::handle);
     }
 
     

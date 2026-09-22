@@ -5,6 +5,8 @@ import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
+import com.mojang.blaze3d.platform.DestFactor;
+import com.mojang.blaze3d.platform.SourceFactor;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -160,6 +162,38 @@ public final class GasCloudRenderType {
     public static final float SPEC_BASE_ALPHA = 1.0F;
 
     /**
+     * Style channel value that turns a quad into the golden "Heart" of {@code epca:soul_protection}
+     * instead of a gas puff or a water speck: the tall, irregular golden plasma/flame column of the
+     * reference image.
+     *
+     * <p>Like {@link #SPEC_STYLE_CHANNEL} it rides in the second channel of the {@code UV1}
+     * attribute, which already carries the sub-quad index for gas clouds ({@code 0..8}); {@code 252}
+     * is therefore unambiguous. {@code gas_cloud.fsh}'s {@code HEART_STYLE_CHANNEL} const selects the
+     * flame branch, which draws the look procedurally and ignores the texture, the radial falloff and
+     * the noise mask. The Java and GLSL values are cross-checked by
+     * {@code build/javac-check/check-glsl-26.py} so they cannot drift apart.</p>
+     *
+     * <p>The name keeps the effect's "Heart" wording even though the look is a flame: the marker is
+     * part of the 1.20.1 / 26.1.2 twin contract and both trees send this exact value. The quad itself
+     * is built and submitted by {@code impl/client/entity/heart/SoulProtectionHeartRenderer}, which
+     * reuses the shared camera-relative billboard path of {@link GasCloudRenderer}, writes this value
+     * into the style channel and draws through {@link #getAdditive()} so the flame is emissive.</p>
+     */
+    public static final int HEART_STYLE_CHANNEL = 252;
+
+    /**
+     * Style channel value of the tiny golden embers drawn beside the {@link #HEART_STYLE_CHANNEL}
+     * flame.
+     *
+     * <p>It is a branch of its own rather than a reuse of {@link #SPEC_STYLE_CHANNEL} because the
+     * speck branch multiplies the vertex colour by the red {@link #TINT_RED}/{@link #TINT_GREEN}/
+     * {@link #TINT_BLUE}, which would turn a gold ember red; the mote branch instead uses the
+     * shader's own {@code HEART_MOTE_COLOR}. A third value in the style channel keeps every existing
+     * gas and speck quad untouched.</p>
+     */
+    public static final int HEART_MOTE_STYLE_CHANNEL = 253;
+
+    /**
      * The same texture the INFESTIVE_GAS particle uses, so the clouds visually match the particles.
      * It is a 16x144 sheet of nine 16x16 animation frames; the raw 16x144 image is what
      * {@code SimpleTexture} uploads, so the fragment shader samples only the first frame band
@@ -219,6 +253,41 @@ public final class GasCloudRenderType {
                     .setOutline(RenderSetup.OutlineProperty.NONE)
                     .createRenderSetup());
 
+    /** Name of the additive variant, so the two render types are distinguishable in diagnostics. */
+    public static final String ADDITIVE_RENDER_TYPE_NAME = "epca_gas_cloud_additive";
+
+    /**
+     * Additive variant of the very same pipeline: same core shader, same vertex format, same texture
+     * and depth state, only the blend function differs ({@code SRC_ALPHA / ONE} instead of
+     * {@code TRANSLUCENT}'s {@code SRC_ALPHA / ONE_MINUS_SRC_ALPHA}).
+     *
+     * <p>It exists for the emissive {@code epca:soul_protection} flame, whose reference look is a
+     * glowing plasma column over a dark background: with {@code SRC_ALPHA / ONE} the near-opaque core
+     * adds up to a bright near-white glow instead of merely blending towards the background. Nothing
+     * else uses it, so the gas and speck quads keep their exact previous blend. This mirrors the
+     * 1.20.1 twin, which builds the same variant on {@code ADDITIVE_TRANSPARENCY}.</p>
+     */
+    public static final RenderPipeline GAS_CLOUD_ADDITIVE_PIPELINE =
+            RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+                    .withLocation(Identifier.fromNamespaceAndPath(epca.MODID, "pipeline/gas_cloud_additive"))
+                    .withVertexShader(GAS_CLOUD_SHADER)
+                    .withFragmentShader(GAS_CLOUD_SHADER)
+                    .withSampler("Sampler0")
+                    .withVertexFormat(GAS_CLOUD_VERTEX_FORMAT, VertexFormat.Mode.QUADS)
+                    .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+                    .withColorTargetState(new ColorTargetState(
+                            new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE)))
+                    .withCull(false)
+                    .build();
+
+    /** The additive render type; only valid to draw with while {@link #isPipelineRegistered()}. */
+    private static final RenderType GAS_CLOUD_ADDITIVE = RenderType.create(ADDITIVE_RENDER_TYPE_NAME,
+            RenderSetup.builder(GAS_CLOUD_ADDITIVE_PIPELINE)
+                    .withTexture("Sampler0", GAS_TEXTURE)
+                    .sortOnUpload()
+                    .setOutline(RenderSetup.OutlineProperty.NONE)
+                    .createRenderSetup());
+
     private static boolean pipelineRegistered;
 
     private GasCloudRenderType() {
@@ -226,21 +295,26 @@ public final class GasCloudRenderType {
 
     /**
      * Mod-bus handler for {@link RegisterRenderPipelinesEvent}; call it from the mod's client
-     * event subscriber. Until this has run the pipeline is not part of the pipeline registry and
-     * the layer refuses to submit geometry.
+     * event subscriber. Until this has run the pipelines are not part of the pipeline registry and
+     * the callers refuse to submit geometry. Both variants are registered here, exactly like the
+     * 1.20.1 twin builds both render types from the one shader.
      */
     public static void registerPipeline(RegisterRenderPipelinesEvent event) {
         event.registerPipeline(GAS_CLOUD_PIPELINE);
+        event.registerPipeline(GAS_CLOUD_ADDITIVE_PIPELINE);
         pipelineRegistered = true;
         if (GasCloudManager.DEBUG) {
             epca.LOGGER.info("[gascloud] pipeline: REGISTERED {} shaders={} format={} samplers={}",
                     GAS_CLOUD_PIPELINE.getLocation(), GAS_CLOUD_SHADER,
                     GAS_CLOUD_VERTEX_FORMAT.getElementAttributeNames(),
                     GAS_CLOUD_PIPELINE.getSamplers());
+            epca.LOGGER.info("[gascloud] pipeline: REGISTERED {} blend={}",
+                    GAS_CLOUD_ADDITIVE_PIPELINE.getLocation(),
+                    GAS_CLOUD_ADDITIVE_PIPELINE.getColorTargetState().blendFunction());
         }
     }
 
-    /** True once {@link #registerPipeline} has registered the custom pipeline. */
+    /** True once {@link #registerPipeline} has registered the custom pipelines. */
     public static boolean isPipelineRegistered() {
         return pipelineRegistered;
     }
@@ -248,6 +322,14 @@ public final class GasCloudRenderType {
     /** The shared render type; only valid to draw with while {@link #isPipelineRegistered()} is true. */
     public static RenderType get() {
         return GAS_CLOUD;
+    }
+
+    /**
+     * The additive variant of the same pipeline, for the emissive soul-protection flame; only valid
+     * to draw with while {@link #isPipelineRegistered()} is true.
+     */
+    public static RenderType getAdditive() {
+        return GAS_CLOUD_ADDITIVE;
     }
 
     /** The red tint used by every gas cloud, normalised, for callers that need to mirror it. */

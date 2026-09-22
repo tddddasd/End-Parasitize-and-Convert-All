@@ -35,6 +35,7 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.ParasiteAttractionManager;
 import org.tdddd.epca.impl.events.EvolutionStageEvents;
+import org.tdddd.epca.impl.events.ShieldCapabilityHandler;
 import org.tdddd.epca.impl.fluid.ModFluids;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.items.ModCreativeTabs;
@@ -74,6 +75,9 @@ public class epca {
         ModNetwork.register(modEventBus);
         
         EpcaAttachments.register(modEventBus);
+        // Initialize the attachment holders during construction; a lazy first touch at runtime would
+        // register an entry after RegisterEvent has fired and crash the game (see ShieldCapabilityHandler).
+        ShieldCapabilityHandler.init();
         ModCreativeTabs.CREATIVE_TABS.register(modEventBus);
         ModParticles.REGISTRY.register(modEventBus);
         ModFluids.FLUID_TYPES.register(modEventBus);

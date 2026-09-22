@@ -11,6 +11,14 @@
 //
 // Dissipation is therefore smooth in time (fade), in space (radial falloff times the noise mask)
 // and in depth (the far-distance fade below), instead of a hard cut-off.
+//
+// The same shader draws three further looks, selected by the style channel in gasSeed.y (UV1.y,
+// written by the CPU helper that submits the quad):
+//   * GAS_SPEC_STYLE_CHANNEL (250): the dark-red micro rectangle of epca:contaminated_water,
+//   * HEART_STYLE_CHANNEL (252): the golden plasma/flame column of epca:soul_protection,
+//   * HEART_MOTE_STYLE_CHANNEL (253): the tiny golden embers beside that flame.
+// The two soul-protection styles are fully procedural: they sample no texture and use no gas noise
+// mask, and the flame reuses gasFbm for its structure only.
 
 #moj_import <minecraft:dynamictransforms.glsl>
 
@@ -80,6 +88,114 @@ const float GAS_SPEC_BASE_ALPHA = 1.0;
 // math; it must stay false in normal play.
 const bool GAS_DEBUG_OPAQUE = false;
 
+// =================================================================================================
+//  Soul-protection style (epca:soul_protection) - SINGLE TUNABLE BLOCK
+// =================================================================================================
+// The "Heart" style (HEART_STYLE_CHANNEL) draws the golden plasma/flame column of the reference
+// image, and the "mote" style (HEART_MOTE_STYLE_CHANNEL) draws the tiny golden embers beside it.
+// Every shape, colour and animation number of both styles is a plain literal in this one block, and
+// the two look functions soulFlameColor() / soulMoteColor() below are the only consumers, so
+// retuning the look means editing this block and its Java mirror while replacing the look entirely
+// means replacing those two functions (and, if they need different inputs, this block).
+// The block is mirrored one-for-one (same names, same values) by the HEART_* block of
+// impl/client/entity/heart/SoulProtectionHeartRenderer, and build/javac-check/check-glsl-26.py
+// fails if the two ever drift apart. It is byte-identical to the 1.20.1 twin's block.
+//
+// Quad space: 1 unit = the quad width, x to the right and y up, the quad spanning x in [-0.5, 0.5]
+// and y in [-HEART_ASPECT_HEIGHT/2, +HEART_ASPECT_HEIGHT/2]. The CPU puts the animation phases into
+// the vertex colour of each flame/mote quad, which these styles therefore read instead of a tint:
+//   vertexColor.r -> flame boil / upward advection phase, 0..1
+//   vertexColor.g -> flame sway and horizontal jitter phase, 0..1
+//   vertexColor.b -> flame brightness flicker phase, 0..1
+//   vertexColor.a -> fade-in / fade-out of the quad (flame and motes alike)
+// UV1.x stays unused (the seed slot) and UV1.y carries the style channel.
+
+// -- submission geometry and fade timing (owned by the CPU helper; mirrored, not read here) --------
+// Style channels of the flame quad and of the ember quads. Mirrored by
+// GasCloudRenderType.HEART_STYLE_CHANNEL / HEART_MOTE_STYLE_CHANNEL (ints, compared exactly).
+const int HEART_STYLE_CHANNEL = 252;
+const int HEART_MOTE_STYLE_CHANNEL = 253;
+// Aspect ratio width : height = 1 : 2.1, and the hitbox padding the CPU applies to the quad height.
+const float HEART_ASPECT_HEIGHT = 2.1;
+const float HEART_SIZE_PADDING = 1.10;
+// Fade in / fade out in ticks (the fade itself rides in vertexColor.a).
+const int HEART_FADE_IN_TICKS = 8;
+const int HEART_FADE_OUT_TICKS = 15;
+
+// -- column silhouette -----------------------------------------------------------------------------
+// Fraction of the quad half extent the column spans (the rest is headroom for the wispy edges). The
+// half extents are derived, so the column is always exactly 1 : HEART_ASPECT_HEIGHT.
+const float HEART_FIT = 0.76;
+const float HEART_HALF_HEIGHT = HEART_FIT * HEART_ASPECT_HEIGHT * 0.5;
+const float HEART_HALF_WIDTH = HEART_HALF_HEIGHT / HEART_ASPECT_HEIGHT;
+// Spine: an S-curved axis (amplitude in quad units, frequency over the -1..1 vertical coordinate) and
+// a taper that narrows the column towards both ends.
+const float HEART_BEND = 0.07;
+const float HEART_BEND_FREQ = 2.2;
+const float HEART_TAPER = 0.45;
+const float HEART_CROWN_TAPER = 0.45;
+const float HEART_VERTICAL_FADE_START = 0.62;
+// Noise fields. gasFbm is the sum of three octaves with amplitudes 0.5 / 0.25 / 0.125, so it spans
+// [0, 0.875] around HEART_NOISE_CENTRE; subtracting that centre makes both fields symmetric around
+// zero. The coarse field shapes the outline, the fine one (much higher across than up, so it streaks
+// vertically) breaks the interior into filaments.
+const float HEART_NOISE_CENTRE = 0.4375;
+const float HEART_NOISE_SCALE_X = 2.6;
+const float HEART_NOISE_SCALE_Y = 1.05;
+const float HEART_NOISE_SEED = 2.3;
+const float HEART_DETAIL_SCALE_X = 3.4;
+const float HEART_DETAIL_SCALE_Y = 0.7;
+const float HEART_DETAIL_SEED = 11.9;
+// How far the coarse field pushes the outline in and out (1.0 would be a whole half width), and how
+// far the fine field modulates the interior brightness (+-HEART_BREAK_STRENGTH around 0.5).
+const float HEART_EDGE_NOISE = 0.50;
+const float HEART_CROWN_WISP = 0.90;
+const float HEART_BREAK_STRENGTH = 0.68;
+// Gain that turns the horizontal distance into the 0..1 density ramp: 1.0 keeps the spine at the
+// value the noise gives it instead of saturating the whole interior.
+const float HEART_EDGE_GAIN = 1.0;
+
+// -- core, ramp, colours and opacities -------------------------------------------------------------
+// Bright near-white core on the spine (width, feather, how much the filaments may dim it, and how
+// much it boosts the intensity), the four-step ramp core -> mid -> outer -> wisp, and the opacity
+// ramp from the faint wisps to the near-opaque core.
+const float HEART_CORE_WIDTH = 0.09;
+const float HEART_CORE_FEATHER = 0.08;
+const float HEART_CORE_MIN = 0.35;
+const float HEART_CORE_BOOST = 0.55;
+const float HEART_RAMP_WISP = 0.10;
+const float HEART_RAMP_OUTER = 0.30;
+const float HEART_RAMP_MID = 0.55;
+const float HEART_RAMP_CORE = 0.85;
+const float HEART_WISP_ALPHA = 0.15;
+const float HEART_CORE_ALPHA = 0.95;
+// #FFF7CC core, #FFD24A mid, #E08A18 outer, #8A4B08 deepest wisp.
+const vec3 HEART_COLOR_CORE = vec3(1.0, 0.9686275, 0.8);
+const vec3 HEART_COLOR_MID = vec3(1.0, 0.8235294, 0.2901961);
+const vec3 HEART_COLOR_OUTER = vec3(0.8784314, 0.5411765, 0.0941176);
+const vec3 HEART_COLOR_WISP = vec3(0.5411765, 0.2941176, 0.0313726);
+
+// -- flame motion ----------------------------------------------------------------------------------
+// All motion is a bounded sine/cosine of a 0..1 phase the CPU sends, so the field boils, sways and
+// flickers without the jump an unbounded, wrapping offset would cause: how far the noise is
+// advected upward and sideways, the column's own sway and jitter, the flicker amplitude and the
+// frequency ratio used to break up the pure sine.
+const float HEART_FLOW = 1.10;
+const float HEART_FLOW_SIDE = 0.26;
+const float HEART_SWAY = 0.055;
+const float HEART_JITTER = 0.022;
+const float HEART_JITTER_RATIO = 3.7;
+const float HEART_FLICKER_AMPLITUDE = 0.18;
+const float HEART_FLICKER_RATIO = 2.7;
+// One full turn, the conversion factor from a 0..1 phase to the angle of the sines above.
+const float HEART_TWO_PI = 6.2831853;
+
+// -- embers ----------------------------------------------------------------------------------------
+// Gold of the little embers (#FFE27A) and the radius (in the quad's 0..1 UV space) inside which they
+// are at full brightness.
+const vec3 HEART_MOTE_COLOR = vec3(1.0, 0.8862745, 0.4784314);
+const float HEART_MOTE_INNER = 0.25;
+
 // Cheap deterministic pseudo-random hash, stable for a fixed seed.
 float gasHash(vec2 p, float seed) {
     return fract(sin(dot(p, vec2(127.1, 311.7)) + seed * 74.7) * 43758.5453123);
@@ -109,6 +225,84 @@ float gasFbm(vec2 p, float seed) {
     return value;
 }
 
+// =================================================================================================
+//  LOOK FUNCTIONS - the single swap points of the two soul-protection styles
+// =================================================================================================
+// soulFlameColor() gets the isotropic quad coordinate and the three animation phases the CPU packs
+// into the vertex colour, and returns the un-premultiplied colour and the opacity of the flame
+// column at that point. soulMoteColor() does the same for one ember. Replacing the body of either
+// function (plus, if it needs different inputs, the tunable block above) replaces the look: the
+// branches in main(), the fade, the additive blending and the gas/speck styles stay untouched.
+
+// Tall, irregular golden plasma column: an S-curved spine, a taper towards both ends, a
+// noise-eroded wispy outline with detached tongues, a bright near-white core and a four-step golden
+// ramp from that core out to the faint dark-amber wisps.
+vec4 soulFlameColor(vec2 s, vec3 phases) {
+    float boilAngle = phases.r * HEART_TWO_PI;
+    float swayAngle = phases.g * HEART_TWO_PI;
+    float flickerAngle = phases.b * HEART_TWO_PI;
+
+    // The spine sways slowly and jitters slightly; both are bounded sines of the phase, so they stay
+    // continuous however the phase wraps.
+    float sway = HEART_SWAY * sin(swayAngle) + HEART_JITTER * sin(swayAngle * HEART_JITTER_RATIO);
+
+    // The noise field is advected upward by a bounded cosine travel and pushed sideways, so the
+    // flame boils and licks without the jump an unbounded, wrapping offset would produce. The coarse
+    // field shapes the outline; the fine one streaks vertically and breaks the interior up.
+    vec2 flow = vec2(HEART_FLOW_SIDE * sin(boilAngle), -HEART_FLOW * (0.5 - 0.5 * cos(boilAngle)));
+    vec2 structureUv = vec2(s.x * HEART_NOISE_SCALE_X, s.y * HEART_NOISE_SCALE_Y) + flow;
+    vec2 detailUv = vec2(structureUv.x * HEART_DETAIL_SCALE_X + sway,
+                         structureUv.y * HEART_DETAIL_SCALE_Y);
+    float structure = gasFbm(structureUv, HEART_NOISE_SEED) - HEART_NOISE_CENTRE;
+    float filaments = gasFbm(detailUv, HEART_DETAIL_SEED) - HEART_NOISE_CENTRE;
+
+    // Column profile: v is -1 at the bottom and +1 at the top, the spine is S-curved and the taper
+    // narrows the column. The crown term narrows the upper half much harder, and the coarse noise
+    // erodes harder towards the top, so the crown pinches off and breaks into detached tongues while
+    // the foot stays broad.
+    float v = clamp(s.y / HEART_HALF_HEIGHT, -1.0, 1.0);
+    float upward = max(v, 0.0);
+    float axis = sway + HEART_BEND * sin(v * HEART_BEND_FREQ);
+    float taper = 1.0 - HEART_TAPER * v * v - HEART_CROWN_TAPER * upward;
+    float halfWidth = max(HEART_HALF_WIDTH * taper, 0.0001);
+    float u = abs(s.x - axis) / halfWidth;
+    float outline = 1.0 - u + structure * HEART_EDGE_NOISE * (1.0 + HEART_CROWN_WISP * upward);
+    float vertical = 1.0 - smoothstep(HEART_VERTICAL_FADE_START, 1.0, abs(v));
+    // The fine filaments cut the interior of the column into bright streaks and darker lanes, so the
+    // flame never reads as a solid slab.
+    float breakup = clamp(0.5 + HEART_BREAK_STRENGTH * filaments / HEART_NOISE_CENTRE, 0.0, 1.0);
+    float density = clamp(outline * HEART_EDGE_GAIN, 0.0, 1.0) * breakup * vertical;
+
+    // Bright core: a narrow band on the spine, broken up by the same filaments so it reads as a
+    // flickering filament rather than a uniform stripe.
+    float coreBand = 1.0 - smoothstep(HEART_CORE_WIDTH, HEART_CORE_WIDTH + HEART_CORE_FEATHER, abs(s.x - axis));
+    float coreFilaments = clamp(HEART_CORE_MIN + (1.0 - HEART_CORE_MIN) * (0.5 + filaments / HEART_NOISE_CENTRE), 0.0, 1.0);
+    float core = coreBand * vertical * coreFilaments;
+    float intensity = clamp(density + core * HEART_CORE_BOOST, 0.0, 1.0);
+
+    // Four-step golden ramp, from the faintest wisp outwards in to the near-white core.
+    vec3 color = HEART_COLOR_WISP;
+    color = mix(color, HEART_COLOR_OUTER, smoothstep(HEART_RAMP_WISP, HEART_RAMP_OUTER, intensity));
+    color = mix(color, HEART_COLOR_MID, smoothstep(HEART_RAMP_OUTER, HEART_RAMP_MID, intensity));
+    color = mix(color, HEART_COLOR_CORE, smoothstep(HEART_RAMP_MID, HEART_RAMP_CORE, intensity));
+
+    // Brightness flicker of about +-HEART_FLICKER_AMPLITUDE, and the opacity ramp that keeps the
+    // wisps faint (HEART_WISP_ALPHA) and the core near opaque (HEART_CORE_ALPHA) while fading
+    // completely to zero outside the column.
+    float flicker = 0.6 * sin(flickerAngle) + 0.4 * sin(flickerAngle * HEART_FLICKER_RATIO);
+    color *= 1.0 + HEART_FLICKER_AMPLITUDE * flicker;
+    float alpha = mix(HEART_WISP_ALPHA, HEART_CORE_ALPHA, intensity) * smoothstep(0.0, HEART_RAMP_WISP, intensity);
+    return vec4(color, clamp(alpha, 0.0, 1.0));
+}
+
+// One tiny golden ember: a soft round blob in the quad's 0..1 UV space. The CPU has already placed
+// the quad and put the ember's own fade into the vertex colour alpha.
+vec4 soulMoteColor(vec2 uv) {
+    float distanceFromCentre = length(uv - vec2(0.5)) * 2.0;
+    float falloff = 1.0 - smoothstep(HEART_MOTE_INNER, 1.0, distanceFromCentre);
+    return vec4(HEART_MOTE_COLOR, falloff);
+}
+
 void main() {
     // vertexDistance is the true camera distance (see gas_cloud.vsh). It must stay positive, or
     // this fade silently becomes dead code - the bug the 1.20.1 twin had with its raw viewPos.z.
@@ -129,6 +323,31 @@ void main() {
         float specAlpha = clamp(GAS_SPEC_BASE_ALPHA * GAS_ALPHA_BOOST * vertexColor.a * edgeFade,
                 0.0, 1.0);
         fragColor = vec4(GAS_TINT * vertexColor.rgb * ColorModulator.rgb, specAlpha);
+        return;
+    }
+
+    // SOUL PROTECTION FLAME: gasSeed.y == HEART_STYLE_CHANNEL marks the single flame quad the CPU
+    // helper submits for a living entity that carries epca:soul_protection. vertexColor.rgb carries
+    // the three animation phases (boil, sway, flicker) and vertexColor.a the quad's fade; UV1.x is
+    // unused here. The look itself lives in soulFlameColor(), the single swap point of this style.
+    // 250, 252 and 253 are all far above every real gas sub-quad index (0..8), so the styles cannot
+    // collide.
+    if (gasSeed.y == HEART_STYLE_CHANNEL) {
+        // Isotropic quad space: 1 unit = the quad width, x right and y up, so a feature has the same
+        // size in both directions.
+        vec2 s = vec2(texCoord0.x - 0.5, (0.5 - texCoord0.y) * HEART_ASPECT_HEIGHT);
+        vec4 flame = soulFlameColor(s, vertexColor.rgb);
+        fragColor = vec4(flame.rgb * ColorModulator.rgb,
+                         flame.a * vertexColor.a * edgeFade * ColorModulator.a);
+        return;
+    }
+
+    // SOUL PROTECTION EMBER: one tiny ember per quad, placed by the CPU helper; vertexColor.a is
+    // that ember's own fade.
+    if (gasSeed.y == HEART_MOTE_STYLE_CHANNEL) {
+        vec4 mote = soulMoteColor(texCoord0);
+        fragColor = vec4(mote.rgb * ColorModulator.rgb,
+                         mote.a * vertexColor.a * edgeFade * ColorModulator.a);
         return;
     }
 

@@ -153,6 +153,8 @@ public class ClientHandler {
      */
     @SubscribeEvent
     public static void onRegisterRenderPipelines(RegisterRenderPipelinesEvent event) {
+        // Registers the translucent gas cloud / speck pipeline and its additive twin; the twin is
+        // what draws the emissive soul protection flame. No existing pipeline changes.
         GasCloudRenderType.registerPipeline(event);
     }
 

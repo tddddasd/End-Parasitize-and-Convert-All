@@ -19,6 +19,7 @@
     "client.CreateWorldScreenMixin",
     "client.LightningBoltRendererMixin",
     "client.LightningBoltRenderStateMixin",
+    "client.LivingEntityRendererHeartMixin",
     "client.LivingEntityRendererTintMixin"
   ],
   "injectors": {
