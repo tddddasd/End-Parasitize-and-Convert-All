@@ -18,6 +18,7 @@ import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.entities.IPoverty;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
@@ -166,7 +167,7 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<SmallIncompleteForm>("controller", 4, this::predicate));
+        controllers.add(new AnimationController<SmallIncompleteForm>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
     private PlayState predicate(AnimationTest<SmallIncompleteForm> event) {
         AnimationController<SmallIncompleteForm> controller = event.controller();

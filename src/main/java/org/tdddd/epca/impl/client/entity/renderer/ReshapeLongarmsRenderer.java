@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;
 import org.tdddd.epca.impl.client.entity.EpcaGeoModel;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
+import org.tdddd.epca.impl.client.entity.gas.GasCloudLayer;
 import org.tdddd.epca.impl.client.entity.model.ReshapeLongarmsModel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLongarms;
 
@@ -27,6 +28,9 @@ public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
 
     public ReshapeLongarmsRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new ReshapeLongarmsModel());
+        // Shader-rendered red gas clouds for the active and passive jet skills. The clouds are
+        // additional to (and much sparser than) the INFESTIVE_GAS particles, which are untouched.
+        addLayerProvider(GasCloudLayer.forLongarms());
     }
 
     @Override

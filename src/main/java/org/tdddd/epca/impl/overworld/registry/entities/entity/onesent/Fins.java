@@ -29,6 +29,7 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
@@ -413,7 +414,7 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     // EntityType EntityDimensions#withEyeHeight (see the shared change request).
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 5, event -> {
+        controllers.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, event -> {
             
             if (this.isSprinting) {
                 event.setAnimation(RawAnimation.begin().thenPlay("sprint"));

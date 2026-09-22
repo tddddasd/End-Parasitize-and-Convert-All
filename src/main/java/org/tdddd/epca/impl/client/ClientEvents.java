@@ -4,6 +4,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import org.tdddd.epca.impl.client.entity.gas.GasCloudManager;
 import org.tdddd.epca.impl.client.entity.layer.EndermanAfterimageLayer;
 import org.tdddd.epca.impl.epca;
 
@@ -17,5 +18,8 @@ public class ClientEvents {
         if (tickCounter % 20 == 0) {
             EndermanAfterimageLayer.cleanupOrphaned();
         }
+        // Ages the shader-rendered gas clouds and reads the synced jet-skill state of the visible
+        // reshape mobs. Client-only visual state; no packets, no server-side changes.
+        GasCloudManager.clientTick();
     }
 }

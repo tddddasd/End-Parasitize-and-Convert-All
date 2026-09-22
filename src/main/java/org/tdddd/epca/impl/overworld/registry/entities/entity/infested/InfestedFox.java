@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 import net.minecraft.world.entity.animal.fox.Fox;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 
 import net.minecraft.core.BlockPos;
@@ -456,7 +457,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
     }
 
     private PlayState animationPredicate(AnimationTest<InfestedFox> event) {

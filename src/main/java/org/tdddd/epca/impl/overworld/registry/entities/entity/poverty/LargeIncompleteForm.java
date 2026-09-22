@@ -26,6 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.entities.IPoverty;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
@@ -341,7 +342,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<LargeIncompleteForm>("controller", 6, this::predicate));
+        controllers.add(new AnimationController<LargeIncompleteForm>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
 
     private PlayState predicate(AnimationTest<LargeIncompleteForm> event) {

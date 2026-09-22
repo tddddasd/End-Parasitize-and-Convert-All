@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.util.RandomSource;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.blocks.BlockConversionManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -496,7 +497,7 @@ public class FlyingCarrier extends PathfinderMob implements GeoEntity, IParasite
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<FlyingCarrier>("controller", 4, this::predicate));
+        controllers.add(new AnimationController<FlyingCarrier>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
 
     private PlayState predicate(AnimationTest<FlyingCarrier> event) {

@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.blocks.BlockConversionManager;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
@@ -678,7 +679,7 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 0, this::predicate));
+        controllers.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
     private PlayState predicate(AnimationTest<StageIBeckon> event) {
         AnimationController<StageIBeckon> controller = event.controller();

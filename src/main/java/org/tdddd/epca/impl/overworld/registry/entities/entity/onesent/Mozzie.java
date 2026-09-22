@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
@@ -314,7 +315,7 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<Mozzie>("controller", 4, this::predicate));
+        controllers.add(new AnimationController<Mozzie>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
     private PlayState predicate(AnimationTest<Mozzie> event) {
         AnimationController<Mozzie> controller = event.controller();

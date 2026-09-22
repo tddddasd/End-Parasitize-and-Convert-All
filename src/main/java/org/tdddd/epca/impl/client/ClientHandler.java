@@ -16,10 +16,12 @@ import net.minecraft.world.item.component.CustomData;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
+import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
+import org.tdddd.epca.impl.client.entity.gas.GasCloudRenderType;
 import org.tdddd.epca.impl.client.entity.model.*;
 import org.tdddd.epca.impl.client.entity.renderer.*;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
@@ -57,6 +59,9 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.WALKING_ENDERMAN_HEAD.get(), WalkingEndermanHeadRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_ZOMBIE.get(), InfestedZombieRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_LONGARMS.get(), ReshapeLongarmsRenderer::new);
+        // The yelloweye renderer is the same EpcaGeoRenderer the auto-registration above installs,
+        // specialised so the shader gas cloud layer can be attached (see ReshapeYelloweyeRenderer).
+        event.registerEntityRenderer(ModEntities.RESHAPE_YELLOWEYE.get(), ReshapeYelloweyeRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_PART.get(), ReshapeLongarmsCustomPartRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_BAT.get(), InfestedBatRenderer::new);
 
@@ -137,6 +142,18 @@ public class ClientHandler {
         public MapCodec<? extends RangeSelectItemModelProperty> type() {
             return CODEC;
         }
+    }
+
+    /**
+     * 26.1.2 replaced {@code ShaderInstance} + {@code RegisterShadersEvent} with
+     * {@code RenderPipeline} + {@link RegisterRenderPipelinesEvent}. The gas cloud shader is a real
+     * custom core shader ({@code assets/epca/shaders/core/gas_cloud.vsh/.fsh}); its pipeline carries
+     * the blend/depth/cull/vertex-format render state that used to live in the 1.20.1
+     * {@code shaders/core/gas_cloud.json}.
+     */
+    @SubscribeEvent
+    public static void onRegisterRenderPipelines(RegisterRenderPipelinesEvent event) {
+        GasCloudRenderType.registerPipeline(event);
     }
 
     @SubscribeEvent

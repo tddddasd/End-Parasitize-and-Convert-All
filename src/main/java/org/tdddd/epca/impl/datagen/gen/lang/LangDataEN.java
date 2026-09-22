@@ -17,6 +17,15 @@ public class LangDataEN extends LanguageProvider {
         // Gamerules
         add("gamerule.epca_hardness_conversion_block", "Convert blocks based on hardness");
         add("gamerule.epca_hardness_conversion_block.description", "When a block doesn't have a transformation configuration mapping, is it allowed to convert it into Infested Residue, Rocklike, or Plankslike blocks based on its hardness");
+        // 26.1.2 resolves a game rule through its REGISTRY key: GameRule.getDescriptionId() is
+        // Util.makeDescriptionId("gamerule", getIdentifier()) = "gamerule.<namespace>.<path>", and
+        // GameRules.registerBoolean(String, ...) registers the rule via
+        // Registry.register(registry, name, rule) -> Identifier.parse(name), which defaults a bare
+        // name to the minecraft namespace. The rule therefore resolves to
+        // "gamerule.minecraft.epca_hardness_conversion_block" (+ ".description"). Both forms are
+        // shipped on purpose: 26.1.2 uses this namespaced pair, the 1.20.1 twin uses the bare pair.
+        add("gamerule.minecraft.epca_hardness_conversion_block", "Convert blocks based on hardness");
+        add("gamerule.minecraft.epca_hardness_conversion_block.description", "When a block doesn't have a transformation configuration mapping, is it allowed to convert it into Infested Residue, Rocklike, or Plankslike blocks based on its hardness");
 
         // Tooltips
         add("tooltip.epca.max_damage_type", "Max Damage Type: %s (\u00d7%s)");

@@ -18,6 +18,7 @@ import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.client.entity.IAutoRenderableEntity;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
@@ -129,7 +130,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar registrar) {
-        registrar.add(new AnimationController<>("controller", 3, state -> {
+        registrar.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, state -> {
             if (isFakingDeath()) return PlayState.STOP;
             if (!state.isMoving()) return state.setAndContinue(ANIM_IDLE);
             if (isRunning()) return state.setAndContinue(ANIM_RUN);

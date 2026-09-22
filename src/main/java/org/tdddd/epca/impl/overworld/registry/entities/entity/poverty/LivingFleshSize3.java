@@ -22,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
@@ -362,7 +363,7 @@ public class LivingFleshSize3 extends PathfinderMob implements GeoEntity, IParas
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<LivingFleshSize3>("controller", 4, this::predicate));
+        controllers.add(new AnimationController<LivingFleshSize3>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
     private PlayState predicate(AnimationTest<LivingFleshSize3> event) {
         AnimationController<LivingFleshSize3> controller = event.controller();

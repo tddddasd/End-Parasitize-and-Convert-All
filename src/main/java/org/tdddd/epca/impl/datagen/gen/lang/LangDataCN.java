@@ -17,6 +17,15 @@ public class LangDataCN extends LanguageProvider {
         
         add("gamerule.epca_hardness_conversion_block", "根据硬度转化模组方块");
         add("gamerule.epca_hardness_conversion_block.description", "当模组方块没有转化配置映射时，是否允许根据硬度将其转化为虫染残渣、类岩、类板等方块");
+        // 26.1.2 resolves a game rule through its REGISTRY key: GameRule.getDescriptionId() is
+        // Util.makeDescriptionId("gamerule", getIdentifier()) = "gamerule.<namespace>.<path>", and
+        // GameRules.registerBoolean(String, ...) registers the rule via
+        // Registry.register(registry, name, rule) -> Identifier.parse(name), which defaults a bare
+        // name to the minecraft namespace. The rule therefore resolves to
+        // "gamerule.minecraft.epca_hardness_conversion_block" (+ ".description"). Both forms are
+        // shipped on purpose: 26.1.2 uses this namespaced pair, the 1.20.1 twin uses the bare pair.
+        add("gamerule.minecraft.epca_hardness_conversion_block", "根据硬度转化模组方块");
+        add("gamerule.minecraft.epca_hardness_conversion_block.description", "当模组方块没有转化配置映射时，是否允许根据硬度将其转化为虫染残渣、类岩、类板等方块");
 
         
         add("tooltip.epca.max_damage_type", "最大受击倍率伤害类型: %s (\u00d7%s)");

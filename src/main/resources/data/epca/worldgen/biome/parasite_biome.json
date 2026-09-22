@@ -4,14 +4,14 @@
   "temperature_modifier": "none",
   "downfall": 0.2,
   "attributes": {
-    "minecraft:visual/sky_color": "#2f0000",
-    "minecraft:visual/fog_color": "#2f0000",
-    "minecraft:visual/water_fog_color": "#a60000"
+    "minecraft:visual/sky_color": "#6e617b",
+    "minecraft:visual/fog_color": "#6e617b",
+    "minecraft:visual/water_fog_color": "#6e617b"
   },
   "effects": {
-    "water_color": "#a60000",
-    "foliage_color": "#a60000",
-    "grass_color": "#a60000"
+    "water_color": "#6e617b",
+    "foliage_color": "#8e44ad",
+    "grass_color": "#8e44ad"
   },
   "carvers": [
     "minecraft:cave"

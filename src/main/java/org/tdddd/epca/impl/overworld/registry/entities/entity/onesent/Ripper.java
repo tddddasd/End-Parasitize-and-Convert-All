@@ -50,6 +50,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
@@ -1061,7 +1062,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        AnimationController<Ripper> controller = new AnimationController<>("controller", 4, event -> {
+        AnimationController<Ripper> controller = new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, event -> {
             if (isAprilFoolsDay()) {
                 event.setAnimation(RawAnimation.begin().thenLoop("dance"));
                 return PlayState.CONTINUE;

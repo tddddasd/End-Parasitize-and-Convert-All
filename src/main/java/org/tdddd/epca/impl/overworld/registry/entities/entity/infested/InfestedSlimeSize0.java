@@ -27,6 +27,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
@@ -450,8 +451,8 @@ public class InfestedSlimeSize0 extends PathfinderMob implements GeoEntity, IPar
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 4, this::playState));
-        controllers.add(new AnimationController<>("attack_controller", 4, this::attackPredicate));
+        controllers.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::playState));
+        controllers.add(new AnimationController<>("attack_controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::attackPredicate));
     }
 
     private PlayState playState(AnimationTest<InfestedSlimeSize0> event) {

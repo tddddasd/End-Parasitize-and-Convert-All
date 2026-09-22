@@ -90,9 +90,13 @@ public class BiomassEventHandler {
     }
 
     private static void addPointsAndSync(Player player, int amount) {
+        
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
         BiomassManager.addBiomassPoints(player, amount);
         int total = BiomassManager.getBiomassPoints(player);
-        ModNetwork.sendToPlayer((ServerPlayer) player,
+        ModNetwork.sendToPlayer(serverPlayer,
                 new BiomassSyncPacket(true, total));
     }
 

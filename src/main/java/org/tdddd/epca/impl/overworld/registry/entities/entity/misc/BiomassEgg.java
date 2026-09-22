@@ -1,4 +1,5 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.client.entity.IMotionAligned;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -127,7 +128,7 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
     }
 
     private PlayState animationPredicate(AnimationTest<BiomassEgg> event) {

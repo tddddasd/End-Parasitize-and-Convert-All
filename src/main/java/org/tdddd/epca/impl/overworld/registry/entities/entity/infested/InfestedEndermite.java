@@ -2,6 +2,7 @@ package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -10,6 +11,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -23,11 +25,14 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.client.entity.IGlowRenderable;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
@@ -55,6 +60,20 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
     private static final EntityDataAccessor<Integer> DATA_VARIANT = SynchedEntityData.defineId(
             InfestedEndermite.class, EntityDataSerializers.INT
     );
+    // UNSTABLE-only preemptive attack dodge + blink barrage tuning.
+    private static final int DODGE_COOLDOWN_TICKS = 160;
+    private static final int DODGE_ATTEMPTS = 32;
+    private static final float BLINK_CHANCE = 0.05F;
+    private static final int BLINK_INTERVAL_TICKS = 5;
+    private static final int BLINK_MIN_TELEPORTS = 2;
+    private static final int BLINK_MAX_TELEPORTS = 3;
+    private static final int BLINK_ATTEMPTS = 16;
+    private static final double BLINK_RADIUS_FALLBACK = 16.0D;
+    private static final double BLINK_RADIUS_MAX = 32.0D;
+    private int teleportCooldown = 0;
+    private int blinkRemaining = 0;
+    private int blinkTicks = 0;
+    private LivingEntity blinkTarget;
 
     public InfestedEndermite(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -117,6 +136,8 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
         super.tick();
 
         if (!this.level().isClientSide()) {
+            if (this.teleportCooldown > 0) this.teleportCooldown--;
+            tickBlinkBarrage();
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     
@@ -176,6 +197,7 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             this.playSound(SoundEvents.ENDERMITE_AMBIENT, 0.95F, 0.8F);
         }
     }
+
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         
@@ -196,12 +218,23 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             this.playSound(soundevent, 0.95F, 0.8F); 
         }
     }
+
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
             
             if (shouldIgnoreDamageFrom(attacker)) {
                 return false; 
+            }
+        }
+
+        // UNSTABLE darts away the moment the attack is made, so the swing misses entirely.
+        if (getVariant() == InfestedEndermite.Variant.UNSTABLE && !this.level().isClientSide()
+                && this.teleportCooldown <= 0) {
+            boolean attackerSource = source.getEntity() instanceof LivingEntity
+                    || source.getDirectEntity() instanceof Projectile;
+            if (attackerSource && tryVanillaStyleDodge()) {
+                return false;
             }
         }
 
@@ -213,9 +246,110 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
 
         return result;
     }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        boolean hurt = super.doHurtTarget(level, target);
+        if (hurt && !level.isClientSide() && target instanceof LivingEntity livingTarget) {
+            tryStartBlinkBarrage(livingTarget);
+        }
+        return hurt;
+    }
+
+    private boolean tryVanillaStyleDodge() {
+        for (int attempt = 0; attempt < DODGE_ATTEMPTS; ++attempt) {
+            double x = this.getX() + (this.random.nextDouble() - 0.5) * 64.0;
+            double y = this.getY() + (this.random.nextDouble() - 0.5) * 64.0;
+            double z = this.getZ() + (this.random.nextDouble() - 0.5) * 64.0;
+            y = Mth.clamp(y, (double) this.level().getMinY(), (double) (this.level().getMaxY() - 1));
+            if (playVanillaTeleportSoundAndTeleport(x, y, z)) {
+                this.teleportCooldown = DODGE_COOLDOWN_TICKS;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 5% chance, UNSTABLE only: blink around the victim a few times, one hop every few ticks.
+    private void tryStartBlinkBarrage(LivingEntity victim) {
+        if (victim == null) return;
+        if (this.level().isClientSide()) return;
+        if (getVariant() != InfestedEndermite.Variant.UNSTABLE) return;
+        if (this.random.nextFloat() >= BLINK_CHANCE) return;
+        this.blinkTarget = victim;
+        this.blinkRemaining = BLINK_MIN_TELEPORTS + this.random.nextInt(BLINK_MAX_TELEPORTS - BLINK_MIN_TELEPORTS + 1);
+        this.blinkTicks = BLINK_INTERVAL_TICKS;
+        this.blinkTeleportAround(victim);
+        this.blinkRemaining--;
+        if (this.blinkRemaining <= 0) {
+            this.blinkTarget = null;
+            this.blinkTicks = 0;
+            this.teleportCooldown = DODGE_COOLDOWN_TICKS;
+        }
+    }
+
+    private void tickBlinkBarrage() {
+        if (this.blinkRemaining <= 0) return;
+        LivingEntity target = this.blinkTarget;
+        if (target == null || target.isRemoved() || target.isDeadOrDying()) {
+            this.blinkTarget = null;
+            this.blinkRemaining = 0;
+            this.blinkTicks = 0;
+            this.teleportCooldown = DODGE_COOLDOWN_TICKS;
+            return;
+        }
+        if (--this.blinkTicks > 0) return;
+        this.blinkTeleportAround(target);
+        this.blinkRemaining--;
+        if (this.blinkRemaining <= 0) {
+            this.blinkTarget = null;
+            this.blinkTicks = 0;
+            this.teleportCooldown = DODGE_COOLDOWN_TICKS;
+        } else {
+            this.blinkTicks = BLINK_INTERVAL_TICKS;
+        }
+    }
+
+    private boolean blinkTeleportAround(LivingEntity target) {
+        AttributeInstance followRange = this.getAttribute(Attributes.FOLLOW_RANGE);
+        double radius = followRange != null ? (double) (float) followRange.getValue() : BLINK_RADIUS_FALLBACK;
+        if (radius > BLINK_RADIUS_MAX) radius = BLINK_RADIUS_MAX;
+        for (int attempt = 0; attempt < BLINK_ATTEMPTS; ++attempt) {
+            double x = target.getX() + (this.random.nextDouble() - 0.5) * 2.0 * radius;
+            double y = target.getY() + (double) (this.random.nextInt(9) - 4);
+            double z = target.getZ() + (this.random.nextDouble() - 0.5) * 2.0 * radius;
+            y = Mth.clamp(y, (double) this.level().getMinY(), (double) (this.level().getMaxY() - 1));
+            if (isBlinkDestinationUsable(x, y, z) && playVanillaTeleportSoundAndTeleport(x, y, z)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Every endermite teleport uses the vanilla enderman teleport sound (Feature C).
+    private boolean playVanillaTeleportSoundAndTeleport(double x, double y, double z) {
+        if (!this.randomTeleport(x, y, z, true)) return false;
+        this.level().playSound(null, this.xo, this.yo, this.zo,
+                SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, 1.0F, 1.0F);
+        this.getNavigation().stop();
+        return true;
+    }
+
+    // Blink barrage destinations need a loaded chunk, a solid floor, two free blocks and no liquid.
+    private boolean isBlinkDestinationUsable(double x, double y, double z) {
+        BlockPos pos = BlockPos.containing(x, y, z);
+        if (!this.level().hasChunkAt(pos) || this.level().isOutsideBuildHeight(pos)) return false;
+        if (!this.level().getFluidState(pos).isEmpty()) return false;
+        if (!this.level().isEmptyBlock(pos) || !this.level().isEmptyBlock(pos.above())) return false;
+        BlockPos below = pos.below();
+        BlockState belowState = this.level().getBlockState(below);
+        return belowState.isFaceSturdy(this.level(), below, Direction.UP)
+                && belowState.getFluidState().isEmpty();
+    }
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
     }
 
     private PlayState animationPredicate(AnimationTest<InfestedEndermite> event) {
@@ -250,6 +384,7 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
         }
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
+
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         
@@ -258,6 +393,7 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
         }
         return super.startRiding(vehicle, force, sendEventAndTriggers);
     }
+
     @Override
     protected boolean canRide(Entity entity) {
         
@@ -315,6 +451,7 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             }
         }
     }
+
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
@@ -326,10 +463,12 @@ public class InfestedEndermite extends PathfinderMob implements GeoEntity, IPara
             super.travel(travelVector);
         }
     }
+
     @Override
     public boolean isAffectedByFluids() {
         return true;
     }
+
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;

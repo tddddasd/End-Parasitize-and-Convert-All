@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.registries.BuiltInRegistries;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.capability.LifetimeCapability;
 import org.tdddd.epca.impl.overworld.data.BiomassSpawnConfig;
 import org.tdddd.epca.impl.overworld.data.BiomassSpawnManager;
@@ -292,7 +293,7 @@ public class BiomassSmall extends PathfinderMob implements GeoEntity, IParasite,
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 0, this::predicate));
+        controllers.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
 
     private PlayState predicate(AnimationTest<BiomassSmall> event) {

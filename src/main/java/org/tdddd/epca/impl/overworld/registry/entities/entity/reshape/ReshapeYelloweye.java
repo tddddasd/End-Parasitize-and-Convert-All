@@ -43,6 +43,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.SwallowCyst;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
@@ -394,17 +395,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                         applyGassingPush();
                         hasGassingPush = true;
                     }
-                    if (this.level() instanceof ServerLevel serverLevel) {
-                        if (gassingTimer == GASSING_DURATION - 10) {
-                            
-                            spawnGassingParticleLine(serverLevel);
-                        } else if (gassingTimer < GASSING_DURATION - 10) {
-                            
-                            if ((GASSING_DURATION - gassingTimer) % 2 == 0) {
-                                spawnSingleGassingParticle(serverLevel);
-                            }
-                        }
-                    }
                     applyGassingAreaEffect();
                     if (gassingTimer <= 0) {
                         stopGassing();
@@ -505,28 +495,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         this.setDeltaMovement(this.getDeltaMovement().add(push));
         this.hurtMarked = true;
     }
-    private void spawnGassingParticleLine(ServerLevel level) {
-        Vec3 center = this.position().add(0, this.getBbHeight() * 0.5, 0);
-        Vec3 rightOffset = new Vec3(0.6, -0.3, 0.4);   
-        Vec3 leftOffset = new Vec3(-0.6, -0.3, 0.4);   
-        for (int i = 0; i < 3; i++) {
-            double t = i * 0.4; 
-            Vec3 rightPos = center.add(rightOffset.scale(t));
-            Vec3 leftPos = center.add(leftOffset.scale(t));
-            level.sendParticles(ModParticles.INFESTIVE_GAS.get(), rightPos.x, rightPos.y, rightPos.z,
-                    1, 0, 0, 0, 0);
-            level.sendParticles(ModParticles.INFESTIVE_GAS.get(), leftPos.x, leftPos.y, leftPos.z,
-                    1, 0, 0, 0, 0);
-        }
-    }
-    private void spawnSingleGassingParticle(ServerLevel level) {
-        boolean side = (gassingTimer % 4) < 2; 
-        Vec3 center = this.position().add(0, this.getBbHeight() * 0.5, 0);
-        Vec3 offset = side ? new Vec3(0.6, -0.3, 0.4) : new Vec3(-0.6, -0.3, 0.4);
-        Vec3 pos = center.add(offset);
-        level.sendParticles(ModParticles.INFESTIVE_GAS.get(), pos.x, pos.y, pos.z,
-                1, 0, 0, 0, 0);
-    }
     private void applyGassingAreaEffect() {
         AABB effectBox = this.getBoundingBox().inflate(0, -this.getBbHeight() + 2.0, 0)
                 .move(0, -this.getBbHeight() * 0.5, 0);
@@ -600,7 +568,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 4, this::predicate));
+        controllers.add(new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
 
     private PlayState predicate(AnimationTest<ReshapeYelloweye> event) {
