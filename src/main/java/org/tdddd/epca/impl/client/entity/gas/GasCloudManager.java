@@ -72,7 +72,7 @@ public final class GasCloudManager {
      * <p>Set this to {@code false} to silence the feature completely (the guards make every log
      * statement unreachable); the flag is the only switch and it never changes behaviour.</p>
      */
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     /** Milliseconds between two diagnostic lines of the same kind for the same owner. */
     private static final long DEBUG_LOG_INTERVAL_MS = 1000L;
