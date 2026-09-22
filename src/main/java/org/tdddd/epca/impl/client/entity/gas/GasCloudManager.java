@@ -69,7 +69,7 @@ public final class GasCloudManager {
      * <p>Set to {@code false} to silence every log line this class and {@link GasCloudLayer} add;
      * nothing else depends on it, so removing the diagnostics later is a pure delete.</p>
      */
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     /** Minimum wall-clock gap between two diagnostics for the same owner while its state repeats. */
     private static final long DEBUG_REPEAT_MS = 1000L;
