@@ -106,6 +106,37 @@ public final class GasCloudRenderType extends RenderType {
     public static final int SPEC_STYLE_CHANNEL = 250;
 
     /**
+     * Style channel value that turns a quad into the golden "Heart" of {@code epca:soul_protection}
+     * instead of a gas puff or a water speck: the tall, irregular golden plasma/flame column of the
+     * reference image.
+     *
+     * <p>Like {@link #SPEC_STYLE_CHANNEL} it rides in the {@code UV2.y} attribute, which already
+     * carries the sub-quad index for gas clouds ({@code 0..8}); {@code 252} is therefore
+     * unambiguous. {@code gas_cloud.fsh}'s {@code HEART_STYLE_CHANNEL} const selects the flame
+     * branch, which draws the look procedurally and ignores the texture, the radial falloff and the
+     * noise mask. The Java and GLSL values are cross-checked by
+     * {@code build/javac-check/check-glsl.py} so they cannot drift apart.</p>
+     *
+     * <p>The name keeps the effect's "Heart" wording even though the look is a flame: the marker is
+     * part of the 1.20.1 / 26.1.2 twin contract and both trees send this exact value. The quad itself
+     * is built and submitted by {@code impl/client/entity/heart/SoulProtectionHeartRenderer}, which
+     * reuses the shared camera-relative billboard path of {@link GasCloudRenderer}, writes this value
+     * into the sub-quad channel and draws through {@link #getAdditive()} so the flame is emissive.</p>
+     */
+    public static final int HEART_STYLE_CHANNEL = 252;
+
+    /**
+     * Style channel value of the tiny golden embers drawn beside the {@link #HEART_STYLE_CHANNEL}
+     * flame.
+     *
+     * <p>It is a branch of its own rather than a reuse of {@link #SPEC_STYLE_CHANNEL} because the
+     * speck branch multiplies the vertex colour by the red {@code GAS_TINT_RGB}, which would turn a
+     * gold ember red; the mote branch instead uses the shader's own {@code HEART_MOTE_COLOR}. A third
+     * value in {@code UV2.y} keeps every existing gas and speck quad untouched.</p>
+     */
+    public static final int HEART_MOTE_STYLE_CHANNEL = 253;
+
+    /**
      * Base factor at the head of the spec alpha chain. A hard-edged rectangle has no texture alpha to
      * reduce it, so the chain is just {@code Color.a * SPEC_BASE_ALPHA * ALPHA_BOOST * edgeFade}.
      * Mirrors the GLSL {@code GAS_SPEC_BASE_ALPHA} (cross-checked by {@code check-glsl.py}); it is
@@ -169,6 +200,8 @@ public final class GasCloudRenderType extends RenderType {
 
     private static final int BUFFER_SIZE = RenderType.TRANSIENT_BUFFER_SIZE;
     private static final String RENDER_TYPE_NAME = "epca_gas_cloud";
+    /** Name of the additive variant, so the two render types are distinguishable in diagnostics. */
+    private static final String ADDITIVE_RENDER_TYPE_NAME = "epca_gas_cloud_additive";
 
     private static ShaderInstance gasCloudShader;
     /** Latches the single "this render type was flushed at least once" diagnostic line. */
@@ -181,22 +214,41 @@ public final class GasCloudRenderType extends RenderType {
     private static final RenderStateShard.TextureStateShard GAS_TEXTURE_STATE =
             new RenderStateShard.TextureStateShard(GAS_TEXTURE, false, false);
 
-    private static final RenderType GAS_CLOUD = new GasCloudRenderType();
+    /** Ordinary translucent variant; used by the gas clouds and the water specks. */
+    private static final RenderType GAS_CLOUD = new GasCloudRenderType(RENDER_TYPE_NAME, false);
+
+    /**
+     * Additive variant of the very same pipeline: same core shader, same vertex format, same texture
+     * and depth state, only {@code ADDITIVE_TRANSPARENCY} instead of {@code TRANSLUCENT_TRANSPARENCY}.
+     *
+     * <p>It exists for the emissive {@code epca:soul_protection} flame, whose reference look is a
+     * glowing plasma column over a dark background: with {@code SRC_ALPHA / ONE} the near-opaque
+     * core adds up to a bright near-white glow instead of merely blending towards the background.
+     * Nothing else uses it, so the gas and speck quads keep their exact previous blend.</p>
+     */
+    private static final RenderType GAS_CLOUD_ADDITIVE =
+            new GasCloudRenderType(ADDITIVE_RENDER_TYPE_NAME, true);
 
     private final int bufferSize;
+    private final String renderTypeName;
 
-    private GasCloudRenderType() {
-        super(RENDER_TYPE_NAME, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
+    private GasCloudRenderType(String renderTypeName, boolean additive) {
+        super(renderTypeName, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
                 VertexFormat.Mode.QUADS, BUFFER_SIZE, false, false,
                 () -> {
                     if (GasCloudManager.DEBUG && !debugFlushed) {
                         debugFlushed = true;
-                        epca.LOGGER.info("[gascloud] render type: first flush - setup state ran while shaderReady={}",
-                                isShaderReady());
+                        epca.LOGGER.info("[gascloud] render type: first flush of {} - setup state ran "
+                                        + "while shaderReady={}", renderTypeName, isShaderReady());
                     }
                     GAS_TEXTURE_STATE.setupRenderState();
                     GAS_SHADER_STATE.setupRenderState();
-                    TRANSLUCENT_TRANSPARENCY.setupRenderState();
+                    // The one difference between the two variants.
+                    if (additive) {
+                        ADDITIVE_TRANSPARENCY.setupRenderState();
+                    } else {
+                        TRANSLUCENT_TRANSPARENCY.setupRenderState();
+                    }
                     LEQUAL_DEPTH_TEST.setupRenderState();
                     // Colour writes on, depth writes off.
                     COLOR_WRITE.setupRenderState();
@@ -210,11 +262,16 @@ public final class GasCloudRenderType extends RenderType {
                     NO_CULL.clearRenderState();
                     COLOR_WRITE.clearRenderState();
                     LEQUAL_DEPTH_TEST.clearRenderState();
-                    TRANSLUCENT_TRANSPARENCY.clearRenderState();
+                    if (additive) {
+                        ADDITIVE_TRANSPARENCY.clearRenderState();
+                    } else {
+                        TRANSLUCENT_TRANSPARENCY.clearRenderState();
+                    }
                     GAS_SHADER_STATE.clearRenderState();
                     GAS_TEXTURE_STATE.clearRenderState();
                 });
         this.bufferSize = BUFFER_SIZE;
+        this.renderTypeName = renderTypeName;
     }
 
     /**
@@ -237,6 +294,14 @@ public final class GasCloudRenderType extends RenderType {
     /** The shared render type; only valid to draw with while {@link #isShaderReady()} is true. */
     public static RenderType get() {
         return GAS_CLOUD;
+    }
+
+    /**
+     * The additive variant of the same pipeline, for the emissive soul-protection flame; only valid
+     * to draw with while {@link #isShaderReady()} is true.
+     */
+    public static RenderType getAdditive() {
+        return GAS_CLOUD_ADDITIVE;
     }
 
     /**
@@ -306,6 +371,6 @@ public final class GasCloudRenderType extends RenderType {
 
     @Override
     public String toString() {
-        return RENDER_TYPE_NAME;
+        return this.renderTypeName;
     }
 }

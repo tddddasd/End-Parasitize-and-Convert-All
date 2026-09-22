@@ -4,7 +4,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.tdddd.epca.impl.client.effect.SoulProtectionClientCache;
 import org.tdddd.epca.impl.client.entity.gas.GasCloudManager;
+import org.tdddd.epca.impl.client.entity.heart.SoulProtectionHeartRenderer;
 import org.tdddd.epca.impl.client.entity.layer.EndermanAfterimageLayer;
 import org.tdddd.epca.impl.epca;
 
@@ -28,6 +30,12 @@ public class ClientEvents {
         if (event.phase != TickEvent.Phase.END) return;
         tickCounter++;
         GasCloudManager.clientTick();
+        // Ages the per-entity fade state of the epca:soul_protection flame; the flame and its embers
+        // are submitted from the LivingEntityRenderer hook, not from here.
+        SoulProtectionHeartRenderer.clientTick();
+        // Advances the local countdown of the soul-protection sync cache, so the flame also fades out
+        // smoothly between two of the server's batches.
+        SoulProtectionClientCache.clientTick();
         if (tickCounter % 20 == 0) {
             EndermanAfterimageLayer.cleanupOrphaned();
         }

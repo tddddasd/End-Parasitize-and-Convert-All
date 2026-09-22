@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -26,6 +27,13 @@ import java.util.Locale;
  * </ol>
  * Neither caller duplicates the pose, billboard or quad math any more.</p>
  *
+ * <p>{@link #submitVerticalBillboard} exposes the same frame as a single-quad entry point for callers
+ * that own their quad geometry; the golden plasma column of {@code epca:soul_protection} and its
+ * embers (submitted by {@code impl/client/entity/heart/SoulProtectionHeartRenderer}) are the only
+ * callers. They are the only ones that emit a non-square quad, the only ones that draw through the
+ * additive variant of the render type, and the only ones that use the yaw-only billboard (so the
+ * column stays upright instead of tilting with the camera's pitch).</p>
+ *
  * <h2>Pose space</h2>
  * <p>Both callers hand this class a {@link PoseStack} whose translation column is
  * {@code entityInterpolatedPos - cameraPos} (vanilla {@code EntityRenderDispatcher.render} always
@@ -46,7 +54,12 @@ import java.util.Locale;
  *       fragment shader turns into a per-cloud noise silhouette. The water specks reuse this slot
  *       as a <em>style</em> channel: {@link GasCloudRenderType#SPEC_STYLE_CHANNEL} in
  *       {@code UV2.y} selects the hard-edged rectangle branch of
- *       {@code assets/epca/shaders/core/gas_cloud.fsh} and {@code UV2.x} is unused there.</li>
+ *       {@code assets/epca/shaders/core/gas_cloud.fsh} and {@code UV2.x} is unused there. The
+ *       soul-protection flame uses {@link GasCloudRenderType#HEART_STYLE_CHANNEL} in the same slot
+ *       and additionally reads {@code Color.rgb} as its three animation phases (and {@code Color.a}
+ *       as its fade), so its branch takes neither the tint nor the seed from the vertex data; its
+ *       embers use {@link GasCloudRenderType#HEART_MOTE_STYLE_CHANNEL} with the fade in
+ *       {@code Color.a}.</li>
  * </ul>
  */
 public final class GasCloudRenderer {
@@ -282,6 +295,103 @@ public final class GasCloudRenderer {
     }
 
     /**
+     * Submits one camera-facing billboard quad that is not a gas cloud or a water speck.
+     *
+     * <p>It is the public face of the shared submission path for callers that own their own quad
+     * geometry, so they inherit the proven camera frame, the custom core shader and the exact vertex
+     * layout instead of duplicating them. This variant also tilts with the camera's pitch, which is
+     * what the gas clouds and specks want; the soul-protection flame uses
+     * {@link #submitVerticalBillboard} instead so it never tilts.</p>
+     *
+     * <p>The quad is placed at {@code owner.getPosition(partialTick) + (offsetX, offsetY, offsetZ)}
+     * on world-aligned axes (the offset is applied before the camera rotation, so it is not rotated
+     * by the billboard frame), and it may be non-square: the flame column is
+     * {@code width : height = 1 : 2.1}.</p>
+     *
+     * @param owner          the entity whose interpolated position the pose is translated to
+     * @param poseStack      camera-relative entity pose (see the class comment)
+     * @param bufferSource   the buffer source of the current render pass
+     * @param partialTick    sub-tick interpolation
+     * @param offsetX        world-aligned offset from the owner's interpolated position
+     * @param offsetY        world-aligned offset from the owner's interpolated position
+     * @param offsetZ        world-aligned offset from the owner's interpolated position
+     * @param halfWidth      half extent of the quad to the right of its centre
+     * @param halfHeight     half extent of the quad above its centre
+     * @param red            vertex colour red; the shader style decides what it means
+     * @param green          vertex colour green; the shader style decides what it means
+     * @param blue           vertex colour blue; the shader style decides what it means
+     * @param alpha          vertex colour alpha, i.e. the caller's per-quad fade
+     * @param packedSeed     value for the {@code UV2.x} attribute (the gas seed slot)
+     * @param subQuadChannel value for the {@code UV2.y} attribute; one of the style channels, e.g.
+     *                       {@link GasCloudRenderType#HEART_STYLE_CHANNEL}
+     * @param renderType     the pipeline to draw through: {@link GasCloudRenderType#get()} for the
+     *                       ordinary translucent blend or {@link GasCloudRenderType#getAdditive()}
+     *                       for the emissive one
+     */
+    public static void submitBillboard(Entity owner, PoseStack poseStack, MultiBufferSource bufferSource,
+                                       float partialTick,
+                                       double offsetX, double offsetY, double offsetZ,
+                                       float halfWidth, float halfHeight,
+                                       float red, float green, float blue, float alpha,
+                                       int packedSeed, int subQuadChannel, RenderType renderType) {
+        submitBillboard(owner, poseStack, bufferSource, partialTick,
+                offsetX, offsetY, offsetZ, halfWidth, halfHeight,
+                red, green, blue, alpha, packedSeed, subQuadChannel, renderType, true);
+    }
+
+    /**
+     * Submits one billboard quad that rotates around the WORLD Y AXIS ONLY: it uses the camera's yaw
+     * (so it always faces the camera horizontally) and deliberately ignores the camera's pitch, so the
+     * quad stays perfectly upright however the player looks up or down.
+     *
+     * <p>Same geometry, same vertex layout and same options as
+     * {@link #submitBillboard(Entity, PoseStack, MultiBufferSource, float, double, double, double,
+     * float, float, float, float, float, float, int, int, RenderType)}; only the {@code XP} pitch
+     * rotation is dropped. The soul-protection flame column and its embers use this one, because a
+     * tall vertical column that tilted with the camera would look like a decal glued to the screen.</p>
+     */
+    public static void submitVerticalBillboard(Entity owner, PoseStack poseStack, MultiBufferSource bufferSource,
+                                               float partialTick,
+                                               double offsetX, double offsetY, double offsetZ,
+                                               float halfWidth, float halfHeight,
+                                               float red, float green, float blue, float alpha,
+                                               int packedSeed, int subQuadChannel, RenderType renderType) {
+        submitBillboard(owner, poseStack, bufferSource, partialTick,
+                offsetX, offsetY, offsetZ, halfWidth, halfHeight,
+                red, green, blue, alpha, packedSeed, subQuadChannel, renderType, false);
+    }
+
+    /**
+     * Shared implementation of the two billboard entry points.
+     *
+     * @param tiltWithCameraPitch true to apply the camera pitch rotation as well (the classic
+     *                            camera-facing billboard), false for a yaw-only upright billboard
+     */
+    private static void submitBillboard(Entity owner, PoseStack poseStack, MultiBufferSource bufferSource,
+                                        float partialTick,
+                                        double offsetX, double offsetY, double offsetZ,
+                                        float halfWidth, float halfHeight,
+                                        float red, float green, float blue, float alpha,
+                                        int packedSeed, int subQuadChannel, RenderType renderType,
+                                        boolean tiltWithCameraPitch) {
+        Minecraft minecraft = Minecraft.getInstance();
+        float cameraYaw = minecraft.gameRenderer.getMainCamera().getYRot();
+
+        VertexConsumer consumer = bufferSource.getBuffer(renderType);
+        poseStack.pushPose();
+        poseStack.translate(offsetX, offsetY, offsetZ);
+        // Yaw-only frame, identical to the gas cloud and speck paths; the pitch rotation is what turns
+        // it into a fully camera-facing billboard.
+        poseStack.mulPose(Axis.YP.rotationDegrees(-cameraYaw));
+        if (tiltWithCameraPitch) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(minecraft.gameRenderer.getMainCamera().getXRot()));
+        }
+        drawBillboardQuad(consumer, poseStack.last().pose(), halfWidth, halfHeight,
+                red, green, blue, alpha, packedSeed, subQuadChannel);
+        poseStack.popPose();
+    }
+
+    /**
      * Emits one camera-facing quad of the given half extent, centred on the current pose origin.
      *
      * <p>{@code UV2} is the lightmap slot. {@code VertexFormatElement.ELEMENT_UV2} is a signed
@@ -300,33 +410,50 @@ public final class GasCloudRenderer {
     private static void drawBillboardQuad(VertexConsumer consumer, Matrix4f matrix, float half,
                                           float red, float green, float blue, float alpha,
                                           int packedSeed, int subQuadIndex) {
+        drawBillboardQuad(consumer, matrix, half, half, red, green, blue, alpha,
+                packedSeed, subQuadIndex);
+    }
+
+    /**
+     * Emits one camera-facing quad with independent half extents, centred on the current pose
+     * origin.
+     *
+     * <p>A square quad ({@code halfWidth == halfHeight}) is exactly what the gas clouds and the
+     * water specks emit, and the one-argument overload above keeps that path byte-for-byte
+     * unchanged. The soul-protection heart uses the non-square form: its quad is
+     * {@code width : height = 1 : 2.1}.</p>
+     */
+    private static void drawBillboardQuad(VertexConsumer consumer, Matrix4f matrix,
+                                          float halfWidth, float halfHeight,
+                                          float red, float green, float blue, float alpha,
+                                          int packedSeed, int subQuadIndex) {
         // Top of the sprite is v = 0, bottom is v = 1 (the texture's frame 0 band is at the top).
         float vBottom = 1.0F;
         float vTop = 0.0F;
 
         // Bottom-left
-        consumer.vertex(matrix, -half, -half, 0.0F)
+        consumer.vertex(matrix, -halfWidth, -halfHeight, 0.0F)
                 .color(red, green, blue, alpha)
                 .uv(0.0F, vBottom)
                 .uv2(packedSeed, subQuadIndex)
                 .normal(0.0F, 0.0F, 1.0F)
                 .endVertex();
         // Bottom-right
-        consumer.vertex(matrix, half, -half, 0.0F)
+        consumer.vertex(matrix, halfWidth, -halfHeight, 0.0F)
                 .color(red, green, blue, alpha)
                 .uv(1.0F, vBottom)
                 .uv2(packedSeed, subQuadIndex)
                 .normal(0.0F, 0.0F, 1.0F)
                 .endVertex();
         // Top-right
-        consumer.vertex(matrix, half, half, 0.0F)
+        consumer.vertex(matrix, halfWidth, halfHeight, 0.0F)
                 .color(red, green, blue, alpha)
                 .uv(1.0F, vTop)
                 .uv2(packedSeed, subQuadIndex)
                 .normal(0.0F, 0.0F, 1.0F)
                 .endVertex();
         // Top-left
-        consumer.vertex(matrix, -half, half, 0.0F)
+        consumer.vertex(matrix, -halfWidth, halfHeight, 0.0F)
                 .color(red, green, blue, alpha)
                 .uv(0.0F, vTop)
                 .uv2(packedSeed, subQuadIndex)

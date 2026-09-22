@@ -24,6 +24,7 @@
     "client.BlockColorsMixin",
     "client.CreateWorldScreenMixin",
     "client.LightningBoltRendererMixin",
+    "client.LivingEntityRendererHeartMixin",
     "client.LivingEntityRendererTintMixin"
   ],
   "injectors": {

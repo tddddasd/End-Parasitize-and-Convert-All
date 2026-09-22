@@ -119,6 +119,13 @@ public class ModNetwork {
                 SyncNestLeadersPacket::encode,
                 SyncNestLeadersPacket::new,
                 SyncNestLeadersPacket::handle);
+
+        // Batch sync of the entities carrying epca:soul_protection, so the flame shows on creatures
+        // and not only on the local player (vanilla only sends the mob-effect packet to that player).
+        INSTANCE.registerMessage(id++, SyncSoulProtectionPacket.class,
+                SyncSoulProtectionPacket::encode,
+                SyncSoulProtectionPacket::decode,
+                SyncSoulProtectionPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {
