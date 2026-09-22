@@ -3,6 +3,7 @@ package org.tdddd.epca.impl.overworld.registry.blocks;
 import com.google.gson.Gson;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -11,12 +12,15 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.MinecraftForge;
@@ -564,6 +568,292 @@ public class BlockConversionManager {
                 state.is(Blocks.AZALEA_LEAVES) ||
                 state.is(Blocks.FLOWERING_AZALEA_LEAVES) ||
                 state.getBlock() instanceof net.minecraft.world.level.block.LeavesBlock;
+    }
+
+    // ================= Cursed world: silent chunk-level conversion =================
+
+    /**
+     * The conversion targets that are plants and therefore keep their own state instead of going through
+     * {@link #copyCommonBlockProperties}.
+     */
+    /**
+     * Lazily built: these are EPCA blocks, and their DeferredHolders are still unbound while mod
+     * loading is registering blocks. A static initialiser would throw "Trying to access unbound
+     * value" and abort the whole registry event, so the set is created on first use instead.
+     */
+    private static volatile Set<Block> PLANT_CONVERSION_TARGETS;
+
+    private static Set<Block> plantConversionTargets() {
+        Set<Block> targets = PLANT_CONVERSION_TARGETS;
+        if (targets == null) {
+            targets = Set.of(
+            ModBlocks.INFESTED_GRASS.get(),
+            ModBlocks.INFESTED_SHORT_GRASS.get(),
+            ModBlocks.INFESTED_FERN.get(),
+            ModBlocks.INFESTED_TALL_GRASS.get(),
+            ModBlocks.INFESTED_TALL_FERN.get(),
+            ModBlocks.INFESTED_DEAD_BUSH.get(),
+            ModBlocks.INFESTED_VINE.get(),
+            ModBlocks.INFESTED_LEAVES.get(),
+            ModBlocks.INFESTED_FLOWERING_LEAVES.get(),
+            ModBlocks.INFESTED_LILY_PAD.get());
+            PLANT_CONVERSION_TARGETS = targets;
+        }
+        return targets;
+    }
+
+    /** Block states that the hardcoded plant/double-plant/vine/leaf rules handle specially. */
+    private static final Set<Block> SPECIAL_PLANT_BLOCKS = Set.of(
+            Blocks.GRASS,
+            Blocks.FERN,
+            Blocks.DEAD_BUSH,
+            Blocks.TALL_GRASS,
+            Blocks.LARGE_FERN,
+            Blocks.VINE,
+            Blocks.LILY_PAD,
+            Blocks.FLOWERING_AZALEA_LEAVES);
+
+    /** Blocks that are never converted and would only waste a lookup. */
+    private static final Set<Block> NEVER_CONVERTIBLE = Set.of(
+            Blocks.AIR, Blocks.CAVE_AIR, Blocks.VOID_AIR, Blocks.WATER, Blocks.LAVA, Blocks.BEDROCK);
+
+    /**
+     * Every block {@link #convertChunkAtGeneration} can turn into something else: the entries of the general
+     * conversion config plus the vanilla plants/vines/leaves the hardcoded rules cover.
+     *
+     * <p>It is used as a section-palette predicate: a section whose palette contains none of these blocks can
+     * be skipped entirely without reading a single block.
+     *
+     * <p>Built lazily on first use because {@link #generalConfig} is an instance field loaded by the
+     * constructor: a static initializer would read the still-empty field during class loading, before
+     * {@code INSTANCE} exists, and the set would come out empty.
+     */
+    private static volatile Set<Block> convertibleBlocks;
+
+    private static Set<Block> convertibleBlocks() {
+        Set<Block> cached = convertibleBlocks;
+        if (cached != null) return cached;
+        synchronized (BlockConversionManager.class) {
+            if (convertibleBlocks == null) {
+                convertibleBlocks = buildConvertibleBlockSet();
+            }
+            return convertibleBlocks;
+        }
+    }
+
+    private static Set<Block> buildConvertibleBlockSet() {
+        Set<Block> blocks = new HashSet<>();
+        for (String id : getInstance().generalConfig.conversions.keySet()) {
+            ResourceLocation location = ResourceLocation.tryParse(id);
+            if (location == null) continue;
+            Block block = BuiltInRegistries.BLOCK.get(location);
+            // An id that does not exist in this version resolves to air, which is filtered out below.
+            if (block != null && block != Blocks.AIR) blocks.add(block);
+        }
+        blocks.addAll(SPECIAL_PLANT_BLOCKS);
+        for (Block leaves : new Block[]{
+                Blocks.OAK_LEAVES, Blocks.SPRUCE_LEAVES, Blocks.BIRCH_LEAVES, Blocks.JUNGLE_LEAVES,
+                Blocks.ACACIA_LEAVES, Blocks.DARK_OAK_LEAVES, Blocks.MANGROVE_LEAVES, Blocks.AZALEA_LEAVES}) {
+            blocks.add(leaves);
+        }
+        blocks.removeAll(NEVER_CONVERTIBLE);
+        return Set.copyOf(blocks);
+    }
+
+    /** Whether {@link #convertChunkAtGeneration} could ever convert this state (used as a palette filter). */
+    public boolean isChunkConvertibleBlock(BlockState state) {
+        return convertibleBlocks().contains(state.getBlock());
+    }
+
+    /**
+     * Silent, chunk-level conversion used for freshly generated chunks of the cursed world.
+     *
+     * <p>Unlike the interactive single-block methods this entry point produces <b>no</b> side effects at all:
+     * no particles, no sounds, no network packets, no random rolls and no delayed queueing. It only reads the
+     * chunk and replaces blocks, and it applies <b>every</b> conversion unconditionally (the "convert all,
+     * not by probability" requirement).
+     *
+     * <p>Performance shape:
+     * <ul>
+     *   <li>sections with {@code hasOnlyAir()} are skipped outright;</li>
+     *   <li>a section whose palette holds no convertible block is skipped before any block is read;</li>
+     *   <li>blocks already carried by an {@link InfestedBlockInterface} are skipped;</li>
+     *   <li>blocks are written with update flag {@value #CHUNK_CONVERSION_UPDATE_FLAGS}, matching the other
+     *       bulk-generation writer in this class (the chunk is brand new, so no neighbour notification is
+     *       needed and no client packet has to be broadcast).</li>
+     * </ul>
+     *
+     * @return the number of block positions that were replaced
+     */
+    public int convertChunkAtGeneration(ServerLevel level, ChunkAccess chunk) {
+        if (level == null || chunk == null) return 0;
+        ChunkPos chunkPos = chunk.getPos();
+        int baseX = chunkPos.getMinBlockX();
+        int baseZ = chunkPos.getMinBlockZ();
+        LevelChunkSection[] sections = chunk.getSections();
+        // 1.20.1 has LevelHeightAccessor#getMinSection() (the 26.1.2 name getMinSectionY does not exist here).
+        int minSectionY = chunk.getMinSection();
+        int converted = 0;
+
+        for (int index = 0; index < sections.length; index++) {
+            LevelChunkSection section = sections[index];
+            if (section == null || section.hasOnlyAir()) continue;
+            if (!section.maybeHas(this::isChunkConvertibleBlock)) continue;
+
+            int sectionBaseY = SectionPos.sectionToBlockCoord(minSectionY + index);
+            for (int localY = 0; localY < 16; localY++) {
+                for (int localX = 0; localX < 16; localX++) {
+                    for (int localZ = 0; localZ < 16; localZ++) {
+                        BlockState state = section.getBlockState(localX, localY, localZ);
+                        if (state.isAir() || isInfestedBlock(state)) continue;
+                        BlockPos pos = new BlockPos(baseX + localX, sectionBaseY + localY, baseZ + localZ);
+                        if (convertSingleBlockSilently(level, pos, state)) converted++;
+                    }
+                }
+            }
+        }
+        return converted;
+    }
+
+    /** The update flag used by {@link #convertChunkAtGeneration}. */
+    private static final int CHUNK_CONVERSION_UPDATE_FLAGS = 2;
+
+    /**
+     * One block, silently. Plant rules first (they own the grass/fern/double-plant/vine/leaf/lily-pad shapes),
+     * then the general conversion map.
+     *
+     * @return whether the block was replaced
+     */
+    private boolean convertSingleBlockSilently(ServerLevel level, BlockPos pos, BlockState state) {
+        if (state.is(Blocks.GRASS)) {
+            // convertPlantAtPosition rolls a 35% chance for the short variant; "convert everything" means the
+            // full block, so the chunk path is deterministic here.
+            level.setBlock(pos, ModBlocks.INFESTED_GRASS.get().defaultBlockState(), CHUNK_CONVERSION_UPDATE_FLAGS);
+            return true;
+        }
+        if (state.is(Blocks.FERN)) {
+            level.setBlock(pos, ModBlocks.INFESTED_FERN.get().defaultBlockState(), CHUNK_CONVERSION_UPDATE_FLAGS);
+            return true;
+        }
+        if (state.is(Blocks.DEAD_BUSH)) {
+            level.setBlock(pos, ModBlocks.INFESTED_DEAD_BUSH.get().defaultBlockState(), CHUNK_CONVERSION_UPDATE_FLAGS);
+            return true;
+        }
+        if (state.is(Blocks.TALL_GRASS) || state.is(Blocks.LARGE_FERN)) {
+            return convertDoublePlantSilently(level, pos, state);
+        }
+        if (state.is(Blocks.VINE)) {
+            convertVineToInfestedSilently(level, pos, state);
+            return true;
+        }
+        if (state.is(Blocks.LILY_PAD)) {
+            // Mirrors convertLilyPadWithBelow without the packet: either the configured target, or nothing
+            // when the config has no lily-pad entry.
+            Block target = getTargetLilyPadBlock();
+            if (target == null || target == Blocks.AIR || target == Blocks.LILY_PAD) return false;
+            BlockState newState = target.defaultBlockState();
+            if (newState.hasProperty(InfestedLilyPad.NATURAL_SPAWN)) {
+                newState = newState.setValue(InfestedLilyPad.NATURAL_SPAWN, true);
+            }
+            level.setBlock(pos, newState, CHUNK_CONVERSION_UPDATE_FLAGS);
+            return true;
+        }
+        if (isConvertibleLeaves(state)) {
+            BlockState infested = state.is(Blocks.FLOWERING_AZALEA_LEAVES)
+                    ? ModBlocks.INFESTED_FLOWERING_LEAVES.get().defaultBlockState()
+                    : ModBlocks.INFESTED_LEAVES.get().defaultBlockState();
+            // A vanilla leaf keeps its distance/persistent properties; the interactive path drops them because
+            // it always builds the default state.
+            if (state.hasProperty(LeavesBlock.DISTANCE) && infested.hasProperty(LeavesBlock.DISTANCE)) {
+                infested = infested.setValue(LeavesBlock.DISTANCE, state.getValue(LeavesBlock.DISTANCE));
+            }
+            if (state.hasProperty(LeavesBlock.PERSISTENT) && infested.hasProperty(LeavesBlock.PERSISTENT)) {
+                infested = infested.setValue(LeavesBlock.PERSISTENT, state.getValue(LeavesBlock.PERSISTENT));
+            }
+            level.setBlock(pos, infested, CHUNK_CONVERSION_UPDATE_FLAGS);
+            return true;
+        }
+        return convertGeneralBlockSilently(level, pos, state);
+    }
+
+    /**
+     * Replaces one or both halves of a tall grass / large fern. A block that is not mapped to a double plant
+     * (for example a config that remaps {@code minecraft:large_fern} elsewhere) falls through to the general
+     * map instead of being dropped.
+     */
+    private boolean convertDoublePlantSilently(ServerLevel level, BlockPos pos, BlockState state) {
+        BlockState lowerState = state;
+        BlockPos lowerPos = pos;
+        if (state.hasProperty(DoublePlantBlock.HALF)
+                && state.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER) {
+            lowerPos = pos.below();
+            lowerState = level.getBlockState(lowerPos);
+        }
+        RegistryObject<Block> target = null;
+        if (lowerState.is(Blocks.TALL_GRASS)) {
+            target = ModBlocks.INFESTED_TALL_GRASS;
+        } else if (lowerState.is(Blocks.LARGE_FERN)) {
+            target = ModBlocks.INFESTED_TALL_FERN;
+        }
+        if (target == null) {
+            return convertGeneralBlockSilently(level, pos, state);
+        }
+
+        Block targetBlock = target.get();
+        BlockState lowerTarget = targetBlock.defaultBlockState();
+        if (lowerTarget.hasProperty(DoublePlantBlock.HALF)) {
+            lowerTarget = lowerTarget.setValue(DoublePlantBlock.HALF, DoubleBlockHalf.LOWER);
+        }
+        level.setBlock(lowerPos, lowerTarget, CHUNK_CONVERSION_UPDATE_FLAGS);
+
+        BlockPos upperPos = lowerPos.above();
+        // Do not overwrite whatever ended up above the lower half (the upper half itself, or a neighbour that
+        // has already been converted while scanning this chunk).
+        if (level.getBlockState(upperPos).is(lowerState.getBlock())) {
+            BlockState upperTarget = targetBlock.defaultBlockState();
+            if (upperTarget.hasProperty(DoublePlantBlock.HALF)) {
+                upperTarget = upperTarget.setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER);
+            }
+            level.setBlock(upperPos, upperTarget, CHUNK_CONVERSION_UPDATE_FLAGS);
+        }
+        return true;
+    }
+
+    /** Silent variant of {@link #convertVineToInfested}: same face-preserving result, no packets. */
+    private void convertVineToInfestedSilently(ServerLevel level, BlockPos pos, BlockState vineState) {
+        BlockState infestedVineState = ModBlocks.INFESTED_VINE.get().defaultBlockState();
+        for (Direction dir : Direction.values()) {
+            BooleanProperty property = VineBlock.getPropertyForFace(dir);
+            if (property != null && vineState.hasProperty(property) && vineState.getValue(property)) {
+                infestedVineState = infestedVineState.setValue(property, true);
+            }
+        }
+        level.setBlock(pos, infestedVineState, CHUNK_CONVERSION_UPDATE_FLAGS);
+    }
+
+    /**
+     * The general-config lookup of {@link #convertBlockUsingMap}, without the packets, the infested-fallback
+     * gating and the residue rules' extra bookkeeping: only an explicit entry of the general conversion config
+     * converts a block here.
+     */
+    private boolean convertGeneralBlockSilently(ServerLevel level, BlockPos pos, BlockState state) {
+        String targetId = generalConfig.conversions.get(
+                BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
+        if (targetId == null) return false;
+        ResourceLocation targetLocation = ResourceLocation.tryParse(targetId);
+        if (targetLocation == null) return false;
+        Block targetBlock = BuiltInRegistries.BLOCK.get(targetLocation);
+        if (targetBlock == null || targetBlock == Blocks.AIR) return false;
+
+        BlockState newState = targetBlock.defaultBlockState();
+        if (!plantConversionTargets().contains(targetBlock)) {
+            newState = copyCommonBlockProperties(state, newState);
+        } else if (newState.hasProperty(InfestedLilyPad.NATURAL_SPAWN)) {
+            // Same marker the interactive lily-pad path sets.
+            newState = newState.setValue(InfestedLilyPad.NATURAL_SPAWN, true);
+        }
+        level.setBlock(pos, newState, CHUNK_CONVERSION_UPDATE_FLAGS);
+        return true;
     }
 
     public boolean isInfestedBlock(BlockState state) {

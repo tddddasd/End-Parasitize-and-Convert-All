@@ -27,6 +27,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.SwallowCyst;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
@@ -264,7 +265,7 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
     
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 3, this::predicate));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
 
     private PlayState predicate(AnimationState<SwallowCystBlockEntity> state) {

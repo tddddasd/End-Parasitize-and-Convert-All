@@ -20,6 +20,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
@@ -232,7 +233,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
     }
 
     private PlayState animationPredicate(AnimationState<InfestedSilverfish> event) {

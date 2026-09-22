@@ -1,4 +1,5 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 
 import org.tdddd.epca.impl.client.entity.IOverlayRenderable;
@@ -625,7 +626,7 @@ public class InfestedVillager extends PathfinderMob implements IOverlayRenderabl
     
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::animationPredicate));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
     }
 
     private PlayState animationPredicate(AnimationState<InfestedVillager> event) {

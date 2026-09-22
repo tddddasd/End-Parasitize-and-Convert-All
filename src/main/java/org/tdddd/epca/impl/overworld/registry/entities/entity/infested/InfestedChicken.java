@@ -4,6 +4,7 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.Minecart;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
@@ -662,10 +663,10 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         
-        controllers.add(new AnimationController<>(this, "main_controller", 4, this::mainAnimationPredicate));
+        controllers.add(new AnimationController<>(this, "main_controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::mainAnimationPredicate));
 
         
-        AnimationController<InfestedChicken> shootController = new AnimationController<>(this, "shoot_controller", 3, state -> PlayState.STOP);
+        AnimationController<InfestedChicken> shootController = new AnimationController<>(this, "shoot_controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, state -> PlayState.STOP);
         shootController.triggerableAnim("shoot", RawAnimation.begin().thenPlay("shoot"));
         controllers.add(shootController);
     }

@@ -12,6 +12,7 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
@@ -33,7 +34,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    // ────────── Attributes ──────────
+    
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
@@ -44,7 +45,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
                 .build();
     }
 
-    // ────────── AI Goals ──────────
+    
 
     @Override
     protected void registerGoals() {
@@ -58,7 +59,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
     }
 
-    // ────────── Sounds ──────────
+    
 
     @Override
     protected SoundEvent getAmbientSound() {
@@ -75,7 +76,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         return ModSoundEvents.WALKING_HEAD_DEATH.get();
     }
 
-    // ────────── No fake death (simple hurt is inherited from AbstractInfestedEntity) ──────────
+    
 
     @Override
     public void die(DamageSource source) {
@@ -83,11 +84,11 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         this.onDeath(source);
     }
 
-    // ────────── Animation ──────────
+    
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 5, this::animationPredicate));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
     }
 
     private PlayState animationPredicate(AnimationState<WalkingZombieHead> event) {
@@ -100,7 +101,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         return PlayState.CONTINUE;
     }
 
-    // ────────── Spawn Rules ──────────
+    
 
     public static boolean checkWalkingZombieHeadSpawnRules(
             EntityType<WalkingZombieHead> entityType, ServerLevelAccessor level,

@@ -47,6 +47,7 @@ public class LangDataEN extends LanguageProvider {
 
         // Biomes
         add("biome.epca.parasite_biome", "Parasite Biome");
+        add("generator.epca.cursed_world", "Cursed World");
 
         // Creative tabs / categories
         add("item.epca.category.spawn_eggs", "\u00a7lSpawn Eggs");

@@ -21,6 +21,7 @@ import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -194,7 +195,7 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
     
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 5, this::animationPredicate));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
     }
 
     private PlayState animationPredicate(AnimationState<WalkingSkeletonHead> event) {

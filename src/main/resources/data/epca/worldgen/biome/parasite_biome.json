@@ -4,12 +4,12 @@
   "temperature_modifier": "none",
   "downfall": 0.2,
   "effects":{
-    "sky_color": 3080192,
-    "fog_color": 3080192,
-    "foliage_color": 10878976,
-    "grass_color": 10878976,
-    "water_color": 10878976,
-    "water_fog_color": 10878976
+    "sky_color": 7233915,
+    "fog_color": 7233915,
+    "foliage_color": 9323693,
+    "grass_color": 9323693,
+    "water_color": 7233915,
+    "water_fog_color": 7233915
   },
   "carvers": {
     "air": [

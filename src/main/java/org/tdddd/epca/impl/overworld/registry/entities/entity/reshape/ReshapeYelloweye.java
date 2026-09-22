@@ -46,6 +46,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.SwallowCyst;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
@@ -443,20 +444,11 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
                         hasGassingPush = true;
                     }
 
-                    
-                    if (this.level() instanceof ServerLevel serverLevel) {
-                        if (gassingTimer == GASSING_DURATION - 10) {
-                            
-                            spawnGassingParticleLine(serverLevel);
-                        } else if (gassingTimer < GASSING_DURATION - 10) {
-                            
-                            if ((GASSING_DURATION - gassingTimer) % 2 == 0) {
-                                spawnSingleGassingParticle(serverLevel);
-                            }
-                        }
-                    }
-
-                    
+                    // The gas particle line burst and the every-2-tick single particles that used
+                    // to run here are gone; the visual is now the shader-rendered cloud burst,
+                    // whose client-side cadence mirrors this same timer (GasCloudManager). The push,
+                    // the area effect, the timer/cooldown state machine and the animation below are
+                    // unchanged.
                     applyGassingAreaEffect();
 
                     
@@ -544,6 +536,18 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         return this.entityData.get(DATA_IS_GASSING);
     }
 
+    /**
+     * Read-only accessor for the synced gassing countdown, mirroring
+     * {@code ReshapeLongarms#getGassingTimer()}.
+     *
+     * <p>The client render layer needs it to spawn the shader-rendered gas clouds at the same
+     * cadence as this skill's own particle emission ({@code GASSING_DURATION - timer} gives the
+     * elapsed tick). Purely a getter, no behaviour change.</p>
+     */
+    public int getGassingTimer() {
+        return this.entityData.get(DATA_GASSING_TIMER);
+    }
+
     private void setGassing(boolean gassing) {
         this.entityData.set(DATA_IS_GASSING, gassing);
     }
@@ -576,33 +580,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         this.hasImpulse = true;
     }
 
-    
-    private void spawnGassingParticleLine(ServerLevel level) {
-        Vec3 center = this.position().add(0, this.getBbHeight() * 0.5, 0);
-        Vec3 rightOffset = new Vec3(0.6, -0.3, 0.4);   
-        Vec3 leftOffset = new Vec3(-0.6, -0.3, 0.4);   
-        for (int i = 0; i < 3; i++) {
-            double t = i * 0.4; 
-            Vec3 rightPos = center.add(rightOffset.scale(t));
-            Vec3 leftPos = center.add(leftOffset.scale(t));
-            level.sendParticles(ModParticles.INFESTIVE_GAS.get(), rightPos.x, rightPos.y, rightPos.z,
-                    1, 0, 0, 0, 0);
-            level.sendParticles(ModParticles.INFESTIVE_GAS.get(), leftPos.x, leftPos.y, leftPos.z,
-                    1, 0, 0, 0, 0);
-        }
-    }
-
-    
-    private void spawnSingleGassingParticle(ServerLevel level) {
-        boolean side = (gassingTimer % 4) < 2; 
-        Vec3 center = this.position().add(0, this.getBbHeight() * 0.5, 0);
-        Vec3 offset = side ? new Vec3(0.6, -0.3, 0.4) : new Vec3(-0.6, -0.3, 0.4);
-        Vec3 pos = center.add(offset);
-        level.sendParticles(ModParticles.INFESTIVE_GAS.get(), pos.x, pos.y, pos.z,
-                1, 0, 0, 0, 0);
-    }
-
-    
     private void applyGassingAreaEffect() {
         AABB effectBox = this.getBoundingBox().inflate(0, -this.getBbHeight() + 2.0, 0)
                 .move(0, -this.getBbHeight() * 0.5, 0);
@@ -690,7 +667,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::predicate));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
 
     private PlayState predicate(AnimationState<ReshapeYelloweye> event) {

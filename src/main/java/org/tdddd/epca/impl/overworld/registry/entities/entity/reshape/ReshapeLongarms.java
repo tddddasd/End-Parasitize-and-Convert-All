@@ -50,6 +50,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.*;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
@@ -95,8 +96,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     private static final EntityDataAccessor<Integer> DATA_GASSING_TIMER = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.INT);
     private static final int GASSING_DURATION = 50;
     private boolean shouldCheckGassing = false;
-    private int gassingParticleTimer = 0;
-    private int gassingAreaParticleTimer = 0;
     private List<UUID> affectedEntities = new ArrayList<>();
     private int leftAttackCount = 0;
     private int rightAttackCount = 0;
@@ -190,18 +189,9 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             if (gassingTimer > 0) {
                 setGassingTimer(gassingTimer - 1);
                 int elapsedTicks = GASSING_DURATION - gassingTimer;
-                if (elapsedTicks >= 12 && elapsedTicks < 35) {
-                    gassingParticleTimer++;
-                    if (gassingParticleTimer >= 3) {
-                        gassingParticleTimer = 0;
-                        spawnMovingInfestiveGasParticles();
-                    }
-                }
-                gassingAreaParticleTimer++;
-                if (gassingAreaParticleTimer >= 2) {
-                    gassingAreaParticleTimer = 0;
-                    spawnStaticInfestiveGasFadingParticles();
-                }
+                // The original gas particle emissions that used to run on this cadence are gone:
+                // the shader-rendered gas clouds (GasCloudManager) are the only visual now, while
+                // the area effect keeps its own timing below.
                 if (elapsedTicks >= 12 && elapsedTicks < 35) {
                     applyEffectsToNearbyEntities();
                 }
@@ -398,7 +388,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         if (this.level().isClientSide) return;
         ServerLevel serverLevel = (ServerLevel) this.level();
         BlockPos center = this.blockPosition();
-        int radius = 3; // 7×7×7
+        int radius = 3; 
         AABB area = new AABB(center).inflate(radius);
 
         
@@ -417,15 +407,9 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 entity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 300, 0, false, true, true));
             }
         }
-
-        
-        int count = 2 + this.random.nextInt(3);
-        for (int i = 0; i < count; i++) {
-            double x = center.getX() + 0.5 + (this.random.nextDouble() - 0.5) * 6;
-            double y = center.getY() + 1.0 + this.random.nextDouble() * 5;
-            double z = center.getZ() + 0.5 + (this.random.nextDouble() - 0.5) * 6;
-            serverLevel.sendParticles(ModParticles.INFESTIVE_GAS.get(), x, y, z, 1, 0, 0, 0, 0.0);
-        }
+        // The gas puff burst that used to be emitted here is gone; the visual is now the
+        // shader-rendered passive cloud, whose client-side trigger is the missing back part and
+        // which is therefore unaffected by this removal.
     }
     
     private boolean isStomping() {
@@ -567,8 +551,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         setGassingTimer(GASSING_DURATION);
         this.getNavigation().stop();
         this.setNoAi(true);
-        gassingParticleTimer = 0;
-        gassingAreaParticleTimer = 0;
         affectedEntities.clear();
     }
 
@@ -577,39 +559,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         setGassingTimer(0);
         this.setNoAi(false);
         affectedEntities.clear();
-    }
-
-    private void spawnMovingInfestiveGasParticles() {
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
-            double spawnX = this.getX();
-            double spawnY = this.getY() + 2.0;
-            double spawnZ = this.getZ();
-            int particleCount = 4 + this.random.nextInt(5);
-            for (int i = 0; i < particleCount; i++) {
-                double angle = this.random.nextDouble() * 2 * Math.PI;
-                double pitch = this.random.nextDouble() * Math.PI - Math.PI/2;
-                double dirX = Math.cos(angle) * Math.cos(pitch);
-                double dirY = Math.sin(pitch);
-                double dirZ = Math.sin(angle) * Math.cos(pitch);
-                double speed = 0.3;
-                serverLevel.sendParticles(ModParticles.INFESTIVE_GAS.get(), spawnX, spawnY, spawnZ, 1, dirX, dirY, dirZ, speed);
-            }
-        }
-    }
-
-    private void spawnStaticInfestiveGasFadingParticles() {
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
-            int particleCount = 4 + this.random.nextInt(5);
-            double minX = this.getX() - 3.5, maxX = this.getX() + 3.5;
-            double minY = this.getY() - 3.5, maxY = this.getY() + 3.5;
-            double minZ = this.getZ() - 3.5, maxZ = this.getZ() + 3.5;
-            for (int i = 0; i < particleCount; i++) {
-                double posX = minX + this.random.nextDouble() * (maxX - minX);
-                double posY = minY + this.random.nextDouble() * (maxY - minY);
-                double posZ = minZ + this.random.nextDouble() * (maxZ - minZ);
-                serverLevel.sendParticles(ModParticles.INFESTIVE_GAS.get(), posX, posY, posZ, 1, 0, 0, 0, 0.0);
-            }
-        }
     }
 
     private void applyEffectsToNearbyEntities() {
@@ -1302,7 +1251,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::playState));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::playState));
     }
 
     private PlayState playState(AnimationState<ReshapeLongarms> event) {
@@ -1672,6 +1621,25 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         public boolean isPickable() { return true; }
         @Override
         public boolean isPushable() { return false; }
+
+        /**
+         * Read-only accessor for the synced back-part flag.
+         *
+         * <p>The client uses this to know whether its owner still has a back part: the owner's
+         * {@code backPartRemoved} field is only ever written server-side, so this synced flag on the
+         * part entity is the client-visible equivalent. Purely a getter, no behaviour change.</p>
+         */
+        public boolean isBackPart() {
+            return this.entityData.get(DATA_IS_BACK);
+        }
+
+        /**
+         * Read-only accessor for the synced owner entity id, used together with
+         * {@link #isBackPart()} to match a back part to its longarms owner on the client.
+         */
+        public int getOwnerEntityId() {
+            return this.entityData.get(DATA_PARENT_ID);
+        }
     }
 
     public void removeBackPart() {

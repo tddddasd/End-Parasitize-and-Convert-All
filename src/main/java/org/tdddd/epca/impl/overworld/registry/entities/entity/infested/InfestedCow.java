@@ -1,4 +1,5 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 
 import net.minecraft.core.BlockPos;
@@ -493,7 +494,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::playState));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::playState));
     }
 
     private PlayState playState(AnimationState<InfestedCow> event) {

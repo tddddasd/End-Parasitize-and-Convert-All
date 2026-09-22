@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 import org.jetbrains.annotations.Nullable;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 
 import org.tdddd.epca.impl.client.entity.IOverlayRenderable;
@@ -641,7 +642,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
     
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 4, this::playState));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::playState));
     }
 
     private PlayState playState(AnimationState<InfestedWolf> event) {

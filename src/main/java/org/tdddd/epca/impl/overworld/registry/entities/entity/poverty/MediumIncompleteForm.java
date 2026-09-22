@@ -17,6 +17,7 @@ import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.entities.IPoverty;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
@@ -182,7 +183,7 @@ public class MediumIncompleteForm extends PathfinderMob implements GeoEntity, IP
     
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<MediumIncompleteForm>(this, "controller", 4, this::predicate));
+        controllers.add(new AnimationController<MediumIncompleteForm>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
 
     

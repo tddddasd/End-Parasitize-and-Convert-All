@@ -16,7 +16,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import org.tdddd.epca.impl.client.WaterColorEffectsManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
@@ -59,12 +58,6 @@ public class ContaminatedWater extends Entity {
             return;
         }
 
-        
-        if (this.level().isClientSide) {
-            WaterColorEffectsManager.addContaminationEffect(this.getUUID(), this.position());
-        }
-
-        
         if (!this.level().isClientSide && lifeTicks % 10 == 0) {
             ServerLevel serverLevel = (ServerLevel) this.level();
             DamageSources damageSources = serverLevel.damageSources();
@@ -117,14 +110,6 @@ public class ContaminatedWater extends Entity {
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
 
-    }
-
-    @Override
-    public void remove(RemovalReason reason) {
-        super.remove(reason);
-        if (this.level().isClientSide) {
-            WaterColorEffectsManager.removeContaminationEffect(this.getUUID());
-        }
     }
 
     

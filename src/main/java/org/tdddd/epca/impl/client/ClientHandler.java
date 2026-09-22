@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.client;
 
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.nbt.CompoundTag;
@@ -8,10 +9,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
+import org.tdddd.epca.impl.client.entity.gas.GasCloudRenderType;
 import org.tdddd.epca.impl.client.entity.model.*;
 import org.tdddd.epca.impl.client.entity.renderer.*;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
@@ -22,8 +25,16 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
+import java.io.IOException;
 import java.util.Map;
 
+/**
+ * Mod-bus client subscribers: entity renderer registration, client setup and the custom core shaders.
+ *
+ * <p>Every handler here receives a {@code net.minecraftforge.fml.event.IModBusEvent}, so the class
+ * is annotated with {@code Bus.MOD}. Forge-bus client work (client ticking) lives in
+ * {@link ClientEvents}, which keeps the default bus.</p>
+ */
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientHandler {
     @SubscribeEvent
@@ -33,6 +44,11 @@ public class ClientHandler {
         // These use EpcaTypeGeoRenderer + EpcaTypeGeoModel — reads model/texture/animation
         // from EpcaEntityManager by entity type. No per-entity model class needed.
         for (EntityType<?> type : EpcaEntityManager.consumeRenderTypes()) {
+            if (type == ModEntities.RESHAPE_YELLOWEYE.get()) {
+                // Has a dedicated renderer below (it needs the shader-rendered gas cloud layer).
+                // Registering the generic renderer as well would register this entity type twice.
+                continue;
+            }
             @SuppressWarnings({"unchecked", "rawtypes"})
             EntityType rawType = type;
             event.registerEntityRenderer(rawType, EpcaGeoRenderer::new);
@@ -51,6 +67,7 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.WALKING_ENDERMAN_HEAD.get(), WalkingEndermanHeadRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_ZOMBIE.get(), InfestedZombieRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_LONGARMS.get(), ReshapeLongarmsRenderer::new);
+        event.registerEntityRenderer(ModEntities.RESHAPE_YELLOWEYE.get(), ReshapeYelloweyeRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_PART.get(), ReshapeLongarmsCustomPartRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_BAT.get(), InfestedBatRenderer::new);
 
@@ -79,8 +96,7 @@ public class ClientHandler {
     }
 
     @SubscribeEvent
-    public static void onClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
+    public static void onClientSetup(FMLClientSetupEvent event) {        event.enqueueWork(() -> {
             ItemProperties.register(ModItems.SWALLOW_CYST.get(),
                     new ResourceLocation(epca.MODID, "living"),
                     (stack, level, entity, seed) -> {
@@ -118,5 +134,27 @@ public class ClientHandler {
         ItemProperties.register(item, new ResourceLocation(epca.MODID, "throwing"),
                 (stack, level, entity, seed) ->
                         entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1.0F : 0.0F);
+    }
+
+    /**
+     * Builds the custom core shader used by the shader-rendered gas clouds.
+     *
+     * <p>The shader assets live in {@code assets/epca/shaders/core/gas_cloud.json} (plus
+     * {@code gas_cloud.vsh} / {@code gas_cloud.fsh}); the resulting {@link ShaderInstance} is handed
+     * to {@link GasCloudRenderType}, which wraps it in a custom RenderType.</p>
+     *
+     * <p>This MUST be a mod-bus subscriber:
+     * {@code net.minecraftforge.client.event.RegisterShadersEvent} implements
+     * {@code net.minecraftforge.fml.event.IModBusEvent}, so it is only ever posted to the mod event
+     * bus. Registering it on the forge bus would silently leave the shader unbuilt and the clouds
+     * invisible.</p>
+     */
+    @SubscribeEvent
+    public static void onRegisterShaders(RegisterShadersEvent event) throws IOException {
+        ShaderInstance shader = new ShaderInstance(
+                event.getResourceProvider(),
+                epca.MODID + ":gas_cloud",
+                com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
+        event.registerShader(shader, GasCloudRenderType::registerShader);
     }
 }

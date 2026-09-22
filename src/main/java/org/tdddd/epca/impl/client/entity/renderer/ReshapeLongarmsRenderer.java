@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
+import org.tdddd.epca.impl.client.entity.gas.GasCloudLayer;
 import org.tdddd.epca.impl.client.entity.model.ReshapeLongarmsModel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLongarms;
 import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
@@ -16,6 +17,8 @@ public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
     public ReshapeLongarmsRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new ReshapeLongarmsModel());
         this.model = (ReshapeLongarmsModel) getGeoModel();
+        // Shader-rendered gas clouds for both the active jet skill and the passive back jet.
+        addLayerProvider(GasCloudLayer.forLongarms());
     }
 
     @Override

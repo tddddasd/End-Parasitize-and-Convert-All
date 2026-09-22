@@ -8,10 +8,27 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Client-side registry of the water colour modifiers of the mod.
+ *
+ * <p>Two independent sources remain:</p>
+ * <ul>
+ *   <li><b>acid</b> - {@link #updateClientEffect}/{@link #removeClientEffect}, pushed by
+ *       {@code AcidWaterColorPacket} and read by {@link #getWaterColor};</li>
+ *   <li><b>infested</b> - {@link #addInfestedSource}/{@link #removeInfestedSource}/
+ *       {@link #addInfestedSourcesBatch}/{@link #clearInfestedCache}, pushed by
+ *       {@code InfestedSourcePacket} / {@code SyncAllInfestedSourcesPacket}. The infested tint
+ *       itself is currently commented out inside {@link #getWaterColor} (its colour constant is
+ *       commented out too), so today only the acid source actually changes water.</li>
+ * </ul>
+ *
+ * <p>The {@code epca:contaminated_water} entity no longer contributes here at all: its red water
+ * tint was removed on request. Do not reintroduce it - the entity's own visuals are the red gas
+ * clouds and dark-red specks drawn by {@code GasCloudRenderer}, not a recoloured water block.</p>
+ */
 public class WaterColorEffectsManager {
 
     private static final Map<BlockPos, Integer> acidSources = new ConcurrentHashMap<>();
-    private static final Map<UUID, Vec3> contaminationSources = new ConcurrentHashMap<>();
 
     
     private static final Map<ChunkPos, Set<BlockPos>> INFESTED_BY_CHUNK = new ConcurrentHashMap<>();
@@ -89,17 +106,10 @@ public class WaterColorEffectsManager {
     
     public static int getWaterColor(BlockPos pos, int originalColor) {
         int acidColor = getAcidColor(pos);
-        int bloodColor = getContaminationColor(pos);
 
         int mixed = originalColor;
         if (acidColor != -1) {
             mixed = mixColors(mixed, acidColor, 0.5f);
-        }
-        if (bloodColor != -1) {
-            float intensity = getContaminationIntensity(pos);
-            if (intensity > 0) {
-                mixed = mixColors(mixed, bloodColor, intensity * 0.7f);
-            }
         }
 /*
         float dist = getNearestInfestedDistance(pos);
@@ -123,20 +133,6 @@ public class WaterColorEffectsManager {
         }
     }
 
-    public static void addContaminationEffect(UUID uuid, Vec3 center) {
-        contaminationSources.put(uuid, center);
-        BlockPos centerPos = new BlockPos((int) center.x, (int) center.y, (int) center.z);
-        refreshArea(centerPos, 2);
-    }
-
-    public static void removeContaminationEffect(UUID uuid) {
-        Vec3 center = contaminationSources.remove(uuid);
-        if (center != null) {
-            BlockPos centerPos = new BlockPos((int) center.x, (int) center.y, (int) center.z);
-            refreshArea(centerPos, 2);
-        }
-    }
-
     private static int getAcidColor(BlockPos pos) {
         Integer distance = acidSources.get(pos);
         if (distance != null) {
@@ -144,35 +140,6 @@ public class WaterColorEffectsManager {
             return mixColors(0xFF3F76E4, 0xFF00FF00, factor);
         }
         return -1;
-    }
-
-    private static int getContaminationColor(BlockPos pos) {
-        for (Map.Entry<UUID, Vec3> entry : contaminationSources.entrySet()) {
-            Vec3 center = entry.getValue();
-            double dx = pos.getX() + 0.5 - center.x;
-            double dy = pos.getY() + 0.5 - center.y;
-            double dz = pos.getZ() + 0.5 - center.z;
-            if (dx * dx + dy * dy + dz * dz <= 2.5 * 2.5) {
-                return 0xFFFF0000;
-            }
-        }
-        return -1;
-    }
-
-    private static float getContaminationIntensity(BlockPos pos) {
-        float maxIntensity = 0;
-        for (Map.Entry<UUID, Vec3> entry : contaminationSources.entrySet()) {
-            Vec3 center = entry.getValue();
-            double dx = pos.getX() + 0.5 - center.x;
-            double dy = pos.getY() + 0.5 - center.y;
-            double dz = pos.getZ() + 0.5 - center.z;
-            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (dist <= 2.5) {
-                float intensity = (float) (1.0 - dist / 2.5);
-                if (intensity > maxIntensity) maxIntensity = intensity;
-            }
-        }
-        return maxIntensity;
     }
 
     private static int mixColors(int colorA, int colorB, float t) {
@@ -223,7 +190,6 @@ public class WaterColorEffectsManager {
 
     public static void clearAll() {
         acidSources.clear();
-        contaminationSources.clear();
         INFESTED_BY_CHUNK.clear();
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null && mc.levelRenderer != null) {

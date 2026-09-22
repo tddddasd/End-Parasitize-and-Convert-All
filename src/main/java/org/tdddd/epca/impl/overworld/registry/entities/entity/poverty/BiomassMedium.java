@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.capability.LifetimeCapability;
 import org.tdddd.epca.impl.overworld.data.BiomassSpawnConfig;
 import org.tdddd.epca.impl.overworld.data.BiomassSpawnManager;
@@ -342,7 +343,7 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
     
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 2, this::predicate));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::predicate));
     }
 
     private PlayState predicate(AnimationState<BiomassMedium> event) {

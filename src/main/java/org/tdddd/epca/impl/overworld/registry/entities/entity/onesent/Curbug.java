@@ -20,6 +20,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
@@ -260,8 +261,8 @@ public class Curbug extends AbstractOnesentEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 3, this::predicate));
-        controllers.add(new AnimationController<>(this, "spawn_controller", 3, this::spawnPredicate));
+        controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::predicate));
+        controllers.add(new AnimationController<>(this, "spawn_controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::spawnPredicate));
     }
 
     private PlayState spawnPredicate(AnimationState<Curbug> event) {

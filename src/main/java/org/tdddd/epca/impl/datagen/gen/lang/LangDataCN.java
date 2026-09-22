@@ -47,6 +47,7 @@ public class LangDataCN extends LanguageProvider {
 
         
         add("biome.epca.parasite_biome", "寄生体生物群系");
+        add("generator.epca.cursed_world", "被诅咒的世界");
 
         
         add("item.epca.category.spawn_eggs", "\u00a7l刷怪蛋");
