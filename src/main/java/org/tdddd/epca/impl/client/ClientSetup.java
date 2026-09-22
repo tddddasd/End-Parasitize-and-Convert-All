@@ -12,6 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.client.render.EpcaRenderClient;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystScreen;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
@@ -23,6 +24,8 @@ import org.tdddd.epca.impl.overworld.registry.particles.partices.*;
 public class ClientSetup {
     @SubscribeEvent
     public static void onClientSetup1(FMLClientSetupEvent event) {
+        // 物品 shader 层（崩坏渲染等）的默认绑定注册
+        EpcaRenderClient.onClientSetup(event);
         
         event.enqueueWork(() -> {
             MenuScreens.register(ModMenus.SWALLOW_CYST.get(), SwallowCystScreen::new);

@@ -25,3 +25,6 @@ crash-reports/
 .DS_Store
 Thumbs.db
 *.log
+
+# 内部设计文档（只在本地保留，不推送）
+docs/

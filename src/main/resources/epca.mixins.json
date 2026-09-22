@@ -23,6 +23,10 @@
     "client.BiomeColorsMixin",
     "client.BlockColorsMixin",
     "client.CreateWorldScreenMixin",
+    "client.FogRendererDevourMixin",
+    "client.GameRendererShaderLayerMixin",
+    "client.ItemRendererShaderLayerMixin",
+    "client.ItemRendererTwitchMixin",
     "client.LightningBoltRendererMixin",
     "client.LivingEntityRendererHeartMixin",
     "client.LivingEntityRendererTintMixin"

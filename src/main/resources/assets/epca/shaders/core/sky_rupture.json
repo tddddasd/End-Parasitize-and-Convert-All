@@ -1,0 +1,38 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "srcalpha",
+    "dstrgb": "1-srcalpha"
+  },
+  "vertex": "epca:sky_rupture",
+  "fragment": "epca:sky_rupture",
+  "attributes": [
+    "Position"
+  ],
+  "samplers": [
+    { "name": "Sampler0" }
+  ],
+  "uniforms": [
+    {"name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]},
+    {"name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]},
+    {"name": "ColorModulator", "type": "float", "count": 4, "values": [1.0,1.0,1.0,1.0]},
+    {"name": "ScreenSize", "type": "float", "count": 2, "values": [1920.0,1080.0]},
+
+    {"name": "rayForward", "type": "float", "count": 3, "values": [0.0,0.0,1.0]},
+    {"name": "rayRight", "type": "float", "count": 3, "values": [1.0,0.0,0.0]},
+    {"name": "rayUp", "type": "float", "count": 3, "values": [0.0,1.0,0.0]},
+
+    {"name": "time", "type": "float", "count": 1, "values": [0.0]},
+    {"name": "progress", "type": "float", "count": 1, "values": [0.0]},
+    {"name": "breakAmount", "type": "float", "count": 1, "values": [0.2]},
+    {"name": "fade", "type": "float", "count": 1, "values": [1.0]},
+    {"name": "seed", "type": "float", "count": 1, "values": [0.0]},
+    {"name": "patternOffset", "type": "float", "count": 2, "values": [0.0,0.0]},
+    {"name": "rimColor", "type": "float", "count": 3, "values": [0.55,0.85,1.0]},
+    {"name": "voidColor", "type": "float", "count": 3, "values": [0.02,0.0,0.05]},
+    {"name": "flashColor", "type": "float", "count": 3, "values": [0.85,0.95,1.0]},
+    {"name": "skyDarkProgress", "type": "float", "count": 1, "values": [0.0]},
+    {"name": "skyDarkOpacity", "type": "float", "count": 1, "values": [0.0]},
+    {"name": "cosmicuvs", "type": "matrix2x2", "count": 48, "values": [0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0,0.0,0.0,1.0,1.0]}
+  ]
+}

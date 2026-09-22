@@ -82,6 +82,8 @@ public class epca {
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.register(ClientSetup.class);
+            // 光影兼容的物品 shader 层体系（崩坏渲染等）：注册 shader 加载事件
+            org.tdddd.epca.impl.client.render.EpcaRenderClient.init(modEventBus);
         }
         
         modEventBus.addListener(this::commonSetup);
