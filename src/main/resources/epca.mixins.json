@@ -17,6 +17,8 @@
   ],
   "client": [
     "client.CreateWorldScreenMixin",
+    "client.FogRendererDevourMixin",
+    "client.GameRendererSkyRuptureMixin",
     "client.LightningBoltRendererMixin",
     "client.LightningBoltRenderStateMixin",
     "client.LivingEntityRendererHeartMixin",

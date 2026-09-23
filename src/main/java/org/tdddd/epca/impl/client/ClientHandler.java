@@ -156,6 +156,9 @@ public class ClientHandler {
         // Registers the translucent gas cloud / speck pipeline and its additive twin; the twin is
         // what draws the emissive soul protection flame. No existing pipeline changes.
         GasCloudRenderType.registerPipeline(event);
+        // Registers the world barrier rupture (sky shattering) pipeline. It is a separate pipeline
+        // because it draws a screen-space quad with its own vertex format, blend and depth state.
+        org.tdddd.epca.impl.client.render.sky.SkyRuptureShaders.registerPipeline(event);
     }
 
     @SubscribeEvent
