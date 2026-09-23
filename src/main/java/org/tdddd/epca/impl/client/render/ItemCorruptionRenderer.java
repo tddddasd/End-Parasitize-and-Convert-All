@@ -1,13 +1,13 @@
 package org.tdddd.epca.impl.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.QuadInstance;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
+
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -47,10 +47,16 @@ import java.util.WeakHashMap;
  *
  * <h2>Emitting the extra pass</h2>
  * {@code OrderedSubmitNodeCollector#submitCustomGeometry(PoseStack, RenderType, CustomGeometryRenderer)}
- * hands back a pose plus a raw {@code VertexConsumer}, and the hand-built {@link BakedQuad}s are
- * written with {@code VertexConsumer#putBakedQuad(pose, quad, QuadInstance)}. No custom
- * {@code VertexConsumer} is involved; that method writes POSITION, COLOR, UV0, UV1, UV2 and NORMAL,
- * which is exactly the format {@link ItemShaderPipelines} declares.
+ * hands back a pose plus a raw {@code VertexConsumer}. The geometry is written vertex by vertex with the
+ * four writers {@link ItemShaderPipelines#ITEM_LAYER_VERTEX_FORMAT} declares - {@code addVertex(pose, x,
+ * y, z)} (which applies the pose), {@code setColor}, {@code setUv} and {@code setUv1}, plus
+ * {@code setLineWidth} for the clock. No custom {@code VertexConsumer} is involved.
+ *
+ * <p>An earlier revision used {@code VertexConsumer#putBakedQuad(pose, BakedQuad, QuadInstance)} instead.
+ * That had to be abandoned: {@code putBakedQuad} writes POSITION, COLOR, UV0, UV1, UV2 and NORMAL, and a
+ * format containing those six is 35 bytes, which {@code VertexFormat.Builder#build()} rejects because it
+ * requires a multiple of 4. Writing manually also removed the {@code BakedQuad} /
+ * {@code MaterialInfo} / {@code QuadInstance} machinery entirely.</p>
  */
 public final class ItemCorruptionRenderer {
 
@@ -147,20 +153,21 @@ public final class ItemCorruptionRenderer {
             }
             TextureAtlas atlas = mc.getAtlasManager().getAtlasOrThrow(TextureAtlas.LOCATION_BLOCKS);
             TextureAtlasSprite sprite = atlas.getSprite(maskId);
-            List<BakedQuad> quads = ItemShaderBakery.quads(sprite, renderType);
+            float[] geometry = ItemShaderBakery.geometry(sprite);
+            if (geometry.length == 0) {
+                continue;
+            }
 
-            QuadInstance instance = new QuadInstance();
-            // COLOR carries the tint; putBakedQuad multiplies it by the quad's own baked colour,
-            // which is white for the quads built here.
-            instance.setColor(net.minecraft.util.ARGB.color(
-                    255,
-                    channel(payload.tintRed()),
-                    channel(payload.tintGreen()),
-                    channel(payload.tintBlue())));
-            // UV1 carries the full 32-bit tick clock, split into two 16-bit halves by putBakedQuad.
-            instance.setOverlayCoords(payload.timeTicks());
-            // UV2 carries intensity and split strength as 16-bit fixed point.
-            instance.setLightCoords((payload.packedSplitStrength() << 16) | (payload.packedIntensity() & 0xFFFF));
+            // The per-draw payload, packed into the four slots the vertex format declares. See
+            // ItemShaderPipelines for the table and ItemLayerPayload for the semantics.
+            float tintR = payload.tintRed();
+            float tintG = payload.tintGreen();
+            float tintB = payload.tintBlue();
+            int intensity16 = payload.packedIntensity();
+            int split16 = payload.packedSplitStrength();
+            // The animation clock goes through LINE_WIDTH as a plain float, which is exactly the
+            // precision the 1.20.1 `time` uniform had.
+            float animClock = payload.timeTicks();
 
             // Geometry-level decay: the jitter goes on the pose, so the overlay moves with the same
             // magnitudes and frequency as the 1.20.1 twitch.
@@ -170,8 +177,17 @@ public final class ItemCorruptionRenderer {
                     layer.applyTwitch(poseStack, stack, config, gameTime);
                 }
                 collector.submitCustomGeometry(poseStack, renderType, (pose, consumer) -> {
-                    for (BakedQuad quad : quads) {
-                        consumer.putBakedQuad(pose, quad, instance);
+                    int vertexCount = geometry.length / ItemShaderBakery.VERTEX_STRIDE;
+                    for (int v = 0; v < vertexCount; v++) {
+                        int o = v * ItemShaderBakery.VERTEX_STRIDE;
+                        // Element order and writers must match ITEM_LAYER_VERTEX_FORMAT exactly:
+                        // Position (addVertex applies the pose), Color, Uv, Params (UV1), AnimClock
+                        // (LINE_WIDTH). Every declared element is written, which 26.1.2 requires.
+                        consumer.addVertex(pose, geometry[o], geometry[o + 1], geometry[o + 2])
+                                .setColor(tintR, tintG, tintB, 1.0f)
+                                .setUv(geometry[o + 3], geometry[o + 4])
+                                .setUv1(intensity16, split16)
+                                .setLineWidth(animClock);
                     }
                 });
             } finally {
@@ -181,10 +197,6 @@ public final class ItemCorruptionRenderer {
         }
     }
 
-    /** 0..1 float -&gt; 0..255 byte. */
-    private static int channel(float value) {
-        return Math.round(Math.max(0.0f, Math.min(1.0f, value)) * 255.0f);
-    }
 
     /** Drops every captured entry (level unload / debugging). */
     public static void clear() {

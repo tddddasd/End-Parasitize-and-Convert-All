@@ -17,63 +17,74 @@ import org.tdddd.epca.impl.epca;
 /**
  * Pipeline, vertex format and render type of the item shader layers.
  *
- * <h2>1.20.1 -&gt; 26.1.2: one render type instead of three</h2>
- * The 1.20.1 {@code ItemShaderRenderTypes} built THREE render types per layer, because the render
- * state had to be selected at draw time from depth/target/write-mask shards:
- * <table>
- *   <tr><th>1.20.1 variant</th><th>depth</th><th>why</th></tr>
- *   <tr><td>{@code immediate()}</td><td>{@code EQUAL}</td>
- *       <td>the item had already written depth, so an exact match clips the layer to the item's
- *           opaque texels</td></tr>
- *   <tr><td>{@code afterLevel()}</td><td>{@code LEQUAL} + polygon offset, main target</td>
- *       <td>shader-pack replay after the GBuffer composite</td></tr>
- *   <tr><td>{@code handAfterLevel()}</td><td>{@code NO_DEPTH_TEST}, main target</td>
- *       <td>shader-pack replay of the first-person hand</td></tr>
- * </table>
+ * <h2>Vertex format: 32 bytes, and why the alignment matters</h2>
+ * {@code VertexFormat.Builder#build()} rejects any layout whose total size is not a multiple of 4
+ * (verified with {@code javap -c}: it calls {@code Mth.isMultipleOf(offset, 4)} and throws
+ * {@code IllegalStateException("Vertex size must be a multiple of 4, was N")}). The element sizes are
+ * POSITION 12, COLOR 4, UV0 8, UV1 4, UV2 4, NORMAL 3 and LINE_WIDTH 4.
  *
- * <p>Only the first survives, and its depth test changes:</p>
+ * <p>An earlier revision of this class declared the six elements that
+ * {@code VertexConsumer#putBakedQuad} writes - POSITION, COLOR, UV0, UV1, UV2, NORMAL - which sums to
+ * <b>35 bytes</b> because {@code NORMAL} is three normalised bytes. That threw during class
+ * initialisation and, because it happened inside the {@code RegisterRenderPipelines} event, it took the
+ * whole event down with it. The geometry is therefore emitted <b>manually</b> now, and the layout is
+ * built only from elements whose sizes keep the total 4-byte aligned:</p>
+ *
+ * <pre>
+ *   loc attribute  element     bytes  writer                     payload
+ *   0   Position   POSITION     12    addVertex(pose, x, y, z)   quad corner, pose-transformed
+ *   1   Color      COLOR         4    setColor(r, g, b, a)       tint rgb, alpha 1
+ *   2   Uv         UV0           8    setUv(u, v)                mask sprite UV
+ *   3   Params     UV1           4    setUv1(int, int)           intensity, split strength
+ *   4   AnimClock  LINE_WIDTH    4    setLineWidth(timeTicks)    the tick clock, as a float
+ *                                 --
+ *                                 32   (32 % 4 == 0)
+ * </pre>
+ *
+ * <p>Every declared element is written on every vertex. That is required: 26.1.2 counts the elements a
+ * vertex filled, and a vertex that filled fewer than the format declares is rejected - so declaring an
+ * element purely "for alignment" would be wrong in both directions.
+ * {@code build/javac-check/check-item-corruption.py} recomputes this sum from the declared element ids
+ * and asserts the multiple-of-4 rule, so this bug class fails the checks rather than the game.</p>
+ *
+ * <p>{@code UV1} is read by the shader as an {@code ivec2}: 26.1.2's {@code setUv1(int,int)} stores raw
+ * shorts rather than normalised floats, which is what makes it a usable carrier for 16-bit fixed point
+ * data. {@code LINE_WIDTH} is an ordinary 4-byte float slot and is not consumed by anything, because the
+ * pipeline's mode is QUADS; it carries the animation clock at full float precision, which is exactly what
+ * the 1.20.1 {@code time} uniform was ({@code (float) (gameTime % Integer.MAX_VALUE)}).</p>
+ *
+ * <p>Because {@code UV2} is gone, the payload was re-assigned: {@code UV1.x} = intensity (16-bit),
+ * {@code UV1.y} = split strength (16-bit over 0..4), and the clock moved to {@code LINE_WIDTH} (float).
+ * The clock actually <em>gained</em> precision relative to the earlier 16-bit packing, and intensity and
+ * split strength stay at 16 bits, so nothing regressed against 1.20.1's floats for any value the eye can
+ * resolve.</p>
+ *
+ * <h2>1.20.1 -&gt; 26.1.2: one render type instead of three</h2>
+ * The 1.20.1 {@code ItemShaderRenderTypes} built three render types per layer, because the render state
+ * had to be picked at draw time from depth/target/write-mask shards: {@code immediate()} ({@code EQUAL}
+ * depth, clipping the layer to the item's opaque texels), {@code afterLevel()} and
+ * {@code handAfterLevel()} (main target, for shader-pack replay). Only the first survives, and its depth
+ * test changes:
  * <ul>
  *   <li>26.1.2 renders submitted custom geometry in its own pass rather than inline after the item, so
- *       the item's depth writes are not guaranteed to have happened yet. An {@code EQUAL} test would
- *       therefore be unreliable, and the layer uses <b>{@code LESS_THAN_OR_EQUAL} with
- *       {@code writeDepth = false}</b> - the same state the sky rupture uses. Silhouette clipping is
- *       instead done by the shader, which multiplies by the mask sprite's alpha; for the flat items
- *       this layer is used on the result is the same. <b>Documented approximation.</b></li>
+ *       the item's depth writes are not guaranteed to have happened. An {@code EQUAL} test would be
+ *       unreliable, so the layer uses <b>{@code LESS_THAN_OR_EQUAL} with {@code writeDepth = false}</b>.
+ *       Silhouette clipping is done by the shader, which multiplies by the mask sprite's alpha.
+ *       <b>Documented approximation.</b></li>
  *   <li>the two replay variants are dropped: they existed only for Iris/Oculus, and
  *       {@link org.tdddd.epca.impl.client.render.compat.IrisShaderCompat} reports "inactive"
  *       unconditionally because no Iris port exists for 26.1.2.</li>
  * </ul>
  *
- * <h2>Vertex format</h2>
- * The geometry is emitted by {@code VertexConsumer#putBakedQuad(PoseStack.Pose, BakedQuad,
- * QuadInstance)}, whose body calls the 11-argument
- * {@code addVertex(float,float,float,int,float,float,int,int,float,float,float)}. That helper writes
- * exactly six elements - verified with {@code javap -c} on the patched jar:
- * {@code addVertex}-&gt;POSITION, {@code setColor}-&gt;COLOR, {@code setUv}-&gt;UV0,
- * {@code setOverlay}-&gt;UV1, {@code setLight}-&gt;UV2, {@code setNormal}-&gt;NORMAL - so the format must
- * declare exactly those six and no more (a declared element that is never written would leave the
- * vertex short and 26.1.2 rejects it; writing an element that is not declared is a silent no-op).
- *
- * <pre>
- *   loc attribute  element  writer        payload
- *   0   Position   POSITION addVertex     item-model space quad
- *   1   Color      COLOR    setColor      tint red, green, blue, 1
- *   2   Uv         UV0      setUv         mask sprite UV
- *   3   TimeData   UV1      setOverlay    the 32-bit tick clock, split into two 16-bit halves
- *   4   Params     UV2      setLight      intensity and split strength, 16-bit fixed point
- *   5   Normal     NORMAL   setNormal     quad normal (unused by the shader)
- * </pre>
- *
- * <p>{@code UV1} and {@code UV2} are read by the shader as {@code ivec2}: 26.1.2's
- * {@code setUv1(int,int)}/{@code setUv2(int,int)} store raw shorts, which is what makes them usable
- * carriers for arbitrary integer data. The pipeline deliberately declares no lightmap and no overlay
- * sampler, so those two attributes never reach one.</p>
- *
- * <h2>Texture</h2>
- * {@code Sampler0} is the block atlas, because item textures are stitched into it; the mask is
- * selected per draw through the quad's UVs (from the sprite's {@code getU0()/getV0()/getU1()/getV1()}),
- * so <b>one</b> render type serves every corrupted item - unlike 1.20.1, which needed a render type
- * per mask texture.
+ * <h2>Mask texture</h2>
+ * {@code Sampler0} is bound to {@link TextureAtlas#LOCATION_BLOCKS}, which is the <b>direct texture
+ * path</b> {@code minecraft:textures/atlas/blocks.png} (verified with {@code javap -c} on the
+ * {@code TextureAtlas} static initialiser, which loads the literal {@code "textures/atlas/blocks.png"}).
+ * Item textures are stitched into that atlas in vanilla, so the mask is selected per draw through the
+ * quad's UVs (taken from the sprite's {@code getU0()/getV0()/getU1()/getV1()}) and <b>one</b> render type
+ * serves every corrupted item - unlike 1.20.1, which needed a render type per mask texture. This is the
+ * same shape as the shipped {@code GasCloudRenderType}, which binds
+ * {@code epca:textures/particle/infestive_gas.png} directly.
  */
 public final class ItemShaderPipelines {
 
@@ -81,26 +92,40 @@ public final class ItemShaderPipelines {
     public static final Identifier CORRUPTION_SHADER =
             Identifier.fromNamespaceAndPath(epca.MODID, "core/corruption");
 
-    /** The block atlas, which holds {@code epca:item/<item>} sprites. */
+    /** The block atlas texture, which holds {@code epca:item/<item>} sprites. */
     public static final Identifier ATLAS = TextureAtlas.LOCATION_BLOCKS;
 
-    /** Vertex layout: exactly the six elements {@code putBakedQuad} writes. See the class comment. */
+    /** Byte size each element contributes; the checks recompute the sum from these. */
+    public static final int BYTES_POSITION = 12;
+    public static final int BYTES_COLOR = 4;
+    public static final int BYTES_UV0 = 8;
+    public static final int BYTES_UV1 = 4;
+    public static final int BYTES_LINE_WIDTH = 4;
+
+    /** The expected total, so the checks can assert it and the alignment rule. */
+    public static final int EXPECTED_VERTEX_SIZE =
+            BYTES_POSITION + BYTES_COLOR + BYTES_UV0 + BYTES_UV1 + BYTES_LINE_WIDTH;
+
+    /**
+     * Vertex layout. See the class comment for the payload each slot carries. The total is
+     * {@link #EXPECTED_VERTEX_SIZE} bytes (a multiple of 4), and every declared element is written by
+     * {@link ItemCorruptionRenderer}.
+     */
     public static final VertexFormat ITEM_LAYER_VERTEX_FORMAT = VertexFormat.builder()
             .add("Position", VertexFormatElement.POSITION)
             .add("Color", VertexFormatElement.COLOR)
             .add("Uv", VertexFormatElement.UV0)
-            .add("TimeData", VertexFormatElement.UV1)
-            .add("Params", VertexFormatElement.UV2)
-            .add("Normal", VertexFormatElement.NORMAL)
+            .add("Params", VertexFormatElement.UV1)
+            .add("AnimClock", VertexFormatElement.LINE_WIDTH)
             .build();
 
     /**
      * The corruption pipeline.
      *
-     * <p>{@link RenderPipelines#MATRICES_PROJECTION_SNIPPET} supplies the {@code DynamicTransforms}
-     * and {@code Projection} UBOs. Depth and blend mirror the 1.20.1 {@code immediate()} variant as
-     * closely as the deferred submit allows (see the class comment): translucent blend, {@code LEQUAL}
-     * with no depth write, no culling.</p>
+     * <p>{@link RenderPipelines#MATRICES_PROJECTION_SNIPPET} supplies the {@code DynamicTransforms} and
+     * {@code Projection} UBOs. Depth and blend mirror the 1.20.1 {@code immediate()} variant as closely as
+     * the deferred submit allows (see the class comment): translucent blend, {@code LEQUAL} with no depth
+     * write, no culling.</p>
      */
     public static final RenderPipeline CORRUPTION_PIPELINE =
             RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
@@ -128,9 +153,11 @@ public final class ItemShaderPipelines {
             net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent event) {
         event.registerPipeline(CORRUPTION_PIPELINE);
         pipelineRegistered = true;
-        epca.LOGGER.info("[epca-render] item corruption pipeline registered: {} shader={} format={} samplers={}",
+        epca.LOGGER.info(
+                "[epca-render] item corruption pipeline registered: {} shader={} format={} vertexSize={} samplers={}",
                 CORRUPTION_PIPELINE.getLocation(), CORRUPTION_SHADER,
                 ITEM_LAYER_VERTEX_FORMAT.getElementAttributeNames(),
+                ITEM_LAYER_VERTEX_FORMAT.getVertexSize(),
                 CORRUPTION_PIPELINE.getSamplers());
     }
 
@@ -141,8 +168,7 @@ public final class ItemShaderPipelines {
 
     /**
      * The corruption render type, or {@code null} while the pipeline is not registered yet. Created
-     * lazily for the same reason as the sky render type: the pipeline object only becomes valid
-     * inside the registration event.
+     * lazily because the pipeline object only becomes valid inside the registration event.
      */
     public static RenderType corruptionRenderType() {
         if (!pipelineRegistered) {
