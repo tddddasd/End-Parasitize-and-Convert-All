@@ -34,24 +34,25 @@
 //   lerp chain the Java side used (SkyRuptureEffect.rimRed() and friends), so
 //   they are still driven by the evolution stage.
 // * `uniform mat2 cosmicuvs[12]` is gone entirely. 1.20.1 read the 12 animated
-//   atlas rectangles out of that array; here each draw binds ONE sprite as its
-//   own direct texture on Sampler0, so a sprite's UV space is simply [0,1]^2 and
-//   the only residual per-sprite constants are its frame count (COSMIC_FRAMES)
-//   and its full animation timeline (COSMIC_SCHEDULE_BEGIN / COSMIC_STEP_FRAME /
-//   COSMIC_STEP_HOLD / COSMIC_CYCLE), because a directly bound texture is the raw
-//   strip and nothing animates it. Zero vertex slots are spent on sprite
-//   geometry.
-// * Sampler0 is therefore one `epca:shader/cosmic_N` strip per draw, not the
-//   block atlas. `cosmicBase` (from the vertex stage) names which shell - and so
-//   which sprite - this draw owns.
+//   atlas rectangles out of that array; here all twelve strips live in ONE packed
+//   texture (epca:textures/sky/cosmic_sheet.png, 16 px wide by 54 bands of 16 px,
+//   the strips concatenated in order) bound to Sampler0, and their animation
+//   timelines are expanded into a 12 x 128 lookup table bound to Sampler1. Zero
+//   vertex slots are spent on sprite geometry, which keeps the 32-byte format.
+// * That packing is what lets ONE draw render all twelve shells and loop them the
+//   way the 1.20.1 single draw did. Twelve draws would recompute this shader's
+//   fields twelve times per pixel and would composite twelve sources into the
+//   framebuffer in sequence, which is a different image (see cosmicStars).
 // * The fade envelope also rides in the vertex colour alpha
 //   (ColorModulator.a), which is 1.0; both are applied, matching 1.20.1 where
 //   the shader applied `fade` itself.
 
 #moj_import <minecraft:dynamictransforms.glsl>
 
-/** Star shells rendered by one draw (mirrors SkyRuptureShaders). */
-const int SPRITES_PER_PASS = 1;
+// All twelve star shells are accumulated by ONE draw (see cosmicStars). Splitting them into twelve
+// draws recomputed everything above this point twelve times per pixel and, worse, composited twelve
+// sources into the framebuffer in sequence instead of summing them into one source, which is not the
+// same image: with an opaque layer below, sequential over() keeps only the last draw's stars.
 
 in vec2 ndcPos;
 
@@ -68,30 +69,35 @@ in vec2 patternOffset;
 in float skyDarkProgress;
 in float skyDarkOpacity;
 
-flat in int cosmicBase;
-
 uniform sampler2D Sampler0;
-/**
- * Frame counts of the 12 star sprite strips, baked at compile time.
- *
- * 1.20.1 put all 12 sprites into the block atlas and read their animated UV rectangles from a
- * `mat2 cosmicuvs[12]` uniform. That is 24 floats, which does not fit the vertex budget here, so each
- * draw instead binds ONE sprite as its own direct texture (the same pattern the gas cloud uses): the
- * sprite's UV space is then just [0,1]^2 and the only per-sprite constant left is how many 16x16
- * frames its strip contains. Those counts are fixed by the shipped PNGs
- * (assets/epca/textures/shader/cosmic_N.png heights 64,64,80,80,64,64,96,64,112,48,112,16 divided by
- * 16), so they are baked as a const array and indexed by the shell index.
- */
+uniform sampler2D Sampler1;
+
 const int COSMIC_COUNT = 12;
-const float COSMIC_FRAMES[COSMIC_COUNT] = float[COSMIC_COUNT](
-    4.0, 4.0, 5.0, 5.0, 4.0, 4.0, 6.0, 4.0, 7.0, 3.0, 7.0, 1.0
-);
 
 /**
- * Why the frame is looked up by WALKING a timeline instead of dividing the clock by one rate.
+ * Sampler0 is `epca:textures/sky/cosmic_sheet.png`: the 12 star strips concatenated into one 16 px
+ * wide column of 16 px bands, so one draw can sample all of them.
  *
- * Seven of the twelve strips carry an explicit per-entry schedule in their `.mcmeta` (band:hold, six
- * of them with several separate stretches of band 0, and cosmic_8 starts on band 1):
+ * 1.20.1 read the 12 animated rectangles out of `uniform mat2 cosmicuvs[12]` (24 floats, which do not
+ * fit this vertex budget) and sampled them from the block atlas; the sheet replaces that array with a
+ * single texture binding, and the only per-strip data left is where its bands start.
+ *
+ * Sampler1 is `epca:textures/sky/cosmic_schedule.png`: a 128 x 12 lookup table, one row per strip,
+ * column = (tick mod cycle), red = the band that strip shows at that tick (green = its cycle, blue =
+ * its frame count, for the checkers). It is what makes the frame lookup O(1) instead of a walk.
+ *
+ * COSMIC_SHEET_BASE[i] .. COSMIC_SHEET_BASE[i + 1] is strip i's band range in the sheet, and the last
+ * entry (54) is the sheet's total band count, i.e. the divisor of the V coordinate.
+ * COSMIC_CYCLE[i] is strip i's animation period in ticks. Both tables are baked from the
+ * `cosmic_N.png.mcmeta` files by build/javac-check/bake-sky-schedule.py and cross-checked against those
+ * files, and against the two generated textures, by build/javac-check/check-sky-{parity,glsl,contract}.py.
+ */
+
+/**
+ * Why the frame comes from a lookup table instead of a division by one rate.
+ *
+ * Seven of the twelve strips carry an explicit per-entry schedule in their `.mcmeta` (band:hold; six
+ * of them hold band 0 in several separate stretches, and cosmic_8 starts on band 1):
  *   cosmic_0  0:7 1 2 3
  *   cosmic_1  0:4 1 0:9 2 0:7 3
  *   cosmic_2  0:16 1 1 1 2 2 3 4 3 4 3 2 2 1 1 1
@@ -100,47 +106,41 @@ const float COSMIC_FRAMES[COSMIC_COUNT] = float[COSMIC_COUNT](
  *   cosmic_5  0:18 1 0:4 3 0:14 2
  *   cosmic_8  1 2 3 2 3 2 1 0:22 4 5 6 5 6 5 4 0:31 1 2 3 2 1 0:12
  * The other five are uniform: cosmic_6 and cosmic_11 use `frametime: 1`, cosmic_7 and cosmic_9
- * `frametime: 2`, cosmic_10 `frametime: 3`. `floor(t / rate) % frames` can express a uniform strip
- * but not a scheduled one: it under-holds band 0 and drops every later repeat of it, which is the
- * star-detail mismatch this port had. The baked tables reproduce a uniform strip as just another
- * timeline, so there is a single code path.
+ * `frametime: 2`, cosmic_10 `frametime: 3`. `floor(t / rate) % frames` can express a uniform strip but
+ * not a scheduled one: it under-holds band 0 and drops every later repeat of it.
  *
- * Known limit (documented, not fixed here): the walk is driven by the `time` varying, which the
+ * Walking that timeline step by step (up to 22 steps per shell, twelve shells per pixel) is what this
+ * used to do, so the walk was baked into Sampler1 instead: `cosmicFrameAt` now reduces the tick clock
+ * modulo the strip's cycle and fetches the band for that tick, which is a single texel fetch with no
+ * loop and no per-strip step tables.
+ *
+ * Known limit (documented, not fixed here): the lookup is still driven by the `time` varying, which the
  * renderer fills with `(float) (gameTime % Integer.MAX_VALUE)` - world ticks, the same unit the
  * `.mcmeta` uses. A float32 represents every integer up to 2^24 = 16777216 ticks, i.e. about 9.7 days
  * of ticking; beyond that its spacing grows (2 ticks at 3.4e7, 8 ticks at 1.3e8) and the phase of the
- * walk coarsens with it. `time` already drives the crack animation and the star twinkle, so this is a
- * pre-existing property of the payload; removing it would need the renderer to reduce the phase
- * exactly before it is quantised to a float, and the 32-byte vertex format has no free slot for it.
+ * lookup coarsens with it. `time` already drives the crack animation and the star twinkle, so this is
+ * a pre-existing property of the payload; removing it would need the renderer to reduce
+ * `gameTime % cycle` exactly and hand it over, and the 32-byte vertex format has no free slot for it.
  * The atlas ticker was immune because its counter lived in the SpriteContents.Ticker, not in a float.
  */
 // >>> EPCA-BAKED-SKY-SCHEDULE
 /**
- * Per-strip animation timelines, parsed from the 12 `cosmic_N.png.mcmeta` files.
+ * Per-strip star layout, parsed from the 12 `cosmic_N.png.mcmeta` files.
  *
- * 1.20.1 put the strips in the block atlas, so SpriteContents.Ticker animated them: it
- * held list entry p for that entry's own `time` ticks and then moved to entry p+1,
- * wrapping at the end of the list, and uploaded band `index` of the strip for it. A
- * directly bound texture is the raw strip with no animation applied, so the same
- * timeline is walked here. The tables below hold it verbatim:
+ * `cosmic_sheet.png` is the 12 strips concatenated into one 16 px wide column of 16 px
+ * bands, so a strip's animation frames are just consecutive bands:
  *
- *   COSMIC_SCHEDULE_BEGIN[i] .. COSMIC_SCHEDULE_BEGIN[i + 1]  slice of strip i
- *   COSMIC_STEP_FRAME[s] = the band index step s shows (`index` in the .mcmeta)
- *   COSMIC_STEP_HOLD[s]  = the ticks step s is held (`time`, or `frametime`)
- *   COSMIC_CYCLE[i]      = the sum of strip i's holds, i.e. its period in ticks
+ *   COSMIC_SHEET_BASE[i] .. COSMIC_SHEET_BASE[i + 1]   strip i's bands in the sheet
+ *   COSMIC_SHEET_BASE[COSMIC_COUNT]                   the sheet's band count (54),
+ *                                                     i.e. the divisor of the V axis
+ *   COSMIC_CYCLE[i]                                   strip i's timeline period in ticks
  *
- * Strip 6 is the plain `frametime: 1` sequence, strips 7 and 9 are `frametime: 2`, strip
- * 10 is `frametime: 3` and strip 11 is a single frame, so the uniform and the static
- * strips fall out of the same representation as the scheduled ones. Strip 8
- * starts on band 1, not band 0, and every strip whose .mcmeta repeats `index: 0` holds
- * band 0 for several separate stretches, which is why the timeline cannot be reduced to
- * one rate per strip.
+ * `cosmic_schedule.png` holds the band every strip shows at every tick of its cycle,
+ * one row per strip, so `cosmicFrameAt` is a single texel fetch. Nothing about the
+ * animation is left to guesswork here: both files are regenerated from the `.mcmeta`
+ * timelines and re-derived from them by check-sky-parity.py / check-sky-glsl.py.
  *
- * None of the twelve files sets `interpolate`, so vanilla never cross-faded two
- * consecutive entries; no blending is reproduced here. `index: 0` repeats are held, not
- * faded.
- *
- * Parsed timelines, one line per strip (`band:hold` per step, cycle in ticks):
+ * Parsed per strip (`band:hold` per .mcmeta entry, cycle in ticks):
  *   cosmic_0  0:7 1:1 2:1 3:1 cycle=10
  *   cosmic_1  0:4 1:1 0:9 2:1 0:7 3:1 cycle=23
  *   cosmic_2  0:16 1:1 1:1 1:1 2:1 2:1 3:1 4:1 3:1 4:1 3:1 2:1 2:1 1:1 1:1 1:1 cycle=31
@@ -154,31 +154,9 @@ const float COSMIC_FRAMES[COSMIC_COUNT] = float[COSMIC_COUNT](
  *   cosmic_10 0:3 1:3 2:3 3:3 4:3 5:3 6:3 cycle=21
  *   cosmic_11 0:1 cycle=1
  */
-const int COSMIC_STEP_TOTAL = 87;
-const int COSMIC_STEP_MAX = 22;
-const int COSMIC_SCHEDULE_BEGIN[COSMIC_COUNT + 1] = int[COSMIC_COUNT + 1](
-    0, 4, 10, 26, 34, 38, 44, 50, 54, 76, 79, 86,
-    87
-);
-const int COSMIC_STEP_FRAME[COSMIC_STEP_TOTAL] = int[COSMIC_STEP_TOTAL](
-    0, 1, 2, 3, 0, 1, 0, 2, 0, 3, 0, 1,
-    1, 1, 2, 2, 3, 4, 3, 4, 3, 2, 2, 1,
-    1, 1, 0, 1, 0, 3, 0, 2, 0, 4, 0, 1,
-    2, 3, 0, 1, 0, 3, 0, 2, 0, 1, 2, 3,
-    4, 5, 0, 1, 2, 3, 1, 2, 3, 2, 3, 2,
-    1, 0, 4, 5, 6, 5, 6, 5, 4, 0, 1, 2,
-    3, 2, 1, 0, 0, 1, 2, 0, 1, 2, 3, 4,
-    5, 6, 0
-);
-const int COSMIC_STEP_HOLD[COSMIC_STEP_TOTAL] = int[COSMIC_STEP_TOTAL](
-    7, 1, 1, 1, 4, 1, 9, 1, 7, 1, 16, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 13, 1, 10, 1, 5, 1, 15, 1, 34, 1,
-    1, 1, 18, 1, 4, 1, 14, 1, 1, 1, 1, 1,
-    1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1,
-    1, 22, 1, 1, 1, 1, 1, 1, 1, 31, 1, 1,
-    1, 1, 1, 12, 2, 2, 2, 3, 3, 3, 3, 3,
-    3, 3, 1
+const int COSMIC_SHEET_BASE[COSMIC_COUNT + 1] = int[COSMIC_COUNT + 1](
+    0, 4, 8, 13, 18, 22, 26, 32, 36, 43, 46, 53,
+    54
 );
 const int COSMIC_CYCLE[COSMIC_COUNT] = int[COSMIC_COUNT](
     10, 23, 31, 47, 37, 39, 6, 8, 84, 6, 21, 1
@@ -186,18 +164,18 @@ const int COSMIC_CYCLE[COSMIC_COUNT] = int[COSMIC_COUNT](
 // <<< EPCA-BAKED-SKY-SCHEDULE
 
 /**
- * Band index strip `sprite` shows at world tick `t`, found by walking its baked timeline.
+ * Band index strip `sprite` shows at world tick `t`.
  *
  * `t` is the tick clock (`time`), which is exactly the unit `.mcmeta` `time`/`frametime` are counted
  * in. Entry 0 of the timeline is on screen at tick 0 - vanilla's `uploadFirstFrame` uploads
- * `frames.get(0).index` before the first tick - and the timeline advances to the next entry once the
- * current entry's hold has elapsed, wrapping at `COSMIC_CYCLE`. That is what vanilla's ticker did to
- * the atlas each tick:
+ * `frames.get(0).index` before the first tick - and the timeline moves on once the current entry's hold
+ * has elapsed, wrapping at the strip's cycle. That is what vanilla's ticker did to the atlas each tick:
  *
  *   ++subFrame; if (subFrame >= frames[frame].time) { frame = (frame + 1) % frames.size(); subFrame = 0; }
  *
- * and because it then uploaded `frames[frame].index`, an entry's own `index` (not its list position)
- * names the band it shows.
+ * and because it then uploaded `frames[frame].index`, the entry's own `index` (not its list position)
+ * names the band it shows. That whole timeline was expanded into Sampler1 by the baker, so this is one
+ * texel fetch: row = strip, column = tick within the cycle, red = band index.
  */
 int cosmicFrameAt(int sprite, float t) {
     int cycle = COSMIC_CYCLE[sprite];
@@ -205,28 +183,19 @@ int cosmicFrameAt(int sprite, float t) {
     // exact integer can make mod() return the cycle length (the last tick of the cycle, not an error)
     // or a tiny negative (tick 0). Integer-valued inputs make the result exact.
     float reduced = clamp(mod(t, float(cycle)), 0.0, float(cycle) - 1.0);
-    int phase = int(reduced);
-    int first = COSMIC_SCHEDULE_BEGIN[sprite];
-    int last = COSMIC_SCHEDULE_BEGIN[sprite + 1];
-    int held = 0;
-    int band = COSMIC_STEP_FRAME[first];
-    for (int s = 0; s < COSMIC_STEP_MAX; s++) {
-        int step = first + s;
-        if (step >= last) {
-            break;
-        }
-        held += COSMIC_STEP_HOLD[step];
-        if (phase < held) {
-            band = COSMIC_STEP_FRAME[step];
-            break;
-        }
-    }
-    return band;
+    // The red channel holds the band index (0..6) as an 8-bit value, so the decode is exact.
+    return int(texelFetch(Sampler1, ivec2(int(reduced), sprite), 0).r * 255.0 + 0.5);
 }
 
 out vec4 fragColor;
 
 const int cosmiccount = COSMIC_COUNT;
+/**
+ * Modulus of the per-cell sprite hash (`symbol = position % cosmicoutof`), exactly as 1.20.1 had it.
+ * Only `symbol < cosmiccount` draws a sprite, so about 12% of the (cell, shell) pairs are occupied;
+ * that ratio is part of the look and not a tuning knob.
+ */
+const int cosmicoutof = 101;
 
 const float PI = 3.14159265359;
 /**
@@ -414,37 +383,36 @@ vec3 nebula(vec3 d, float t) {
 // -- star field (ported from the reference project's cosmic renderer) --------
 
 /**
- * Samples the sprite strip bound as this draw's Sampler0 at sprite-local (ru, rv).
+ * Samples band `band` of sprite `sprite` out of the packed sheet at sprite-local (ru, rv).
  *
- * The strip is `frames` texels tall, so the requested frame is selected by mapping rv into its band.
- * `Sampler0` is one single sprite texture per draw (see SkyRuptureShaders), which is what removes the
- * need to carry any atlas rectangle in the vertex stream.
+ * Every band is 16 px tall, so band `band` occupies the sheet rows [16 * band, 16 * band + 16) and its
+ * V range is [band, band + 1) in units of 1 / COSMIC_SHEET_BASE[COSMIC_COUNT]. Band 0 of a strip is the
+ * top band of its own PNG, which is the band the 1.20.1 atlas uploaded into the sprite's v0..v1 rect
+ * for frame index 0 (the atlas band upload used glTexSubImage2D with the band's first row as the
+ * destination y, and v0 is that row), so this maps a strip's rows onto V exactly as the atlas did.
  *
  * `rv` is clamped just below 1 so the last texel of the band is selected instead of the first texel of
  * the next band: the atlas had the same edge (orv = 1 sampled the top row of whatever sprite followed
  * in the atlas), and NEAREST filtering with the default REPEAT wrap would otherwise read across bands.
  */
 vec4 sampleCosmicSprite(float ru, float rv, int sprite, float t) {
-    float frames = COSMIC_FRAMES[sprite];
-    // The band comes from the strip's own timeline (see cosmicFrameAt); band 0 is the top band of the
-    // PNG, which is the band the atlas uploaded into the sprite's v0..v1 rect for frame index 0.
-    float band = float(cosmicFrameAt(sprite, t));
-    return texture(Sampler0, vec2(ru, (band + clamp(rv, 0.0, 0.999)) / frames));
+    float band = float(COSMIC_SHEET_BASE[sprite] + cosmicFrameAt(sprite, t));
+    float bands = float(COSMIC_SHEET_BASE[COSMIC_COUNT]);
+    return texture(Sampler0, vec2(ru, (band + clamp(rv, 0.0, 0.999)) / bands));
 }
 
 /**
- * Accumulates the star sprites of the shells carried by this draw.
+ * Accumulates the star sprites of all twelve shells.
  *
- * `firstSprite` is the shell index of this draw and, because the shell-to-sprite
- * mapping is the identity, also the sprite whose strip this draw's Sampler0 binds.
- * Each draw renders SPRITES_PER_PASS shells.
+ * This mirrors the 1.20.1 `cosmicStars(dir, t)` loop one for one: the shell index drives the rotation
+ * axis, the cell scale and the rotation/flip hash, the cell's sprite is picked by the reference's hash
+ * chain, and cells whose hash lands outside the 12 sprite indices stay empty. Summing them here and
+ * compositing once is what the 1.20.1 single draw did.
  */
-vec3 cosmicStars(vec3 dir, float t, int firstSprite) {
+vec3 cosmicStars(vec3 dir, float t) {
     vec3 acc = vec3(0.0);
 
-    for (int k = 0; k < SPRITES_PER_PASS; k++) {
-        int i = firstSprite + k;
-
+    for (int i = 0; i < STAR_SHELLS; i++) {
         int mult = STAR_SHELLS - i;
         int j = i + 7;
         float rand1 = (float(j * j * 4321 + j * 8)) * 2.0;
@@ -463,29 +431,32 @@ vec3 cosmicStars(vec3 dir, float t, int firstSprite) {
 
         int tu = int(mod(floor(u * STAR_UVTILES), STAR_UVTILES));
         int tv = int(mod(floor(v * STAR_UVTILES), STAR_UVTILES));
-        // The 1.20.1 twin derived the sprite index from the same hash chain
-        // (`position = (171*tu + 489*tv + 303*(i+31) + 17209) ^ 10;
-        //  symbol = position % cosmicoutof`). That hash chain is deterministic in
-        // the shell index, so the index can be supplied directly instead; the
-        // per-shell randomness below is unchanged.
-        int symbol = firstSprite + k;
+        // 1.20.1 picked the sprite of a cell with this hash chain, and only the cells whose remainder
+        // falls below `cosmiccount` draw anything at all (12 of 101, i.e. about 12%). Both matter: the
+        // chain is what mixes the twelve strips across the sky, and the gate is what keeps the field
+        // sparse. The earlier port forced `symbol = shellIndex`, which drew a sprite in every cell of
+        // every shell - twelve sprites per cell instead of ~1.4.
+        int position = (171 * tu + 489 * tv + 303 * (i + 31) + 17209) ^ 10;
+        int symbol = position % cosmicoutof;
 
-        // Rotation / flip come from a hash rather than pow(tu, tv); pow(0, 0) is
-        // undefined in GLSL.
-        float rotH = hash21(vec2(float(tu) + 0.5, float(tv) + 0.5) + float(i) * 17.3);
-        int rotation = int(floor(rotH * 8.0));
-        bool flip = false;
-        if (rotation >= 4) {
-            rotation -= 4;
-            flip = true;
-        }
-
-        // `symbol` is the shell index by construction, so the 1.20.1
-        // `symbol >= 0 && symbol < cosmiccount` guard is provably true here and
-        // is kept only as documentation of the original bound.
         if (symbol >= 0 && symbol < cosmiccount) {
+            // The pole fade depends only on the sampled direction, so a shell the fade kills entirely
+            // is dropped before the rotation hash and the texture fetch: its contribution would be
+            // poleFade * texel.r * (0.5 + 1/mult) < 1e-4, far below one step of an 8-bit channel.
+            float poleFade = 1.0 - smoothstep(0.15, 0.48, abs(rawv - 0.5));
+            if (poleFade <= 1.0e-4) {
+                continue;
+            }
             float ru = clamp(mod(u, 1.0) * STAR_UVTILES - float(tu), 0.0, 1.0);
             float rv = clamp(mod(v, 1.0) * STAR_UVTILES - float(tv), 0.0, 1.0);
+            // Rotation / flip come from a hash rather than pow(tu, tv); pow(0, 0) is undefined in GLSL.
+            float rotH = hash21(vec2(float(tu) + 0.5, float(tv) + 0.5) + float(i) * 17.3);
+            int rotation = int(floor(rotH * 8.0));
+            bool flip = false;
+            if (rotation >= 4) {
+                rotation -= 4;
+                flip = true;
+            }
             if (flip) {
                 ru = 1.0 - ru;
             }
@@ -502,12 +473,10 @@ vec3 cosmicStars(vec3 dir, float t, int firstSprite) {
                 orv = 1.0 - ru;
             }
 
-            vec4 texel = sampleCosmicSprite(oru, orv, i, t);
+            vec4 texel = sampleCosmicSprite(oru, orv, symbol, t);
 
-            // The sprite texture's red channel is the brightness; fade out near
-            // the poles, where the spherical parameterisation crowds together.
-            float a = texel.r * (0.5 + 1.0 / float(mult))
-                    * (1.0 - smoothstep(0.15, 0.48, abs(rawv - 0.5)));
+            // The sprite texture's red channel is the brightness.
+            float a = texel.r * (0.5 + 1.0 / float(mult)) * poleFade;
 
             // Cold white temperature (the reference project's DEEP_SPACE branch).
             vec3 starC = vec3(fract(rand1 * 0.123) * 0.4 + 0.6,
@@ -529,6 +498,14 @@ vec3 cosmicStars(vec3 dir, float t, int firstSprite) {
 }
 
 void main() {
+    // Whole-draw early-out: the outgoing alpha is multiplied by `fade` at the end, so an envelope of
+    // zero cannot show a single pixel. Testing it first keeps the last frame of the effect (and any
+    // frame the effect's opacity has already collapsed in, e.g. the tail of a FADE_OUT window) from
+    // paying for the direction, the crack field and the twelve star shells.
+    if (fade <= 0.002) {
+        discard;
+    }
+
     // -- world direction -> stereographic parameter (no fold at the horizon) --
     vec3 dir = normalize(rayForward + rayRight * ndcPos.x + rayUp * ndcPos.y);
     vec2 p = dir.xz / (1.0 + dir.y) * SKY_SCALE;
@@ -538,71 +515,18 @@ void main() {
     // single crack may appear.
     float erupt = smoothstep(0.0, 0.02, progress);
 
-    // -- opening time per region: a low frequency CONTINUOUS noise field (not a
-    //    per-cell hash, which would jump) ------------------------------------
-    float ignField = fbmNoise(p + patternOffset, 1.6);
-    float ign = 0.10 + 0.55 * ignField;
-    float localProg = clamp((progress - ign) / max(1.0 - ign, 1.0e-3), 0.0, 1.0) * erupt;
-
-    // -- crack network: Voronoi F2 - F1 (continuous field -> no straight seams)
-    vec2 ve = voronoiEdge(p * CRACK_SCALE + patternOffset * 0.37);
-    float edge = ve.y - ve.x;                       // 0 = shard boundary
-
-    // Gap width = a thin line that is always visible + a hole that opens with
-    // progress:
-    //   thin line 0.06 Voronoi units ~ 9 px
-    //   hole      finally 1.75 units, which must exceed the maximum of edge
-    //             (about 1.0-1.2, plus the +/-30% widthJitter), so that in the
-    //             last phase the whole sky really does break up into cosmos
-    float widthJitter = 0.70 + 0.60 * vnoise2(p * 5.0 + patternOffset);
-    float stageScale = mix(0.10, 1.0, breakAmount);   // lower stages open less
-    float lineW = 0.060 * smoothstep(0.0, 0.12, localProg);
-    float holeW = 1.75 * pow(localProg, 2.2) * stageScale;
-    float wGap = (lineW + holeW) * widthJitter;
-
-    // The antialiasing bandwidth has to follow the gap width, and the whole mask
-    // is multiplied by the erupt gate: with a fixed aa of 0.022 a +/-0.022 band
-    // would still exist at wGap = 0, leaving an alpha ~0.5 "star line" about
-    // 3 px wide on every shard boundary, i.e. the whole shard net would show the
-    // instant the effect triggers, before the sky has even finished darkening.
-    float aa = max((lineW + holeW) * 0.30, 1.0e-4);
-    float gapMask = (1.0 - smoothstep(wGap - aa, wGap + aa, edge)) * erupt;
-
-    // Barrier energy rim on the shard side. The trailing factor keeps unbroken
-    // regions dark; without it the whole shard net lights up at once and reads
-    // as a mesh instead of as regions opening one after another.
-    float rimW = clamp(wGap * 0.55 + 0.06, 0.02, 0.30);
-    float rimBand = (smoothstep(wGap, wGap + aa * 2.0, edge)
-                   * (1.0 - smoothstep(wGap, wGap + rimW, edge))
-                   * smoothstep(0.0, 0.02, wGap)) * erupt;
-
-    // -- the cosmos behind the gap (parallax from a smooth direction field, not
-    //    from a discrete rupture point) --------------------------------------
-    vec2 warp = vec2(vnoise2(p * 0.6 + patternOffset), vnoise2(p * 0.6 + patternOffset + 31.0)) - 0.5;
-    vec3 cosmosDir = dirFromSkyPlane(p + warp * 0.20 * breakAmount);
-
-    // One draw per star shell: this draw owns the shell named by cosmicBase, and
-    // its Sampler0 is that sprite's own texture strip.
-    vec3 starAcc = cosmicStars(cosmosDir, t, cosmicBase);
-    vec3 cosmos = nebula(cosmosDir, t) * 0.85
-                + starAcc * mix(0.95, 1.20, breakAmount);
-
     // The colours the 1.20.1 twin pushed as rimColor/voidColor/flashColor
     // uniforms, reconstructed from breakAmount with the same lerp chain as
     // SkyRuptureEffect (rimRed/rimGreen/..., voidRed/..., flashRed/...).
-    vec3 rimColor = vec3(mix(0.55, 0.85, breakAmount),
-                         mix(0.85, 0.25, breakAmount),
-                         1.00);
     vec3 voidColor = vec3(mix(0.02, 0.07, breakAmount), 0.0, mix(0.05, 0.11, breakAmount));
-    vec3 flashColor = vec3(mix(0.85, 0.92, breakAmount),
-                           mix(0.95, 0.85, breakAmount),
-                           1.0);
 
     // -- composite, bottom to top --------------------------------------------
     vec3 col = vec3(0.0);
     float alpha = 0.0;
 
-    // (1) bottom layer: the devoured dark sky, i.e. the shards themselves
+    // (1) bottom layer: the devoured dark sky, i.e. the shards themselves.
+    //     It is the ONLY layer while the darkening phase runs, so it is composited before anything
+    //     expensive is evaluated.
     {
         float frontY = mix(1.06, -1.06, clamp(skyDarkProgress, 0.0, 1.0));
         float frontSoft = mix(0.38, 0.05, clamp(skyDarkProgress, 0.0, 1.0));
@@ -611,16 +535,81 @@ void main() {
                      * clamp(skyDarkOpacity, 0.0, 1.0));
     }
 
-    // (2) the opened gaps reveal the cosmos
-    over(col, alpha, cosmos, gapMask);
+    // The whole crack network, the cosmos and the rim are all multiplied by `erupt`, so with the
+    // darkening phase still running they are provably zero: skip the noise, the Voronoi field, the
+    // nebula and all twelve shells entirely. That is a third of the effect's runtime paying for the
+    // dark layer alone.
+    if (erupt > 0.0) {
+        // -- opening time per region: a low frequency CONTINUOUS noise field (not a
+        //    per-cell hash, which would jump) ------------------------------------
+        float ignField = fbmNoise(p + patternOffset, 1.6);
+        float ign = 0.10 + 0.55 * ignField;
+        float localProg = clamp((progress - ign) / max(1.0 - ign, 1.0e-3), 0.0, 1.0) * erupt;
 
-    // (3) cold energy light on the shard rims (the barrier still glowing)
-    over(col, alpha, rimColor * 1.25, rimBand * 0.55);
+        // -- crack network: Voronoi F2 - F1 (continuous field -> no straight seams)
+        vec2 ve = voronoiEdge(p * CRACK_SCALE + patternOffset * 0.37);
+        float edge = ve.y - ve.x;                       // 0 = shard boundary
 
-    // (4) a very short, very weak lift at the moment of breaking, just enough to
-    //     read as a snap
-    float flash = (1.0 - smoothstep(0.0, 0.05, progress)) * erupt;
-    over(col, alpha, flashColor, flash * 0.07);
+        // Gap width = a thin line that is always visible + a hole that opens with
+        // progress:
+        //   thin line 0.06 Voronoi units ~ 9 px
+        //   hole      finally 1.75 units, which must exceed the maximum of edge
+        //             (about 1.0-1.2, plus the +/-30% widthJitter), so that in the
+        //             last phase the whole sky really does break up into cosmos
+        float widthJitter = 0.70 + 0.60 * vnoise2(p * 5.0 + patternOffset);
+        float stageScale = mix(0.10, 1.0, breakAmount);   // lower stages open less
+        float lineW = 0.060 * smoothstep(0.0, 0.12, localProg);
+        float holeW = 1.75 * pow(localProg, 2.2) * stageScale;
+        float wGap = (lineW + holeW) * widthJitter;
+
+        // The antialiasing bandwidth has to follow the gap width, and the whole mask
+        // is multiplied by the erupt gate: with a fixed aa of 0.022 a +/-0.022 band
+        // would still exist at wGap = 0, leaving an alpha ~0.5 "star line" about
+        // 3 px wide on every shard boundary, i.e. the whole shard net would show the
+        // instant the effect triggers, before the sky has even finished darkening.
+        float aa = max((lineW + holeW) * 0.30, 1.0e-4);
+        float gapMask = (1.0 - smoothstep(wGap - aa, wGap + aa, edge)) * erupt;
+
+        // (2) the opened gaps reveal the cosmos. The warp field, the direction, the nebula and the
+        //     twelve star shells only exist for the gap mask, so a pixel inside an intact shard - which
+        //     is most of the sky while the cracks are still thin - stops right here. The threshold is
+        //     1e-4, far below the 0.002 alpha cutoff at the end of this function, so a skipped layer
+        //     could not have changed a visible pixel (its weight on the final colour is < 1/255).
+        if (gapMask > 1.0e-4) {
+            // -- the cosmos behind the gap (parallax from a smooth direction field, not
+            //    from a discrete rupture point) --------------------------------------
+            vec2 warp = vec2(vnoise2(p * 0.6 + patternOffset), vnoise2(p * 0.6 + patternOffset + 31.0)) - 0.5;
+            vec3 cosmosDir = dirFromSkyPlane(p + warp * 0.20 * breakAmount);
+
+            // One draw covers all twelve shells: the crack field, the noise, the nebula and the
+            // compositing below are evaluated once per pixel instead of once per shell.
+            vec3 cosmos = nebula(cosmosDir, t) * 0.85
+                        + cosmicStars(cosmosDir, t) * mix(0.95, 1.20, breakAmount);
+            over(col, alpha, cosmos, gapMask);
+        }
+
+        // Barrier energy rim on the shard side. The trailing factor keeps unbroken
+        // regions dark; without it the whole shard net lights up at once and reads
+        // as a mesh instead of as regions opening one after another.
+        float rimW = clamp(wGap * 0.55 + 0.06, 0.02, 0.30);
+        float rimBand = (smoothstep(wGap, wGap + aa * 2.0, edge)
+                       * (1.0 - smoothstep(wGap, wGap + rimW, edge))
+                       * smoothstep(0.0, 0.02, wGap)) * erupt;
+
+        // (3) cold energy light on the shard rims (the barrier still glowing)
+        vec3 rimColor = vec3(mix(0.55, 0.85, breakAmount),
+                             mix(0.85, 0.25, breakAmount),
+                             1.00);
+        over(col, alpha, rimColor * 1.25, rimBand * 0.55);
+
+        // (4) a very short, very weak lift at the moment of breaking, just enough to
+        //     read as a snap
+        vec3 flashColor = vec3(mix(0.85, 0.92, breakAmount),
+                               mix(0.95, 0.85, breakAmount),
+                               1.0);
+        float flash = (1.0 - smoothstep(0.0, 0.05, progress)) * erupt;
+        over(col, alpha, flashColor, flash * 0.07);
+    }
 
     alpha *= clamp(fade, 0.0, 1.0);
     if (alpha < 0.002) {

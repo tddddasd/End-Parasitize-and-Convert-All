@@ -62,10 +62,11 @@ import org.tdddd.epca.impl.client.render.compat.IrisShaderCompat;
  *       {@code ProjMat}/{@code ModelViewMat}. 1.20.1 derived {@code tan(fov/2)} from
  *       {@code RenderSystem.getProjectionMatrix()} and baked it into its ray vectors, so this port is
  *       equivalent but picks up the real FOV instead of a reconstruction.</li>
- *   <li>The 12 star shells are drawn as 12 separate quads, each through its own render type bound to
- *       that sprite's texture, because the 12 animated atlas rectangles no longer fit in the vertex
- *       budget (see {@link SkyRuptureShaders}). Each pass has different attribute values, so each is
- *       its own batch.</li>
+ *   <li>The 12 star shells are drawn by <b>one</b> quad that loops them in the fragment stage, exactly
+ *       as 1.20.1 did. The earlier per-sprite draws recomputed the shared fields twelve times per pixel
+ *       and composited twelve sources into the framebuffer in sequence instead of summing them, which
+ *       is not the same image; the strips are packed into one sheet texture so a single Sampler0 can
+ *       still reach all twelve (see {@link SkyRuptureShaders}).</li>
  *   <li>{@code mc.renderBuffers().bufferSource()} still exists and is used exactly as the 1.20.1
  *       version used {@code MultiBufferSource.BufferSource}.</li>
  * </ul>
@@ -115,14 +116,26 @@ public final class SkyRuptureRenderer {
         }
     }
 
-    /** Submits the 12 full-screen quads (progress has already been advanced by {@link #update()}). */
+    /** Submits the one full-screen quad (progress has already been advanced by {@link #update()}). */
     private static void drawIfActive() {
         if (!SkyRuptureEffect.isActive() || !SkyRuptureShaders.isPipelineRegistered()) {
+            return;
+        }
+        // Draw-level early-out: the shader multiplies its outgoing alpha by `fade`, so an envelope of
+        // zero makes every pixel discard. Testing it here (and again first thing in the fragment stage)
+        // skips the whole submission instead of shading a full screen of nothing.
+        if (SkyRuptureEffect.fade() <= 0.002f) {
             return;
         }
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
+            return;
+        }
+
+        RenderType renderType = SkyRuptureShaders.getRenderType();
+        if (renderType == null) {
+            // The pipeline is not registered (resource reload / very early frame): skip.
             return;
         }
 
@@ -133,8 +146,8 @@ public final class SkyRuptureRenderer {
         // animation (time * 8, * 4, * 2.7), the scanline/grain/glitch terms (time * 20, * 13, * 5, * 11,
         // * 3, * 1.7) and the star field's slow drift and twinkle (t * 0.004, t * 1.6, t * 1.1). An earlier
         // revision fed elapsedSeconds() instead, which made every one of those terms 20x too slow; the
-        // strip animation is tick-based too (the baked COSMIC_STEP_*/COSMIC_CYCLE timeline is in ticks,
-        // the unit .mcmeta `time`/`frametime` use). This is the exact 1.20.1 clock.
+        // star animation is tick-based too (the lookup table's columns are ticks, the unit .mcmeta
+        // `time`/`frametime` use). This is the exact 1.20.1 clock.
         float time = (float) (mc.level.getGameTime() % Integer.MAX_VALUE);
         float progress = SkyRuptureEffect.progress();
         float breakAmount = SkyRuptureEffect.breakAmount();
@@ -144,29 +157,21 @@ public final class SkyRuptureRenderer {
         float skyDarkProgress = DarknessDevourEffect.skyProgress();
         float skyDarkOpacity = DarknessDevourEffect.skyOpacity();
 
-        for (int sprite = 0; sprite < SkyRuptureShaders.SPRITE_COUNT; sprite++) {
-            RenderType renderType = SkyRuptureShaders.getRenderType(sprite);
-            if (renderType == null) {
-                // The pipeline is not registered (resource reload / very early frame): skip.
-                return;
-            }
-
-            VertexConsumer consumer = buffers.getBuffer(renderType);
-            // Vertices are the 0..1 screen coordinates; the vertex stage maps xy to NDC and puts z on
-            // the far plane. The quad is emitted counter-clockwise as seen with +y up, which does not
-            // matter because the pipeline disables culling.
-            emitVertex(consumer, 0.0f, 0.0f, sprite, breakAmount, fade, time, progress,
-                    skyDarkProgress, skyDarkOpacity, patternX, patternY);
-            emitVertex(consumer, 1.0f, 0.0f, sprite, breakAmount, fade, time, progress,
-                    skyDarkProgress, skyDarkOpacity, patternX, patternY);
-            emitVertex(consumer, 1.0f, 1.0f, sprite, breakAmount, fade, time, progress,
-                    skyDarkProgress, skyDarkOpacity, patternX, patternY);
-            emitVertex(consumer, 0.0f, 1.0f, sprite, breakAmount, fade, time, progress,
-                    skyDarkProgress, skyDarkOpacity, patternX, patternY);
-            // Each sprite binds a different texture and carries a different shell index, so it has to
-            // be its own batch.
-            buffers.endBatch(renderType);
-        }
+        // ONE quad, exactly as 1.20.1 had it: the fragment stage loops the twelve star shells itself,
+        // so the crack field, the noise, the nebula and the composite are evaluated once per pixel
+        // instead of once per shell. Vertices are the 0..1 screen coordinates; the vertex stage maps xy
+        // to NDC and puts z on the far plane. The quad is emitted counter-clockwise as seen with +y up,
+        // which does not matter because the pipeline disables culling.
+        VertexConsumer consumer = buffers.getBuffer(renderType);
+        emitVertex(consumer, 0.0f, 0.0f, breakAmount, fade, time, progress,
+                skyDarkProgress, skyDarkOpacity, patternX, patternY);
+        emitVertex(consumer, 1.0f, 0.0f, breakAmount, fade, time, progress,
+                skyDarkProgress, skyDarkOpacity, patternX, patternY);
+        emitVertex(consumer, 1.0f, 1.0f, breakAmount, fade, time, progress,
+                skyDarkProgress, skyDarkOpacity, patternX, patternY);
+        emitVertex(consumer, 0.0f, 1.0f, breakAmount, fade, time, progress,
+                skyDarkProgress, skyDarkOpacity, patternX, patternY);
+        buffers.endBatch(renderType);
     }
 
     /**
@@ -177,26 +182,37 @@ public final class SkyRuptureRenderer {
      * than the format declares is rejected). Note that {@code setUv1}/{@code setUv2} take
      * {@code (int, int)} rather than floats - verified with {@code javap} on the patched jar, only
      * {@code addVertex}, {@code setColor}, {@code setUv}, {@code setNormal} and {@code setLineWidth}
-     * are float writers - so those two attributes carry 16-bit fixed point values decoded in
-     * {@code sky_rupture.vsh}.</p>
+     * are float writers - so those two attributes carry 16-bit values that {@code sky_rupture.vsh}
+     * decodes as <b>unsigned</b> (the writer narrows to {@code short}, the vertex array binds them as
+     * {@code GL_SHORT}, and the shader masks with {@code 0xFFFF}).</p>
      */
-    private static void emitVertex(VertexConsumer consumer, float screenX, float screenY, int sprite,
+    private static void emitVertex(VertexConsumer consumer, float screenX, float screenY,
                                    float breakAmount, float fade, float time, float progress,
                                    float skyDarkProgress, float skyDarkOpacity,
                                    float patternX, float patternY) {
-        consumer.addVertex(screenX, screenY, sprite)
+        // Position.z is unused now that one draw covers every shell; it stays 0 so the 32-byte format
+        // is still written in full.
+        consumer.addVertex(screenX, screenY, 0.0f)
                 // COLOR is four normalized bytes, so only the two 0..1 values ride here and the two
                 // spare channels are pinned to 1.
                 .setColor(breakAmount, fade, 1.0f, 1.0f)
-                // UV0 = time (seconds) and the rupture progress, both full precision floats.
+                // UV0 = time (world ticks) and the rupture progress, both full precision floats.
                 .setUv(time, progress)
-                // UV1 = the two sky-darkening values, both 0..1, as 16-bit fixed point.
+                // UV1 = the two sky-darkening values, both 0..1, as unsigned 16-bit fixed point.
                 .setUv1(quantiseUnit(skyDarkProgress), quantiseUnit(skyDarkOpacity))
                 // UV2 = the crack field offset. It covers 0..64, so it is quantised at 1/1023.
                 .setUv2(quantisePattern(patternX), quantisePattern(patternY));
     }
 
-    /** Maps a 0..1 value onto the 16-bit fixed point scale {@code sky_rupture.vsh} divides by 65535. */
+    /**
+     * Maps a 0..1 value onto the unsigned 16-bit scale {@code sky_rupture.vsh} divides by 65535.
+     *
+     * <p>The full 0..65535 range is used on purpose: {@code setUv1} narrows the argument to
+     * {@code short} and the element is bound as {@code GL_SHORT}, and it is the shader's
+     * {@code & 0xFFFF} mask that recovers the unsigned value. Values above 32767 are therefore expected
+     * here and must not be clamped away - clamping them is exactly what shut the darkening layer off
+     * halfway through its own phase (see {@code sky_rupture.vsh}).</p>
+     */
     private static int quantiseUnit(float value) {
         return Math.round(Math.max(0.0f, Math.min(1.0f, value)) * 65535.0f);
     }
