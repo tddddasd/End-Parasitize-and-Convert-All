@@ -68,8 +68,10 @@ import java.util.WeakHashMap;
  * {@link ItemShaderBakery} for the {@code javap} evidence and the full argument.
  *
  * <p>Every quad of every layer is overlaid, so a multi-quad or multi-layer model gets the decay on all of its
- * geometry. (One <em>binding</em> still draws per render state - see the emit guard - because two bindings
- * for the same item would stack the same overlay and double the tint.)</p>
+ * geometry. While the effect is active the item's <b>own</b> model is suppressed entirely, so only the overlay
+ * is visible; see {@link #suppressAndOverlay} and {@code ItemLayerEmitMixins} for the redirect that does it.
+ * The overlay itself is emitted once per render state per submit - two bindings for the same item would stack
+ * the same overlay and double the tint.</p>
  *
  * <h2>Emitting the extra pass</h2>
  * {@code OrderedSubmitNodeCollector#submitCustomGeometry(PoseStack, RenderType, CustomGeometryRenderer)}
@@ -128,32 +130,41 @@ public final class ItemCorruptionRenderer {
      * @param packedLight  packed lightmap, passed to the quads
      * @param packedOverlay packed overlay, passed to the quads
      */
-    public static void emitForLayer(Object renderState, List<BakedQuad> itemQuads,
-                                    PoseStack poseStack, SubmitNodeCollector collector,
-                                    int packedLight, int packedOverlay) {
+    /**
+     * Decides whether the corruption overlay replaces the item this frame, and if so emits it.
+     *
+     * <h2>Contract</h2>
+     * Called from the {@code @Redirect} on {@code SubmitNodeCollector#submitItem} inside
+     * {@code LayerRenderState#submit}, i.e. with the item's own model-space pose and its own quads.
+     *
+     * @return {@code true} when the effect is active for this item, in which case the <b>caller must not make
+     *         the vanilla submission</b> - the item is deliberately invisible and only the overlay is drawn,
+     *         which is the requested "dissolving" look. {@code false} means "draw the item normally", and
+     *         covers every not-active case plus the cases where no overlay could be built at all.
+     */
+    public static boolean suppressAndOverlay(Object renderState, List<BakedQuad> itemQuads,
+                                             PoseStack poseStack, SubmitNodeCollector collector) {
         Captured captured = CAPTURED.get(renderState);
         if (captured == null) {
-            return;
+            return false;
         }
         ItemStack stack = captured.stack();
         ItemDisplayContext ctx = captured.context();
         if (stack.isEmpty() || ctx == null) {
-            return;
+            return false;
         }
 
         List<ItemLayerBinding> bindings = ItemRenderRegistry.resolve(stack, ctx);
         if (bindings.isEmpty()) {
-            return;
+            return false;
         }
-
         if (!ItemShaderPipelines.isPipelineRegistered()) {
-            // Resource reload / very early frame.
-            return;
+            return false;
         }
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
-            return;
+            return false;
         }
         long gameTime = mc.level.getGameTime();
 
@@ -165,11 +176,14 @@ public final class ItemCorruptionRenderer {
             }
             ItemLayerPayload payload = layer.prepare(stack, config, ctx, gameTime);
             if (payload == null) {
-                continue;
+                continue; // outside the burst window
             }
-            // One overlay per render state per submit, whatever the item's layer count is.
-            if (!EMITTED.add(renderState)) {
-                return;
+
+            // A special-model item (or any model that submitted no quads) has no geometry to build the overlay
+            // from. Returning false keeps it VISIBLE rather than making it vanish with nothing to show: the
+            // alternative would be an item that silently disappears while the effect runs. Documented.
+            if (itemQuads == null || itemQuads.isEmpty()) {
+                return false;
             }
 
             Identifier maskId = layer.maskTexture(stack, config);
@@ -177,65 +191,61 @@ public final class ItemCorruptionRenderer {
                 maskId = ItemRenderRegistry.defaultMaskFor(stack);
             }
 
-            // The mask is a texture resource of its own, NOT an atlas sprite. See ItemMaskTexture for the
-            // crash that the atlas route caused (AtlasManager#getAtlasOrThrow wants an atlas id, not the
-            // texture path held by TextureAtlas.LOCATION_BLOCKS) and for the frame-count logic.
+            // The mask is a texture resource of its own, NOT an atlas sprite. See ItemMaskTexture for the crash
+            // the atlas route caused (AtlasManager#getAtlasOrThrow wants an atlas id, not the texture path held
+            // by TextureAtlas.LOCATION_BLOCKS) and for the frame-count logic.
             ItemMaskTexture.MaskInfo mask = ItemMaskTexture.resolve(maskId);
             if (mask.unusable()) {
-                // Missing or unreadable mask: skip rather than crash. ItemMaskTexture logs once per id.
+                // Missing or unreadable mask: keep the item visible rather than blanking it. ItemMaskTexture
+                // logs once per id.
                 continue;
             }
             RenderType renderType = ItemShaderPipelines.renderTypeFor(mask.texturePath());
             if (renderType == null) {
-                return;
+                return false;
             }
 
-            // The overlay is emitted FROM THE ITEM'S OWN QUADS, so it matches the item's size and
-            // placement in every display context by construction. See ItemShaderBakery for the javap
-            // evidence that prepareQuadList() returns exactly the list the item was submitted with, and
-            // for how each quad's atlas UVs are normalised into the bound mask texture's 0..1 space and
-            // banded into the current animation frame (the shipped mask is a 24-frame 16x384 strip, so
-            // without banding the whole strip would smear across the item).
-            if (itemQuads == null || itemQuads.isEmpty()) {
-                // No readable quads (e.g. a special-model item that never called submitItem): nothing to
-                // overlay. Skipping is correct - there is no geometry to derive the overlay from.
-                continue;
-            }
             int frames = mask.frames();
             int frame = ItemMaskTexture.currentFrame(mask, gameTime);
             final List<BakedQuad> quads = itemQuads;
 
-            // The per-draw payload, packed into the four slots the vertex format declares. See
-            // ItemShaderPipelines for the table and ItemLayerPayload for the semantics.
+            // The per-draw payload, packed into the slots the vertex format declares. See ItemShaderPipelines
+            // for the table and ItemLayerPayload for the semantics.
             float tintR = payload.tintRed();
             float tintG = payload.tintGreen();
             float tintB = payload.tintBlue();
             int intensity16 = payload.packedIntensity();
             int split16 = payload.packedSplitStrength();
-            // The animation clock goes through LINE_WIDTH as a plain float, which is exactly the
-            // precision the 1.20.1 `time` uniform had.
+            // The animation clock goes through LINE_WIDTH as a plain float, which is exactly the precision the
+            // 1.20.1 `time` uniform had.
             float animClock = payload.timeTicks();
 
-            // Geometry-level decay: the jitter goes on the pose, so the overlay moves with the same
-            // magnitudes and frequency as the 1.20.1 twitch.
-            poseStack.pushPose();
-            try {
-                if (layer.usesTwitchTransform(stack, config)) {
-                    layer.applyTwitch(poseStack, stack, config, gameTime);
-                }
-                collector.submitCustomGeometry(poseStack, renderType, (pose, consumer) -> {
-                    for (BakedQuad quad : quads) {
-                        ItemShaderBakery.emitQuad(consumer, pose, quad, frames, frame,
-                                tintR, tintG, tintB, intensity16, split16, animClock);
+            // Every layer of the item is suppressed (each layer's redirect returns true below), but the overlay
+            // itself is emitted only once per render state per submit: two emissions would stack the identical
+            // overlay and double the tint. The guard is reset by ItemCorruptionRenderer#beginSubmit.
+            if (EMITTED.add(renderState)) {
+                // Geometry-level decay: the jitter goes on the pose, so the overlay moves with the same
+                // magnitudes and frequency as the 1.20.1 twitch.
+                poseStack.pushPose();
+                try {
+                    if (layer.usesTwitchTransform(stack, config)) {
+                        layer.applyTwitch(poseStack, stack, config, gameTime);
                     }
-                });
-            } finally {
-                poseStack.popPose();
+                    collector.submitCustomGeometry(poseStack, renderType, (pose, consumer) -> {
+                        for (BakedQuad quad : quads) {
+                            ItemShaderBakery.emitQuad(consumer, pose, quad, frames, frame,
+                                    tintR, tintG, tintB, intensity16, split16, animClock);
+                        }
+                    });
+                } finally {
+                    poseStack.popPose();
+                }
             }
-            return;
+            // Active: suppress the vanilla submission for this layer.
+            return true;
         }
+        return false;
     }
-
 
     /** Drops every captured entry and every cached mask/render-type resolution (level unload, reload, debug). */
     public static void clear() {
