@@ -5,8 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -44,6 +42,22 @@ import java.util.WeakHashMap;
  * {@code LayerRenderState#submit} does {@code pushPose() -> applyTransform -> submitItem -> popPose()}.
  * The item's <b>final model space is therefore only valid just before that {@code popPose()}</b>, which
  * is where {@code ItemLayerEmitMixin} injects.
+ *
+ * <h2>Mask texture and animation frames</h2>
+ * The mask is bound as its own <b>texture resource</b> ({@code namespace:textures/...png}) and the render
+ * type is cached per mask texture, because the layer no longer uses the block atlas at all. See
+ * {@link ItemMaskTexture} for why: the atlas route threw
+ * {@code IllegalArgumentException: Invalid atlas id: minecraft:textures/atlas/blocks.png} from
+ * {@code AtlasManager#getAtlasOrThrow}, which wants an atlas <em>id</em>
+ * ({@code minecraft:blocks}) rather than the atlas <em>texture path</em> that
+ * {@code TextureAtlas.LOCATION_BLOCKS} holds.
+ *
+ * <p>A directly bound texture is the raw strip, and the {@code .mcmeta} animation is not applied to it, so
+ * the animation frame is selected here: the frame count comes from the PNG's IHDR
+ * ({@code height / width}) and the rate from the sibling {@code .mcmeta}'s {@code frametime}, and the
+ * quad's V is banded into the current frame before emission. That keeps {@code corruption.fsh} untouched,
+ * and it is required for correctness rather than polish: the shipped mask is a 24-frame strip, so sampling
+ * the full 0..1 V range would smear all 24 frames across the item.</p>
  *
  * <h2>Emitting the extra pass</h2>
  * {@code OrderedSubmitNodeCollector#submitCustomGeometry(PoseStack, RenderType, CustomGeometryRenderer)}
@@ -120,9 +134,8 @@ public final class ItemCorruptionRenderer {
             return;
         }
 
-        RenderType renderType = ItemShaderPipelines.corruptionRenderType();
-        if (renderType == null) {
-            // Pipeline not registered yet (resource reload / very early frame).
+        if (!ItemShaderPipelines.isPipelineRegistered()) {
+            // Resource reload / very early frame.
             return;
         }
 
@@ -151,12 +164,31 @@ public final class ItemCorruptionRenderer {
             if (maskId == null) {
                 maskId = ItemRenderRegistry.defaultMaskFor(stack);
             }
-            TextureAtlas atlas = mc.getAtlasManager().getAtlasOrThrow(TextureAtlas.LOCATION_BLOCKS);
-            TextureAtlasSprite sprite = atlas.getSprite(maskId);
-            float[] geometry = ItemShaderBakery.geometry(sprite);
-            if (geometry.length == 0) {
+
+            // The mask is a texture resource of its own, NOT an atlas sprite. See ItemMaskTexture for the
+            // crash that the atlas route caused (AtlasManager#getAtlasOrThrow wants an atlas id, not the
+            // texture path held by TextureAtlas.LOCATION_BLOCKS) and for the frame-count logic.
+            ItemMaskTexture.MaskInfo mask = ItemMaskTexture.resolve(maskId);
+            if (mask.unusable()) {
+                // Missing or unreadable mask: skip rather than crash. ItemMaskTexture logs once per id.
                 continue;
             }
+            RenderType renderType = ItemShaderPipelines.renderTypeFor(mask.texturePath());
+            if (renderType == null) {
+                return;
+            }
+
+            // Bands the quad's V into the strip's current animation frame. Done here, on the CPU, so
+            // corruption.fsh stays untouched: the fragment stage keeps sampling texCoord0 as before, but
+            // texCoord0 now points inside a single frame instead of across all of them. The shipped mask
+            // (ender_blade_scrap.png) is a 24-frame 16x384 strip, so without this the whole strip would
+            // smear across the item.
+            int frames = mask.frames();
+            int frame = ItemMaskTexture.currentFrame(mask, gameTime);
+            float vScale = 1.0f / frames;
+            float vOffset = frame * vScale;
+
+            final float[] geometry = ItemShaderBakery.geometry();
 
             // The per-draw payload, packed into the four slots the vertex format declares. See
             // ItemShaderPipelines for the table and ItemLayerPayload for the semantics.
@@ -185,7 +217,7 @@ public final class ItemCorruptionRenderer {
                         // (LINE_WIDTH). Every declared element is written, which 26.1.2 requires.
                         consumer.addVertex(pose, geometry[o], geometry[o + 1], geometry[o + 2])
                                 .setColor(tintR, tintG, tintB, 1.0f)
-                                .setUv(geometry[o + 3], geometry[o + 4])
+                                .setUv(geometry[o + 3], vOffset + geometry[o + 4] * vScale)
                                 .setUv1(intensity16, split16)
                                 .setLineWidth(animClock);
                     }

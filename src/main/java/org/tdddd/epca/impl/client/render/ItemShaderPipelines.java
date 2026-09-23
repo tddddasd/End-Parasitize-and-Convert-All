@@ -10,9 +10,11 @@ import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.Identifier;
 import org.tdddd.epca.impl.epca;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Pipeline, vertex format and render type of the item shader layers.
@@ -77,23 +79,26 @@ import org.tdddd.epca.impl.epca;
  * </ul>
  *
  * <h2>Mask texture</h2>
- * {@code Sampler0} is bound to {@link TextureAtlas#LOCATION_BLOCKS}, which is the <b>direct texture
- * path</b> {@code minecraft:textures/atlas/blocks.png} (verified with {@code javap -c} on the
- * {@code TextureAtlas} static initialiser, which loads the literal {@code "textures/atlas/blocks.png"}).
- * Item textures are stitched into that atlas in vanilla, so the mask is selected per draw through the
- * quad's UVs (taken from the sprite's {@code getU0()/getV0()/getU1()/getV1()}) and <b>one</b> render type
- * serves every corrupted item - unlike 1.20.1, which needed a render type per mask texture. This is the
- * same shape as the shipped {@code GasCloudRenderType}, which binds
- * {@code epca:textures/particle/infestive_gas.png} directly.
+ * {@code Sampler0} is bound to the mask's <b>own texture resource</b>, with one cached render type per mask
+ * texture (see {@link #renderTypeFor(Identifier)}).
+ *
+ * <p>This replaced an earlier revision that bound the block atlas and looked the mask up as a sprite inside
+ * it. That crashed the render thread with
+ * {@code IllegalArgumentException: Invalid atlas id: minecraft:textures/atlas/blocks.png} from
+ * {@code AtlasManager#getAtlasOrThrow(Identifier)}, which looks up {@code atlasById} - the atlas <em>id</em>
+ * ({@code minecraft:blocks}) - while {@code TextureAtlas.LOCATION_BLOCKS} holds the atlas <em>texture
+ * path</em>. Note the throw was from {@code getAtlasOrThrow}, not from {@code RenderSetup#withTexture}.</p>
+ *
+ * <p>Binding the texture file directly is the same strategy {@code SkyRuptureShaders} uses for its 12 star
+ * strips and the same shape as the shipped {@code GasCloudRenderType}, and it removes the atlas from this
+ * feature entirely. The cost of one render type per mask is nil: the shipped build has exactly one binding
+ * ({@code epca:ender_blade_scrap}), and {@link ItemMaskTexture} caches the resolution per id.</p>
  */
 public final class ItemShaderPipelines {
 
     /** Shader id; {@code FileToIdConverter("shaders", ".vsh"/".fsh")} maps it to the two assets. */
     public static final Identifier CORRUPTION_SHADER =
             Identifier.fromNamespaceAndPath(epca.MODID, "core/corruption");
-
-    /** The block atlas texture, which holds {@code epca:item/<item>} sprites. */
-    public static final Identifier ATLAS = TextureAtlas.LOCATION_BLOCKS;
 
     /** Byte size each element contributes; the checks recompute the sum from these. */
     public static final int BYTES_POSITION = 12;
@@ -139,11 +144,12 @@ public final class ItemShaderPipelines {
                     .withCull(false)
                     .build();
 
-    /** Render type / diagnostics name. */
-    public static final String RENDER_TYPE_NAME = "epca_item_corruption";
+    /** Render type name prefix; the bound mask texture is appended so diagnostics stay readable. */
+    public static final String RENDER_TYPE_NAME_PREFIX = "epca_item_corruption/";
 
     private static boolean pipelineRegistered;
-    private static RenderType corruptionRenderType;
+    /** One render type per mask texture id. The shipped build has exactly one entry. */
+    private static final Map<Identifier, RenderType> RENDER_TYPES = new ConcurrentHashMap<>();
 
     private ItemShaderPipelines() {
     }
@@ -167,20 +173,39 @@ public final class ItemShaderPipelines {
     }
 
     /**
-     * The corruption render type, or {@code null} while the pipeline is not registered yet. Created
-     * lazily because the pipeline object only becomes valid inside the registration event.
+     * The corruption render type for one mask texture, or {@code null} while the pipeline is not registered
+     * yet. Created lazily because the pipeline object only becomes valid inside the registration event, and
+     * cached per texture id.
+     *
+     * @param maskTexture a bindable texture resource, i.e. {@code namespace:textures/...png}; produce it
+     *                    with {@link ItemMaskTexture#toTexturePath(Identifier)}. Never pass an atlas id or
+     *                    {@code TextureAtlas.LOCATION_*}: those are not creatable textures and the atlas
+     *                    lookup path this replaced threw on them.
      */
-    public static RenderType corruptionRenderType() {
-        if (!pipelineRegistered) {
+    public static RenderType renderTypeFor(Identifier maskTexture) {
+        if (!pipelineRegistered || maskTexture == null) {
             return null;
         }
-        if (corruptionRenderType == null) {
-            corruptionRenderType = RenderType.create(RENDER_TYPE_NAME,
-                    RenderSetup.builder(CORRUPTION_PIPELINE)
-                            .withTexture("Sampler0", ATLAS)
-                            .setOutline(RenderSetup.OutlineProperty.NONE)
-                            .createRenderSetup());
+        RenderType cached = RENDER_TYPES.get(maskTexture);
+        if (cached != null) {
+            return cached;
         }
-        return corruptionRenderType;
+        RenderType created = RenderType.create(RENDER_TYPE_NAME_PREFIX + maskTexture,
+                RenderSetup.builder(CORRUPTION_PIPELINE)
+                        .withTexture("Sampler0", maskTexture)
+                        .setOutline(RenderSetup.OutlineProperty.NONE)
+                        .createRenderSetup());
+        RENDER_TYPES.put(maskTexture, created);
+        return created;
+    }
+
+    /** Drops the render type cache (resource reload / debugging). */
+    public static void invalidateRenderTypes() {
+        RENDER_TYPES.clear();
+    }
+
+    /** Diagnostics: how many mask render types are cached. */
+    public static int renderTypeCount() {
+        return RENDER_TYPES.size();
     }
 }
