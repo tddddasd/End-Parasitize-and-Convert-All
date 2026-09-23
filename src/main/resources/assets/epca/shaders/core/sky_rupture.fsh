@@ -85,14 +85,20 @@ const float COSMIC_FRAMES[COSMIC_COUNT] = float[COSMIC_COUNT](
 );
 
 /**
- * Frames per second of the sprite strips.
+ * Ticks per frame of each strip, taken from its own `cosmic_N.png.mcmeta` `frametime`.
  *
- * Approximated: the .mcmeta files give per-frame timings (frametime 1..3 ticks, with individual
- * frames stretched up to 34 ticks), which a directly bound SimpleTexture does not apply. A single
- * uniform rate keeps the star field alive instead of freezing it on frame 0; the exact per-frame
- * timings are lost. Documented in the port report.
+ * 1.20.1 sampled the 12 sprites out of the block atlas, so the atlas animated them and each strip
+ * advanced at its own .mcmeta rate. A directly bound texture is the raw strip with no animation
+ * applied, so the rate is reproduced here: the shell's own frametime, starting from frame 0 at world
+ * time 0, exactly as the atlas did. The shipped values are 1,1,1,1,1,1,1,2,1,2,3,1 ticks.
+ *
+ * An earlier revision used one uniform COSMIC_FPS rate and a per-shell phase offset, which desynced
+ * the strips from each other AND from 1.20.1. Both are gone; the values below are cross-checked
+ * against the .mcmeta files by build/javac-check/check-sky-parity.py.
  */
-const float COSMIC_FPS = 12.0;
+const float COSMIC_FRAMETIMES[COSMIC_COUNT] = float[COSMIC_COUNT](
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 2.0, 3.0, 1.0
+);
 
 out vec4 fragColor;
 
@@ -292,9 +298,9 @@ vec3 nebula(vec3 d, float t) {
  */
 vec4 sampleCosmicSprite(float ru, float rv, int sprite, float t) {
     float frames = COSMIC_FRAMES[sprite];
-    // Offset the phase per shell so the 12 strips do not animate in lockstep.
-    float phase = float(sprite) * 1.7;
-    float frame = mod(floor(t * COSMIC_FPS + phase), frames);
+    // t is world TICKS, which is what the .mcmeta frametime is expressed in, so this is the atlas
+    // behaviour: frame 0 at time 0, advancing every `frametime` ticks, no phase offset.
+    float frame = mod(floor(t / COSMIC_FRAMETIMES[sprite]), frames);
     return texture(Sampler0, vec2(ru, (frame + clamp(rv, 0.0, 0.999)) / frames));
 }
 

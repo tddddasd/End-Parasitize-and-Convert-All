@@ -128,7 +128,13 @@ public final class SkyRuptureRenderer {
 
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 
-        float time = SkyRuptureEffect.elapsedSeconds();
+        // 1.20.1 pushed (float) (gameTime % Integer.MAX_VALUE) - world TICKS - into the shader's `time`
+        // uniform, and every time-driven constant in the fragment stage is tuned for ticks: the crack
+        // animation (time * 8, * 4, * 2.7), the scanline/grain/glitch terms (time * 20, * 13, * 5, * 11,
+        // * 3, * 1.7) and the star field's slow drift and twinkle (t * 0.004, t * 1.6, t * 1.1). An earlier
+        // revision fed elapsedSeconds() instead, which made every one of those terms 20x too slow; the
+        // strip animation is tick-based too (see COSMIC_FRAMETIMES). This is the exact 1.20.1 clock.
+        float time = (float) (mc.level.getGameTime() % Integer.MAX_VALUE);
         float progress = SkyRuptureEffect.progress();
         float breakAmount = SkyRuptureEffect.breakAmount();
         float fade = SkyRuptureEffect.fade();
