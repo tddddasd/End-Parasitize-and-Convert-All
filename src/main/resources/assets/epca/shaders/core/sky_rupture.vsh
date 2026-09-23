@@ -59,19 +59,7 @@ out float skyDarkOpacity;
 /** Index of the star shell this draw owns; the shell -> sprite mapping is the identity. */
 flat out int cosmicBase;
 
-/**
- * The world-space direction of the pixel at the given NDC position.
- *
- * inverse(ProjMat) maps NDC back to view space; because the quad sits on the far plane (z = 1) the
- * result is a point on that plane and its direction from the eye is the view ray. Rotating by
- * ModelViewMat with w = 0 applies only the rotation, turning it into a world direction. This replaces
- * the three 1.20.1 ray uniforms and is if anything more accurate, because it uses the real projection
- * matrix instead of a tan(fov/2) reconstruction.
- */
-vec3 worldRay(vec2 ndc) {
-    vec4 farPoint = inverse(ProjMat) * vec4(ndc, 1.0, 1.0);
-    return normalize((ModelViewMat * vec4(farPoint.xyz / farPoint.w, 0.0)).xyz);
-}
+
 
 void main() {
     ndcPos = Position.xy * 2.0 - 1.0;
@@ -80,15 +68,42 @@ void main() {
     // wrote closer depth and mask it off.
     gl_Position = vec4(ndcPos, 1.0, 1.0);
 
-    // Three corner rays give the centre direction plus the two screen-space tangents the fragment
-    // stage needs. Interpolating them across the quad reproduces the per-pixel ray with the same
-    // linear approximation the 1.20.1 twin used (which passed tan-scaled right/up vectors).
-    vec3 ray00 = worldRay(vec2(-1.0, -1.0));
-    vec3 ray10 = worldRay(vec2(1.0, -1.0));
-    vec3 ray01 = worldRay(vec2(-1.0, 1.0));
-    rayRight = (ray10 - ray00) * 0.5;
-    rayUp = (ray01 - ray00) * 0.5;
-    rayForward = normalize(ray00 + rayRight + rayUp);
+    // ---------------------------------------------------------------------------------------------
+    // Camera basis, replicated from 1.20.1.
+    //
+    // 1.20.1's SkyRuptureRenderer pushed WORLD-space axes as uniforms:
+    //     forward = camera.getLookVector(); up = camera.getUpVector(); left = camera.getLeftVector();
+    //     rayForward = forward;  rayRight = -left * tanX;  rayUp = up * tanY;
+    // with tanY = 1 / m11, tanX = 1 / m00 taken from the projection matrix and clamped to [0.05, 10].
+    // The fragment stage then does normalize(rayForward + rayRight * ndc.x + rayUp * ndc.y), and because
+    // the pattern is derived from that WORLD direction the crack network stays anchored to the sky.
+    //
+    // The three camera axes in world space are the columns of inverse(ModelViewMat), which maps view ->
+    // world: column 0 is the camera right, column 1 the camera up, and column 2 the camera backward,
+    // since view space looks down -Z.
+    //
+    // DEFECT FIXED HERE: the previous revision built rays from inverse(ProjMat) (a VIEW-space ray) and
+    // then multiplied by ModelViewMat, which maps world -> view. That applied the camera rotation a
+    // second time, so the "world" direction the fragment stage received actually rotated with the
+    // camera - the reported "crack pattern turns with the view" bug. It also used (r10 - r00) * 0.5 as
+    // the tangent, which is algebraically the same quantity as tanX, so the only real error was the
+    // space. The basis below is literally 1.20.1's.
+    //
+    // 1.20.1 applied no celestial/sky rotation here, so none is applied: the anchoring comes purely from
+    // using the world-space camera orientation.
+    // ---------------------------------------------------------------------------------------------
+    mat4 viewToWorld = inverse(ModelViewMat);
+    vec3 cameraRight = normalize(viewToWorld[0].xyz);
+    vec3 cameraUp = normalize(viewToWorld[1].xyz);
+    vec3 cameraForward = normalize(-viewToWorld[2].xyz);
+
+    // Same derivation and same clamps as 1.20.1's renderer.
+    float tanY = clamp(1.0 / ProjMat[1][1], 0.05, 10.0);
+    float tanX = clamp(1.0 / ProjMat[0][0], 0.05, 10.0);
+
+    rayForward = cameraForward;
+    rayRight = cameraRight * tanX;
+    rayUp = cameraUp * tanY;
 
     breakAmount = Color.r;
     fade = Color.g;
