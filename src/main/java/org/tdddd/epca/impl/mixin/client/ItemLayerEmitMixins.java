@@ -3,6 +3,9 @@ package org.tdddd.epca.impl.mixin.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+
+import java.util.List;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -53,7 +56,13 @@ public abstract class ItemLayerEmitMixins {
         private void epca$emitItemLayer(PoseStack poseStack, SubmitNodeCollector collector,
                                        int packedLight, int packedOverlay, int seed,
                                        CallbackInfo ci) {
-            ItemCorruptionRenderer.emitForLayer(this$0, poseStack, collector, packedLight, packedOverlay);
+            // prepareQuadList() is public on this very class and returns the list submit() reads at
+            // bytecode offset 101 before handing it to submitItem() at 108 - i.e. exactly the quads the
+            // item was drawn from. The overlay is built from them so it matches the item's size and place.
+            List<BakedQuad> itemQuads =
+                    ((ItemStackRenderState.LayerRenderState) (Object) this).prepareQuadList();
+            ItemCorruptionRenderer.emitForLayer(this$0, itemQuads, poseStack, collector,
+                    packedLight, packedOverlay);
         }
     }
 

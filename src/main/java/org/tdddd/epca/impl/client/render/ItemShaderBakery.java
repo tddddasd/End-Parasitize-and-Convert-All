@@ -1,38 +1,53 @@
 package org.tdddd.epca.impl.client.render;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.model.geom.builders.UVPair;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import org.joml.Vector3fc;
+
 /**
- * The flat item plane an item shader layer is drawn as.
+ * Turns one of the <b>item's own baked quads</b> into the overlay's vertex stream.
  *
- * <h2>1.20.1 -&gt; 26.1.2: this is a rewrite, not a port</h2>
- * The 1.20.1 twin baked the plane into {@code BakedQuad}s with
- * {@code ItemModelGenerator#processFrames(0, "layer0", sprite.contents())} plus
- * {@code FaceBakery#bakeQuad(...)}, both in {@code net.minecraft.client.renderer.block.model}.
- * <b>Neither class exists in 26.1.2</b> (verified against the class list of the patched jar), so that code
- * cannot be ported.
+ * <h2>Why the geometry comes from the item, not from a constant</h2>
+ * The first working revision emitted a hand-built plane in a fixed unit space (x/y 0..16, z = 8 +/- 0.5).
+ * That rendered <b>too large and in the wrong place</b>: the space a quad has to be expressed in depends on
+ * the pose the emit hook is handed, which is the item's post-display-transform pose, and the item's real
+ * geometry does not have to be a 16x16 box at z = 8 at all (block models, per-layer local transforms,
+ * custom model shapes and the display-context transform all change it). Any new constant would have been
+ * another guess.
  *
- * <p>An intermediate revision built {@code BakedQuad} records by hand and emitted them with
- * {@code VertexConsumer#putBakedQuad}. That was abandoned for a hard reason: {@code putBakedQuad} writes
- * exactly six elements (POSITION, COLOR, UV0, UV1, UV2, NORMAL, per {@code javap -c}), and a format
- * containing those sums to 35 bytes, which {@code VertexFormat.Builder#build()} rejects because it requires
- * a multiple of 4. So the geometry is plain floats and is written by {@link ItemCorruptionRenderer} with
- * the writers the 32-byte layout declares.</p>
+ * <p>So the overlay is emitted from the item's own quads instead: <b>same positions, same UVs</b>, through
+ * the corruption render type, under the same pose the item used. Size and placement then match by
+ * construction in every display context, because it is literally the item's geometry.</p>
  *
- * <h2>UV space</h2>
- * The UVs here are the <b>normalised 0..1 square of whatever texture the render type binds</b>, not atlas
- * coordinates. The renderer scales V into the current animation frame band before emitting, so a
- * multi-frame strip shows exactly one frame; see {@link ItemMaskTexture} for why that matters (the shipped
- * mask is a 24-frame strip).
+ * <h2>Reading the quads</h2>
+ * Verified with {@code javap -p -s -c} on the 26.1.2 patched jar:
+ * <ul>
+ *   <li>{@code ItemStackRenderState$LayerRenderState} is a <b>public</b> class with
+ *       {@code private final List<BakedQuad> quads} and a <b>public</b>
+ *       {@code List<BakedQuad> prepareQuadList()};</li>
+ *   <li>its {@code submit} reads that same {@code quads} field (bytecode offset 101) and passes it to
+ *       {@code SubmitNodeCollector#submitItem} (offset 108) <em>before</em> the {@code popPose()} the emit
+ *       hook is anchored to, so the list the hook sees is exactly the list the item was drawn from;</li>
+ *   <li>{@code BakedQuad} exposes {@code position(int) -> Vector3fc}, {@code packedUV(int) -> long} (unpacked
+ *       with {@code UVPair.unpackU/unpackV}) and {@code materialInfo()}, whose {@code sprite()} gives the
+ *       atlas rect the quad's UVs are relative to.</li>
+ * </ul>
  *
- * <h2>Shape</h2>
- * The item's unit quad in item-model space (1/16 block units): x 0..16 and y 0..16, a thin slab around
- * z = 8, plus a mirrored back face so the layer is visible from behind.
+ * <h2>UV mapping</h2>
+ * The quad's UVs are <b>atlas</b> coordinates (the model was baked against the stitched sprite), while the
+ * mask is bound as a directly loaded texture. So each UV is first normalised into the quad's own sprite rect
+ * ({@code (uv - spriteMin) / (spriteMax - spriteMin)}), which maps it onto the raw texture's 0..1 space, and
+ * then V is banded into the current animation frame. Both steps are required: without the normalisation the
+ * sample would land wherever the sprite sits in the atlas, and without the banding a multi-frame strip would
+ * smear (the shipped mask, {@code ender_blade_scrap.png}, is 16x384 = 24 frames).
  *
- * <p><b>Documented approximation:</b> because the generator is gone, a 3D/block item gets this flat
- * billboard plane rather than a shell around its real geometry. For the flat items this layer is used on
- * (the shipped binding is {@code epca:ender_blade_scrap}, a flat sprite) the result is identical; for a
- * block item the decay would cover its silhouette rather than wrap it.</p>
- *
- * <p>The array is a shared constant and must not be mutated by callers.</p>
+ * <p>The normalisation assumes the sprite rect covers exactly <b>one</b> frame, which is how atlas animation
+ * works in vanilla: the sprite keeps a frame-sized rect and the animation uploads successive frames into it.
+ * If that assumption ever failed, the visible symptom would be V being compressed rather than smeared, and
+ * {@code frames == 1} saves the single-frame case.</p>
  */
 public final class ItemShaderBakery {
 
@@ -40,68 +55,103 @@ public final class ItemShaderBakery {
     public static final int VERTEX_STRIDE = 5;
     /** Vertices per quad. */
     public static final int VERTICES_PER_QUAD = 4;
-    /** Quads: the front face and its mirror. */
-    public static final int QUADS = 2;
-    /** Total floats in {@link #GEOMETRY}. */
-    public static final int GEOMETRY_LENGTH = QUADS * VERTICES_PER_QUAD * VERTEX_STRIDE;
-
-    /** Half-thickness of the plane in item-model units, so it does not z-fight with the item. */
-    private static final float PLANE_HALF_DEPTH = 0.5f;
-    /** Centre of the plane along z in item-model units (8 = the middle of the 16-unit item box). */
-    private static final float PLANE_Z = 8.0f;
 
     /**
-     * The geometry, in the bound texture's own 0..1 UV space.
-     *
-     * <p>Layout: {@link #QUADS} quads of {@link #VERTICES_PER_QUAD} vertices of {@link #VERTEX_STRIDE}
-     * floats. There is exactly one of these for every item: the mask texture is chosen by the render type
-     * and the frame band is applied by the renderer, so nothing here depends on the sprite.</p>
+     * Coplanar-drawing nudge: vertex positions are scaled by this about the quad's centroid, i.e. pushed
+     * about 0.1% outwards. The pipeline draws with {@code LESS_THAN_OR_EQUAL} and no depth write, so coplanar
+     * geometry normally wins, but a sub-pixel inflation removes any z-fighting risk on drivers that resolve
+     * equal depths differently. In model units a 16-unit quad moves by ~0.008 units = 0.0005 block, which is
+     * far below one pixel at any normal view distance.
      */
-    public static final float[] GEOMETRY = bake();
+    public static final float OVERLAY_INFLATE = 1.001f;
 
     private ItemShaderBakery() {
     }
 
-    /** The geometry; a constant, so callers can cache the reference freely. */
-    public static float[] geometry() {
-        return GEOMETRY;
-    }
+    /**
+     * Writes one of the item's quads as an overlay quad.
+     *
+     * <p>The vertices are the quad's own positions, transformed by {@code pose} exactly as the item's were, so
+     * the overlay lands on the item regardless of the display context.</p>
+     *
+     * @param consumer    the sink handed to the custom-geometry callback
+     * @param pose        the item's pose at the emit hook (the same one the item was submitted with)
+     * @param quad        one of the item's baked quads
+     * @param frames      animation frames in the mask strip (&gt;= 1)
+     * @param frame       the frame to show, 0-based, already wrapped
+     * @param tintR       corruption tint red
+     * @param tintG       corruption tint green
+     * @param tintB       corruption tint blue
+     * @param intensity16 decay strength, 16-bit fixed point
+     * @param split16     RGB split strength, 16-bit fixed point
+     * @param animClock   the animation clock in game ticks
+     */
+    public static void emitQuad(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad,
+                                int frames, int frame,
+                                float tintR, float tintG, float tintB,
+                                int intensity16, int split16, float animClock) {
+        if (quad == null) {
+            return;
+        }
 
-    /** Kept for source compatibility with the earlier sprite-cached revision; now a no-op. */
-    public static void invalidate() {
-        // No per-sprite cache any more: the geometry is a constant and ItemMaskTexture owns the
-        // per-mask cache.
-    }
+        // The quad's UVs are atlas coordinates; find the rect they are relative to.
+        float uMin = 0.0f;
+        float vMin = 0.0f;
+        float uSpan = 1.0f;
+        float vSpan = 1.0f;
+        BakedQuad.MaterialInfo material = quad.materialInfo();
+        TextureAtlasSprite sprite = material == null ? null : material.sprite();
+        if (sprite != null) {
+            float su = sprite.getU0();
+            float sv = sprite.getV0();
+            float du = sprite.getU1() - su;
+            float dv = sprite.getV1() - sv;
+            if (du > 1.0e-6f && dv > 1.0e-6f) {
+                uMin = su;
+                vMin = sv;
+                uSpan = du;
+                vSpan = dv;
+            }
+        }
 
-    private static float[] bake() {
-        float z0 = PLANE_Z - PLANE_HALF_DEPTH;
-        float z1 = PLANE_Z + PLANE_HALF_DEPTH;
+        int safeFrames = Math.max(1, frames);
+        float vScale = 1.0f / safeFrames;
+        float vOffset = Math.max(0, frame) * vScale;
 
-        float[] out = new float[GEOMETRY_LENGTH];
-        int i = 0;
+        // Centroid, for the tiny outward inflation.
+        float cx = 0.0f;
+        float cy = 0.0f;
+        float cz = 0.0f;
+        for (int i = 0; i < VERTICES_PER_QUAD; i++) {
+            Vector3fc p = quad.position(i);
+            cx += p.x();
+            cy += p.y();
+            cz += p.z();
+        }
+        cx /= VERTICES_PER_QUAD;
+        cy /= VERTICES_PER_QUAD;
+        cz /= VERTICES_PER_QUAD;
 
-        // Front face at z1: bottom-left, bottom-right, top-right, top-left.
-        i = put(out, i, 0.0f, 0.0f, z1, 0.0f, 1.0f);
-        i = put(out, i, 16.0f, 0.0f, z1, 1.0f, 1.0f);
-        i = put(out, i, 16.0f, 16.0f, z1, 1.0f, 0.0f);
-        i = put(out, i, 0.0f, 16.0f, z1, 0.0f, 0.0f);
+        for (int i = 0; i < VERTICES_PER_QUAD; i++) {
+            Vector3fc p = quad.position(i);
+            long packed = quad.packedUV(i);
 
-        // Mirrored back face at z0. Culling is off for this pipeline, but emitting both faces removes a
-        // whole class of "the effect vanished" reports if a driver keeps back-face culling anyway.
-        i = put(out, i, 0.0f, 0.0f, z0, 0.0f, 1.0f);
-        i = put(out, i, 0.0f, 16.0f, z0, 0.0f, 0.0f);
-        i = put(out, i, 16.0f, 16.0f, z0, 1.0f, 0.0f);
-        i = put(out, i, 16.0f, 0.0f, z0, 1.0f, 1.0f);
+            // Atlas UV -> the raw texture's own 0..1 space -> the current frame band.
+            float u = (UVPair.unpackU(packed) - uMin) / uSpan;
+            float v = (UVPair.unpackV(packed) - vMin) / vSpan;
 
-        return out;
-    }
+            float x = cx + (p.x() - cx) * OVERLAY_INFLATE;
+            float y = cy + (p.y() - cy) * OVERLAY_INFLATE;
+            float z = cz + (p.z() - cz) * OVERLAY_INFLATE;
 
-    private static int put(float[] out, int index, float x, float y, float z, float u, float v) {
-        out[index] = x;
-        out[index + 1] = y;
-        out[index + 2] = z;
-        out[index + 3] = u;
-        out[index + 4] = v;
-        return index + VERTEX_STRIDE;
+            // Element order and writers must match ITEM_LAYER_VERTEX_FORMAT exactly: Position (addVertex
+            // applies the pose), Color, Uv, Params (UV1), AnimClock (LINE_WIDTH). Every declared element is
+            // written, which 26.1.2 requires.
+            consumer.addVertex(pose, x, y, z)
+                    .setColor(tintR, tintG, tintB, 1.0f)
+                    .setUv(u, vOffset + v * vScale)
+                    .setUv1(intensity16, split16)
+                    .setLineWidth(animClock);
+        }
     }
 }

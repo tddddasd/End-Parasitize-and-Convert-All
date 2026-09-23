@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.renderer.rendertype.RenderType;
 
 import net.minecraft.resources.Identifier;
@@ -58,6 +59,17 @@ import java.util.WeakHashMap;
  * quad's V is banded into the current frame before emission. That keeps {@code corruption.fsh} untouched,
  * and it is required for correctness rather than polish: the shipped mask is a 24-frame strip, so sampling
  * the full 0..1 V range would smear all 24 frames across the item.</p>
+ *
+ * <h2>Overlay geometry</h2>
+ * The overlay is built from <b>the item's own baked quads</b>, not from a constant plane: same positions,
+ * same UVs (normalised into the bound mask texture's space and banded into the current animation frame),
+ * under the same pose the item was submitted with. An earlier revision emitted a fixed 16x16-at-z=8 plane
+ * and rendered too large and displaced, because that space is not the item's; see
+ * {@link ItemShaderBakery} for the {@code javap} evidence and the full argument.
+ *
+ * <p>Every quad of every layer is overlaid, so a multi-quad or multi-layer model gets the decay on all of its
+ * geometry. (One <em>binding</em> still draws per render state - see the emit guard - because two bindings
+ * for the same item would stack the same overlay and double the tint.)</p>
  *
  * <h2>Emitting the extra pass</h2>
  * {@code OrderedSubmitNodeCollector#submitCustomGeometry(PoseStack, RenderType, CustomGeometryRenderer)}
@@ -116,8 +128,8 @@ public final class ItemCorruptionRenderer {
      * @param packedLight  packed lightmap, passed to the quads
      * @param packedOverlay packed overlay, passed to the quads
      */
-    public static void emitForLayer(Object renderState, PoseStack poseStack,
-                                    SubmitNodeCollector collector,
+    public static void emitForLayer(Object renderState, List<BakedQuad> itemQuads,
+                                    PoseStack poseStack, SubmitNodeCollector collector,
                                     int packedLight, int packedOverlay) {
         Captured captured = CAPTURED.get(renderState);
         if (captured == null) {
@@ -178,17 +190,20 @@ public final class ItemCorruptionRenderer {
                 return;
             }
 
-            // Bands the quad's V into the strip's current animation frame. Done here, on the CPU, so
-            // corruption.fsh stays untouched: the fragment stage keeps sampling texCoord0 as before, but
-            // texCoord0 now points inside a single frame instead of across all of them. The shipped mask
-            // (ender_blade_scrap.png) is a 24-frame 16x384 strip, so without this the whole strip would
-            // smear across the item.
+            // The overlay is emitted FROM THE ITEM'S OWN QUADS, so it matches the item's size and
+            // placement in every display context by construction. See ItemShaderBakery for the javap
+            // evidence that prepareQuadList() returns exactly the list the item was submitted with, and
+            // for how each quad's atlas UVs are normalised into the bound mask texture's 0..1 space and
+            // banded into the current animation frame (the shipped mask is a 24-frame 16x384 strip, so
+            // without banding the whole strip would smear across the item).
+            if (itemQuads == null || itemQuads.isEmpty()) {
+                // No readable quads (e.g. a special-model item that never called submitItem): nothing to
+                // overlay. Skipping is correct - there is no geometry to derive the overlay from.
+                continue;
+            }
             int frames = mask.frames();
             int frame = ItemMaskTexture.currentFrame(mask, gameTime);
-            float vScale = 1.0f / frames;
-            float vOffset = frame * vScale;
-
-            final float[] geometry = ItemShaderBakery.geometry();
+            final List<BakedQuad> quads = itemQuads;
 
             // The per-draw payload, packed into the four slots the vertex format declares. See
             // ItemShaderPipelines for the table and ItemLayerPayload for the semantics.
@@ -209,17 +224,9 @@ public final class ItemCorruptionRenderer {
                     layer.applyTwitch(poseStack, stack, config, gameTime);
                 }
                 collector.submitCustomGeometry(poseStack, renderType, (pose, consumer) -> {
-                    int vertexCount = geometry.length / ItemShaderBakery.VERTEX_STRIDE;
-                    for (int v = 0; v < vertexCount; v++) {
-                        int o = v * ItemShaderBakery.VERTEX_STRIDE;
-                        // Element order and writers must match ITEM_LAYER_VERTEX_FORMAT exactly:
-                        // Position (addVertex applies the pose), Color, Uv, Params (UV1), AnimClock
-                        // (LINE_WIDTH). Every declared element is written, which 26.1.2 requires.
-                        consumer.addVertex(pose, geometry[o], geometry[o + 1], geometry[o + 2])
-                                .setColor(tintR, tintG, tintB, 1.0f)
-                                .setUv(geometry[o + 3], vOffset + geometry[o + 4] * vScale)
-                                .setUv1(intensity16, split16)
-                                .setLineWidth(animClock);
+                    for (BakedQuad quad : quads) {
+                        ItemShaderBakery.emitQuad(consumer, pose, quad, frames, frame,
+                                tintR, tintG, tintB, intensity16, split16, animClock);
                     }
                 });
             } finally {
@@ -230,11 +237,14 @@ public final class ItemCorruptionRenderer {
     }
 
 
-    /** Drops every captured entry (level unload / debugging). */
+    /** Drops every captured entry and every cached mask/render-type resolution (level unload, reload, debug). */
     public static void clear() {
         CAPTURED.clear();
         EMITTED.clear();
-        ItemShaderBakery.invalidate();
+        // The geometry is not cached any more: it comes from the item's own quads, which are rebuilt with
+        // the model. What is cached is the per-mask resolution and its render type.
+        ItemMaskTexture.invalidate();
+        ItemShaderPipelines.invalidateRenderTypes();
     }
 
     /** Diagnostics: how many render states currently have a captured stack. */
