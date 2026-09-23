@@ -47,9 +47,11 @@ import org.tdddd.epca.impl.epca;
  *   <li>the <b>12 atlas rectangles</b> disappear because each draw binds one sprite as its own direct
  *       texture, so a sprite's UV space is simply [0,1]^2. This is the same pattern the shipped
  *       {@code GasCloudRenderType} uses for the gas/puff texture, and it means the effect no longer
- *       depends on the block atlas layout at all. The only residual per-sprite constant, the strip's
- *       frame count, is baked into the fragment stage as {@code COSMIC_FRAMES} (see
- *       {@link #SPRITE_FRAME_COUNTS});</li>
+ *       depends on the block atlas layout at all. The only residual per-sprite constants, the strip's
+ *       frame count and its full animation timeline, are baked into the fragment stage as
+ *       {@code COSMIC_FRAMES} (see {@link #SPRITE_FRAME_COUNTS}) and
+ *       {@code COSMIC_SCHEDULE_BEGIN}/{@code COSMIC_STEP_FRAME}/{@code COSMIC_STEP_HOLD}/
+ *       {@code COSMIC_CYCLE} (see {@link #SPRITE_FRAME_SCHEDULES});</li>
  *   <li>the <b>rim/void/flash colours</b> are rebuilt in the fragment stage from {@code breakAmount}
  *       with the same lerp chain {@link SkyRuptureEffect} exposes;</li>
  *   <li>the 1.20.1 <b>{@code seed}</b> uniform is dropped: the fragment stage never consumed it (it
@@ -91,6 +93,37 @@ public final class SkyRuptureShaders {
      */
     public static final int[] SPRITE_FRAME_COUNTS = {4, 4, 5, 5, 4, 4, 6, 4, 7, 3, 7, 1};
 
+    /**
+     * The full animation timeline of every strip, derived from its {@code .mcmeta}.
+     *
+     * <p>Each entry is the ordered list of {@code (band index, hold ticks)} that vanilla's
+     * {@code AnimationMetadataSection} produced, i.e. the list order with each entry's own
+     * {@code time} (or the file's {@code frametime} when the entry has no explicit {@code time}).
+     * Seven of the twelve files carry an explicit {@code frames} list whose band 0 is held for
+     * several separate stretches, so a single ticks-per-frame number cannot reproduce them; the port
+     * therefore bakes this timeline into the fragment stage instead. This table exists for the
+     * documentation of the parsed values and is cross-checked against the {@code .mcmeta} files (and
+     * against the baked GLSL) by {@code build/javac-check/check-sky-parity.py} and
+     * {@code check-sky-contract.py}; the shader never reads it through Java.</p>
+     */
+    public static final int[][][] SPRITE_FRAME_SCHEDULES = {
+            {{0, 7}, {1, 1}, {2, 1}, {3, 1}},
+            {{0, 4}, {1, 1}, {0, 9}, {2, 1}, {0, 7}, {3, 1}},
+            {{0, 16}, {1, 1}, {1, 1}, {1, 1}, {2, 1}, {2, 1}, {3, 1}, {4, 1}, {3, 1}, {4, 1}, {3, 1},
+                    {2, 1}, {2, 1}, {1, 1}, {1, 1}, {1, 1}},
+            {{0, 13}, {1, 1}, {0, 10}, {3, 1}, {0, 5}, {2, 1}, {0, 15}, {4, 1}},
+            {{0, 34}, {1, 1}, {2, 1}, {3, 1}},
+            {{0, 18}, {1, 1}, {0, 4}, {3, 1}, {0, 14}, {2, 1}},
+            {{0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}},
+            {{0, 2}, {1, 2}, {2, 2}, {3, 2}},
+            {{1, 1}, {2, 1}, {3, 1}, {2, 1}, {3, 1}, {2, 1}, {1, 1}, {0, 22}, {4, 1}, {5, 1}, {6, 1},
+                    {5, 1}, {6, 1}, {5, 1}, {4, 1}, {0, 31}, {1, 1}, {2, 1}, {3, 1}, {2, 1}, {1, 1},
+                    {0, 12}},
+            {{0, 2}, {1, 2}, {2, 2}},
+            {{0, 3}, {1, 3}, {2, 3}, {3, 3}, {4, 3}, {5, 3}, {6, 3}},
+            {{0, 1}},
+    };
+
     /** Shader id; {@code FileToIdConverter("shaders", ".vsh"/".fsh")} maps it to the two assets. */
     public static final Identifier SKY_RUPTURE_SHADER =
             Identifier.fromNamespaceAndPath(epca.MODID, "core/sky_rupture");
@@ -101,8 +134,29 @@ public final class SkyRuptureShaders {
      * <p>1.20.1 sampled them out of the block atlas and carried their animated UV rectangles in a
      * {@code mat2 cosmicuvs[12]} uniform. Binding each strip directly removes the need for any
      * rectangle in the vertex stream, at the cost that a directly bound {@code SimpleTexture} uploads
-     * the raw strip without applying its {@code .mcmeta} timings - which is why the fragment stage
-     * animates the strips itself (see {@link #SPRITE_FRAME_COUNTS}).</p>
+     * the raw strip without applying its {@code .mcmeta} animation - which is why the fragment stage
+     * animates the strips itself from the baked timeline (see {@link #SPRITE_FRAME_COUNTS} and
+     * {@link #SPRITE_FRAME_SCHEDULES}).</p>
+     *
+     * <h2>Sampler state of a direct strip vs the 1.20.1 block atlas</h2>
+     * {@code RenderSetup.builder(pipeline).withTexture(name, id)} stores the sampler supplier as
+     * {@code () -> null}, and {@code RenderSetup.getTextures()} then falls back to
+     * {@code AbstractTexture#getSampler()} of the texture the {@code TextureManager} loaded. For these
+     * strips that is a {@code SimpleTexture} whose {@code ReloadableTexture.apply} computed
+     * {@code getSampler(REPEAT, REPEAT, NEAREST, NEAREST, false)} (no {@code texture} metadata section
+     * in the {@code .mcmeta} means {@code clamp() == blur() == false}), and
+     * {@code ReloadableTexture.doLoad} created the GPU texture with {@code mipLevels = 1}, so there is
+     * no mip chain. 1.20.1's block atlas kept the GL default REPEAT wrap (neither
+     * {@code TextureUtil.prepareImage} nor {@code SpriteContents.upload} ever sets a wrap mode) plus
+     * {@code AbstractTexture.setFilter(false, mipLevel > 0)}, i.e. mag NEAREST and min NEAREST or
+     * NEAREST_MIPMAP_LINEAR. So the only differences are the minification filter and the absence of a
+     * mip chain, and neither can be observed here: a sprite
+     * covers 1/(16 * scale) of a full turn and 1/16 of a hemisphere parameter, which is roughly
+     * 40-150 px horizontally and 30-90 px vertically per 16-texel sprite at 1080p, i.e. a magnification
+     * of 2-5x in both axes for every shell, so the sampled LOD is negative, level 0 is used, and mag
+     * NEAREST is the filter that applies in both cases. The bands are aligned to even texel rows, so no
+     * mip level would have mixed two frames either. The sampler is therefore left at the texture
+     * default deliberately.</p>
      */
     public static final Identifier[] SPRITE_TEXTURES = new Identifier[SPRITE_COUNT];
 

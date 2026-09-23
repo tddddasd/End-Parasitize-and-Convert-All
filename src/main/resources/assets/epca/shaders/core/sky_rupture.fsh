@@ -36,8 +36,11 @@
 // * `uniform mat2 cosmicuvs[12]` is gone entirely. 1.20.1 read the 12 animated
 //   atlas rectangles out of that array; here each draw binds ONE sprite as its
 //   own direct texture on Sampler0, so a sprite's UV space is simply [0,1]^2 and
-//   the only residual constant is its frame count (see COSMIC_FRAMES). Zero
-//   vertex slots are spent on sprite geometry.
+//   the only residual per-sprite constants are its frame count (COSMIC_FRAMES)
+//   and its full animation timeline (COSMIC_SCHEDULE_BEGIN / COSMIC_STEP_FRAME /
+//   COSMIC_STEP_HOLD / COSMIC_CYCLE), because a directly bound texture is the raw
+//   strip and nothing animates it. Zero vertex slots are spent on sprite
+//   geometry.
 // * Sampler0 is therefore one `epca:shader/cosmic_N` strip per draw, not the
 //   block atlas. `cosmicBase` (from the vertex stage) names which shell - and so
 //   which sprite - this draw owns.
@@ -85,20 +88,141 @@ const float COSMIC_FRAMES[COSMIC_COUNT] = float[COSMIC_COUNT](
 );
 
 /**
- * Ticks per frame of each strip, taken from its own `cosmic_N.png.mcmeta` `frametime`.
+ * Why the frame is looked up by WALKING a timeline instead of dividing the clock by one rate.
  *
- * 1.20.1 sampled the 12 sprites out of the block atlas, so the atlas animated them and each strip
- * advanced at its own .mcmeta rate. A directly bound texture is the raw strip with no animation
- * applied, so the rate is reproduced here: the shell's own frametime, starting from frame 0 at world
- * time 0, exactly as the atlas did. The shipped values are 1,1,1,1,1,1,1,2,1,2,3,1 ticks.
+ * Seven of the twelve strips carry an explicit per-entry schedule in their `.mcmeta` (band:hold, six
+ * of them with several separate stretches of band 0, and cosmic_8 starts on band 1):
+ *   cosmic_0  0:7 1 2 3
+ *   cosmic_1  0:4 1 0:9 2 0:7 3
+ *   cosmic_2  0:16 1 1 1 2 2 3 4 3 4 3 2 2 1 1 1
+ *   cosmic_3  0:13 1 0:10 3 0:5 2 0:15 4
+ *   cosmic_4  0:34 1 2 3
+ *   cosmic_5  0:18 1 0:4 3 0:14 2
+ *   cosmic_8  1 2 3 2 3 2 1 0:22 4 5 6 5 6 5 4 0:31 1 2 3 2 1 0:12
+ * The other five are uniform: cosmic_6 and cosmic_11 use `frametime: 1`, cosmic_7 and cosmic_9
+ * `frametime: 2`, cosmic_10 `frametime: 3`. `floor(t / rate) % frames` can express a uniform strip
+ * but not a scheduled one: it under-holds band 0 and drops every later repeat of it, which is the
+ * star-detail mismatch this port had. The baked tables reproduce a uniform strip as just another
+ * timeline, so there is a single code path.
  *
- * An earlier revision used one uniform COSMIC_FPS rate and a per-shell phase offset, which desynced
- * the strips from each other AND from 1.20.1. Both are gone; the values below are cross-checked
- * against the .mcmeta files by build/javac-check/check-sky-parity.py.
+ * Known limit (documented, not fixed here): the walk is driven by the `time` varying, which the
+ * renderer fills with `(float) (gameTime % Integer.MAX_VALUE)` - world ticks, the same unit the
+ * `.mcmeta` uses. A float32 represents every integer up to 2^24 = 16777216 ticks, i.e. about 9.7 days
+ * of ticking; beyond that its spacing grows (2 ticks at 3.4e7, 8 ticks at 1.3e8) and the phase of the
+ * walk coarsens with it. `time` already drives the crack animation and the star twinkle, so this is a
+ * pre-existing property of the payload; removing it would need the renderer to reduce the phase
+ * exactly before it is quantised to a float, and the 32-byte vertex format has no free slot for it.
+ * The atlas ticker was immune because its counter lived in the SpriteContents.Ticker, not in a float.
  */
-const float COSMIC_FRAMETIMES[COSMIC_COUNT] = float[COSMIC_COUNT](
-    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 2.0, 3.0, 1.0
+// >>> EPCA-BAKED-SKY-SCHEDULE
+/**
+ * Per-strip animation timelines, parsed from the 12 `cosmic_N.png.mcmeta` files.
+ *
+ * 1.20.1 put the strips in the block atlas, so SpriteContents.Ticker animated them: it
+ * held list entry p for that entry's own `time` ticks and then moved to entry p+1,
+ * wrapping at the end of the list, and uploaded band `index` of the strip for it. A
+ * directly bound texture is the raw strip with no animation applied, so the same
+ * timeline is walked here. The tables below hold it verbatim:
+ *
+ *   COSMIC_SCHEDULE_BEGIN[i] .. COSMIC_SCHEDULE_BEGIN[i + 1]  slice of strip i
+ *   COSMIC_STEP_FRAME[s] = the band index step s shows (`index` in the .mcmeta)
+ *   COSMIC_STEP_HOLD[s]  = the ticks step s is held (`time`, or `frametime`)
+ *   COSMIC_CYCLE[i]      = the sum of strip i's holds, i.e. its period in ticks
+ *
+ * Strip 6 is the plain `frametime: 1` sequence, strips 7 and 9 are `frametime: 2`, strip
+ * 10 is `frametime: 3` and strip 11 is a single frame, so the uniform and the static
+ * strips fall out of the same representation as the scheduled ones. Strip 8
+ * starts on band 1, not band 0, and every strip whose .mcmeta repeats `index: 0` holds
+ * band 0 for several separate stretches, which is why the timeline cannot be reduced to
+ * one rate per strip.
+ *
+ * None of the twelve files sets `interpolate`, so vanilla never cross-faded two
+ * consecutive entries; no blending is reproduced here. `index: 0` repeats are held, not
+ * faded.
+ *
+ * Parsed timelines, one line per strip (`band:hold` per step, cycle in ticks):
+ *   cosmic_0  0:7 1:1 2:1 3:1 cycle=10
+ *   cosmic_1  0:4 1:1 0:9 2:1 0:7 3:1 cycle=23
+ *   cosmic_2  0:16 1:1 1:1 1:1 2:1 2:1 3:1 4:1 3:1 4:1 3:1 2:1 2:1 1:1 1:1 1:1 cycle=31
+ *   cosmic_3  0:13 1:1 0:10 3:1 0:5 2:1 0:15 4:1 cycle=47
+ *   cosmic_4  0:34 1:1 2:1 3:1 cycle=37
+ *   cosmic_5  0:18 1:1 0:4 3:1 0:14 2:1 cycle=39
+ *   cosmic_6  0:1 1:1 2:1 3:1 4:1 5:1 cycle=6
+ *   cosmic_7  0:2 1:2 2:2 3:2 cycle=8
+ *   cosmic_8  1:1 2:1 3:1 2:1 3:1 2:1 1:1 0:22 4:1 5:1 6:1 5:1 6:1 5:1 4:1 0:31 1:1 2:1 3:1 2:1 1:1 0:12 cycle=84
+ *   cosmic_9  0:2 1:2 2:2 cycle=6
+ *   cosmic_10 0:3 1:3 2:3 3:3 4:3 5:3 6:3 cycle=21
+ *   cosmic_11 0:1 cycle=1
+ */
+const int COSMIC_STEP_TOTAL = 87;
+const int COSMIC_STEP_MAX = 22;
+const int COSMIC_SCHEDULE_BEGIN[COSMIC_COUNT + 1] = int[COSMIC_COUNT + 1](
+    0, 4, 10, 26, 34, 38, 44, 50, 54, 76, 79, 86,
+    87
 );
+const int COSMIC_STEP_FRAME[COSMIC_STEP_TOTAL] = int[COSMIC_STEP_TOTAL](
+    0, 1, 2, 3, 0, 1, 0, 2, 0, 3, 0, 1,
+    1, 1, 2, 2, 3, 4, 3, 4, 3, 2, 2, 1,
+    1, 1, 0, 1, 0, 3, 0, 2, 0, 4, 0, 1,
+    2, 3, 0, 1, 0, 3, 0, 2, 0, 1, 2, 3,
+    4, 5, 0, 1, 2, 3, 1, 2, 3, 2, 3, 2,
+    1, 0, 4, 5, 6, 5, 6, 5, 4, 0, 1, 2,
+    3, 2, 1, 0, 0, 1, 2, 0, 1, 2, 3, 4,
+    5, 6, 0
+);
+const int COSMIC_STEP_HOLD[COSMIC_STEP_TOTAL] = int[COSMIC_STEP_TOTAL](
+    7, 1, 1, 1, 4, 1, 9, 1, 7, 1, 16, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 13, 1, 10, 1, 5, 1, 15, 1, 34, 1,
+    1, 1, 18, 1, 4, 1, 14, 1, 1, 1, 1, 1,
+    1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1,
+    1, 22, 1, 1, 1, 1, 1, 1, 1, 31, 1, 1,
+    1, 1, 1, 12, 2, 2, 2, 3, 3, 3, 3, 3,
+    3, 3, 1
+);
+const int COSMIC_CYCLE[COSMIC_COUNT] = int[COSMIC_COUNT](
+    10, 23, 31, 47, 37, 39, 6, 8, 84, 6, 21, 1
+);
+// <<< EPCA-BAKED-SKY-SCHEDULE
+
+/**
+ * Band index strip `sprite` shows at world tick `t`, found by walking its baked timeline.
+ *
+ * `t` is the tick clock (`time`), which is exactly the unit `.mcmeta` `time`/`frametime` are counted
+ * in. Entry 0 of the timeline is on screen at tick 0 - vanilla's `uploadFirstFrame` uploads
+ * `frames.get(0).index` before the first tick - and the timeline advances to the next entry once the
+ * current entry's hold has elapsed, wrapping at `COSMIC_CYCLE`. That is what vanilla's ticker did to
+ * the atlas each tick:
+ *
+ *   ++subFrame; if (subFrame >= frames[frame].time) { frame = (frame + 1) % frames.size(); subFrame = 0; }
+ *
+ * and because it then uploaded `frames[frame].index`, an entry's own `index` (not its list position)
+ * names the band it shows.
+ */
+int cosmicFrameAt(int sprite, float t) {
+    int cycle = COSMIC_CYCLE[sprite];
+    // Reduce the tick clock into one period, clamped on both ends: a float division that lands on an
+    // exact integer can make mod() return the cycle length (the last tick of the cycle, not an error)
+    // or a tiny negative (tick 0). Integer-valued inputs make the result exact.
+    float reduced = clamp(mod(t, float(cycle)), 0.0, float(cycle) - 1.0);
+    int phase = int(reduced);
+    int first = COSMIC_SCHEDULE_BEGIN[sprite];
+    int last = COSMIC_SCHEDULE_BEGIN[sprite + 1];
+    int held = 0;
+    int band = COSMIC_STEP_FRAME[first];
+    for (int s = 0; s < COSMIC_STEP_MAX; s++) {
+        int step = first + s;
+        if (step >= last) {
+            break;
+        }
+        held += COSMIC_STEP_HOLD[step];
+        if (phase < held) {
+            band = COSMIC_STEP_FRAME[step];
+            break;
+        }
+    }
+    return band;
+}
 
 out vec4 fragColor;
 
@@ -295,13 +419,17 @@ vec3 nebula(vec3 d, float t) {
  * The strip is `frames` texels tall, so the requested frame is selected by mapping rv into its band.
  * `Sampler0` is one single sprite texture per draw (see SkyRuptureShaders), which is what removes the
  * need to carry any atlas rectangle in the vertex stream.
+ *
+ * `rv` is clamped just below 1 so the last texel of the band is selected instead of the first texel of
+ * the next band: the atlas had the same edge (orv = 1 sampled the top row of whatever sprite followed
+ * in the atlas), and NEAREST filtering with the default REPEAT wrap would otherwise read across bands.
  */
 vec4 sampleCosmicSprite(float ru, float rv, int sprite, float t) {
     float frames = COSMIC_FRAMES[sprite];
-    // t is world TICKS, which is what the .mcmeta frametime is expressed in, so this is the atlas
-    // behaviour: frame 0 at time 0, advancing every `frametime` ticks, no phase offset.
-    float frame = mod(floor(t / COSMIC_FRAMETIMES[sprite]), frames);
-    return texture(Sampler0, vec2(ru, (frame + clamp(rv, 0.0, 0.999)) / frames));
+    // The band comes from the strip's own timeline (see cosmicFrameAt); band 0 is the top band of the
+    // PNG, which is the band the atlas uploaded into the sprite's v0..v1 rect for frame index 0.
+    float band = float(cosmicFrameAt(sprite, t));
+    return texture(Sampler0, vec2(ru, (band + clamp(rv, 0.0, 0.999)) / frames));
 }
 
 /**

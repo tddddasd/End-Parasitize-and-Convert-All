@@ -25,7 +25,12 @@
 //     rotation; that is both exact (it picks up the real FOV) and free;
 //   * the 12 cosmic atlas rectangles (24 floats) are not sent at all: each draw binds one sprite as
 //     its own direct texture, so the sprite's UV space *is* [0,1]^2 and the only residual per-sprite
-//     constant is the animation frame count, which is baked in the fragment stage as COSMIC_FRAMES;
+//     constants are the animation frame count and the full per-strip animation timeline, which are
+//     both baked in the fragment stage (COSMIC_FRAMES plus the COSMIC_SCHEDULE_* / COSMIC_STEP_* /
+//     COSMIC_CYCLE tables). Nothing extra has to cross this stage for them: the fragment stage
+//     already receives the tick clock as the `time` varying, and `cosmicBase` already names the
+//     strip this draw owns, so the vertex stage and the 32-byte format are untouched by the frame
+//     schedule;
 //   * the rim/void/flash colours are rebuilt in the fragment stage from breakAmount with the same
 //     lerp chain the Java side used;
 //   * the 1.20.1 `seed` uniform is dropped: the fragment stage never consumed it (it only reached the
@@ -39,7 +44,7 @@
 
 layout(location = 0) in vec3 Position;      // xy = 0..1 screen quad, z = star shell index
 layout(location = 1) in vec4 Color;         // breakAmount, fade, unused, unused
-layout(location = 2) in vec2 TimeProgress;  // time (seconds), rupture progress 0..1
+layout(location = 2) in vec2 TimeProgress;  // time (world ticks), rupture progress 0..1
 layout(location = 3) in ivec2 SkyDark;      // skyDarkProgress, skyDarkOpacity (16-bit fixed point)
 layout(location = 4) in ivec2 Pattern;      // crack field offset X, Y (16-bit fixed point, x1023)
 
