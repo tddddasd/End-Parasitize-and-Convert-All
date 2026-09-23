@@ -159,6 +159,9 @@ public class ClientHandler {
         // Registers the world barrier rupture (sky shattering) pipeline. It is a separate pipeline
         // because it draws a screen-space quad with its own vertex format, blend and depth state.
         org.tdddd.epca.impl.client.render.sky.SkyRuptureShaders.registerPipeline(event);
+        // Registers the item shader layer pipeline (the corruption / decay overlay). It uses the
+        // six-element vertex format that VertexConsumer#putBakedQuad writes.
+        org.tdddd.epca.impl.client.render.ItemShaderPipelines.registerPipeline(event);
     }
 
     @SubscribeEvent

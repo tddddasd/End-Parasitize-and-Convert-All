@@ -31,6 +31,10 @@ public class ClientSetup {
             // the screen goes through RegisterMenuScreensEvent (see registerMenuScreens below) and item model
             // predicates are data driven, so nothing is left to enqueue.
         });
+        // Item shader layer bindings (the corruption / decay overlay). The 1.20.1 tree forwarded its
+        // FMLClientSetupEvent to EpcaRenderClient.onClientSetup, which is what registers the shipped
+        // bindings; this keeps that entry point and that ordering.
+        org.tdddd.epca.impl.client.render.EpcaRenderClient.onClientSetup(event);
     }
 
     /**
