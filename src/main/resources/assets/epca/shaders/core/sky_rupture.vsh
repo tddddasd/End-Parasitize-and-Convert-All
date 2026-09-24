@@ -29,7 +29,7 @@
 //   * the 12 cosmic atlas rectangles (24 floats) are not sent at all: all twelve strips are packed into
 //     one sheet texture plus a phase -> band lookup table, both baked in the fragment stage (see
 //     COSMIC_SHEET_BASE / COSMIC_CYCLE there). Nothing extra has to cross this stage for them: the
-//     fragment stage already receives the tick clock as the `time` varying, and it loops all twelve
+//     fragment stage already receives the effect clock as the `time` varying, and it loops all twelve
 //     shells itself, so the vertex stage and the 32-byte format are untouched by the star animation;
 //   * the rim/void/flash colours are rebuilt in the fragment stage from breakAmount with the same
 //     lerp chain the Java side used;
@@ -54,7 +54,7 @@
 
 layout(location = 0) in vec3 Position;      // xy = 0..1 screen quad, z = unused (format padding)
 layout(location = 1) in vec4 Color;         // breakAmount, fade, unused, unused
-layout(location = 2) in vec2 TimeProgress;  // time (world ticks), rupture progress 0..1
+layout(location = 2) in vec2 TimeProgress;  // time (effect seconds), rupture progress 0..1
 layout(location = 3) in ivec2 SkyDark;      // skyDarkProgress, skyDarkOpacity (unsigned 16-bit)
 layout(location = 4) in ivec2 Pattern;      // crack field offset X, Y (unsigned 16-bit, x1023)
 

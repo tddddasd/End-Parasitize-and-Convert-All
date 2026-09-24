@@ -62,7 +62,7 @@ import org.tdddd.epca.impl.epca;
  *   loc attribute      element   writer          payload
  *   0   Position       POSITION  addVertex       xy = 0..1 screen quad, z unused
  *   1   Color          COLOR     setColor        breakAmount, fade, 1, 1
- *   2   TimeProgress   UV0       setUv           time (world ticks), rupture progress 0..1
+ *   2   TimeProgress   UV0       setUv           time (effect seconds), rupture progress 0..1
  *   3   SkyDark        UV1       setUv1          skyDarkProgress, skyDarkOpacity
  *   4   Pattern        UV2       setUv2          crack field offset X, Y
  * </pre>

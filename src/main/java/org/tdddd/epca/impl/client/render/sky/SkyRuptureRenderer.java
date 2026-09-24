@@ -141,14 +141,15 @@ public final class SkyRuptureRenderer {
 
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 
-        // 1.20.1 pushed (float) (gameTime % Integer.MAX_VALUE) - world TICKS - into the shader's `time`
-        // uniform, and every time-driven constant in the fragment stage is tuned for ticks: the crack
-        // animation (time * 8, * 4, * 2.7), the scanline/grain/glitch terms (time * 20, * 13, * 5, * 11,
-        // * 3, * 1.7) and the star field's slow drift and twinkle (t * 0.004, t * 1.6, t * 1.1). An earlier
-        // revision fed elapsedSeconds() instead, which made every one of those terms 20x too slow; the
-        // star animation is tick-based too (the lookup table's columns are ticks, the unit .mcmeta
-        // `time`/`frametime` use). This is the exact 1.20.1 clock.
-        float time = (float) (mc.level.getGameTime() % Integer.MAX_VALUE);
+        // 1.20.1 pushed `SkyRuptureEffect.elapsedSeconds()` into the shader's `time` uniform, and every
+        // time-driven term in the fragment stage is tuned for SECONDS: the nebula drift (t * 0.03,
+        // t * 0.02, t * 0.04), the star field's scroll (t * 0.004) and its twinkle (sin(t * 1.6),
+        // sin(t * 1.1)). Feeding world ticks here ran all of them 20x too fast, which is exactly the
+        // "the star texture slides/twinkles far quicker than in 1.20.1" defect. The one term that is
+        // NOT seconds-based is the star strip timeline: `.mcmeta` time/frametime count client ticks
+        // (vanilla's atlas ticker advances one hold step per tick), so `sky_rupture.fsh` multiplies
+        // this clock by TICKS_PER_SECOND right at the lookup and nowhere else.
+        float time = SkyRuptureEffect.elapsedSeconds();
         float progress = SkyRuptureEffect.progress();
         float breakAmount = SkyRuptureEffect.breakAmount();
         float fade = SkyRuptureEffect.fade();
@@ -196,7 +197,7 @@ public final class SkyRuptureRenderer {
                 // COLOR is four normalized bytes, so only the two 0..1 values ride here and the two
                 // spare channels are pinned to 1.
                 .setColor(breakAmount, fade, 1.0f, 1.0f)
-                // UV0 = time (world ticks) and the rupture progress, both full precision floats.
+                // UV0 = time (effect seconds) and the rupture progress, both full precision floats.
                 .setUv(time, progress)
                 // UV1 = the two sky-darkening values, both 0..1, as unsigned 16-bit fixed point.
                 .setUv1(quantiseUnit(skyDarkProgress), quantiseUnit(skyDarkOpacity))

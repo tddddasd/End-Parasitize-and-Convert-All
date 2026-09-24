@@ -61,6 +61,9 @@ in vec3 rayRight;
 // The 1.20.1 twin had a rayUp uniform; 26.1.2 carries the camera up vector in
 // the vertex attribute instead (see sky_rupture.vsh).
 in vec3 rayUp;
+// Effect clock in SECONDS, exactly what the 1.20.1 twin uploaded as `uniform float time`
+// (SkyRuptureEffect.elapsedSeconds(), reset on every activation). Everything time-driven in this
+// stage except the star strip timeline is tuned for it; see TICKS_PER_SECOND for that one.
 in float time;
 in float progress;
 in float breakAmount;
@@ -114,14 +117,13 @@ const int COSMIC_COUNT = 12;
  * modulo the strip's cycle and fetches the band for that tick, which is a single texel fetch with no
  * loop and no per-strip step tables.
  *
- * Known limit (documented, not fixed here): the lookup is still driven by the `time` varying, which the
- * renderer fills with `(float) (gameTime % Integer.MAX_VALUE)` - world ticks, the same unit the
- * `.mcmeta` uses. A float32 represents every integer up to 2^24 = 16777216 ticks, i.e. about 9.7 days
- * of ticking; beyond that its spacing grows (2 ticks at 3.4e7, 8 ticks at 1.3e8) and the phase of the
- * lookup coarsens with it. `time` already drives the crack animation and the star twinkle, so this is
- * a pre-existing property of the payload; removing it would need the renderer to reduce
- * `gameTime % cycle` exactly and hand it over, and the 32-byte vertex format has no free slot for it.
- * The atlas ticker was immune because its counter lived in the SpriteContents.Ticker, not in a float.
+ * Which clock it walks: vanilla's atlas ticker advanced these strips once per CLIENT TICK, so the
+ * lookup is in ticks - `time * TICKS_PER_SECOND` - while the `time` varying itself is the
+ * seconds-based effect clock the rest of this shader is tuned for (1.20.1 uploaded
+ * `SkyRuptureEffect.elapsedSeconds()`). Because that clock is reset on every activation it only ever
+ * reaches a few thousand ticks, far below the 2^24 where float32 integer spacing starts to grow, so
+ * the phase of the lookup stays exact; the atlas ticker was immune for the same reason (its counter
+ * lived in the SpriteContents ticker, not in a float).
  */
 // >>> EPCA-BAKED-SKY-SCHEDULE
 /**
@@ -164,12 +166,25 @@ const int COSMIC_CYCLE[COSMIC_COUNT] = int[COSMIC_COUNT](
 // <<< EPCA-BAKED-SKY-SCHEDULE
 
 /**
- * Band index strip `sprite` shows at world tick `t`.
+ * Client ticks per second, the bridge between this shader's `time` varying and the strip timeline.
  *
- * `t` is the tick clock (`time`), which is exactly the unit `.mcmeta` `time`/`frametime` are counted
- * in. Entry 0 of the timeline is on screen at tick 0 - vanilla's `uploadFirstFrame` uploads
- * `frames.get(0).index` before the first tick - and the timeline moves on once the current entry's hold
- * has elapsed, wrapping at the strip's cycle. That is what vanilla's ticker did to the atlas each tick:
+ * `time` is the effect clock in SECONDS (the 1.20.1 `time` uniform), which is the unit the nebula
+ * drift, the star scroll and the twinkle are tuned for. `.mcmeta` `time`/`frametime`, on the other
+ * hand, count CLIENT TICKS: vanilla's atlas ticker (`TextureAtlas.tick` -> `cycleAnimationFrames`)
+ * advances one hold step per client tick, i.e. 20 steps per second, and it did that for the 1.20.1
+ * atlas sprites. The lookup therefore converts the clock here and only here, which keeps the strips
+ * at the 1.20.1 rate while every other time-driven term stays at the 1.20.1 rate as well.
+ */
+const float TICKS_PER_SECOND = 20.0;
+
+/**
+ * Band index strip `sprite` shows `tickClock` client ticks into the effect.
+ *
+ * `tickClock` is the seconds-based `time` varying times TICKS_PER_SECOND, which is exactly the unit
+ * `.mcmeta` `time`/`frametime` are counted in. Entry 0 of the timeline is on screen at tick 0 -
+ * vanilla's `uploadFirstFrame` uploads `frames.get(0).index` before the first tick - and the timeline
+ * moves on once the current entry's hold has elapsed, wrapping at the strip's cycle. That is what
+ * vanilla's ticker did to the atlas each tick:
  *
  *   ++subFrame; if (subFrame >= frames[frame].time) { frame = (frame + 1) % frames.size(); subFrame = 0; }
  *
@@ -177,12 +192,12 @@ const int COSMIC_CYCLE[COSMIC_COUNT] = int[COSMIC_COUNT](
  * names the band it shows. That whole timeline was expanded into Sampler1 by the baker, so this is one
  * texel fetch: row = strip, column = tick within the cycle, red = band index.
  */
-int cosmicFrameAt(int sprite, float t) {
+int cosmicFrameAt(int sprite, float tickClock) {
     int cycle = COSMIC_CYCLE[sprite];
     // Reduce the tick clock into one period, clamped on both ends: a float division that lands on an
     // exact integer can make mod() return the cycle length (the last tick of the cycle, not an error)
     // or a tiny negative (tick 0). Integer-valued inputs make the result exact.
-    float reduced = clamp(mod(t, float(cycle)), 0.0, float(cycle) - 1.0);
+    float reduced = clamp(mod(tickClock, float(cycle)), 0.0, float(cycle) - 1.0);
     // The red channel holds the band index (0..6) as an 8-bit value, so the decode is exact.
     return int(texelFetch(Sampler1, ivec2(int(reduced), sprite), 0).r * 255.0 + 0.5);
 }
@@ -396,7 +411,8 @@ vec3 nebula(vec3 d, float t) {
  * in the atlas), and NEAREST filtering with the default REPEAT wrap would otherwise read across bands.
  */
 vec4 sampleCosmicSprite(float ru, float rv, int sprite, float t) {
-    float band = float(COSMIC_SHEET_BASE[sprite] + cosmicFrameAt(sprite, t));
+    // `t` is the effect clock in seconds; the strip timeline is in client ticks (see TICKS_PER_SECOND).
+    float band = float(COSMIC_SHEET_BASE[sprite] + cosmicFrameAt(sprite, t * TICKS_PER_SECOND));
     float bands = float(COSMIC_SHEET_BASE[COSMIC_COUNT]);
     return texture(Sampler0, vec2(ru, (band + clamp(rv, 0.0, 0.999)) / bands));
 }
