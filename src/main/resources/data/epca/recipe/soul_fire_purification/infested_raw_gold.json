@@ -6,7 +6,7 @@
   "results": [
     {
       "chance": 0.15,
-      "item": "minecraft:raw_gold",
+      "item": "minecraft:gold_ingot",
       "count": 2,
       "count_max": 3
     }
