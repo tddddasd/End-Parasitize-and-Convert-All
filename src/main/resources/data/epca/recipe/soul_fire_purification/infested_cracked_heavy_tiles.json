@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_cracked_heavy_tiles"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:cracked_deepslate_tiles"
+    }
+  ],
+  "burn_chance": 0.7
+}

@@ -1,0 +1,19 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_nethersea_brand_solid"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "caerula_arbor"
+    }
+  ],
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "caerula_arbor:sea_trail_solid"
+    }
+  ],
+  "burn_chance": 0.7
+}

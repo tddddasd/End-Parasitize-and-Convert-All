@@ -1,0 +1,26 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_stone_stairs"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "options": [
+        {
+          "item": "minecraft:andesite_stairs"
+        },
+        {
+          "item": "minecraft:diorite_stairs"
+        },
+        {
+          "item": "minecraft:granite_stairs"
+        },
+        {
+          "item": "minecraft:stone_stairs"
+        }
+      ]
+    }
+  ],
+  "burn_chance": 0.7
+}

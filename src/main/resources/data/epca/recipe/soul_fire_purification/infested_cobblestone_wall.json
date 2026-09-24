@@ -1,0 +1,20 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_cobblestone_wall"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "options": [
+        {
+          "item": "minecraft:cobblestone_wall"
+        },
+        {
+          "item": "minecraft:mossy_cobblestone_wall"
+        }
+      ]
+    }
+  ],
+  "burn_chance": 0.7
+}

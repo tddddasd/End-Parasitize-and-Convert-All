@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_infested_heavy_stone"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:infested_deepslate"
+    }
+  ],
+  "burn_chance": 0.7
+}

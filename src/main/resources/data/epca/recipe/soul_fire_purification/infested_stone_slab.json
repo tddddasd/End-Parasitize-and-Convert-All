@@ -1,0 +1,26 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_stone_slab"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "options": [
+        {
+          "item": "minecraft:andesite_slab"
+        },
+        {
+          "item": "minecraft:diorite_slab"
+        },
+        {
+          "item": "minecraft:granite_slab"
+        },
+        {
+          "item": "minecraft:stone_slab"
+        }
+      ]
+    }
+  ],
+  "burn_chance": 0.7
+}

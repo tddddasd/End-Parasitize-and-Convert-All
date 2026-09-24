@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_sugar_cane"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:sugar_cane"
+    }
+  ],
+  "burn_chance": 0.7
+}

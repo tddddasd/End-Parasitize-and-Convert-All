@@ -1,0 +1,14 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_coal"
+  },
+  "results": [],
+  "explode": {
+    "power": 4.0,
+    "radius": 8.0,
+    "damage": 14.0,
+    "knockback": 0.5,
+    "blindness_ticks": 100
+  }
+}

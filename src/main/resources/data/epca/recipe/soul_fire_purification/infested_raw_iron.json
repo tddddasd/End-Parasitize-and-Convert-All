@@ -1,0 +1,15 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_raw_iron"
+  },
+  "results": [
+    {
+      "chance": 0.15,
+      "item": "minecraft:raw_iron",
+      "count": 2,
+      "count_max": 3
+    }
+  ],
+  "burn_chance": 0.85
+}

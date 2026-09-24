@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_pointed_dripstone"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:pointed_dripstone"
+    }
+  ],
+  "burn_chance": 0.7
+}

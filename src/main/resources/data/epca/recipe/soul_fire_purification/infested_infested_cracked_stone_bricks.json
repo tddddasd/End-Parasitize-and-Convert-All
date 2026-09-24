@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_infested_cracked_stone_bricks"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:infested_cracked_stone_bricks"
+    }
+  ],
+  "burn_chance": 0.7
+}

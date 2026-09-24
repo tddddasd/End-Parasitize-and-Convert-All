@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_muddy_mangrove_roots"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:muddy_mangrove_roots"
+    }
+  ],
+  "burn_chance": 0.7
+}

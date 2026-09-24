@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_heavy_cobblestone"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:cobbled_deepslate"
+    }
+  ],
+  "burn_chance": 0.7
+}

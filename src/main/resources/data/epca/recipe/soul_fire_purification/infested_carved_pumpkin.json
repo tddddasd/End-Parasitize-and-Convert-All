@@ -1,0 +1,20 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_carved_pumpkin"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "options": [
+        {
+          "item": "minecraft:carved_pumpkin"
+        },
+        {
+          "item": "minecraft:jack_o_lantern"
+        }
+      ]
+    }
+  ],
+  "burn_chance": 0.7
+}

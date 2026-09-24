@@ -1,0 +1,15 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_lapis_lazuli"
+  },
+  "results": [
+    {
+      "chance": 0.15,
+      "item": "minecraft:lapis_lazuli",
+      "count": 2,
+      "count_max": 3
+    }
+  ],
+  "burn_chance": 0.85
+}

@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_stick"
+  },
+  "results": [
+    {
+      "chance": 0.25,
+      "item": "minecraft:stick"
+    }
+  ],
+  "burn_chance": 0.75
+}

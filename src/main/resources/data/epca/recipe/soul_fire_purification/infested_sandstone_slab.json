@@ -1,0 +1,20 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_sandstone_slab"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "options": [
+        {
+          "item": "minecraft:red_sandstone_slab"
+        },
+        {
+          "item": "minecraft:sandstone_slab"
+        }
+      ]
+    }
+  ],
+  "burn_chance": 0.7
+}

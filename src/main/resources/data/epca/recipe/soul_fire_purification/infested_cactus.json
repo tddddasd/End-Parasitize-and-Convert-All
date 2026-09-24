@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_cactus"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:cactus"
+    }
+  ],
+  "burn_chance": 0.7
+}

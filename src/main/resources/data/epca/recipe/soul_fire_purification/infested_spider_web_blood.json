@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_spider_web_blood"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:cobweb"
+    }
+  ],
+  "burn_chance": 0.7
+}

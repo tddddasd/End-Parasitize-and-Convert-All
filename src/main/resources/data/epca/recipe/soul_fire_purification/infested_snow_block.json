@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_snow_block"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:snow_block"
+    }
+  ],
+  "burn_chance": 0.7
+}

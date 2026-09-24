@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_polished_heavy_stone_wall"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "item": "minecraft:polished_deepslate_wall"
+    }
+  ],
+  "burn_chance": 0.7
+}

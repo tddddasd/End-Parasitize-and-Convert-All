@@ -1,0 +1,50 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_dirt"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "options": [
+        {
+          "item": "minecraft:clay"
+        },
+        {
+          "item": "minecraft:coarse_dirt"
+        },
+        {
+          "item": "minecraft:dirt"
+        },
+        {
+          "item": "minecraft:dirt_path"
+        },
+        {
+          "item": "minecraft:farmland"
+        },
+        {
+          "item": "minecraft:grass_block"
+        },
+        {
+          "item": "minecraft:gravel"
+        },
+        {
+          "item": "minecraft:mud"
+        },
+        {
+          "item": "minecraft:mycelium"
+        },
+        {
+          "item": "minecraft:podzol"
+        },
+        {
+          "item": "minecraft:rooted_dirt"
+        },
+        {
+          "item": "minecraft:suspicious_gravel"
+        }
+      ]
+    }
+  ],
+  "burn_chance": 0.7
+}

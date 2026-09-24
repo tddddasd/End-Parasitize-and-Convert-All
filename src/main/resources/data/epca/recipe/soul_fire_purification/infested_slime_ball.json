@@ -1,0 +1,13 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_slime_ball"
+  },
+  "results": [
+    {
+      "chance": 0.25,
+      "item": "minecraft:slime_ball"
+    }
+  ],
+  "burn_chance": 0.75
+}

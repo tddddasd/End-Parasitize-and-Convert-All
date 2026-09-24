@@ -2,6 +2,8 @@ package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -25,6 +27,9 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedS
 public class InfestedCoalOre extends Block implements InfestedBlockInterface {
     
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
+
+    /** Blindness I duration applied when the ore is ignited by soul fire instead of normal fire. */
+    public static final int SOUL_FIRE_BLINDNESS_TICKS = 100;
 
     public InfestedCoalOre(Properties properties) {
         super(properties);
@@ -56,7 +61,7 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
             
             BlockState neighborState = level.getBlockState(neighborPosFrom(pos, orientation));
             if (neighborState.is(Blocks.FIRE) || neighborState.is(Blocks.SOUL_FIRE)) {
-                triggerExplosion(level, pos);
+                triggerExplosion(level, pos, neighborState.is(Blocks.SOUL_FIRE));
             }
         }
     }
@@ -75,7 +80,7 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
         return Blocks.STONE.getSoundType(Blocks.STONE.defaultBlockState(), level, pos, entity);
     }
 
-    private void triggerExplosion(Level level, BlockPos pos) {
+    private void triggerExplosion(Level level, BlockPos pos, boolean soulFire) {
         double x = pos.getX() + 0.5;
         double y = pos.getY() + 0.5;
         double z = pos.getZ() + 0.5;
@@ -92,6 +97,10 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
             if (!entity.isAlive()) continue;
             double distance = Math.sqrt(entity.distanceToSqr(x, y, z));
             if (distance <= explosionRadius) {
+                // Soul fire additionally blinds every living entity inside the explosion radius (5 s of Blindness I).
+                if (soulFire) {
+                    entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, SOUL_FIRE_BLINDNESS_TICKS, 0), null);
+                }
                 
                 float damage = (float) (14.0 * (1.0 - distance / explosionRadius));
                 if (damage > 0) {

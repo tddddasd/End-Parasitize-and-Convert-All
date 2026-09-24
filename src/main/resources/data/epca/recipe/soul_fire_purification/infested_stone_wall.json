@@ -1,0 +1,23 @@
+{
+  "type": "eej:soul_fire_purification",
+  "ingredient": {
+    "item": "epca:infested_stone_wall"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "options": [
+        {
+          "item": "minecraft:andesite_wall"
+        },
+        {
+          "item": "minecraft:diorite_wall"
+        },
+        {
+          "item": "minecraft:granite_wall"
+        }
+      ]
+    }
+  ],
+  "burn_chance": 0.7
+}
