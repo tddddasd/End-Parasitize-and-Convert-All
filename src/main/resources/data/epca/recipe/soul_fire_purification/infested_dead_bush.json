@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_dead_bush"
-  },
+  "ingredient": "epca:infested_dead_bush",
   "results": [
     {
       "chance": 0.3,

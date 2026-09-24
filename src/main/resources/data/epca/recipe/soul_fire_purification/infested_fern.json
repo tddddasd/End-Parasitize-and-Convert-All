@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_fern"
-  },
+  "ingredient": "epca:infested_fern",
   "results": [
     {
       "chance": 0.3,

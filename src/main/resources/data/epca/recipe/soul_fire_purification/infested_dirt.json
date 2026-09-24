@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_dirt"
-  },
+  "ingredient": "epca:infested_dirt",
   "results": [
     {
       "chance": 0.3,

@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_vine"
-  },
+  "ingredient": "epca:infested_vine",
   "results": [
     {
       "chance": 0.3,

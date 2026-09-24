@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_stripped_log"
-  },
+  "ingredient": "epca:infested_stripped_log",
   "results": [
     {
       "chance": 0.3,

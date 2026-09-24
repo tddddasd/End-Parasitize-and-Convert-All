@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_sweet_berries"
-  },
+  "ingredient": "epca:infested_sweet_berries",
   "results": [
     {
       "chance": 0.25,

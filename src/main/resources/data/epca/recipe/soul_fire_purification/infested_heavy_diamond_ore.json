@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_heavy_diamond_ore"
-  },
+  "ingredient": "epca:infested_heavy_diamond_ore",
   "results": [
     {
       "chance": 0.3,

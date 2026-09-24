@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_cut_sandstone_slab"
-  },
+  "ingredient": "epca:infested_cut_sandstone_slab",
   "results": [
     {
       "chance": 0.3,

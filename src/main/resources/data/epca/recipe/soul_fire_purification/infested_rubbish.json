@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_rubbish"
-  },
+  "ingredient": "epca:infested_rubbish",
   "results": [
     {
       "chance": 0.05,

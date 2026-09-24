@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_coal"
-  },
+  "ingredient": "epca:infested_coal",
   "results": [],
   "explode": {
     "power": 4.0,

@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_polished_heavy_stone_stairs"
-  },
+  "ingredient": "epca:infested_polished_heavy_stone_stairs",
   "results": [
     {
       "chance": 0.3,

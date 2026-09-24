@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_nethersea_brand_grown"
-  },
+  "ingredient": "epca:infested_nethersea_brand_grown",
   "neoforge:conditions": [
     {
       "type": "neoforge:mod_loaded",

@@ -1,8 +1,6 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": {
-    "item": "epca:infested_heavy_emerald_ore"
-  },
+  "ingredient": "epca:infested_heavy_emerald_ore",
   "results": [
     {
       "chance": 0.3,
