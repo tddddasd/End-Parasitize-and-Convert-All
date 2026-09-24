@@ -45,6 +45,8 @@ public class DataGenEvent {
         event.getGenerator().addProvider(event.includeServer(),
                 new CustomDataProviders.BlockConversionDataProvider(out));
         event.getGenerator().addProvider(event.includeServer(),
+                new CustomDataProviders.SoulFirePurificationDataProvider(out));
+        event.getGenerator().addProvider(event.includeServer(),
                 new CustomDataProviders.BiomassSpawnDataProvider(out));
     }
 }

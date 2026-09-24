@@ -60,6 +60,9 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.category_link", "种阶：连结");
 
         
+        add("epca.soul_fire_purification.recipes", "灵魂火净化配方（类型 eej:soul_fire_purification）");
+
+        
         add("epca.tab.parent.main_tab", "寄生体图鉴");
         add("epca.tab.child.onesent", "初探种");
 

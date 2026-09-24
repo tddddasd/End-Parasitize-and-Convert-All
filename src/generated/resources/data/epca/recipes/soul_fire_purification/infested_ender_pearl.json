@@ -1,0 +1,15 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.75,
+  "ingredient": {
+    "item": "epca:infested_ender_pearl"
+  },
+  "results": [
+    {
+      "chance": 0.25,
+      "items": [
+        "minecraft:ender_pearl"
+      ]
+    }
+  ]
+}

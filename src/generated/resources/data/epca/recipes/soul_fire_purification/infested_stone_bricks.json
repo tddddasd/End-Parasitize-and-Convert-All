@@ -1,0 +1,24 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.7,
+  "ingredient": {
+    "item": "epca:infested_stone_bricks"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:stone_bricks"
+      ],
+      "weight": 1
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:mossy_stone_bricks"
+      ],
+      "weight": 1
+    }
+  ],
+  "weighted": true
+}

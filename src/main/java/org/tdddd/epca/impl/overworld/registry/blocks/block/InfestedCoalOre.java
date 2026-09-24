@@ -1,6 +1,9 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -24,6 +27,9 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedS
 public class InfestedCoalOre extends Block implements InfestedBlockInterface {
     
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
+
+    /** Duration of the extra soul fire blindness, 5 seconds. */
+    public static final int BLINDNESS_TICKS = 100;
 
     public InfestedCoalOre(Properties properties) {
         super(properties);
@@ -49,9 +55,28 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
             
             BlockState neighborState = level.getBlockState(fromPos);
             if (neighborState.is(Blocks.FIRE) || neighborState.is(Blocks.SOUL_FIRE)) {
-                triggerExplosion(level, pos);
+                // If any adjacent block is soul fire the explosion additionally blinds nearby
+                // creatures, matching the eej soul fire purification explosive path.
+                triggerExplosion(level, pos, hasSoulFireNeighbour(level, pos, fromPos, neighborState));
             }
         }
+    }
+
+    /** True when a soul fire block touches this position; takes the already read neighbour first. */
+    private static boolean hasSoulFireNeighbour(Level level, BlockPos pos, BlockPos fromPos, BlockState fromState) {
+        if (fromState.is(Blocks.SOUL_FIRE)) {
+            return true;
+        }
+        for (Direction direction : Direction.values()) {
+            BlockPos other = pos.relative(direction);
+            if (other.equals(fromPos)) {
+                continue;
+            }
+            if (level.getBlockState(other).is(Blocks.SOUL_FIRE)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -59,7 +84,7 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
         return Blocks.STONE.getSoundType(Blocks.STONE.defaultBlockState(), level, pos, entity);
     }
 
-    private void triggerExplosion(Level level, BlockPos pos) {
+    private void triggerExplosion(Level level, BlockPos pos, boolean soulFire) {
         double x = pos.getX() + 0.5;
         double y = pos.getY() + 0.5;
         double z = pos.getZ() + 0.5;
@@ -76,6 +101,10 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
             if (!entity.isAlive()) continue;
             double distance = Math.sqrt(entity.distanceToSqr(x, y, z));
             if (distance <= explosionRadius) {
+                // Soul fire adds Blindness I for 5 seconds (100 ticks) inside the radius.
+                if (soulFire) {
+                    entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, BLINDNESS_TICKS, 0));
+                }
                 
                 float damage = (float) (14.0 * (1.0 - distance / explosionRadius));
                 if (damage > 0) {

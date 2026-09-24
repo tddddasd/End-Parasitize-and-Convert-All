@@ -59,6 +59,9 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.category_reshape", "Category: Reshape");
         add("item.epca.category_link", "Category: Link");
 
+        // Soul fire purification recipes shipped by this mod under the eej recipe type
+        add("epca.soul_fire_purification.recipes", "Soul Fire Purification recipes (type eej:soul_fire_purification)");
+
         // Bestiary
         add("epca.tab.parent.main_tab", "Parasite Bestiary");
         add("epca.tab.child.onesent", "Onesent");

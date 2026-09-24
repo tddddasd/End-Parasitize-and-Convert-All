@@ -1,0 +1,24 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.7,
+  "ingredient": {
+    "item": "epca:infested_smooth_sandstone_stairs"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:smooth_sandstone_stairs"
+      ],
+      "weight": 1
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:smooth_red_sandstone_stairs"
+      ],
+      "weight": 1
+    }
+  ],
+  "weighted": true
+}

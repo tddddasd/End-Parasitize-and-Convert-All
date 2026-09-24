@@ -1,0 +1,15 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.7,
+  "ingredient": {
+    "item": "epca:infested_chiseled_red_sandstone"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:chiseled_red_sandstone"
+      ]
+    }
+  ]
+}

@@ -268,6 +268,24 @@ public class CustomDataProviders {
 
         @Override
         public CompletableFuture<?> run(CachedOutput cache) {
+            Map<String, String> general = buildGeneralBlockConversions();
+
+            
+            Map<String, String> beckon = new LinkedHashMap<>(general);
+
+            return CompletableFuture.allOf(
+                    saveConv(cache, "general_block_conversions", general, 1, 4, 2),
+                    saveConv(cache, "stage_i_block_conversions", beckon, 1, 10, 2),
+                    saveConv(cache, "stage_ii_block_conversions", beckon, 1, 20, 2)
+            );
+        }
+
+        /**
+         * The forward conversion map used by all three stage files: original block id -> infested
+         * block id. Extracted so {@link SoulFirePurificationDataProvider} can derive the reverse
+         * mapping from exactly the same source of truth.
+         */
+        public static Map<String, String> buildGeneralBlockConversions() {
             // general
             Map<String, String> general = new LinkedHashMap<>();
             put(general, "minecraft:dirt", "epca:infested_dirt");
@@ -440,46 +458,262 @@ public class CustomDataProviders {
             put(general, "minecraft:lily_pad", "epca:infested_lily_pad");
             put(general, "minecraft:deepslate_bricks", "epca:infested_heavy_bricks");
             put(general, "minecraft:cracked_deepslate_bricks", "epca:infested_cracked_heavy_bricks");
-            put(general, "minecraft:deepslate_bricks_slab", "epca:infested_heavy_bricks_slab");
-            put(general, "minecraft:deepslate_bricks_stairs", "epca:infested_heavy_bricks_stairs");
-            put(general, "minecraft:deepslate_bricks_wall", "epca:infested_heavy_bricks_wall");
+            put(general, "minecraft:deepslate_brick_slab", "epca:infested_heavy_bricks_slab");
+            put(general, "minecraft:deepslate_brick_stairs", "epca:infested_heavy_bricks_stairs");
+            put(general, "minecraft:deepslate_brick_wall", "epca:infested_heavy_bricks_wall");
             put(general, "minecraft:carved_pumpkin", "epca:infested_carved_pumpkin");
             put(general, "minecraft:jack_o_lantern", "epca:infested_carved_pumpkin");
             put(general, "minecraft:pumpkin", "epca:infested_pumpkin");
             put(general, "minecraft:cactus", "epca:infested_cactus");
             put(general, "minecraft:sugar_cane", "epca:infested_sugar_cane");
-            put(general, "minecraft:web", "epca:infested_spider_web");
+            // 1.20.1 calls the block minecraft:cobweb; the old "minecraft:web" id no longer exists,
+            // so it converted nothing and left the web purification recipe without a valid drop.
+            put(general, "minecraft:cobweb", "epca:infested_spider_web");
             put(general, "minecraft:deepslate_tiles", "epca:infested_heavy_tiles");
             put(general, "minecraft:cracked_deepslate_tiles", "epca:infested_cracked_heavy_tiles");
-            put(general, "minecraft:deepslate_tiles_slab", "epca:infested_heavy_tiles_slab");
-            put(general, "minecraft:deepslate_tiles_stairs", "epca:infested_heavy_tiles_stairs");
-            put(general, "minecraft:deepslate_tiles_wall", "epca:infested_heavy_tiles_wall");
+            put(general, "minecraft:deepslate_tile_slab", "epca:infested_heavy_tiles_slab");
+            put(general, "minecraft:deepslate_tile_stairs", "epca:infested_heavy_tiles_stairs");
+            put(general, "minecraft:deepslate_tile_wall", "epca:infested_heavy_tiles_wall");
             put(general, "minecraft:mangrove_roots", "epca:infested_mangrove_roots");
             put(general, "minecraft:grass", "epca:infested_grass");
             put(general, "minecraft:dead_bush", "epca:infested_dead_bush");
             put(general, "minecraft:fern", "epca:infested_fern");
             put(general, "minecraft:tall_grass", "epca:infested_tall_grass");
-            put(general, "minecraft:large_fern", "epca:infested_lager_fern");
+            put(general, "minecraft:large_fern", "epca:infested_tall_fern");
             put(general, "minecraft:chiseled_deepslate", "epca:infested_chiseled_deepslate");
-
-            
-            Map<String, String> beckon = new LinkedHashMap<>(general);
-
-            return CompletableFuture.allOf(
-                    saveConv(cache, "general_block_conversions", general, 1, 4, 2),
-                    saveConv(cache, "stage_i_block_conversions", beckon, 1, 10, 2),
-                    saveConv(cache, "stage_ii_block_conversions", beckon, 1, 20, 2)
-            );
+            return general;
         }
-        private void put(Map<String, String> m, String k, String v) { m.put(k, v); }
+
+        private static void put(Map<String, String> map, String from, String to) {
+            map.put(from, to);
+        }
+
         private CompletableFuture<?> saveConv(CachedOutput c, String file, Map<String, String> map,
                                               int plantRadius, int leavesRadius, int leavesInterval) {
             StageConfigData data = new StageConfigData(map, plantRadius, leavesRadius, leavesInterval);
             return saveStable(c, JsonParser.parseString(GSON.toJson(data)),
                     dataPath(out, "block_conversions", file));
         }
-        @Override public String getName() { return "EPCA Block Conversions"; }
+
+        @Override
+        public String getName() {
+            return "EPCA Block Conversions";
+        }
     }
+
+    // ═══════════════════ 5b. Soul Fire Purification Recipes ═══════════════════
+
+    /**
+     * Generates the {@code eej:soul_fire_purification} recipes for every infested input.
+     *
+     * <p>Rule summary (see the SPEC):
+     * <ul>
+     *   <li>infested mineral items: 15 % -> 2-3 of the corresponding vanilla mineral;</li>
+     *   <li>ordinary infested blocks: 30 % -> one random original block, derived from the reverse
+     *       of {@link BlockConversionDataProvider#buildGeneralBlockConversions()};</li>
+     *   <li>{@code epca:infested_rubbish}: 5 % flint / sand / gravel plus 1 % random mineral nugget;</li>
+     *   <li>{@link #EXTRA_BLOCK_TARGETS}: infested blocks sharing their original block with a sibling
+     *       (the blood and cave spider web variants), 30 % -> that block;</li>
+     *   <li>remaining infested materials: 25 % -> their original material;</li>
+     *   <li>{@code epca:infested_flesh}: destroyed without any roll (an empty recipe);</li>
+     *   <li>{@code epca:infested_coal} and the two coal ore blocks: explosive, never rolled.</li>
+     * </ul>
+     */
+    public static class SoulFirePurificationDataProvider implements DataProvider {
+        /** One generated recipe: the input id plus the JSON body. */
+        private record Entry(String input, JsonObject body) { }
+
+        private final PackOutput out;
+        public SoulFirePurificationDataProvider(PackOutput out) { this.out = out; }
+
+        /** 15 % -> 2-3 corresponding vanilla mineral. Infested mineral ITEMS only. */
+        private static final Map<String, String> MINERAL_ITEMS = new LinkedHashMap<>();
+        /** 25 % -> the one corresponding original material. */
+        private static final Map<String, String> MATERIAL_ITEMS = new LinkedHashMap<>();
+        /** Items that explode on contact with fire instead of being purified. */
+        public static final List<String> EXPLOSIVES = List.of(
+                "epca:infested_coal",
+                "epca:infested_coal_ore",
+                "epca:infested_heavy_coal_ore");
+        /** The only junk item (虫染垃圾). */
+        public static final String JUNK_ITEM = "epca:infested_rubbish";
+        /** Explicitly excluded: destroyed without a roll. */
+        public static final String DESTROYED_ITEM = "epca:infested_flesh";
+        /**
+         * Infested blocks that the conversion map cannot discover, because their original block is
+         * produced by another infested block (the blood and cave spider web variants all come from
+         * {@code minecraft:cobweb}). They still purify into their original block at the ordinary 30 %.
+         */
+        private static final Map<String, String> EXTRA_BLOCK_TARGETS = new LinkedHashMap<>();
+        /**
+         * Misspelled vanilla ids frozen inside the block conversion data. They are pinned to their
+         * real ids here so that a purification recipe never references a non-existent item.
+         */
+        private static final Map<String, String> ID_FIXES = Map.of(
+                "minecraft:deepslate_brick_slab", "minecraft:deepslate_brick_slab",
+                "minecraft:deepslate_brick_stairs", "minecraft:deepslate_brick_stairs",
+                "minecraft:deepslate_brick_wall", "minecraft:deepslate_brick_wall",
+                "minecraft:deepslate_tile_slab", "minecraft:deepslate_tile_slab",
+                "minecraft:deepslate_tile_stairs", "minecraft:deepslate_tile_stairs",
+                "minecraft:deepslate_tile_wall", "minecraft:deepslate_tile_wall"
+        );
+
+        static {
+            MINERAL_ITEMS.put("epca:infested_raw_copper", "minecraft:raw_copper");
+            MINERAL_ITEMS.put("epca:infested_raw_iron", "minecraft:raw_iron");
+            MINERAL_ITEMS.put("epca:infested_raw_gold", "minecraft:raw_gold");
+            MINERAL_ITEMS.put("epca:infested_lapis_lazuli", "minecraft:lapis_lazuli");
+            MINERAL_ITEMS.put("epca:infested_redstone", "minecraft:redstone");
+            MINERAL_ITEMS.put("epca:infested_emerald", "minecraft:emerald");
+            MINERAL_ITEMS.put("epca:infested_diamond", "minecraft:diamond");
+
+            MATERIAL_ITEMS.put("epca:infested_bone", "minecraft:bone");
+            MATERIAL_ITEMS.put("epca:infested_stick", "minecraft:stick");
+            MATERIAL_ITEMS.put("epca:infested_slime_ball", "minecraft:slime_ball");
+            MATERIAL_ITEMS.put("epca:infested_sweet_berries", "minecraft:sweet_berries");
+            MATERIAL_ITEMS.put("epca:infested_ender_pearl", "minecraft:ender_pearl");
+
+            EXTRA_BLOCK_TARGETS.put("epca:infested_spider_web_blood", "minecraft:cobweb");
+            EXTRA_BLOCK_TARGETS.put("epca:infested_cave_spider_web", "minecraft:cobweb");
+        }
+
+        @Override
+        public CompletableFuture<?> run(CachedOutput cache) {
+            List<Entry> entries = new ArrayList<>();
+
+            for (String explosive : EXPLOSIVES) {
+                JsonObject body = base(explosive);
+                JsonObject explode = new JsonObject();
+                explode.addProperty("power", 4.0F);
+                explode.addProperty("fire", false);
+                explode.addProperty("blindness_ticks", 100);
+                body.add("explode", explode);
+                entries.add(new Entry(explosive, body));
+            }
+
+            JsonObject destroyed = base(DESTROYED_ITEM);
+            destroyed.addProperty("destroyed", true);
+            entries.add(new Entry(DESTROYED_ITEM, destroyed));
+
+            for (Map.Entry<String, String> mineral : MINERAL_ITEMS.entrySet()) {
+                JsonObject body = base(mineral.getKey());
+                body.addProperty("burn_chance", 0.85F);
+                JsonArray results = new JsonArray();
+                results.add(result(List.of(mineral.getValue()), 2, 3, 0.15F, 1, false));
+                body.add("results", results);
+                entries.add(new Entry(mineral.getKey(), body));
+            }
+
+            JsonObject junk = base(JUNK_ITEM);
+            junk.addProperty("burn_chance", 0.94F);
+            JsonArray junkResults = new JsonArray();
+            junkResults.add(result(List.of("minecraft:flint", "minecraft:sand", "minecraft:gravel"),
+                    1, 1, 0.05F, 1, true));
+            junkResults.add(result(List.of("epca:copper_nugget", "minecraft:iron_nugget",
+                    "minecraft:gold_nugget"), 1, 1, 0.01F, 1, true));
+            junk.add("results", junkResults);
+            entries.add(new Entry(JUNK_ITEM, junk));
+
+            for (Map.Entry<String, String> material : MATERIAL_ITEMS.entrySet()) {
+                JsonObject body = base(material.getKey());
+                body.addProperty("burn_chance", 0.75F);
+                JsonArray results = new JsonArray();
+                results.add(result(List.of(material.getValue()), 1, 1, 0.25F, 1, false));
+                body.add("results", results);
+                entries.add(new Entry(material.getKey(), body));
+            }
+
+            // Ordinary infested blocks: reverse of the conversion map.
+            Map<String, List<String>> reverse = new LinkedHashMap<>();
+            for (Map.Entry<String, String> conversion
+                    : BlockConversionDataProvider.buildGeneralBlockConversions().entrySet()) {
+                String original = conversion.getKey();
+                // Blocks that are themselves infested are not valid "original blocks".
+                if (original.startsWith("minecraft:infested_")) continue;
+                // Other mods' blocks are skipped: the recipe must stay valid without that mod.
+                if (!original.startsWith("minecraft:")) continue;
+                reverse.computeIfAbsent(conversion.getValue(), key -> new ArrayList<>()).add(original);
+            }
+            // Already covered above; an explosive or explicit recipe must not be overwritten.
+            Set<String> reserved = new HashSet<>(EXPLOSIVES);
+            reserved.add(DESTROYED_ITEM);
+            reserved.add(JUNK_ITEM);
+            reserved.addAll(MINERAL_ITEMS.keySet());
+            reserved.addAll(MATERIAL_ITEMS.keySet());
+
+            for (Map.Entry<String, List<String>> block : reverse.entrySet()) {
+                if (reserved.contains(block.getKey())) continue;
+                JsonObject body = base(block.getKey());
+                body.addProperty("burn_chance", 0.70F);
+                JsonArray results = new JsonArray();
+                boolean alternative = block.getValue().size() > 1;
+                if (alternative) body.addProperty("weighted", true);
+                for (String original : block.getValue()) {
+                    // Multiple candidates share one 30 % roll; the explicit weight documents that.
+                    results.add(result(List.of(ID_FIXES.getOrDefault(original, original)),
+                            1, 1, 0.30F, 1, false, alternative));
+                }
+                body.add("results", results);
+                entries.add(new Entry(block.getKey(), body));
+            }
+
+            // Infested blocks whose source block is shared with a sibling (the other spider web
+            // variants): the reverse lookup above cannot see them, so they are listed explicitly.
+            for (Map.Entry<String, String> extra : EXTRA_BLOCK_TARGETS.entrySet()) {
+                if (reserved.contains(extra.getKey())) continue;
+                JsonObject body = base(extra.getKey());
+                body.addProperty("burn_chance", 0.70F);
+                JsonArray results = new JsonArray();
+                results.add(result(List.of(extra.getValue()), 1, 1, 0.30F, 1, false));
+                body.add("results", results);
+                entries.add(new Entry(extra.getKey(), body));
+            }
+
+            List<CompletableFuture<?>> futures = new ArrayList<>(entries.size());
+            for (Entry entry : entries) {
+                String name = entry.input().substring(entry.input().indexOf(':') + 1);
+                Path path = dataPath(out, "recipes/soul_fire_purification", name);
+                futures.add(saveStable(cache, entry.body(), path));
+            }
+            return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        }
+
+        private static JsonObject base(String input) {
+            JsonObject body = new JsonObject();
+            body.addProperty("type", "eej:soul_fire_purification");
+            JsonObject ingredient = new JsonObject();
+            ingredient.addProperty("item", input);
+            body.add("ingredient", ingredient);
+            return body;
+        }
+
+        private static JsonObject result(List<String> items, int countMin, int countMax, float chance,
+                                         int weight, boolean random) {
+            return result(items, countMin, countMax, chance, weight, random, weight != 1);
+        }
+
+        private static JsonObject result(List<String> items, int countMin, int countMax, float chance,
+                                         int weight, boolean random, boolean writeWeight) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("chance", chance);
+            if (writeWeight) entry.addProperty("weight", weight);
+            if (countMin != 1 || countMax != 1) {
+                entry.addProperty("count_min", countMin);
+                entry.addProperty("count_max", countMax);
+            }
+            if (random) entry.addProperty("random", true);
+            JsonArray ids = new JsonArray();
+            items.forEach(ids::add);
+            entry.add("items", ids);
+            return entry;
+        }
+
+        @Override
+        public String getName() {
+            return "EPCA Soul Fire Purification Recipes";
+        }
+    }
+
 
     // ═══════════════════ 5. Biomass Spawns ═══════════════════
 

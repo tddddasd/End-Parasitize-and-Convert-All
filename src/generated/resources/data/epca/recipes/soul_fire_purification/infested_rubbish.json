@@ -1,0 +1,27 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.94,
+  "ingredient": {
+    "item": "epca:infested_rubbish"
+  },
+  "results": [
+    {
+      "chance": 0.05,
+      "items": [
+        "minecraft:flint",
+        "minecraft:sand",
+        "minecraft:gravel"
+      ],
+      "random": true
+    },
+    {
+      "chance": 0.01,
+      "items": [
+        "epca:copper_nugget",
+        "minecraft:iron_nugget",
+        "minecraft:gold_nugget"
+      ],
+      "random": true
+    }
+  ]
+}

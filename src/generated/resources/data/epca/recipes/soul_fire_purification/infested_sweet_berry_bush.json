@@ -1,0 +1,15 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.7,
+  "ingredient": {
+    "item": "epca:infested_sweet_berry_bush"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:sweet_berry_bush"
+      ]
+    }
+  ]
+}

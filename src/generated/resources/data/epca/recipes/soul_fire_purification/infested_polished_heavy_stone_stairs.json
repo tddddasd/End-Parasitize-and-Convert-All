@@ -1,0 +1,15 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.7,
+  "ingredient": {
+    "item": "epca:infested_polished_heavy_stone_stairs"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:polished_deepslate_stairs"
+      ]
+    }
+  ]
+}

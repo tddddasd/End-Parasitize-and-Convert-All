@@ -1,0 +1,7 @@
+{
+  "type": "eej:soul_fire_purification",
+  "destroyed": true,
+  "ingredient": {
+    "item": "epca:infested_flesh"
+  }
+}

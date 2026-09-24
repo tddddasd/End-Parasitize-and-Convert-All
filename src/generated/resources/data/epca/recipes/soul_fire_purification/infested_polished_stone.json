@@ -1,0 +1,38 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.7,
+  "ingredient": {
+    "item": "epca:infested_polished_stone"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:smooth_stone"
+      ],
+      "weight": 1
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:polished_diorite"
+      ],
+      "weight": 1
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:polished_andesite"
+      ],
+      "weight": 1
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:polished_granite"
+      ],
+      "weight": 1
+    }
+  ],
+  "weighted": true
+}

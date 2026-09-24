@@ -1,0 +1,17 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.85,
+  "ingredient": {
+    "item": "epca:infested_redstone"
+  },
+  "results": [
+    {
+      "chance": 0.15,
+      "count_max": 3,
+      "count_min": 2,
+      "items": [
+        "minecraft:redstone"
+      ]
+    }
+  ]
+}

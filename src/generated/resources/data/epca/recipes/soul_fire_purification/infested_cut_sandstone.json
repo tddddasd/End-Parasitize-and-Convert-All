@@ -1,0 +1,24 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.7,
+  "ingredient": {
+    "item": "epca:infested_cut_sandstone"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:cut_sandstone"
+      ],
+      "weight": 1
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:cut_red_sandstone"
+      ],
+      "weight": 1
+    }
+  ],
+  "weighted": true
+}

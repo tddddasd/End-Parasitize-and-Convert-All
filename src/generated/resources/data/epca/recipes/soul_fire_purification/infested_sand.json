@@ -1,0 +1,31 @@
+{
+  "type": "eej:soul_fire_purification",
+  "burn_chance": 0.7,
+  "ingredient": {
+    "item": "epca:infested_sand"
+  },
+  "results": [
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:sand"
+      ],
+      "weight": 1
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:suspicious_sand"
+      ],
+      "weight": 1
+    },
+    {
+      "chance": 0.3,
+      "items": [
+        "minecraft:red_sand"
+      ],
+      "weight": 1
+    }
+  ],
+  "weighted": true
+}
