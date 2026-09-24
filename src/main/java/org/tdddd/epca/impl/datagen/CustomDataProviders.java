@@ -559,9 +559,10 @@ public class CustomDataProviders {
         );
 
         static {
-            MINERAL_ITEMS.put("epca:infested_raw_copper", "minecraft:raw_copper");
-            MINERAL_ITEMS.put("epca:infested_raw_iron", "minecraft:raw_iron");
-            MINERAL_ITEMS.put("epca:infested_raw_gold", "minecraft:raw_gold");
+            // The three infested RAW ores smelt into ingots, not into the raw material again.
+            MINERAL_ITEMS.put("epca:infested_raw_copper", "minecraft:copper_ingot");
+            MINERAL_ITEMS.put("epca:infested_raw_iron", "minecraft:iron_ingot");
+            MINERAL_ITEMS.put("epca:infested_raw_gold", "minecraft:gold_ingot");
             MINERAL_ITEMS.put("epca:infested_lapis_lazuli", "minecraft:lapis_lazuli");
             MINERAL_ITEMS.put("epca:infested_redstone", "minecraft:redstone");
             MINERAL_ITEMS.put("epca:infested_emerald", "minecraft:emerald");
