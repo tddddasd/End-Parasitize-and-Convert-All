@@ -26,10 +26,11 @@ import org.tdddd.epca.impl.epca;
  *   <li><b>Pillar</b>: two crossed vertical panels {@link #PILLAR_WIDTH} wide with a wider, dimmer
  *       {@link #PILLAR_GLOW_WIDTH} layer each, from the altar top up to {@link #PILLAR_HEIGHT}, fading
  *       out towards the top so it does not look cut off.</li>
- *   <li><b>Squares</b>: a horizontal square rotated 45 degrees, drawn as four thin
- *       ({@link #SQUARE_LINE_WIDTH}) glowing edges, centred on the pillar axis. The lower one sits
- *       {@link #SQUARE_LOW_OFFSET} above the altar top with side {@link #SQUARE_LOW_SIDE}, the upper
- *       one {@link #SQUARE_HIGH_OFFSET} with side {@link #SQUARE_HIGH_SIDE}.</li>
+ *   <li><b>Squares</b>: a horizontal square rotated 45 degrees, drawn as four glowing prism edges
+ *       with a {@link #SQUARE_THICKNESS} x {@link #SQUARE_THICKNESS} block cross-section, centred on
+ *       the pillar axis. The lower one sits {@link #SQUARE_LOW_OFFSET} above the altar top with side
+ *       {@link #SQUARE_LOW_SIDE}, the upper one {@link #SQUARE_HIGH_OFFSET} with side
+ *       {@link #SQUARE_HIGH_SIDE}.</li>
  *   <li><b>Wavefield</b>: {@link #RING_COUNT} diagonal rings {@link #RING_LINE_WIDTH} wide that expand
  *       from radius 0 to {@link #RING_MAX_RADIUS} over {@link #RING_PERIOD_TICKS} ticks and fade as
  *       they grow. They are drawn in the air just above the altar top, and - clipped to the cell that
@@ -99,8 +100,11 @@ public final class SacrificeRitualRenderer {
     public static final float SQUARE_HIGH_OFFSET = 3.25F;
     /** Side length of the upper square. */
     public static final float SQUARE_HIGH_SIDE = 4.0F;
-    /** Thickness of one glowing square edge. */
-    public static final float SQUARE_LINE_WIDTH = 0.12F;
+    /**
+     * Cross-section of one glowing square edge: it is a square prism, {@code SQUARE_THICKNESS} wide and
+     * {@code SQUARE_THICKNESS} tall, not a flat quad.
+     */
+    public static final float SQUARE_THICKNESS = 0.20F;
     /** Opacity of the square edges at full visibility. */
     public static final float SQUARE_ALPHA = 0.85F;
 
@@ -379,9 +383,13 @@ public final class SacrificeRitualRenderer {
         double baseY = center.getY() + 1.0D;
         double baseZ = center.getZ() + 0.5D;
 
-        float pulse = 1.0F - PULSE_DEPTH
-                * (0.5F + 0.5F * Mth.sin(time * (float) (Math.PI * 2.0D) / PULSE_PERIOD_TICKS));
-        float auraFade = fade * pulse;
+        // Pulsing: the sine is cubed, so the aura spends most of the cycle at full strength and only
+        // dips sharply at the dark end - a punchier breathing than the plain linear sine ramp.
+        float swing = 0.5F + 0.5F * Mth.sin(time * (float) (Math.PI * 2.0D) / PULSE_PERIOD_TICKS);
+        float pulse = 1.0F - PULSE_DEPTH * swing * swing * swing;
+        // Entrance: ease-out cubic, so the aura slams in and then settles instead of fading in linearly
+        // (1 - (1 - x)^3).
+        float auraFade = easeOutCubic(fade) * pulse;
 
         drawPillar(consumer, matrix, baseX, baseY, baseZ, camera, auraFade);
         drawSquare(consumer, matrix, baseX, baseY + SQUARE_LOW_OFFSET, baseZ, SQUARE_LOW_SIDE,
@@ -407,21 +415,40 @@ public final class SacrificeRitualRenderer {
                 alpha * PILLAR_ALPHA * PILLAR_GLOW_ALPHA, alpha * PILLAR_TOP_ALPHA);
     }
 
-    /** One horizontal square rotated 45 degrees: four glowing edges with the corners on the axes. */
+    /**
+     * One horizontal square rotated 45 degrees: four glowing prism edges with the corners on the axes.
+     *
+     * <p>The edges are solid bars now, not flat quads: each one is emitted by {@link #emitEdgePrism}
+     * with a {@link #SQUARE_THICKNESS} x {@link #SQUARE_THICKNESS} block cross-section, so the square
+     * has real volume from every viewing angle. A second, wider and much dimmer prism keeps the same
+     * halo the flat lines had.</p>
+     */
     private static void drawSquare(VertexConsumer consumer, Matrix4f matrix,
                                    double x, double y, double z, float side, Vec3 camera, float alpha) {
         // A 45-degree square of side `side` has its corners at +-side/sqrt(2) on the two horizontal
         // axes, i.e. a diamond whose half diagonal is side / sqrt(2).
         double half = side / Math.sqrt(2.0D);
         float a = alpha * SQUARE_ALPHA;
-        emitSegment(consumer, matrix, x + half, y, z, x, y, z + half, SQUARE_LINE_WIDTH,
+        // Core prism half extents, and the halo prism's: LINE_HALO_WIDTH/LINE_HALO_ALPHA keep working
+        // exactly as they did for the flat lines.
+        float core = SQUARE_THICKNESS * 0.5F;
+        float halo = SQUARE_THICKNESS * LINE_HALO_WIDTH * 0.5F;
+        emitEdgePrism(consumer, matrix, x + half, y, z, x, y, z + half, core, core,
                 CORE_RED, CORE_GREEN, CORE_BLUE, a, camera);
-        emitSegment(consumer, matrix, x, y, z + half, x - half, y, z, SQUARE_LINE_WIDTH,
+        emitEdgePrism(consumer, matrix, x + half, y, z, x, y, z + half, halo, halo,
+                CORE_RED, CORE_GREEN, CORE_BLUE, a * LINE_HALO_ALPHA, camera);
+        emitEdgePrism(consumer, matrix, x, y, z + half, x - half, y, z, core, core,
                 CORE_RED, CORE_GREEN, CORE_BLUE, a, camera);
-        emitSegment(consumer, matrix, x - half, y, z, x, y, z - half, SQUARE_LINE_WIDTH,
+        emitEdgePrism(consumer, matrix, x, y, z + half, x - half, y, z, halo, halo,
+                CORE_RED, CORE_GREEN, CORE_BLUE, a * LINE_HALO_ALPHA, camera);
+        emitEdgePrism(consumer, matrix, x - half, y, z, x, y, z - half, core, core,
                 CORE_RED, CORE_GREEN, CORE_BLUE, a, camera);
-        emitSegment(consumer, matrix, x, y, z - half, x + half, y, z, SQUARE_LINE_WIDTH,
+        emitEdgePrism(consumer, matrix, x - half, y, z, x, y, z - half, halo, halo,
+                CORE_RED, CORE_GREEN, CORE_BLUE, a * LINE_HALO_ALPHA, camera);
+        emitEdgePrism(consumer, matrix, x, y, z - half, x + half, y, z, core, core,
                 CORE_RED, CORE_GREEN, CORE_BLUE, a, camera);
+        emitEdgePrism(consumer, matrix, x, y, z - half, x + half, y, z, halo, halo,
+                CORE_RED, CORE_GREEN, CORE_BLUE, a * LINE_HALO_ALPHA, camera);
     }
 
     /** The expanding diagonal wavefield: {@link #RING_COUNT} rings in the air and on the block tops. */
@@ -431,8 +458,11 @@ public final class SacrificeRitualRenderer {
         for (int ring = 0; ring < RING_COUNT; ring++) {
             // Each ring owns a phase slot, so they leave the centre one after another.
             float phase = wrap01(time / RING_PERIOD_TICKS + (float) ring / RING_COUNT);
-            float radius = phase * RING_MAX_RADIUS;
-            float ringFade = (1.0F - phase) * fade;
+            // Two speed curves for force: the radius uses the ease-out cubic (1 - (1 - x)^3), so the
+            // ring shoots out of the altar and then slows down towards RING_MAX_RADIUS, and the fade is
+            // quadratic, so the ring stays bright while it races and vanishes snappily at the rim.
+            float radius = easeOutCubic(phase) * RING_MAX_RADIUS;
+            float ringFade = (1.0F - phase) * (1.0F - phase) * fade;
             if (ringFade <= 0.02F || radius <= 0.05F) {
                 continue;
             }
@@ -632,6 +662,61 @@ public final class SacrificeRitualRenderer {
     }
 
     /**
+     * One square prism along the horizontal edge {@code (x1, y1, z1) -> (x2, y2, z2)}: the four side
+     * faces of a bar whose cross-section is {@code 2 * halfThickness} wide and {@code 2 * halfHeight}
+     * tall (the two are equal for the {@link #SQUARE_THICKNESS} squares).
+     *
+     * <p>The perpendicular is the horizontal unit vector {@code (-dz, dx) / length}, i.e. the same
+     * offset direction {@link #emitSegmentQuad} uses, and the faces are emitted as plain winding-less
+     * quads - the pipeline has culling off, so the order of the faces does not matter.</p>
+     */
+    private static void emitEdgePrism(VertexConsumer consumer, Matrix4f matrix,
+                                      double x1, double y1, double z1,
+                                      double x2, double y2, double z2,
+                                      float halfThickness, float halfHeight,
+                                      float red, float green, float blue, float alpha, Vec3 camera) {
+        double dx = x2 - x1;
+        double dz = z2 - z1;
+        double length = Math.sqrt(dx * dx + dz * dz);
+        if (length < 1.0E-5D) {
+            return;
+        }
+        // Same cheap distance probe the flat segment emitter does: a ritual the server does not even
+        // announce from far away never costs more than this one test.
+        double midX = (x1 + x2) * 0.5D - camera.x;
+        double midY = (y1 + y2) * 0.5D - camera.y;
+        double midZ = (z1 + z2) * 0.5D - camera.z;
+        if (midX * midX + midY * midY + midZ * midZ > MAX_SEGMENT_DISTANCE * MAX_SEGMENT_DISTANCE) {
+            return;
+        }
+        double nx = -dz / length;
+        double nz = dx / length;
+        double ox = nx * halfThickness;
+        double oz = nz * halfThickness;
+
+        // Top face, at y + halfHeight, from -n to +n.
+        vertex(consumer, matrix, x1 - ox, y1 + halfHeight, z1 - oz, red, green, blue, alpha, 0.0F);
+        vertex(consumer, matrix, x2 - ox, y2 + halfHeight, z2 - oz, red, green, blue, alpha, 0.0F);
+        vertex(consumer, matrix, x2 + ox, y2 + halfHeight, z2 + oz, red, green, blue, alpha, 1.0F);
+        vertex(consumer, matrix, x1 + ox, y1 + halfHeight, z1 + oz, red, green, blue, alpha, 1.0F);
+        // Bottom face, at y - halfHeight.
+        vertex(consumer, matrix, x1 - ox, y1 - halfHeight, z1 - oz, red, green, blue, alpha, 0.0F);
+        vertex(consumer, matrix, x1 + ox, y1 - halfHeight, z1 + oz, red, green, blue, alpha, 1.0F);
+        vertex(consumer, matrix, x2 + ox, y2 - halfHeight, z2 + oz, red, green, blue, alpha, 1.0F);
+        vertex(consumer, matrix, x2 - ox, y2 - halfHeight, z2 - oz, red, green, blue, alpha, 0.0F);
+        // Side face on +n, spanning y - halfHeight .. y + halfHeight.
+        vertex(consumer, matrix, x1 + ox, y1 - halfHeight, z1 + oz, red, green, blue, alpha, 0.0F);
+        vertex(consumer, matrix, x2 + ox, y2 - halfHeight, z2 + oz, red, green, blue, alpha, 0.0F);
+        vertex(consumer, matrix, x2 + ox, y2 + halfHeight, z2 + oz, red, green, blue, alpha, 1.0F);
+        vertex(consumer, matrix, x1 + ox, y1 + halfHeight, z1 + oz, red, green, blue, alpha, 1.0F);
+        // Side face on -n.
+        vertex(consumer, matrix, x1 - ox, y1 - halfHeight, z1 - oz, red, green, blue, alpha, 1.0F);
+        vertex(consumer, matrix, x1 - ox, y1 + halfHeight, z1 - oz, red, green, blue, alpha, 1.0F);
+        vertex(consumer, matrix, x2 - ox, y2 + halfHeight, z2 - oz, red, green, blue, alpha, 1.0F);
+        vertex(consumer, matrix, x2 - ox, y2 - halfHeight, z2 - oz, red, green, blue, alpha, 1.0F);
+    }
+
+    /**
      * Emits one vertex in camera-relative world space.
      *
      * <p>The pipeline's format is {@code POSITION_COLOR}, so only the position and the colour are
@@ -653,5 +738,15 @@ public final class SacrificeRitualRenderer {
     private static float wrap01(float value) {
         float wrapped = value % 1.0F;
         return wrapped < 0.0F ? wrapped + 1.0F : wrapped;
+    }
+
+    /**
+     * The "1 - (1 - x)^3" speed curve the request asks for: a fast start that gently settles into the
+     * end value, which is what makes a motion driven by it read as a punch instead of a linear ramp.
+     * Defined for {@code x} in {@code [0,1]}.
+     */
+    private static float easeOutCubic(float x) {
+        float c = 1.0F - x;
+        return 1.0F - c * c * c;
     }
 }
