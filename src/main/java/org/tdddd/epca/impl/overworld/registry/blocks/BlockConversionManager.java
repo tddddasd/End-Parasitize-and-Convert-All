@@ -7,6 +7,7 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
@@ -34,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import org.tdddd.eej.api.AltarBlockTags;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.InfestedSourcePacket;
+import org.tdddd.epca.impl.network.packet.s2c.SyncRitualAuraPacket;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
@@ -956,9 +958,38 @@ public class BlockConversionManager {
         }
 
         boolean isComplete() { return index >= positions.size(); }
+
+        /**
+         * Ticks this ritual still needs, from the batches left to convert. Sent to the clients so the
+         * aura knows how long it has to stay (and so the purple sky can ramp), see
+         * {@link #syncRitualAura()}.
+         */
+        int remainingTicks() {
+            int left = Math.max(0, positions.size() - index);
+            return (int) Math.ceil(left / (double) batchSize);
+        }
     }
 
     private final Map<ServerLevel, Queue<SacrificeTask>> sacrificeTasks = new HashMap<>();
+
+    /** Ticks between two visual batches of the running rituals; see {@link #syncRitualAura()}. */
+    public static final int RITUAL_SYNC_INTERVAL_TICKS = 10;
+
+    /** Blocks around a ritual within which a player is told about it. */
+    public static final double RITUAL_SYNC_RADIUS = 96.0D;
+
+    /**
+     * How long a level keeps receiving (possibly empty) ritual batches after its last ritual ended.
+     * The client starts its fade-out when a ritual stops appearing in a batch, so the empty batches
+     * have to keep coming for a moment after the lightning, or the aura would never dissolve.
+     */
+    private static final int RITUAL_AUDIENCE_GRACE_TICKS = 120;
+
+    /** Server tick counter for the ritual batches. */
+    private int ritualSyncCounter;
+
+    /** Levels that still have to receive ritual batches (empty ones included). */
+    private final Map<ServerLevel, Integer> ritualAudienceGrace = new HashMap<>();
 
     public void addSacrificeTask(ServerLevel level, BlockPos center, UUID playerId, List<BlockPos> positions) {
         synchronized (sacrificeTasks) {
@@ -1026,6 +1057,74 @@ public class BlockConversionManager {
                     queue.poll();
                     completeSacrifice(task);
                 }
+            }
+        }
+
+        syncRitualAura();
+    }
+
+    /**
+     * Tells every player near a running ritual where it is and how long it still needs, so the client
+     * can draw the purple aura until the lightning falls and then fade it out.
+     *
+     * <p>Only the head of each level's queue is converting, so that is the task that is announced. A
+     * level that has (or just had) a ritual keeps receiving batches for
+     * {@link #RITUAL_AUDIENCE_GRACE_TICKS} ticks - empty ones included, because the client reads a
+     * missing entry as "the ritual is over, start fading".</p>
+     */
+    private void syncRitualAura() {
+        if (++ritualSyncCounter % RITUAL_SYNC_INTERVAL_TICKS != 0) {
+            return;
+        }
+
+        Map<ServerLevel, List<SacrificeTask>> active = new HashMap<>();
+        synchronized (sacrificeTasks) {
+            for (Map.Entry<ServerLevel, Queue<SacrificeTask>> entry : sacrificeTasks.entrySet()) {
+                SacrificeTask task = entry.getValue().peek();
+                if (task != null) {
+                    active.computeIfAbsent(entry.getKey(), key -> new ArrayList<>()).add(task);
+                }
+            }
+        }
+
+        Set<ServerLevel> levels = new HashSet<>(active.keySet());
+        levels.addAll(ritualAudienceGrace.keySet());
+        for (ServerLevel level : levels) {
+            List<SacrificeTask> tasks = active.get(level);
+            if (tasks == null) {
+                int grace = ritualAudienceGrace.getOrDefault(level, 0) - RITUAL_SYNC_INTERVAL_TICKS;
+                if (grace > 0) {
+                    ritualAudienceGrace.put(level, grace);
+                } else {
+                    ritualAudienceGrace.remove(level);
+                    continue;
+                }
+            } else {
+                ritualAudienceGrace.put(level, RITUAL_AUDIENCE_GRACE_TICKS);
+            }
+
+            for (ServerPlayer player : level.players()) {
+                List<BlockPos> centers = new ArrayList<>();
+                List<Integer> remaining = new ArrayList<>();
+                if (tasks != null) {
+                    for (SacrificeTask task : tasks) {
+                        if (centers.size() >= SyncRitualAuraPacket.MAX_ENTRIES) {
+                            break;
+                        }
+                        if (player.distanceToSqr(task.center.getX() + 0.5D, task.center.getY() + 0.5D,
+                                task.center.getZ() + 0.5D) > RITUAL_SYNC_RADIUS * RITUAL_SYNC_RADIUS) {
+                            continue;
+                        }
+                        centers.add(task.center);
+                        remaining.add(task.remainingTicks());
+                    }
+                }
+                BlockPos[] centerArray = centers.toArray(new BlockPos[0]);
+                int[] tickArray = new int[remaining.size()];
+                for (int i = 0; i < tickArray.length; i++) {
+                    tickArray[i] = remaining.get(i);
+                }
+                ModNetwork.sendToPlayer(player, new SyncRitualAuraPacket(centerArray, tickArray));
             }
         }
     }

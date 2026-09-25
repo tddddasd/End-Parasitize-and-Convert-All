@@ -126,6 +126,13 @@ public class ModNetwork {
                 SyncSoulProtectionPacket::encode,
                 SyncSoulProtectionPacket::decode,
                 SyncSoulProtectionPacket::handle);
+
+        // Visual state of the running sacrifice rituals, so the client can draw the purple aura the
+        // server-side BlockConversionManager owns and fade it out when the lightning falls.
+        INSTANCE.registerMessage(id++, SyncRitualAuraPacket.class,
+                SyncRitualAuraPacket::encode,
+                SyncRitualAuraPacket::decode,
+                SyncRitualAuraPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {
