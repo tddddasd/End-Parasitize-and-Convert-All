@@ -162,6 +162,10 @@ public class ClientHandler {
         // Registers the item shader layer pipeline (the corruption / decay overlay). It uses the
         // six-element vertex format that VertexConsumer#putBakedQuad writes.
         org.tdddd.epca.impl.client.render.ItemShaderPipelines.registerPipeline(event);
+        // Registers the sacrifice-ritual aura pipeline: plain POSITION_COLOR quads with the vanilla
+        // position_color program, drawn through the aura's own render type. The aura used the gas
+        // cloud pipeline first and drew nothing with it at the level stage it is drawn at.
+        org.tdddd.epca.impl.client.render.ritual.RitualQuadRenderType.registerPipeline(event);
     }
 
     @SubscribeEvent

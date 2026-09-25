@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -13,7 +14,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.tdddd.epca.impl.client.effect.SacrificeRitualClientCache;
-import org.tdddd.epca.impl.client.entity.gas.GasCloudRenderType;
+import org.tdddd.epca.impl.epca;
 
 /**
  * Draws the sacrifice-ritual aura: a bright purple pillar from the altar to the sky, two 45-degree
@@ -65,9 +66,11 @@ import org.tdddd.epca.impl.client.entity.gas.GasCloudRenderType;
  *   <li>The stage event no longer carries the partial tick or a camera; the partial tick comes from
  *       {@code minecraft.getDeltaTracker()} and the look vector from the main camera.</li>
  * </ul>
- * <p>Like the 1.20.1 twin, everything is drawn through the mod's proven custom pipeline with the
- * geometry-agnostic {@link GasCloudRenderType#RITUAL_STYLE_CHANNEL} branch of {@code gas_cloud.fsh},
- * still depth tested so hills occlude the pillar correctly.</p>
+ * <p>Like the 1.20.1 twin, everything is drawn through {@link RitualQuadRenderType}: plain
+ * {@code POSITION_COLOR} quads with the <b>vanilla</b> {@code position_color} program, translucent
+ * blending, depth test on, depth writes off and culling off, still depth tested so hills occlude the
+ * pillar correctly. The mod's custom {@code gas_cloud} pipeline was tried first and drew nothing at
+ * this level stage; see {@link RitualQuadRenderType} for the evidence and the full reasoning.</p>
  */
 public final class SacrificeRitualRenderer {
 
@@ -142,10 +145,14 @@ public final class SacrificeRitualRenderer {
     public static final float WAVE_RED = 0.84F;
     public static final float WAVE_GREEN = 0.52F;
     public static final float WAVE_BLUE = 1.00F;
-    /** The sky fades to this purple. */
-    public static final float SKY_RED = 0.55F;
-    public static final float SKY_GREEN = 0.10F;
-    public static final float SKY_BLUE = 1.00F;
+    /**
+     * The sky fades to this purple. Deliberately a soft, low-saturation lavender rather than a fully
+     * saturated violet: the cover is a huge, evenly lit quad, so a saturated colour reads as a flat
+     * filter over the whole sky instead of a tinted sky.
+     */
+    public static final float SKY_RED = 0.62F;
+    public static final float SKY_GREEN = 0.36F;
+    public static final float SKY_BLUE = 0.94F;
 
     // ---- sky cover ---------------------------------------------------------------------------------
 
@@ -158,14 +165,46 @@ public final class SacrificeRitualRenderer {
     public static final float SKY_DISTANCE = 96.0F;
     /** Size of the sky quad; wide enough to cover the frustum at {@link #SKY_DISTANCE}. */
     public static final float SKY_SIZE = 4000.0F;
-    /** Opacity of the fully ramped purple sky; below 1 so a hint of the vanilla sky stays. */
-    public static final float SKY_MAX_ALPHA = 0.96F;
+    /** Opacity of the fully ramped purple sky: a tint over the vanilla sky, not a lid. */
+    public static final float SKY_MAX_ALPHA = 0.72F;
 
     /** Skip segments farther than this from the camera (blocks). */
     public static final double MAX_SEGMENT_DISTANCE = 160.0D;
 
     /** Skip whole pillars whose foot is farther than this from the camera (blocks). */
     public static final double MAX_PILLAR_DISTANCE = 192.0D;
+
+    /**
+     * The pipeline every ritual quad is drawn through: {@link RitualQuadRenderType#get()}, i.e. plain
+     * {@code POSITION_COLOR} quads with the vanilla {@code position_color} program, translucent blending,
+     * depth test on, depth writes off and culling off.
+     *
+     * <p>The mod's custom {@code gas_cloud} pipeline was tried first and produced nothing at this level
+     * stage. A white control quad drawn through the built-in {@code RenderType.debugQuads()} at the very
+     * same pose stack, stage and buffer source did show, which proves the draw call, the pose space, the
+     * camera math and the render target; only the custom program or its state was at fault. This type
+     * reuses the vanilla program (what the working control quad used) and adds the culling-off the aura
+     * needs, because its quads are seen from above and from below.</p>
+     */
+    private static final RenderType QUAD_RENDER_TYPE = RitualQuadRenderType.get();
+
+    /** Width factor of the dim halo quad emitted behind every glowing line. */
+    public static final float LINE_HALO_WIDTH = 2.6F;
+
+    /** Opacity factor of that halo quad. */
+    public static final float LINE_HALO_ALPHA = 0.30F;
+
+    /**
+     * Temporary diagnostics: one INFO line per second while a ritual is known. It tells "nothing reaches
+     * the screen at all" apart from "the pipeline produces nothing"; switch it off once the look has
+     * been confirmed in game.
+     */
+    public static final boolean DEBUG_DIAGNOSTICS = true;
+
+    /** Vertices emitted this frame (diagnostics only). */
+    private static int debugVertices;
+    /** Level tick of the last diagnostics line, so it prints at most once a second. */
+    private static long debugLastTick = Long.MIN_VALUE;
 
     private SacrificeRitualRenderer() {
     }
@@ -175,8 +214,8 @@ public final class SacrificeRitualRenderer {
         if (!SacrificeRitualClientCache.hasAny()) {
             return;
         }
-        if (!GasCloudRenderType.isPipelineRegistered()) {
-            // Resource reload or a very early frame: the custom pipeline is not there yet.
+        if (!RitualQuadRenderType.isPipelineRegistered()) {
+            // Resource reload or a very early frame: the ritual pipeline is not there yet.
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -188,8 +227,8 @@ public final class SacrificeRitualRenderer {
         // World time drives the pulse and the rings, so the animation is smooth and frame rate
         // independent; the partial tick keeps it continuous between ticks. 1.20.1 read both from the
         // event (level.getGameTime() + event.getPartialTick()), 26.1.2 from the delta tracker.
-        float time = level.getGameTime()
-                + minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        float time = level.getGameTime() + partialTick;
         Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
 
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
@@ -198,14 +237,40 @@ public final class SacrificeRitualRenderer {
         // custom pipeline expects and emit absolute world coordinates.
         PoseStack poseStack = cameraRelativeStack(event.getPoseStack(), camera);
         Matrix4f matrix = poseStack.last().pose();
-        VertexConsumer consumer = buffers.getBuffer(GasCloudRenderType.get());
+        VertexConsumer consumer = buffers.getBuffer(QUAD_RENDER_TYPE);
+        debugVertices = 0;
         try {
             SacrificeRitualClientCache.forEach(entry ->
                     drawRitual(consumer, matrix, level, entry.center, entry.fade(), time, camera));
+            if (DEBUG_DIAGNOSTICS) {
+                long tick = level.getGameTime();
+                if (tick % 20L == 0L && tick != debugLastTick) {
+                    debugLastTick = tick;
+                    epca.LOGGER.info(
+                            "[ritual] client render: entries={} quads={} fade={} cam=({},{},{}) "
+                                    + "pose=({},{},{}) partial={}",
+                            countEntries(), debugVertices / 4, SacrificeRitualClientCache.strongestFade(),
+                            fmt(camera.x), fmt(camera.y), fmt(camera.z),
+                            fmt(matrix.m30()), fmt(matrix.m31()), fmt(matrix.m32()),
+                            fmt(partialTick));
+                }
+            }
         } finally {
-            buffers.endBatch(GasCloudRenderType.get());
+            buffers.endBatch(QUAD_RENDER_TYPE);
             poseStack.popPose();
         }
+    }
+
+    /** Number of cached rituals; diagnostics only. */
+    private static int countEntries() {
+        int[] count = new int[1];
+        SacrificeRitualClientCache.forEach(entry -> count[0]++);
+        return count[0];
+    }
+
+    /** Locale-independent two-decimal formatting for the diagnostics line. */
+    private static String fmt(double value) {
+        return String.format(java.util.Locale.ROOT, "%.2f", value);
     }
 
     /**
@@ -221,7 +286,7 @@ public final class SacrificeRitualRenderer {
         if (!SacrificeRitualClientCache.hasAny()) {
             return;
         }
-        if (!GasCloudRenderType.isPipelineRegistered()) {
+        if (!RitualQuadRenderType.isPipelineRegistered()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -233,11 +298,11 @@ public final class SacrificeRitualRenderer {
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
         PoseStack poseStack = cameraRelativeStack(event.getPoseStack(), camera);
         Matrix4f matrix = poseStack.last().pose();
-        VertexConsumer consumer = buffers.getBuffer(GasCloudRenderType.get());
+        VertexConsumer consumer = buffers.getBuffer(QUAD_RENDER_TYPE);
         try {
             drawSky(consumer, matrix, camera, SacrificeRitualClientCache.strongestFade());
         } finally {
-            buffers.endBatch(GasCloudRenderType.get());
+            buffers.endBatch(QUAD_RENDER_TYPE);
             poseStack.popPose();
         }
     }
@@ -482,8 +547,9 @@ public final class SacrificeRitualRenderer {
 
     /**
      * One horizontal glowing segment of the given width, from {@code (x1, y, z1)} to
-     * {@code (x2, y, z2)}. The width runs along the quad's V axis, which the shader turns into the soft
-     * glow profile.
+     * {@code (x2, y, z2)}. The quad's V axis only feeds the shader's glow profile in the 1.20.1 twin;
+     * here the width alone carries the look, and every line is emitted twice (core plus a wider,
+     * dimmer halo) so a hard-edged quad still reads as a glow.
      */
     private static void emitSegment(VertexConsumer consumer, Matrix4f matrix,
                                     double x1, double y1, double z1,
@@ -504,6 +570,23 @@ public final class SacrificeRitualRenderer {
         if (midX * midX + midY * midY + midZ * midZ > MAX_SEGMENT_DISTANCE * MAX_SEGMENT_DISTANCE) {
             return;
         }
+        emitSegmentQuad(consumer, matrix, x1, y1, z1, x2, y2, z2, width, red, green, blue, alpha);
+        // Halo: the same line, wider and much dimmer, so a hard-edged quad still reads as a glow.
+        emitSegmentQuad(consumer, matrix, x1, y1, z1, x2, y2, z2,
+                width * LINE_HALO_WIDTH, red, green, blue, alpha * LINE_HALO_ALPHA);
+    }
+
+    /** One flat quad of the given width from {@code (x1, y1, z1)} to {@code (x2, y2, z2)}. */
+    private static void emitSegmentQuad(VertexConsumer consumer, Matrix4f matrix,
+                                        double x1, double y1, double z1,
+                                        double x2, double y2, double z2,
+                                        float width, float red, float green, float blue, float alpha) {
+        double dx = x2 - x1;
+        double dz = z2 - z1;
+        double length = Math.sqrt(dx * dx + dz * dz);
+        if (length < 1.0E-5D) {
+            return;
+        }
         double half = width * 0.5D;
         double offsetX = -dz / length * half;
         double offsetZ = dx / length * half;
@@ -514,20 +597,21 @@ public final class SacrificeRitualRenderer {
     }
 
     /**
-     * Emits one vertex in camera-relative world space with the ritual style channel in the second
-     * channel of the {@code UV1} slot.
+     * Emits one vertex in camera-relative world space.
      *
-     * <p>The matrix is applied on the CPU by {@code VertexConsumer#addVertex(Matrix4fc, ...)}, exactly
-     * as the 1.20.1 twin's {@code VertexConsumer#vertex(Matrix4f, ...)} did, and 26.1.2 has no
-     * {@code endVertex()} any more: the builder flushes the vertex when the next one starts.</p>
+     * <p>The pipeline's format is {@code POSITION_COLOR}, so only the position and the colour are
+     * written; {@code v} is kept in the signature because every caller already computes the width
+     * coordinate (and a future soft profile could use it again). The matrix is applied on the CPU by
+     * {@code VertexConsumer#addVertex(Matrix4fc, ...)}, exactly as the 1.20.1 twin's
+     * {@code VertexConsumer#vertex(Matrix4f, ...)} did, and 26.1.2 has no {@code endVertex()} any more:
+     * the builder flushes the vertex when the next one starts.</p>
      */
     private static void vertex(VertexConsumer consumer, Matrix4f matrix,
                                double x, double y, double z,
                                float red, float green, float blue, float alpha, float v) {
+        debugVertices++;
         consumer.addVertex(matrix, (float) x, (float) y, (float) z)
-                .setColor(red, green, blue, alpha)
-                .setUv(0.0F, v)
-                .setUv1(0, GasCloudRenderType.RITUAL_STYLE_CHANNEL);
+                .setColor(red, green, blue, alpha);
     }
 
     /** Wraps any value into {@code [0,1)}. */
