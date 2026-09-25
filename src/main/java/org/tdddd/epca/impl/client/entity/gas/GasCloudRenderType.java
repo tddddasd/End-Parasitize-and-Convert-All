@@ -177,7 +177,8 @@ public final class GasCloudRenderType {
      * part of the 1.20.1 / 26.1.2 twin contract and both trees send this exact value. The quad itself
      * is built and submitted by {@code impl/client/entity/heart/SoulProtectionHeartRenderer}, which
      * reuses the shared camera-relative billboard path of {@link GasCloudRenderer}, writes this value
-     * into the style channel and draws through {@link #getAdditive()} so the flame is emissive.</p>
+     * into the style channel and draws the column through the ordinary translucent variant (its
+     * embers use {@link #getAdditive()}).</p>
      */
     public static final int HEART_STYLE_CHANNEL = 252;
 
@@ -261,11 +262,13 @@ public final class GasCloudRenderType {
      * and depth state, only the blend function differs ({@code SRC_ALPHA / ONE} instead of
      * {@code TRANSLUCENT}'s {@code SRC_ALPHA / ONE_MINUS_SRC_ALPHA}).
      *
-     * <p>It exists for the emissive {@code epca:soul_protection} flame, whose reference look is a
-     * glowing plasma column over a dark background: with {@code SRC_ALPHA / ONE} the near-opaque core
-     * adds up to a bright near-white glow instead of merely blending towards the background. Nothing
-     * else uses it, so the gas and speck quads keep their exact previous blend. This mirrors the
-     * 1.20.1 twin, which builds the same variant on {@code ADDITIVE_TRANSPARENCY}.</p>
+     * <p>It exists for the tiny golden embers that {@code SoulProtectionHeartRenderer} draws beside
+     * the {@code epca:soul_protection} flame column: with {@code SRC_ALPHA / ONE} a few pixels of
+     * near-white gold read as a glint. The column itself uses the ordinary translucent variant,
+     * because additive blending saturates the whole quad against a lit world and turns the flame into
+     * one flat golden block. Nothing else uses it, so the gas and speck quads keep their exact
+     * previous blend. This mirrors the 1.20.1 twin, which builds the same variant on
+     * {@code ADDITIVE_TRANSPARENCY}.</p>
      */
     public static final RenderPipeline GAS_CLOUD_ADDITIVE_PIPELINE =
             RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
@@ -325,8 +328,8 @@ public final class GasCloudRenderType {
     }
 
     /**
-     * The additive variant of the same pipeline, for the emissive soul-protection flame; only valid
-     * to draw with while {@link #isPipelineRegistered()} is true.
+     * The additive variant of the same pipeline, for the soul-protection embers; only valid to draw
+     * with while {@link #isPipelineRegistered()} is true.
      */
     public static RenderType getAdditive() {
         return GAS_CLOUD_ADDITIVE;

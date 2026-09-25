@@ -56,14 +56,13 @@ import java.util.Map;
  * look live in that shader's tunable HEART_* block and its mirror below; this class only computes
  * where the quads go, how big they are and which phases/fade the shader gets.</p>
  *
- * <h2>Emissive blending</h2>
- * <p>Both the column and the embers are drawn through {@link GasCloudRenderType#getAdditive()}, i.e.
- * the very same shader, vertex format and depth state as the gas clouds but with
- * {@code SRC_ALPHA / ONE} instead of the translucent {@code SRC_ALPHA / ONE_MINUS_SRC_ALPHA}. The
- * reference look is a glowing plasma column over a dark background, and {@code SRC_ALPHA / ONE} makes
- * the near-opaque core add up to a bright near-white glow instead of merely blending towards whatever
- * is behind it. The ordinary translucent variant is therefore left completely untouched for the gas
- * and specks.</p>
+ * <h2>Blending</h2>
+ * <p>The column is drawn through {@link GasCloudRenderType#get()}, i.e. the ordinary translucent
+ * variant the gas clouds and water specks already use, so the shader's golden ramp reaches the screen
+ * as colour. It used to use {@link GasCloudRenderType#getAdditive()}, but {@code SRC_ALPHA / ONE}
+ * saturates against a lit world: in daylight every texel of the quad added up past white, so the whole
+ * column read as one flat, hard-edged golden block instead of a flame. The tiny embers keep the
+ * additive variant, where a blown-out glint is exactly what an ember should look like.</p>
  *
  * <h2>What each vertex colour channel carries</h2>
  * <p>The flame style ignores the tint (its colours come from the shader constants), so the four
@@ -210,7 +209,7 @@ public final class SoulProtectionHeartRenderer {
     /** Half width of the bright core band around the spine. Mirrors {@code HEART_CORE_WIDTH}. */
     public static final float HEART_CORE_WIDTH = 0.09F;
     /** Soft outer feather of that core band. Mirrors {@code HEART_CORE_FEATHER}. */
-    public static final float HEART_CORE_FEATHER = 0.08F;
+    public static final float HEART_CORE_FEATHER = 0.14F;
     /** How much the filaments may dim the core, 0..1. Mirrors {@code HEART_CORE_MIN}. */
     public static final float HEART_CORE_MIN = 0.35F;
     /** How much the core adds to the intensity. Mirrors {@code HEART_CORE_BOOST}. */
@@ -224,9 +223,9 @@ public final class SoulProtectionHeartRenderer {
     /** Intensity at which the ramp reaches the near-white core. Mirrors {@code HEART_RAMP_CORE}. */
     public static final float HEART_RAMP_CORE = 0.85F;
     /** Opacity of the faintest wisps. Mirrors {@code HEART_WISP_ALPHA}. */
-    public static final float HEART_WISP_ALPHA = 0.15F;
+    public static final float HEART_WISP_ALPHA = 0.40F;
     /** Opacity of the core. Mirrors {@code HEART_CORE_ALPHA}. */
-    public static final float HEART_CORE_ALPHA = 0.95F;
+    public static final float HEART_CORE_ALPHA = 0.80F;
     /** Core gold {@code #FFF7CC} (255, 247, 204). Mirrors the GLSL const {@code HEART_COLOR_CORE}. */
     public static final float HEART_COLOR_CORE_RED = 1.0F;
     public static final float HEART_COLOR_CORE_GREEN = 0.9686275F;
@@ -497,13 +496,14 @@ public final class SoulProtectionHeartRenderer {
         float flickerPhase = phase(time, HEART_FLICKER_PERIOD_TICKS);
 
         // Vertical (yaw-only) billboard: the column always stays upright, so it never tilts with the
-        // camera's pitch.
+        // camera's pitch. It is drawn through the ordinary translucent variant (see the class comment
+        // on blending), which is what lets the golden flame shape survive a lit background.
         GasCloudRenderer.submitVerticalBillboard(collector, poseStack, basis, state.x, state.y, state.z,
                 behindOffset.x, behindOffset.y + centerOffsetY, behindOffset.z,
                 width * 0.5F * breathing, height * 0.5F * breathing,
                 boilPhase, swayPhase, flickerPhase, fade,
                 0, GasCloudRenderType.HEART_STYLE_CHANNEL,
-                GasCloudRenderType.getAdditive());
+                GasCloudRenderType.get());
 
         submitMotes(state, poseStack, basis, collector, heartState, width, height,
                 centerOffsetY, behindOffset, fade, time);
@@ -556,7 +556,8 @@ public final class SoulProtectionHeartRenderer {
             double moteOffsetY = centerOffsetY + (loop - 0.5D) * height * HEART_MOTE_RISE_SCALE;
             // The ember colour comes from the shader's HEART_MOTE_COLOR, so only the fade matters.
             // The behind-the-entity offset is added so the embers move with the column, and the same
-            // upright (yaw only) billboard is used for them.
+            // upright (yaw only) billboard is used for them. They keep the additive variant: a few
+            // pixels of blown-out gold read as a glint.
             GasCloudRenderer.submitVerticalBillboard(collector, poseStack, basis, state.x, state.y, state.z,
                     moteOffsetX + behindOffset.x, moteOffsetY + behindOffset.y, moteOffsetZ + behindOffset.z,
                     halfSize, halfSize,
