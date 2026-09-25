@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import org.tdddd.eej.api.AltarBlockTags;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.InfestedSourcePacket;
+import org.tdddd.epca.impl.network.packet.s2c.SyncRitualAuraPacket;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.data.SacrificeSavedData;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
@@ -944,6 +945,16 @@ public class BlockConversionManager {
 
         boolean isComplete() { return index >= positions.length; }
 
+        /**
+         * Ticks this ritual still needs, from the batches left to convert. Sent to the clients so the
+         * aura knows how long it has to stay (and so the purple sky can ramp), see
+         * {@link #syncRitualAura()}.
+         */
+        int remainingTicks() {
+            int left = Math.max(0, positions.length - index);
+            return (int) Math.ceil(left / (double) BATCH_SIZE);
+        }
+
         int percent() {
             return positions.length == 0 ? 100 : (int) ((long) index * 100L / positions.length);
         }
@@ -959,6 +970,25 @@ public class BlockConversionManager {
     
     @Nullable
     private net.minecraft.server.MinecraftServer recoveredServer;
+
+    /** Ticks between two visual batches of the running rituals; see {@link #syncRitualAura()}. */
+    public static final int RITUAL_SYNC_INTERVAL_TICKS = 10;
+
+    /** Blocks around a ritual within which a player is told about it. */
+    public static final double RITUAL_SYNC_RADIUS = 96.0D;
+
+    /**
+     * How long a dimension keeps receiving (possibly empty) ritual batches after its last ritual ended.
+     * The client starts its fade-out when a ritual stops appearing in a batch, so the empty batches
+     * have to keep coming for a moment after the lightning, or the aura would never dissolve.
+     */
+    private static final int RITUAL_AUDIENCE_GRACE_TICKS = 120;
+
+    /** Server tick counter for the ritual batches. */
+    private int ritualSyncCounter;
+
+    /** Dimensions that still have to receive ritual batches (empty ones included). */
+    private final Map<ResourceKey<Level>, Integer> ritualAudienceGrace = new HashMap<>();
 
     
     public boolean addSacrificeTask(ServerLevel level, BlockPos center, UUID playerId, List<BlockPos> positions,
@@ -1169,6 +1199,77 @@ public class BlockConversionManager {
         }
 
         advanceSacrificeTasks();
+        syncRitualAura();
+    }
+
+    /**
+     * Tells every player near a running ritual where it is and how long it still needs, so the client
+     * can draw the purple aura until the lightning falls and then fade it out.
+     *
+     * <p>Only the head of each dimension's queue is converting, so that is the task that is announced.
+     * A dimension that has (or just had) a ritual keeps receiving batches for
+     * {@link #RITUAL_AUDIENCE_GRACE_TICKS} ticks - empty ones included, because the client reads a
+     * missing entry as "the ritual is over, start fading". This is the 26.1.2 twin of the 1.20.1
+     * method of the same name, with the level identity carried by the dimension key the sacrifice task
+     * map is keyed by here.</p>
+     */
+    private void syncRitualAura() {
+        if (++ritualSyncCounter % RITUAL_SYNC_INTERVAL_TICKS != 0) {
+            return;
+        }
+
+        Map<ResourceKey<Level>, List<SacrificeTask>> active = new HashMap<>();
+        synchronized (sacrificeTasks) {
+            for (Map.Entry<ResourceKey<Level>, Queue<SacrificeTask>> entry : sacrificeTasks.entrySet()) {
+                SacrificeTask task = entry.getValue().peek();
+                if (task != null) {
+                    active.computeIfAbsent(entry.getKey(), key -> new ArrayList<>()).add(task);
+                }
+            }
+        }
+
+        Set<ResourceKey<Level>> dimensions = new HashSet<>(active.keySet());
+        dimensions.addAll(ritualAudienceGrace.keySet());
+        for (ResourceKey<Level> dimension : dimensions) {
+            List<SacrificeTask> tasks = active.get(dimension);
+            if (tasks == null) {
+                int grace = ritualAudienceGrace.getOrDefault(dimension, 0) - RITUAL_SYNC_INTERVAL_TICKS;
+                if (grace > 0) {
+                    ritualAudienceGrace.put(dimension, grace);
+                } else {
+                    ritualAudienceGrace.remove(dimension);
+                    continue;
+                }
+            } else {
+                ritualAudienceGrace.put(dimension, RITUAL_AUDIENCE_GRACE_TICKS);
+            }
+
+            ServerLevel level = levelOf(dimension);
+            if (level == null) continue;
+            for (ServerPlayer player : level.players()) {
+                List<BlockPos> centers = new ArrayList<>();
+                List<Integer> remaining = new ArrayList<>();
+                if (tasks != null) {
+                    for (SacrificeTask task : tasks) {
+                        if (centers.size() >= SyncRitualAuraPacket.MAX_ENTRIES) {
+                            break;
+                        }
+                        if (player.distanceToSqr(task.center.getX() + 0.5D, task.center.getY() + 0.5D,
+                                task.center.getZ() + 0.5D) > RITUAL_SYNC_RADIUS * RITUAL_SYNC_RADIUS) {
+                            continue;
+                        }
+                        centers.add(task.center);
+                        remaining.add(task.remainingTicks());
+                    }
+                }
+                BlockPos[] centerArray = centers.toArray(new BlockPos[0]);
+                int[] tickArray = new int[remaining.size()];
+                for (int i = 0; i < tickArray.length; i++) {
+                    tickArray[i] = remaining.get(i);
+                }
+                ModNetwork.sendToPlayer(player, new SyncRitualAuraPacket(centerArray, tickArray));
+            }
+        }
     }
 
     

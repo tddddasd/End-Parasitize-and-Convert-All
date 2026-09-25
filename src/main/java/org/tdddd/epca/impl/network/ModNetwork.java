@@ -71,6 +71,10 @@ public class ModNetwork {
         // epca:soul_protection aura needs its own batch sync; see SoulProtectionSyncHandler.
         registrar.playToClient(SyncSoulProtectionPacket.TYPE, SyncSoulProtectionPacket.STREAM_CODEC,
                 SyncSoulProtectionPacket::handle);
+        // Visual state of the running sacrifice rituals, so the client can draw the purple aura the
+        // server-side BlockConversionManager owns and fade it out when the lightning falls.
+        registrar.playToClient(SyncRitualAuraPacket.TYPE, SyncRitualAuraPacket.STREAM_CODEC,
+                SyncRitualAuraPacket::handle);
     }
 
     
