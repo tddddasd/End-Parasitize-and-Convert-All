@@ -163,16 +163,22 @@ const float HEART_EDGE_GAIN = 1.0;
 // Bright near-white core on the spine (width, feather, how much the filaments may dim it, and how
 // much it boosts the intensity), the four-step ramp core -> mid -> outer -> wisp, and the opacity
 // ramp from the faint wisps to the near-opaque core.
+//
+// The two alpha ends are deliberately close together: the column is drawn with the render type's
+// ordinary TRANSLUCENT blend over a lit world, and with a faint wisp end (0.15) plus a near-opaque
+// core (0.95) the only part that read on screen was the core bar while the flame silhouette around
+// it stayed invisible. Keeping the wisps clearly opaque and the core a little below full is what
+// makes the whole flame shape visible instead of a straight golden bar.
 const float HEART_CORE_WIDTH = 0.09;
-const float HEART_CORE_FEATHER = 0.08;
+const float HEART_CORE_FEATHER = 0.14;
 const float HEART_CORE_MIN = 0.35;
 const float HEART_CORE_BOOST = 0.55;
 const float HEART_RAMP_WISP = 0.10;
 const float HEART_RAMP_OUTER = 0.30;
 const float HEART_RAMP_MID = 0.55;
 const float HEART_RAMP_CORE = 0.85;
-const float HEART_WISP_ALPHA = 0.15;
-const float HEART_CORE_ALPHA = 0.95;
+const float HEART_WISP_ALPHA = 0.40;
+const float HEART_CORE_ALPHA = 0.80;
 // #FFF7CC core, #FFD24A mid, #E08A18 outer, #8A4B08 deepest wisp.
 const vec3 HEART_COLOR_CORE = vec3(1.0, 0.9686275, 0.8);
 const vec3 HEART_COLOR_MID = vec3(1.0, 0.8235294, 0.2901961);
@@ -247,7 +253,7 @@ float gasFbm(vec2 p, float seed) {
 // into the vertex colour, and returns the un-premultiplied colour and the opacity of the flame
 // column at that point. soulMoteColor() does the same for one ember. Replacing the body of either
 // function (plus, if it needs different inputs, the tunable block above) replaces the look: the
-// branches in main(), the fade, the additive blending and the gas/speck styles stay untouched.
+// branches in main(), the fade, the blend state and the gas/speck styles stay untouched.
 
 // Tall, irregular golden plasma column: an S-curved spine, a taper towards both ends, a
 // noise-eroded wispy outline with detached tongues, a bright near-white core and a four-step golden

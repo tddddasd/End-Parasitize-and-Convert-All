@@ -221,10 +221,12 @@ public final class GasCloudRenderType extends RenderType {
      * Additive variant of the very same pipeline: same core shader, same vertex format, same texture
      * and depth state, only {@code ADDITIVE_TRANSPARENCY} instead of {@code TRANSLUCENT_TRANSPARENCY}.
      *
-     * <p>It exists for the emissive {@code epca:soul_protection} flame, whose reference look is a
-     * glowing plasma column over a dark background: with {@code SRC_ALPHA / ONE} the near-opaque
-     * core adds up to a bright near-white glow instead of merely blending towards the background.
-     * Nothing else uses it, so the gas and speck quads keep their exact previous blend.</p>
+     * <p>It exists for the tiny golden embers that {@code SoulProtectionHeartRenderer} draws beside
+     * the {@code epca:soul_protection} flame column: with {@code SRC_ALPHA / ONE} a few pixels of
+     * near-white gold read as a glint. The column itself uses the ordinary translucent variant,
+     * because additive blending saturates the whole quad against a lit world and turns the flame into
+     * one flat golden block. Nothing else uses it, so the gas and speck quads keep their exact
+     * previous blend.</p>
      */
     private static final RenderType GAS_CLOUD_ADDITIVE =
             new GasCloudRenderType(ADDITIVE_RENDER_TYPE_NAME, true);
@@ -297,8 +299,8 @@ public final class GasCloudRenderType extends RenderType {
     }
 
     /**
-     * The additive variant of the same pipeline, for the emissive soul-protection flame; only valid
-     * to draw with while {@link #isShaderReady()} is true.
+     * The additive variant of the same pipeline, for the soul-protection embers; only valid to draw
+     * with while {@link #isShaderReady()} is true.
      */
     public static RenderType getAdditive() {
         return GAS_CLOUD_ADDITIVE;
