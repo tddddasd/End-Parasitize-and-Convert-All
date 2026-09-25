@@ -233,12 +233,7 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
             return;
         }
 
-        sendTo(player, Component.translatable("ritual.epca.started", positions.size()));
-        for (ServerPlayer nearby : nearbyPlayers(level, pos, 32.0)) {
-            if (nearby != player) {
-                sendTo(nearby, Component.translatable("ritual.epca.started_nearby"));
-            }
-        }
+        // The ritual itself stays silent: no chat text for the initiator or for nearby players.
     }
 
     

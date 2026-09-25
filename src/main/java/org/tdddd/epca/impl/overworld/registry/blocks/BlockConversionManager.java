@@ -1158,7 +1158,7 @@ public class BlockConversionManager {
                         task.center, level.dimension().identifier(), task.percent());
                 
                 for (ServerPlayer player : level.players()) {
-                    sendRitualMessage(player, Component.translatable("ritual.epca.resumed", task.percent()));
+                    // A resumed ritual is not announced as chat text.
                 }
             }
         }
@@ -1172,7 +1172,7 @@ public class BlockConversionManager {
         ResourceKey<Level> dimension = serverPlayer.level().dimension();
         List<BlockPos> cancelled = cancelSacrificeTasksForPlayer(dimension, serverPlayer.getUUID());
         if (!cancelled.isEmpty()) {
-            sendRitualMessage(serverPlayer, Component.translatable("ritual.epca.cancelled"));
+            // A cancelled ritual is not announced as chat text.
             epca.LOGGER.info("Cancelled {} in-progress sacrifice ritual(s) because their owner logged out",
                     cancelled.size());
         }
@@ -1369,12 +1369,12 @@ public class BlockConversionManager {
                 task.lastReportedPercent = percent;
                 Player owner = level.getPlayerByUUID(task.playerId);
                 if (owner != null) {
-                    sendRitualMessage(owner, Component.translatable("ritual.epca.progress", percent));
+                    // Ritual progress is not shown as chat text.
                 }
                 
                 for (Player nearby : nearbyPlayers(level, task.center, NEARBY_MESSAGE_RADIUS)) {
                     if (nearby != owner) {
-                        sendRitualMessage(nearby, Component.translatable("ritual.epca.progress_nearby"));
+                        // Ritual progress is not shown as chat text.
                     }
                 }
             }
@@ -1407,11 +1407,11 @@ public class BlockConversionManager {
         persistedTasks(level).removeTasksAt(level.dimension(), center);
         level.playSound(null, center, SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.WEATHER, 1.0F, 1.0F);
         if (player != null) {
-            sendRitualMessage(player, Component.translatable("ritual.epca.completed"));
+            // The ritual's completion is not shown as chat text.
         }
         for (Player nearby : nearbyPlayers(level, center, NEARBY_MESSAGE_RADIUS)) {
             if (nearby != player) {
-                sendRitualMessage(nearby, Component.translatable("ritual.epca.completed_nearby"));
+                // The ritual's completion is not shown as chat text.
             }
         }
     }
