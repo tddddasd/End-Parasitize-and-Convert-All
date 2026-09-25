@@ -122,11 +122,7 @@ public final class SacrificeRitualRenderer {
     public static final float RING_OFFSET = 0.08F;
     /** Height above a block's top surface its wave segment is drawn at. */
     public static final float WAVE_SURFACE_OFFSET = 0.03F;
-    /**
-     * Half width of the band, in blocks, in which a block column counts as "the ring is crossing it".
-     * Smaller than a block, so the wave shows up in patches instead of as a solid sheet.
-     */
-    public static final float WAVE_BAND = 0.55F;
+
 
     // ---- pulsing -----------------------------------------------------------------------------------
 
@@ -454,17 +450,15 @@ public final class SacrificeRitualRenderer {
                     RING_LINE_WIDTH, WAVE_RED, WAVE_GREEN, WAVE_BLUE, airAlpha, camera);
 
             // (2) the same diagonal projected onto the nearby block top surfaces. A block column counts
-            // when the diagonal |dx| + |dz| = radius passes through its cell, so the wave shows up in
-            // patches and - once the ring is wide - as a single edge (or a corner, i.e. half a diamond)
-            // per cell, with the mirrored half landing in the cell on the opposite side.
+            // when the diamond |X| + |Z| = radius actually crosses its cell; the piece inside the cell
+            // is found by clipping the line exactly and interpolating it linearly, so the pieces of
+            // neighbouring cells join up into one straight diamond line (and, once the ring is wide, a
+            // single edge or a diamond corner per cell with the mirrored half in the cell opposite).
             int reach = Mth.ceil(radius) + 1;
             float surfaceAlpha = ringFade * WAVE_SURFACE_ALPHA;
             for (int dx = -reach; dx <= reach; dx++) {
                 for (int dz = -reach; dz <= reach; dz++) {
-                    double cellX = dx + 0.5D;
-                    double cellZ = dz + 0.5D;
-                    double diagonal = Math.abs(cellX) + Math.abs(cellZ);
-                    if (Math.abs(diagonal - radius) > WAVE_BAND) {
+                    if (!cellCrossesDiamond(dx, dz, radius)) {
                         continue;
                     }
                     BlockPos column = center.offset(dx, 0, dz);
@@ -474,7 +468,7 @@ public final class SacrificeRitualRenderer {
                         continue;
                     }
                     double surfaceY = top.getY() + WAVE_SURFACE_OFFSET;
-                    emitDiagonalCell(consumer, matrix, x + dx, surfaceY, z + dz, cellX, cellZ,
+                    emitDiagonalCell(consumer, matrix, x + dx, surfaceY, z + dz, dx, dz, radius,
                             surfaceAlpha, camera);
                 }
             }
@@ -482,33 +476,74 @@ public final class SacrificeRitualRenderer {
     }
 
     /**
-     * Emits the piece of the diagonal that crosses one block cell, as a single short segment through
-     * the cell centre along the local edge direction (the perpendicular of the cell's radial
-     * direction). That is the rasterised form of the diamond edge: the segments join up into a stepped
-     * diamond, and a cell that holds a diamond corner (|dx| or |dz| near 0) shows the two edges of that
-     * half.
+     * True when the diamond {@code |X| + |Z| = radius} may cross the cell
+     * {@code [dx, dx + 1] x [dz, dz + 1]}: the radius has to lie between the smallest and the largest
+     * corner diagonal of that cell. The test is deliberately a conservative bound - a cell it lets
+     * through that the line misses simply emits nothing.
+     */
+    private static boolean cellCrossesDiamond(int dx, int dz, double radius) {
+        double minDiagonal = Double.MAX_VALUE;
+        double maxDiagonal = -Double.MAX_VALUE;
+        for (int cornerX = 0; cornerX <= 1; cornerX++) {
+            for (int cornerZ = 0; cornerZ <= 1; cornerZ++) {
+                double corner = Math.abs(dx + cornerX) + Math.abs(dz + cornerZ);
+                minDiagonal = Math.min(minDiagonal, corner);
+                maxDiagonal = Math.max(maxDiagonal, corner);
+            }
+        }
+        return radius >= minDiagonal && radius <= maxDiagonal;
+    }
+
+    /**
+     * Emits the piece of the diamond edge that crosses one block cell.
+     *
+     * <p>The edge inside the cell is not approximated by a segment through the cell centre along the
+     * local tangent any more: the edge line of the cell's quadrant is clipped to the cell exactly and
+     * its two end points are obtained by <b>linear interpolation</b> along the line, so the pieces of
+     * neighbouring cells line up into a single straight diamond edge instead of a stepped chain.</p>
      */
     private static void emitDiagonalCell(VertexConsumer consumer, Matrix4f matrix,
                                          double cellOriginX, double surfaceY, double cellOriginZ,
-                                         double cellX, double cellZ, float alpha, Vec3 camera) {
-        // Radial direction of the cell: the diamond edge is perpendicular to it.
-        double radialX = Math.abs(cellX) < 1.0E-3D ? 0.0D : Math.signum(cellX);
-        double radialZ = Math.abs(cellZ) < 1.0E-3D ? 0.0D : Math.signum(cellZ);
-        if (radialX == 0.0D && radialZ == 0.0D) {
+                                         int dx, int dz, double radius, float alpha, Vec3 camera) {
+        // A cell lies in exactly one quadrant (dx == 0 and dx == -1 only touch the axis with an edge),
+        // so only that quadrant's edge of the diamond can cross it: sx * X + sz * Z = radius.
+        double sx = dx >= 0 ? 1.0D : -1.0D;
+        double sz = dz >= 0 ? 1.0D : -1.0D;
+        double x0 = dx;
+        double x1 = dx + 1.0D;
+        double z0 = dz;
+        double z1 = dz + 1.0D;
+
+        // Walk the edge over the cell's X range and interpolate Z linearly on it.
+        double ax = x0;
+        double bx = x1;
+        double az = (radius - sx * ax) / sz;
+        double bz = (radius - sx * bx) / sz;
+        double zSpan = bz - az;
+
+        // Clip the parameter range [0,1] to the part where the interpolated Z stays inside the cell.
+        double t0 = 0.0D;
+        double t1 = 1.0D;
+        if (Math.abs(zSpan) > 1.0E-9D) {
+            double ta = (z0 - az) / zSpan;
+            double tb = (z1 - az) / zSpan;
+            t0 = Math.max(t0, Math.min(ta, tb));
+            t1 = Math.min(t1, Math.max(ta, tb));
+        } else if (az < z0 || az > z1) {
             return;
         }
-        double tangentX = -radialZ;
-        double tangentZ = radialX;
-        // Clip the line through the cell centre with that direction to the cell itself.
-        double limit = 0.5D;
-        double tx = Math.abs(tangentX) < 1.0E-6D ? Double.MAX_VALUE : limit / Math.abs(tangentX);
-        double tz = Math.abs(tangentZ) < 1.0E-6D ? Double.MAX_VALUE : limit / Math.abs(tangentZ);
-        double t = Math.min(tx, tz);
-        double centreX = cellOriginX + 0.5D;
-        double centreZ = cellOriginZ + 0.5D;
+        if (t1 - t0 <= 1.0E-6D) {
+            return;
+        }
+
+        // Both end points, linearly interpolated between the cell's X bounds.
+        double px0 = ax + (bx - ax) * t0;
+        double pz0 = az + zSpan * t0;
+        double px1 = ax + (bx - ax) * t1;
+        double pz1 = az + zSpan * t1;
         emitSegment(consumer, matrix,
-                centreX - tangentX * t, surfaceY, centreZ - tangentZ * t,
-                centreX + tangentX * t, surfaceY, centreZ + tangentZ * t,
+                cellOriginX + px0, surfaceY, cellOriginZ + pz0,
+                cellOriginX + px1, surfaceY, cellOriginZ + pz1,
                 RING_LINE_WIDTH, WAVE_RED, WAVE_GREEN, WAVE_BLUE, alpha, camera);
     }
 
