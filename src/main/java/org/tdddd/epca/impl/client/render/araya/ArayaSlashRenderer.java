@@ -11,7 +11,6 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.tdddd.epca.impl.client.effect.ArayaSlashClientCache;
-import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.events.ArayaConstants;
 
 /**
@@ -52,9 +51,6 @@ import org.tdddd.epca.impl.events.ArayaConstants;
  */
 public final class ArayaSlashRenderer {
 
-    /** TEMP DIAGNOSTIC frame counter (remove together with the diagnostic in {@link #renderGeometry}). */
-    private static long diagnosticFrames;
-
     private ArayaSlashRenderer() {
     }
 
@@ -85,14 +81,6 @@ public final class ArayaSlashRenderer {
         float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
         float time = level.getGameTime() + partialTick;
         Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
-
-        // TEMP DIAGNOSTIC (remove once the slash is confirmed on screen): reaches here only when the
-        // client cache holds at least one slash, so a line proves the geometry is really submitted.
-        if ((diagnosticFrames++ % 40L) == 0L) {
-            epca.LOGGER.info("[araya] submitting {} slash(es); camera=({}, {}, {}) first={}",
-                    ArayaSlashClientCache.entries().size(), camera.x, camera.y, camera.z,
-                    ArayaSlashClientCache.entries().get(0).position);
-        }
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
 

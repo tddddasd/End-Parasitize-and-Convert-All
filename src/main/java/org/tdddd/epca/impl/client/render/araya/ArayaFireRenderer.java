@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.tdddd.epca.impl.client.effect.ArayaClientCache;
-import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.events.ArayaConstants;
 
 import java.util.ArrayList;
@@ -62,9 +61,6 @@ public final class ArayaFireRenderer {
     /** Quads of the vanilla fire model, flattened once so the per-frame loop does no allocation. */
     private static List<BakedQuad> cachedQuads;
 
-    /** TEMP DIAGNOSTIC frame counter (remove together with the diagnostic in {@link #renderGeometry}). */
-    private static long diagnosticFrames;
-
     private ArayaFireRenderer() {
     }
 
@@ -93,14 +89,6 @@ public final class ArayaFireRenderer {
 
         long gameTime = level.getGameTime();
         Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
-
-        // TEMP DIAGNOSTIC (remove once the effect is confirmed on screen): reaches here only when the
-        // client cache holds fire, so a line proves the fire geometry is really submitted.
-        if ((diagnosticFrames++ % 40L) == 0L) {
-            epca.LOGGER.info("[araya] submitting fire: {} fire(s), {} holder(s), camera=({}, {}, {})",
-                    ArayaClientCache.fires().size(), ArayaClientCache.holders().size(),
-                    camera.x, camera.y, camera.z);
-        }
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
         VertexConsumer consumer = buffers.getBuffer(renderType);

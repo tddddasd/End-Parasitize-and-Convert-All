@@ -6,7 +6,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.effect.ArayaSlashClientCache;
-import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.network.ModNetwork;
 
 /**
@@ -71,16 +70,7 @@ public class SpawnArayaSlashPacket implements CustomPacketPayload {
     }
 
     public static void handle(SpawnArayaSlashPacket packet, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            // TEMP DIAGNOSTIC (remove once the slash is confirmed on screen): proves the packet arrived
-            // and which start time the client will compare its own game time against.
-            net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
-            long clientTime = minecraft.level != null ? minecraft.level.getGameTime() : Long.MIN_VALUE;
-            epca.LOGGER.info("[araya] slash packet: pos=({}, {}, {}) dir=({}, {}) startTick={} clientTime={}",
-                    packet.x, packet.y, packet.z, packet.directionX, packet.directionZ,
-                    packet.startTick, clientTime);
-            ArayaSlashClientCache.add(new Vec3(packet.x, packet.y, packet.z),
-                    new Vec3(packet.directionX, 0.0D, packet.directionZ), packet.startTick);
-        });
+        ctx.enqueueWork(() -> ArayaSlashClientCache.add(new Vec3(packet.x, packet.y, packet.z),
+                new Vec3(packet.directionX, 0.0D, packet.directionZ), packet.startTick));
     }
 }
