@@ -175,14 +175,14 @@ public final class ArayaSlashRenderer {
         for (int side = -1; side <= 1; side += 2) {
             double inner = side * coreHalf;
             double outer = inner + side * band;
-            emitStrip(consumer, matrix, world, u, w, halfLength, inner, outer,
-                    ArayaConstants.SLASH_BAND_ALPHA * fade, band * 0.5D);
+            emitPrism(consumer, matrix, world, u, w, hit, halfLength, inner, outer,
+                    ArayaConstants.SLASH_BAND_ALPHA * fade);
         }
-        emitStrip(consumer, matrix, world, u, w, halfLength, -coreHalf, coreHalf,
-                ArayaConstants.SLASH_CORE_ALPHA * fade, coreHalf);
+        emitPrism(consumer, matrix, world, u, w, hit, halfLength, -coreHalf, coreHalf,
+                ArayaConstants.SLASH_CORE_ALPHA * fade);
         double haloHalf = coreHalf * ArayaConstants.SLASH_HALO_WIDTH_FACTOR;
-        emitStrip(consumer, matrix, world, u, w, halfLength, -haloHalf, haloHalf,
-                ArayaConstants.SLASH_CORE_ALPHA * ArayaConstants.SLASH_HALO_ALPHA * fade, haloHalf);
+        emitPrism(consumer, matrix, world, u, w, hit, halfLength, -haloHalf, haloHalf,
+                ArayaConstants.SLASH_CORE_ALPHA * ArayaConstants.SLASH_HALO_ALPHA * fade);
     }
 
     /**
@@ -200,27 +200,58 @@ public final class ArayaSlashRenderer {
     }
 
     /**
-     * One strip: a quad spanning {@code innerDistance .. outerDistance} along {@code w} and
-     * {@code +-halfLength} along {@code u}. Its UV carries {@code (distance from the centreline, half
-     * width of the strip)}, both in blocks, which is all the shader needs for the profile and the
-     * frame-copy offset.
+     * One strip as a triangular prism, so the blade has volume instead of being a zero-thickness plane.
+     *
+     * <p>The cross-section is a triangle: its base runs along {@code w} from {@code innerDistance} to
+     * {@code outerDistance} on the blade's plane, and its apex stands {@code halfWidth} off that plane
+     * along the normal {@code n}. That triangle is extruded along {@code u} over the whole blade length,
+     * which makes each strip a wedge with two faces (inner base edge to apex, apex to outer base edge). No
+     * end caps are emitted: the silhouette seen down the blade's axis is the same triangle from either
+     * side, so the blade already reads as solid from every direction, and a cap would be a few centimetres
+     * across.</p>
+     *
+     * <p>UV0 carries {@code (signed distance from THIS strip's centreline, half width of the strip)}, both
+     * in blocks and measured inside the strip: the fragment stage shapes the glow profile with it (full in
+     * the middle of the strip, zero at its edges) and scales the frame-copy offset with it.</p>
      */
-    private static void emitStrip(VertexConsumer consumer, Matrix4f matrix, Vec3 centre, Vec3 u, Vec3 w,
-                                  double halfLength, double innerDistance, double outerDistance, float alpha,
-                                  double halfWidth) {
-        double length = (outerDistance - innerDistance) * 0.5D;
+    private static void emitPrism(VertexConsumer consumer, Matrix4f matrix, Vec3 centre, Vec3 u, Vec3 w, Vec3 n,
+                                  double halfLength, double innerDistance, double outerDistance, float alpha) {
         double midpoint = (outerDistance + innerDistance) * 0.5D;
-        for (int i = 0; i < 4; i++) {
-            boolean atOuterEnd = i == 2 || i == 3;
-            boolean atOuterEdge = i == 1 || i == 2;
-            double alongLength = atOuterEnd ? halfLength : -halfLength;
-            double alongWidth = midpoint + (atOuterEdge ? length : -length);
-            float x = (float) (centre.x + u.x * alongLength + w.x * alongWidth);
-            float y = (float) (centre.y + u.y * alongLength + w.y * alongWidth);
-            float z = (float) (centre.z + u.z * alongLength + w.z * alongWidth);
-            consumer.addVertex(matrix, x, y, z)
-                    .setColor(1.0F, 1.0F, 1.0F, alpha)
-                    .setUv((float) alongWidth, (float) halfWidth);
-        }
+        double halfWidth = Math.abs(outerDistance - innerDistance) * 0.5D;
+        double height = halfWidth;
+        emitPrismFace(consumer, matrix, centre, u, w, n, halfLength, halfWidth, alpha,
+                innerDistance, 0.0D, -halfWidth,
+                midpoint, height, 0.0D);
+        emitPrismFace(consumer, matrix, centre, u, w, n, halfLength, halfWidth, alpha,
+                midpoint, height, 0.0D,
+                outerDistance, 0.0D, halfWidth);
+    }
+
+    /**
+     * One quad of a prism: two cross-section points, each extruded from {@code -halfLength} to
+     * {@code +halfLength} along {@code u}. A cross-section point is
+     * {@code (alongWidth, alongNormal, uvX)} - its offsets along {@code w} and {@code n}, and the UV0.x it
+     * carries.
+     */
+    private static void emitPrismFace(VertexConsumer consumer, Matrix4f matrix, Vec3 centre, Vec3 u, Vec3 w, Vec3 n,
+                                      double halfLength, double halfWidth, float alpha,
+                                      double widthA, double normalA, double uvA,
+                                      double widthB, double normalB, double uvB) {
+        emitPrismVertex(consumer, matrix, centre, u, w, n, -halfLength, widthA, normalA, uvA, halfWidth, alpha);
+        emitPrismVertex(consumer, matrix, centre, u, w, n, -halfLength, widthB, normalB, uvB, halfWidth, alpha);
+        emitPrismVertex(consumer, matrix, centre, u, w, n, halfLength, widthB, normalB, uvB, halfWidth, alpha);
+        emitPrismVertex(consumer, matrix, centre, u, w, n, halfLength, widthA, normalA, uvA, halfWidth, alpha);
+    }
+
+    /** One prism vertex: {@code centre + u * alongLength + w * alongWidth + n * alongNormal}. */
+    private static void emitPrismVertex(VertexConsumer consumer, Matrix4f matrix, Vec3 centre, Vec3 u, Vec3 w, Vec3 n,
+                                        double alongLength, double alongWidth, double alongNormal, double uvX,
+                                        double halfWidth, float alpha) {
+        float x = (float) (centre.x + u.x * alongLength + w.x * alongWidth + n.x * alongNormal);
+        float y = (float) (centre.y + u.y * alongLength + w.y * alongWidth + n.y * alongNormal);
+        float z = (float) (centre.z + u.z * alongLength + w.z * alongWidth + n.z * alongNormal);
+        consumer.addVertex(matrix, x, y, z)
+                .setColor(1.0F, 1.0F, 1.0F, alpha)
+                .setUv((float) uvX, (float) halfWidth);
     }
 }

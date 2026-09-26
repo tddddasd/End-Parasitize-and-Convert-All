@@ -25,10 +25,11 @@ package org.tdddd.epca.impl.events;
  *       The server is authoritative for <i>where</i> and <i>when</i>: it rolls the lifetime and the
  *       height per block once and ships both in the sync packet, so every client sees the same fire
  *       appear and disappear at the same instant.</li>
- *   <li><b>Fire count</b>: {@link #FIRE_COUNT} blocks are active per holder at a time; they all
- *       expire together and are re-rolled, so the effect comes in waves rather than flickering block
- *       by block. {@link #FIRE_REROLL_TICKS} is that wave period and is the longest possible lifetime,
- *       so a wave is never cut short by its successor.</li>
+ *   <li><b>Fire count</b>: every roll places {@link #FIRE_MIN_PER_WAVE} to {@link #FIRE_MAX_PER_WAVE}
+ *       blocks around the holder, and at most {@link #FIRE_MAX_ACTIVE} are alive at once. Waves overlap
+ *       ({@link #FIRE_REROLL_TICKS} is the longest possible lifetime, so a wave is never cut short by its
+ *       successor) and the cap drops the oldest blocks first, which is what keeps "8 to 17 per wave, 27 at
+ *       most" rather than an unbounded pile.</li>
  * </ul>
  */
 public final class ArayaConstants {
@@ -154,8 +155,20 @@ public final class ArayaConstants {
 
     // ------------------------------------------------------------------ the fire blocks
 
-    /** How many render-only fire blocks one holder keeps alive at a time. */
-    public static final int FIRE_COUNT = 12;
+    /** Fewest render-only fire blocks one roll places around a holder. */
+    public static final int FIRE_MIN_PER_WAVE = 8;
+
+    /** Most render-only fire blocks one roll places around a holder. */
+    public static final int FIRE_MAX_PER_WAVE = 17;
+
+    /**
+     * Hard cap on how many fire blocks one holder may have alive at the same time.
+     *
+     * <p>Waves deliberately overlap - the roll period is the longest lifetime, so a new wave starts while
+     * the previous one is still burning - and this cap is what stops the two from adding up without bound:
+     * the newest wave pushes the oldest blocks out.</p>
+     */
+    public static final int FIRE_MAX_ACTIVE = 27;
 
     /** Radius, in blocks, around the holder that the fire blocks are placed in. */
     public static final double FIRE_RADIUS = 8.0D;

@@ -10,19 +10,26 @@
 // ---------------------------------------------------------------------------
 // The 1.20.1 twin is assets/epca/shaders/core/araya_slash.vsh with the same three attributes and the
 // same two values packed into UV0 (the signed distance from the blade's centreline in blocks, and the
-// half width of the strip it belongs to). The differences are the GLSL version and the fact that the
-// refraction ratio is a compile-time constant here instead of a core-shader JSON uniform: 26.1.2 has no
-// core shader JSON, and RenderType#draw always writes ColorModulator = (1,1,1,1) into the shared
-// DynamicTransforms buffer, so a per-draw uniform is not reachable from this path. The constant is the
-// twin of ArayaConstants.SLASH_REFRACTION_RATIO and is cross-checked against it by
-// build/javac-check/check-glsl-26.py.
+// half width of the strip it belongs to). The differences are the GLSL version, the way the matrices
+// arrive, and the fact that the refraction ratio is a compile-time constant here instead of a
+// core-shader JSON uniform: 26.1.2 has no core shader JSON, and RenderType#draw always writes
+// ColorModulator = (1,1,1,1) into the shared DynamicTransforms buffer, so a per-draw uniform is not
+// reachable from this path. The constant is the twin of ArayaConstants.SLASH_REFRACTION_RATIO and is
+// cross-checked against it by build/javac-check/check-glsl-26.py.
+//
+// CRITICAL for 26.1.2: the matrices are NOT plain uniforms any more. ModelViewMat and ProjMat come from
+// the two std140 uniform blocks the pipeline declares (MATRICES_PROJECTION_SNIPPET), so they have to be
+// pulled in with the same #moj_import lines the vanilla core shaders use. Declaring
+// "uniform mat4 ModelViewMat;" instead - which is what this file did at first - leaves the shader
+// reading a uniform that the pipeline never fills: the program still links, every vertex collapses to
+// one point, and the blade is invisible with no error in the log.
+
+#moj_import <minecraft:projection.glsl>
+#moj_import <minecraft:dynamictransforms.glsl>
 
 in vec3 Position;
 in vec4 Color;
 in vec2 UV0;
-
-uniform mat4 ModelViewMat;
-uniform mat4 ProjMat;
 
 out vec4 vertexColor;
 out vec2 ribbonCoord;

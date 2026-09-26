@@ -38,9 +38,21 @@ public final class ArayaFireRenderType {
     /** Render type and pipeline name. */
     public static final String NAME = "epca_araya_fire_blocks";
 
-    /** The fire pipeline: vanilla terrain state, translucent, no depth writes, no culling. */
+    /**
+     * The fire pipeline: the immediate block-model state ({@code core/block}), translucent, no depth
+     * writes, no culling.
+     *
+     * <p>Deliberately {@code BLOCK_SNIPPET} and NOT {@code TERRAIN_SNIPPET}. The terrain snippet runs
+     * {@code core/terrain}, which takes its model-view matrix from the per-chunk-section {@code ChunkSection}
+     * uniform buffer and has no {@code DynamicTransforms} at all; ours are immediate quads submitted outside
+     * the chunk renderer, so that buffer is never filled for them and the geometry is transformed by
+     * whatever the section buffer happened to hold - invisible, and with nothing in the log. The block
+     * snippet is the one vanilla itself uses for immediate block-model draws ({@code SOLID_BLOCK} /
+     * {@code CUTOUT_BLOCK}): {@code core/block} plus {@code MATRICES_PROJECTION_SNIPPET}, which is exactly
+     * the {@code DynamicTransforms} + {@code Projection} pair {@code RenderType#draw} fills in.</p>
+     */
     public static final RenderPipeline FIRE_PIPELINE =
-            RenderPipeline.builder(RenderPipelines.TERRAIN_SNIPPET)
+            RenderPipeline.builder(RenderPipelines.BLOCK_SNIPPET)
                     .withLocation(Identifier.fromNamespaceAndPath(epca.MODID, "pipeline/araya_fire"))
                     .withVertexFormat(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT
                             .vertexFormat(), VertexFormat.Mode.QUADS)

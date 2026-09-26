@@ -25,8 +25,13 @@ import org.tdddd.epca.impl.network.packet.s2c.SyncArayaFirePacket;
 import org.tdddd.epca.impl.overworld.registry.items.item.KillStick;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Server half of the Alayavijnana staff feature: the kill path, the slash broadcast, the aura sweep and
@@ -62,7 +67,32 @@ public final class ArayaSyncHandler {
     /** Server ticks seen by this handler; drives the sweep cadence and the fire re-roll period. */
     private static long serverTickCounter;
 
+    /**
+     * The fire blocks the server believes are alive, per holder.
+     *
+     * <p>The server owns the field: it rolls a wave of {@code FIRE_MIN_PER_WAVE..FIRE_MAX_PER_WAVE} blocks
+     * around each holder on the roll period, keeps the previous waves until their lifetime runs out, caps
+     * the total at {@code FIRE_MAX_ACTIVE} by dropping the oldest, and ships the resulting set - position,
+     * age, lifetime and height - so every client draws exactly the same fire at exactly the same time.</p>
+     */
+    private static final Map<UUID, List<ActiveFire>> ACTIVE_FIRES = new HashMap<>();
+
     private ArayaSyncHandler() {
+    }
+
+    /** One render-only fire block that is currently burning around a holder. */
+    private static final class ActiveFire {
+        private final BlockPos position;
+        private final long bornAtTick;
+        private final int lifetimeTicks;
+        private final float height;
+
+        private ActiveFire(BlockPos position, long bornAtTick, int lifetimeTicks, float height) {
+            this.position = position;
+            this.bornAtTick = bornAtTick;
+            this.lifetimeTicks = lifetimeTicks;
+            this.height = height;
+        }
     }
 
     // ===============================================================================================
@@ -165,6 +195,28 @@ public final class ArayaSyncHandler {
             epca.LOGGER.info("[araya] sweep: {} holder(s) with the named staff; counters: {}",
                     holders.size(), counters.toString().trim());
         }
+        // The fire field: age out what burned down, roll a new wave on the roll period, and hold the total
+        // at FIRE_MAX_ACTIVE by dropping the oldest blocks of the holder whose waves overlap the most.
+        long now = level.getGameTime();
+        Set<UUID> holderIds = new HashSet<>();
+        for (ServerPlayer holder : holders) {
+            holderIds.add(holder.getUUID());
+            List<ActiveFire> active = ACTIVE_FIRES.computeIfAbsent(holder.getUUID(),
+                    key -> new ArrayList<>());
+            active.removeIf(fire -> now - fire.bornAtTick >= fire.lifetimeTicks);
+            if (reroll) {
+                for (BlockPos pos : rollFireField(level, holder)) {
+                    active.add(new ActiveFire(pos, now,
+                            ArayaConstants.fireLifetimeTicks(pos.getX(), pos.getY(), pos.getZ()),
+                            ArayaConstants.fireHeight(pos.getX(), pos.getY(), pos.getZ())));
+                }
+                while (active.size() > ArayaConstants.FIRE_MAX_ACTIVE) {
+                    active.remove(0);
+                }
+            }
+        }
+        // A holder who lost the staff (or left) must not leave fire burning behind them.
+        ACTIVE_FIRES.keySet().removeIf(uuid -> !holderIds.contains(uuid));
         if (holders.isEmpty()) {
             // One empty batch per player is what clears the client cache, so a level whose last holder
             // just lost the staff still stops the BGM and removes the fire.
@@ -187,7 +239,10 @@ public final class ArayaSyncHandler {
                 }
             }
             ModNetwork.sendToPlayer(listener, buildAuraPacket(visible));
-            if (reroll && !visible.isEmpty()) {
+            // The whole fire set is resent on every sweep, not only on a roll: the entries carry their own
+            // age, so a listener that just came into range sees the fires already burning instead of an
+            // empty field for up to one roll period.
+            if (!visible.isEmpty()) {
                 ModNetwork.sendToPlayer(listener, buildFirePacket(level, visible));
             }
         }
@@ -207,56 +262,58 @@ public final class ArayaSyncHandler {
         return new SyncArayaAuraPacket(entityIds, positions);
     }
 
-    /** One batch with the union of the fire fields of the holders this listener can see. */
+    /** One batch with the union of the live fire blocks of the holders this listener can see. */
     private static SyncArayaFirePacket buildFirePacket(ServerLevel level, List<ServerPlayer> holders) {
-        List<Integer> xs = new ArrayList<>();
-        List<Integer> ys = new ArrayList<>();
-        List<Integer> zs = new ArrayList<>();
+        long now = level.getGameTime();
+        List<ActiveFire> pooled = new ArrayList<>();
         for (ServerPlayer holder : holders) {
-            List<BlockPos> field = rollFireField(level, holder);
-            for (BlockPos pos : field) {
-                if (xs.size() >= SyncArayaFirePacket.MAX_ENTRIES) {
+            List<ActiveFire> active = ACTIVE_FIRES.get(holder.getUUID());
+            if (active == null) {
+                continue;
+            }
+            for (ActiveFire fire : active) {
+                if (pooled.size() >= SyncArayaFirePacket.MAX_ENTRIES) {
                     break;
                 }
-                xs.add(Integer.valueOf(pos.getX()));
-                ys.add(Integer.valueOf(pos.getY()));
-                zs.add(Integer.valueOf(pos.getZ()));
+                pooled.add(fire);
             }
         }
-        int size = xs.size();
+        int size = pooled.size();
+        long[] bornAgoTicks = new long[size];
         int[] xArray = new int[size];
         int[] yArray = new int[size];
         int[] zArray = new int[size];
         int[] lifetimes = new int[size];
         float[] heights = new float[size];
         for (int i = 0; i < size; i++) {
-            int x = xs.get(i).intValue();
-            int y = ys.get(i).intValue();
-            int z = zs.get(i).intValue();
-            xArray[i] = x;
-            yArray[i] = y;
-            zArray[i] = z;
-            lifetimes[i] = ArayaConstants.fireLifetimeTicks(x, y, z);
-            heights[i] = ArayaConstants.fireHeight(x, y, z);
+            ActiveFire fire = pooled.get(i);
+            xArray[i] = fire.position.getX();
+            yArray[i] = fire.position.getY();
+            zArray[i] = fire.position.getZ();
+            bornAgoTicks[i] = Math.max(0L, now - fire.bornAtTick);
+            lifetimes[i] = fire.lifetimeTicks;
+            heights[i] = fire.height;
         }
-        return new SyncArayaFirePacket(level.getGameTime(), xArray, yArray, zArray, lifetimes, heights);
+        return new SyncArayaFirePacket(now, bornAgoTicks, xArray, yArray, zArray, lifetimes, heights);
     }
 
     /**
-     * Rolls one holder's fire field: up to {@link ArayaConstants#FIRE_COUNT} positions inside
-     * {@link ArayaConstants#FIRE_RADIUS} blocks, keeping only those where a complete block has a free
-     * position on top of it.
+     * Rolls one holder's new fire wave: {@link ArayaConstants#FIRE_MIN_PER_WAVE} to
+     * {@link ArayaConstants#FIRE_MAX_PER_WAVE} positions inside {@link ArayaConstants#FIRE_RADIUS} blocks,
+     * keeping only those where a complete block has a free position on top of it.
      *
-     * <p>The roll is a pure function of the holder's entity id and the current roll period, so the field
-     * is stable for the whole wave and every client is told exactly the same positions.</p>
+     * <p>The roll is a pure function of the holder's entity id and the current roll period, so the wave is
+     * stable for the whole roll and every client is told exactly the same positions.</p>
      */
     private static List<BlockPos> rollFireField(ServerLevel level, ServerPlayer holder) {
         long period = serverTickCounter / Math.max(1L, ArayaConstants.FIRE_REROLL_TICKS);
         Random random = new Random(0x9E3779B97F4A7C15L * (holder.getId() + 1L)
                 + period * 0xBF58476D1CE4E5B9L);
+        int span = ArayaConstants.FIRE_MAX_PER_WAVE - ArayaConstants.FIRE_MIN_PER_WAVE + 1;
+        int wanted = ArayaConstants.FIRE_MIN_PER_WAVE + (span > 0 ? random.nextInt(span) : 0);
         List<BlockPos> field = new ArrayList<>();
-        int attempts = ArayaConstants.FIRE_COUNT * 4;
-        for (int i = 0; i < attempts && field.size() < ArayaConstants.FIRE_COUNT; i++) {
+        int attempts = wanted * 4;
+        for (int i = 0; i < attempts && field.size() < wanted; i++) {
             double angle = random.nextDouble() * Math.PI * 2.0D;
             double distance = Math.sqrt(random.nextDouble()) * ArayaConstants.FIRE_RADIUS;
             int x = Mth.floor(holder.getX() + Math.cos(angle) * distance);
