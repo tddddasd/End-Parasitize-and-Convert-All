@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
@@ -84,30 +85,31 @@ public final class ArayaSyncHandler {
             ArayaTiansha.increment(staff);
         }
 
-        // The vanilla trident throw, at the victim, for everyone in range.
+        // The vanilla trident throw, at the victim, for everyone in range. The slash is not spawned
+        // here any more: it belongs to the hit itself and is sent from the click path, so that a
+        // renamed staff cuts on every left click and not only on a kill.
         level.playSound(null, victim.getX(), victim.getY(), victim.getZ(), SoundEvents.TRIDENT_THROW,
                 SoundSource.PLAYERS, 1.0F, 1.0F);
-
-        broadcastSlash(level, killer, victim);
     }
 
     /**
      * Sends the slash to every player in the level.
      *
-     * <p>The blade is centred on the victim and its direction is the horizontal direction the hit came
-     * from, so the 50-degree cut always runs away from the attacker instead of in an arbitrary direction.
-     * Only the horizontal part is sent, because the blade's own 50-degree rise is what the renderer
-     * builds from it.</p>
+     * <p>Called for every left click of the renamed staff on a living entity - mobs and players alike -
+     * so the cut shows on ordinary hits as well as on kills. The blade is centred on the victim and its
+     * direction is the horizontal direction the hit came from, so the 50-degree cut always runs away
+     * from the attacker instead of in an arbitrary direction. Only the horizontal part is sent, because
+     * the blade's own 50-degree rise is what the renderer builds from it.</p>
      */
-    private static void broadcastSlash(ServerLevel level, ServerPlayer killer, LivingEntity victim) {
-        Vec3 from = killer.position();
+    public static void broadcastSlash(ServerLevel level, Player attacker, LivingEntity victim) {
+        Vec3 from = attacker.position();
         Vec3 to = victim.position();
         double dx = to.x - from.x;
         double dz = to.z - from.z;
         if (dx * dx + dz * dz < 1.0E-6D) {
             // Attacker and victim on the same spot: fall back to the attacker's facing so the blade
             // still has a definite direction.
-            Vec3 look = killer.getLookAngle();
+            Vec3 look = attacker.getLookAngle();
             dx = look.x;
             dz = look.z;
         }

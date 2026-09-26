@@ -38,6 +38,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.common.ForgeMod;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.events.ArayaConstants;
+import org.tdddd.epca.impl.events.ArayaSyncHandler;
 import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
 public class KillStick extends Item {
@@ -201,15 +202,20 @@ public class KillStick extends Item {
                 }
 
                 // The renamed staff's own hit: 444 points of the mod's MINIMUM damage type on the target
-                // of this click, so the kill (and therefore the trident sound, the slash and the 天杀
-                // counter in ArayaSyncHandler) has one unambiguous source. The source carries the player
-                // as its causing entity, which is what makes LivingDeathEvent able to name the killer.
+                // of this click, so the kill (and therefore the trident sound and the 天杀 counter in
+                // ArayaSyncHandler) has one unambiguous source. The source carries the player as its
+                // causing entity, which is what makes LivingDeathEvent able to name the killer.
                 if (entity instanceof LivingEntity livingTarget) {
                     Holder<DamageType> holder = serverLevel.registryAccess()
                             .registryOrThrow(Registries.DAMAGE_TYPE)
                             .getHolderOrThrow(ModDamageTypes.MINIMUM);
                     livingTarget.hurt(new DamageSource(holder, player, player),
                             ArayaConstants.DAMAGE);
+
+                    // Every left click of the renamed staff on a living entity cuts, mob or player and
+                    // whatever the outcome of the hit. Sent before the victim is removed and moved to
+                    // the void below, so the blade keeps the position the hit happened at.
+                    ArayaSyncHandler.broadcastSlash(serverLevel, player, livingTarget);
                 }
             }
 
