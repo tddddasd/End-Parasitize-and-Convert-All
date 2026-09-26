@@ -154,6 +154,17 @@ public final class ArayaSyncHandler {
                 holders.add(player);
             }
         }
+        // TEMP DIAGNOSTIC (remove once the effect is confirmed on screen): the aura only exists from
+        // TIANSHA_THRESHOLD player kills on, so this line says whether that condition is met at all.
+        if (reroll) {
+            StringBuilder counters = new StringBuilder();
+            for (ServerPlayer holder : holders) {
+                counters.append(holder.getName().getString()).append('=')
+                        .append(ArayaTiansha.get(ArayaTiansha.activeStaff(holder))).append(' ');
+            }
+            epca.LOGGER.info("[araya] sweep: {} holder(s) with the named staff; counters: {}",
+                    holders.size(), counters.toString().trim());
+        }
         if (holders.isEmpty()) {
             // One empty batch per player is what clears the client cache, so a level whose last holder
             // just lost the staff still stops the BGM and removes the fire.

@@ -146,18 +146,25 @@ public final class ArayaSlashRenderer {
             return;
         }
 
-        // The blade frame. `u` is the horizontal cut direction, `w` the same direction lifted 50 degrees,
-        // `n` their cross product (the blade's normal).
-        Vec3 horizontal = new Vec3(entry.direction.x, 0.0D, entry.direction.z);
-        if (horizontal.lengthSqr() < 1.0E-6D) {
-            horizontal = new Vec3(1.0D, 0.0D, 0.0D);
+        // The blade frame. The cut lies in the plane that FACES the hit - the plane perpendicular to the
+        // horizontal direction the hit came from - because a plane that contains that direction is exactly
+        // edge-on to both the attacker and the victim (the camera looks along it) and therefore projects to
+        // nothing at all: that is why the first build of this effect was invisible even though the geometry
+        // was submitted every frame. Inside that facing plane the cut rises by SLASH_ANGLE_DEGREES from the
+        // horizontal, which is what makes it an oblique slash as seen by the two players involved.
+        Vec3 hit = new Vec3(entry.direction.x, 0.0D, entry.direction.z);
+        if (hit.lengthSqr() < 1.0E-6D) {
+            hit = new Vec3(1.0D, 0.0D, 0.0D);
         }
-        horizontal = horizontal.normalize();
+        hit = hit.normalize();
         double angle = Math.toRadians(ArayaConstants.SLASH_ANGLE_DEGREES);
         double sin = Math.sin(angle);
         double cos = Math.cos(angle);
-        Vec3 u = horizontal;
-        Vec3 w = new Vec3(-horizontal.z * sin, cos, horizontal.x * sin);
+        // Horizontal in-plane axis, then the cut direction lifted out of the horizontal inside the plane.
+        Vec3 right = new Vec3(-hit.z, 0.0D, hit.x);
+        Vec3 u = new Vec3(right.x * cos, sin, right.z * cos).normalize();
+        // The width axis: still inside the facing plane and perpendicular to the cut.
+        Vec3 w = u.cross(hit).normalize();
 
         double halfLength = ArayaConstants.SLASH_LENGTH * 0.5D;
         double coreHalf = halfWidthForAge(age);
