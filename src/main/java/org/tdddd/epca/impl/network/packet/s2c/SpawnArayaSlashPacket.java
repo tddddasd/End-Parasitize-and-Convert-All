@@ -53,19 +53,10 @@ public class SpawnArayaSlashPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            // TEMP DIAGNOSTIC (remove once the slash is confirmed on screen): proves the packet arrived
-            // and which start time the client will compare its own game time against.
-            net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
-            long clientTime = minecraft.level != null ? minecraft.level.getGameTime() : Long.MIN_VALUE;
-            org.tdddd.epca.impl.epca.LOGGER.info(
-                    "[araya] slash packet: pos=({}, {}, {}) dir=({}, {}) startTick={} clientTime={}",
-                    this.x, this.y, this.z, this.directionX, this.directionZ, this.startTick, clientTime);
-            ArayaSlashClientCache.add(
-                    new net.minecraft.world.phys.Vec3(this.x, this.y, this.z),
-                    new net.minecraft.world.phys.Vec3(this.directionX, 0.0D, this.directionZ),
-                    this.startTick);
-        });
+        ctx.get().enqueueWork(() -> ArayaSlashClientCache.add(
+                new net.minecraft.world.phys.Vec3(this.x, this.y, this.z),
+                new net.minecraft.world.phys.Vec3(this.directionX, 0.0D, this.directionZ),
+                this.startTick));
         ctx.get().setPacketHandled(true);
     }
 }

@@ -183,17 +183,6 @@ public final class ArayaSyncHandler {
                 holders.add(player);
             }
         }
-        // TEMP DIAGNOSTIC (remove once the effect is confirmed on screen): the aura only exists from
-        // TIANSHA_THRESHOLD player kills on, so this line says whether that condition is met at all.
-        if (reroll) {
-            StringBuilder counters = new StringBuilder();
-            for (ServerPlayer holder : holders) {
-                counters.append(holder.getName().getString()).append('=')
-                        .append(ArayaTiansha.get(ArayaTiansha.activeStaff(holder))).append(' ');
-            }
-            epca.LOGGER.info("[araya] sweep: {} holder(s) with the named staff; counters: {}",
-                    holders.size(), counters.toString().trim());
-        }
         // The fire field: age out what burned down, roll a new wave on the roll period, and hold the total
         // at FIRE_MAX_ACTIVE by dropping the oldest blocks of the holder whose waves overlap the most.
         long now = level.getGameTime();
