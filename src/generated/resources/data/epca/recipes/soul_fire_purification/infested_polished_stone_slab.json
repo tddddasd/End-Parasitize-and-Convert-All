@@ -9,30 +9,7 @@
       "chance": 0.3,
       "items": [
         "minecraft:smooth_stone_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:polished_diorite_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:polished_andesite_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:polished_granite_slab"
-      ],
-      "weight": 1
+      ]
     }
-  ],
-  "weighted": true
+  ]
 }

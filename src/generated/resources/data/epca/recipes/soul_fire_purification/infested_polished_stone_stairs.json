@@ -9,23 +9,7 @@
       "chance": 0.3,
       "items": [
         "minecraft:polished_diorite_stairs"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:polished_andesite_stairs"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:polished_granite_stairs"
-      ],
-      "weight": 1
+      ]
     }
-  ],
-  "weighted": true
+  ]
 }

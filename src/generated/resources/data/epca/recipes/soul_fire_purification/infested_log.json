@@ -9,58 +9,7 @@
       "chance": 0.3,
       "items": [
         "minecraft:oak_log"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:spruce_log"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:birch_log"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:jungle_log"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:acacia_log"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:dark_oak_log"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:mangrove_log"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:cherry_log"
-      ],
-      "weight": 1
+      ]
     }
-  ],
-  "weighted": true
+  ]
 }

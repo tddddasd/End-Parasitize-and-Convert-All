@@ -9,58 +9,7 @@
       "chance": 0.3,
       "items": [
         "minecraft:oak_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:spruce_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:birch_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:jungle_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:acacia_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:dark_oak_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:mangrove_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:cherry_slab"
-      ],
-      "weight": 1
+      ]
     }
-  ],
-  "weighted": true
+  ]
 }

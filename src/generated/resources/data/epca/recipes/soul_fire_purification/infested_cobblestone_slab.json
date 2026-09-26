@@ -9,16 +9,7 @@
       "chance": 0.3,
       "items": [
         "minecraft:cobblestone_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:mossy_cobblestone_slab"
-      ],
-      "weight": 1
+      ]
     }
-  ],
-  "weighted": true
+  ]
 }

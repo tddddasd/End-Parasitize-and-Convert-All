@@ -9,16 +9,7 @@
       "chance": 0.3,
       "items": [
         "minecraft:cut_sandstone_slab"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:cut_red_sandstone_slab"
-      ],
-      "weight": 1
+      ]
     }
-  ],
-  "weighted": true
+  ]
 }

@@ -9,16 +9,7 @@
       "chance": 0.3,
       "items": [
         "minecraft:carved_pumpkin"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:jack_o_lantern"
-      ],
-      "weight": 1
+      ]
     }
-  ],
-  "weighted": true
+  ]
 }

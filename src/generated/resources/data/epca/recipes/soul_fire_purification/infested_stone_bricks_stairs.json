@@ -9,16 +9,7 @@
       "chance": 0.3,
       "items": [
         "minecraft:stone_brick_stairs"
-      ],
-      "weight": 1
-    },
-    {
-      "chance": 0.3,
-      "items": [
-        "minecraft:mossy_stone_brick_stairs"
-      ],
-      "weight": 1
+      ]
     }
-  ],
-  "weighted": true
+  ]
 }

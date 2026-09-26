@@ -2,13 +2,13 @@
   "type": "eej:soul_fire_purification",
   "burn_chance": 0.7,
   "ingredient": {
-    "item": "epca:infested_polished_stone"
+    "item": "epca:infested_flowering_leaves"
   },
   "results": [
     {
       "chance": 0.3,
       "items": [
-        "minecraft:smooth_stone"
+        "minecraft:oak_leaves"
       ]
     }
   ]

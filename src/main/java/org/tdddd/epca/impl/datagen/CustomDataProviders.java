@@ -509,8 +509,10 @@ public class CustomDataProviders {
      * <p>Rule summary (see the SPEC):
      * <ul>
      *   <li>infested mineral items: 15 % -> 2-3 of the corresponding vanilla mineral;</li>
-     *   <li>ordinary infested blocks: 30 % -> one random original block, derived from the reverse
-     *       of {@link BlockConversionDataProvider#buildGeneralBlockConversions()};</li>
+     *   <li>ordinary infested blocks: 30 % -> exactly ONE block, the FIRST original block of the
+     *       conversion map ({@link BlockConversionDataProvider#buildGeneralBlockConversions()}), so an
+     *       infested block always purifies into a single deterministic block instead of a candidate
+     *       list (for example {@code epca:infested_leaves} -> {@code minecraft:oak_leaves});</li>
      *   <li>{@code epca:infested_rubbish}: 5 % flint / sand / gravel plus 1 % random mineral nugget;</li>
      *   <li>{@link #EXTRA_BLOCK_TARGETS}: infested blocks sharing their original block with a sibling
      *       (the blood and cave spider web variants), 30 % -> that block;</li>
@@ -540,9 +542,10 @@ public class CustomDataProviders {
         /** Explicitly excluded: destroyed without a roll. */
         public static final String DESTROYED_ITEM = "epca:infested_flesh";
         /**
-         * Infested blocks that the conversion map cannot discover, because their original block is
+         * Infested blocks the conversion map cannot discover, because their original block is
          * produced by another infested block (the blood and cave spider web variants all come from
-         * {@code minecraft:cobweb}). They still purify into their original block at the ordinary 30 %.
+         * {@code minecraft:cobweb}) or because no vanilla block converts into them at all. They still
+         * purify into the listed block at the ordinary 30 %.
          */
         private static final Map<String, String> EXTRA_BLOCK_TARGETS = new LinkedHashMap<>();
         /**
@@ -556,6 +559,15 @@ public class CustomDataProviders {
                 "minecraft:deepslate_tile_slab", "minecraft:deepslate_tile_slab",
                 "minecraft:deepslate_tile_stairs", "minecraft:deepslate_tile_stairs",
                 "minecraft:deepslate_tile_wall", "minecraft:deepslate_tile_wall"
+        );
+        /**
+         * Conversion sources that have no item form of their own, so they cannot be a drop. The sweet
+         * berry bush is a block without an item (only its berries are an item), therefore the
+         * purification yields the plant's item instead - the same substitution the 26.1.2 generator
+         * applies, which keeps both trees shipping {@code minecraft:sweet_berries}.
+         */
+        private static final Map<String, String> SOURCE_SUBSTITUTIONS = Map.of(
+                "minecraft:sweet_berry_bush", "minecraft:sweet_berries"
         );
 
         static {
@@ -576,6 +588,12 @@ public class CustomDataProviders {
 
             EXTRA_BLOCK_TARGETS.put("epca:infested_spider_web_blood", "minecraft:cobweb");
             EXTRA_BLOCK_TARGETS.put("epca:infested_cave_spider_web", "minecraft:cobweb");
+            // The infested flowering leaves and infested short grass are their own blocks: no vanilla
+            // block converts into them, so the reverse lookup can never see them. They purify into the
+            // same first converted block as their ordinary sibling (leaves -> oak leaves, grass block
+            // -> grass), matching the rule used for every other infested block.
+            EXTRA_BLOCK_TARGETS.put("epca:infested_flowering_leaves", "minecraft:oak_leaves");
+            EXTRA_BLOCK_TARGETS.put("epca:infested_short_grass", "minecraft:grass");
         }
 
         @Override
@@ -624,7 +642,12 @@ public class CustomDataProviders {
                 entries.add(new Entry(material.getKey(), body));
             }
 
-            // Ordinary infested blocks: reverse of the conversion map.
+            // Ordinary infested blocks: reverse of the conversion map. Only the FIRST original block
+            // of a target is used, so the recipe produces exactly one deterministic output instead of
+            // a weighted list of candidates ("an infested block purifies into its first converted
+            // block": epca:infested_leaves -> minecraft:oak_leaves, epca:infested_dirt ->
+            // minecraft:dirt). LinkedHashMap keeps the declaration order of the conversion map, so
+            // "first" is stable and documented, not incidental.
             Map<String, List<String>> reverse = new LinkedHashMap<>();
             for (Map.Entry<String, String> conversion
                     : BlockConversionDataProvider.buildGeneralBlockConversions().entrySet()) {
@@ -647,13 +670,12 @@ public class CustomDataProviders {
                 JsonObject body = base(block.getKey());
                 body.addProperty("burn_chance", 0.70F);
                 JsonArray results = new JsonArray();
-                boolean alternative = block.getValue().size() > 1;
-                if (alternative) body.addProperty("weighted", true);
-                for (String original : block.getValue()) {
-                    // Multiple candidates share one 30 % roll; the explicit weight documents that.
-                    results.add(result(List.of(ID_FIXES.getOrDefault(original, original)),
-                            1, 1, 0.30F, 1, false, alternative));
-                }
+                // First entry only: one 30 % roll for one single output. The source is substituted when
+                // the block has no item form of its own (sweet berry bush -> sweet berries).
+                String original = SOURCE_SUBSTITUTIONS.getOrDefault(block.getValue().get(0),
+                        block.getValue().get(0));
+                results.add(result(List.of(ID_FIXES.getOrDefault(original, original)),
+                        1, 1, 0.30F, 1, false));
                 body.add("results", results);
                 entries.add(new Entry(block.getKey(), body));
             }
