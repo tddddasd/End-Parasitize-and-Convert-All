@@ -75,6 +75,18 @@ public class ModNetwork {
         // server-side BlockConversionManager owns and fade it out when the lightning falls.
         registrar.playToClient(SyncRitualAuraPacket.TYPE, SyncRitualAuraPacket.STREAM_CODEC,
                 SyncRitualAuraPacket::handle);
+        // The Alayavijnana aura: which players carry a staff whose 天杀 counter reached the threshold
+        // (that is what drives the looping BGM and the fire field around them).
+        registrar.playToClient(SyncArayaAuraPacket.TYPE, SyncArayaAuraPacket.STREAM_CODEC,
+                SyncArayaAuraPacket::handle);
+        // The render-only vanilla fire blocks around those players. The server rolls where, how tall and
+        // for how long; the client only draws.
+        registrar.playToClient(SyncArayaFirePacket.TYPE, SyncArayaFirePacket.STREAM_CODEC,
+                SyncArayaFirePacket::handle);
+        // One Alayavijnana slash: the white 50-degree cut with its refracting border, spawned by a kill of
+        // another player with the renamed staff.
+        registrar.playToClient(SpawnArayaSlashPacket.TYPE, SpawnArayaSlashPacket.STREAM_CODEC,
+                SpawnArayaSlashPacket::handle);
     }
 
     

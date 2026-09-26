@@ -26,9 +26,16 @@ public class SoundData extends SoundDefinitionsProvider {
             List<String> files = entry.getValue();
 
             var definition = SoundDefinition.definition();
+            // The araya battle theme is a long track, so it is streamed from disk
+            // instead of being preloaded into memory like the short sound effects.
+            boolean stream = eventName.equals("araya");
             for (String file : files) {
                 Identifier soundLoc = Identifier.fromNamespaceAndPath(epca.MODID, file);
-                definition.with(sound(soundLoc, SoundDefinition.SoundType.SOUND));
+                var soundEntry = sound(soundLoc, SoundDefinition.SoundType.SOUND);
+                if (stream) {
+                    soundEntry.stream(true);
+                }
+                definition.with(soundEntry);
             }
             definition.subtitle("subtitles.epca." + eventName);
 
@@ -228,6 +235,9 @@ public class SoundData extends SoundDefinitionsProvider {
         // --- damage/adaptation ---
         map.put("parcial_adaptation", List.of("damage/adaptation/parcial_adaptation"));
         map.put("full_adaptation", List.of("damage/adaptation/full_adaptation"));
+
+        // --- araya battle theme ---
+        map.put("araya", List.of("araya"));
 
         return map;
     }

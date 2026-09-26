@@ -166,6 +166,12 @@ public class ClientHandler {
         // position_color program, drawn through the aura's own render type. The aura used the gas
         // cloud pipeline first and drew nothing with it at the level stage it is drawn at.
         org.tdddd.epca.impl.client.render.ritual.RitualQuadRenderType.registerPipeline(event);
+        // Registers the Alayavijnana slash pipeline: POSITION_COLOR_TEX with the mod's own araya_slash
+        // program and one sampler, the per-frame copy of the frame the slash's border refracts.
+        org.tdddd.epca.impl.client.render.araya.ArayaSlashRenderType.registerPipeline(event);
+        // Registers the fire pipeline of the same feature: the vanilla terrain state with culling off and
+        // a translucent blend, for the render-only fire blocks the aura spawns.
+        org.tdddd.epca.impl.client.render.araya.ArayaFireRenderType.registerPipeline(event);
     }
 
     @SubscribeEvent

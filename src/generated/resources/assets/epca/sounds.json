@@ -1,4 +1,13 @@
 {
+  "araya": {
+    "sounds": [
+      {
+        "name": "epca:araya",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.epca.araya"
+  },
   "beckon_stage1": {
     "sounds": [
       "epca:mob/link/beckon/beckon_stage1"
