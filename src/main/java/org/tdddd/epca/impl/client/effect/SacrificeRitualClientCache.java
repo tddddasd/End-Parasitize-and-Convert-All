@@ -73,7 +73,6 @@ public final class SacrificeRitualClientCache {
 
     /** Replaces the whole cache with one batch; entries that disappear start fading out. */
     public static void applyBatch(BlockPos[] centers, int[] remainingTicks) {
-        int before = ENTRIES.size();
         for (Entry entry : ENTRIES.values()) {
             entry.present = false;
         }
@@ -92,11 +91,6 @@ public final class SacrificeRitualClientCache {
                 entry.absentTicks = 0;
                 entry.remainingTicks = remainingTicks[i];
             }
-        }
-        // Diagnostics: one line whenever the set changes, so a missing aura can be traced to the sync.
-        if (ENTRIES.size() != before) {
-            org.tdddd.epca.impl.epca.LOGGER.info("[ritual] client batch: {} entries (was {})",
-                    ENTRIES.size(), before);
         }
     }
 

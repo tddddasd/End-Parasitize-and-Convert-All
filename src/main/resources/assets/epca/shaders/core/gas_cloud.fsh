@@ -116,14 +116,6 @@ const float GAS_SPEC_BASE_ALPHA = 1.0;
 const int HEART_STYLE_CHANNEL = 252;
 const int HEART_MOTE_STYLE_CHANNEL = 253;
 
-// -- sacrifice-ritual glow -------------------------------------------------------------------------
-// One geometry-agnostic "flat glow" branch for the sacrifice-ritual aura: the bright purple pillar,
-// its two 45-degree squares and the expanding wavefield. The CPU packs the colour into Color.rgb and
-// the opacity into Color.a; the quad's V axis carries the soft width profile below, so a long thin
-// quad reads as a glowing line and a quad whose four vertices all use V = 0.5 (the sky cover) reads
-// as a flat fill. Mirrored by GasCloudRenderType.RITUAL_STYLE_CHANNEL / RITUAL_GLOW_INNER.
-const int RITUAL_STYLE_CHANNEL = 254;
-const float RITUAL_GLOW_INNER = 0.18;
 // Aspect ratio width : height = 1 : 2.1, and the hitbox padding the CPU applies to the quad height.
 const float HEART_ASPECT_HEIGHT = 2.1;
 const float HEART_SIZE_PADDING = 1.10;
@@ -370,21 +362,6 @@ void main() {
         vec4 mote = soulMoteColor(texCoord0);
         fragColor = vec4(mote.rgb * ColorModulator.rgb,
                          mote.a * vertexColor.a * edgeFade * ColorModulator.a);
-        return;
-    }
-
-    // ---- style branch: sacrifice-ritual flat glow ------------------------------------------------
-    // No texture, no noise, no radial falloff: the colour and the opacity come straight from the
-    // vertex colour, and only the quad's V axis is shaped (a soft band around V = 0.5) so a long thin
-    // quad - the pillar panel, one edge of a diamond, one wave segment - reads as a glowing line.
-    // edgeFade is deliberately NOT applied here: it is the gas pipeline's 48..96 block distance fade,
-    // and the ritual sky quad alone is thousands of blocks across, so every one of its fragments would
-    // fade to fully transparent. The ritual geometry is culled by distance on the CPU instead
-    // (SacrificeRitualRenderer.MAX_SEGMENT_DISTANCE / MAX_PILLAR_DISTANCE).
-    if (int(cloudSeed.y) == RITUAL_STYLE_CHANNEL) {
-        float profile = 1.0 - smoothstep(RITUAL_GLOW_INNER, 0.5, abs(texCoord0.y - 0.5));
-        fragColor = vec4(vertexColor.rgb * ColorModulator.rgb,
-                         clamp(vertexColor.a * profile * ColorModulator.a, 0.0, 1.0));
         return;
     }
 

@@ -1103,7 +1103,6 @@ public class BlockConversionManager {
                 ritualAudienceGrace.put(level, RITUAL_AUDIENCE_GRACE_TICKS);
             }
 
-            int sent = 0;
             for (ServerPlayer player : level.players()) {
                 List<BlockPos> centers = new ArrayList<>();
                 List<Integer> remaining = new ArrayList<>();
@@ -1126,11 +1125,7 @@ public class BlockConversionManager {
                     tickArray[i] = remaining.get(i);
                 }
                 ModNetwork.sendToPlayer(player, new SyncRitualAuraPacket(centerArray, tickArray));
-                sent++;
             }
-            epca.LOGGER.info("[ritual] server sync: level={} tasks={} players={} centers={}",
-                    level.dimension().location(), tasks == null ? 0 : tasks.size(), sent,
-                    tasks == null ? 0 : tasks.size());
         }
     }
 

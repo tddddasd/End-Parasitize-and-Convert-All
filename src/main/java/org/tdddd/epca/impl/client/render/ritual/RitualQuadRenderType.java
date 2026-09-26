@@ -12,14 +12,15 @@ import net.minecraft.client.renderer.RenderType;
  * and culling off.
  *
  * <h2>Why not the mod's custom {@code gas_cloud} pipeline</h2>
- * <p>The ritual aura was first drawn through {@code GasCloudRenderType.get()} together with a new
- * {@code RITUAL_STYLE_CHANNEL} branch in {@code gas_cloud.fsh}. In game that produced literally nothing,
- * while a positive-control quad drawn through the built-in {@code RenderType.debugQuads()} at the very
- * same pose, stage and buffer source was visible - so the level stage, the camera-relative pose space
- * and the render target were all correct and only the custom program or its state failed. This type
- * therefore reuses the vanilla program (exactly what the working control quad used) and adds the two
- * states the ritual needs and that {@code debugQuads()} does not have: {@code NO_CULL} (the aura's quads
- * are seen from above and from below) and depth writes off.</p>
+ * <p>The ritual aura was first drawn through {@code GasCloudRenderType.get()} together with a
+ * dedicated style branch in {@code gas_cloud.fsh} (removed again once this type worked). In game that
+ * produced literally nothing, while a positive-control quad drawn through the built-in
+ * {@code RenderType.debugQuads()} at the very same pose, stage and buffer source was visible - so the
+ * level stage, the camera-relative pose space and the render target were all correct and only the
+ * custom program or its state failed. This type therefore reuses the vanilla program (exactly what the
+ * working control quad used) and adds the two states the ritual needs and that {@code debugQuads()}
+ * does not have: {@code NO_CULL} (the aura's quads are seen from above and from below) and depth
+ * writes off.</p>
  */
 public final class RitualQuadRenderType extends RenderType {
 
