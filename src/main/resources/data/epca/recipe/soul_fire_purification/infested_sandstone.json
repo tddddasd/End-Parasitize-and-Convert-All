@@ -4,14 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:red_sandstone"
-        },
-        {
-          "item": "minecraft:sandstone"
-        }
-      ]
+      "item": "minecraft:sandstone"
     }
   ],
   "burn_chance": 0.7

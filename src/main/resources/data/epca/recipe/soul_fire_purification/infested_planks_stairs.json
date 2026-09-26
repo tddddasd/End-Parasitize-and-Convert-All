@@ -4,32 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:acacia_stairs"
-        },
-        {
-          "item": "minecraft:birch_stairs"
-        },
-        {
-          "item": "minecraft:cherry_stairs"
-        },
-        {
-          "item": "minecraft:dark_oak_stairs"
-        },
-        {
-          "item": "minecraft:jungle_stairs"
-        },
-        {
-          "item": "minecraft:mangrove_stairs"
-        },
-        {
-          "item": "minecraft:oak_stairs"
-        },
-        {
-          "item": "minecraft:spruce_stairs"
-        }
-      ]
+      "item": "minecraft:oak_stairs"
     }
   ],
   "burn_chance": 0.7

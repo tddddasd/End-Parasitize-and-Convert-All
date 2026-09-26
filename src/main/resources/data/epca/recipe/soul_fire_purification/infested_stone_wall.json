@@ -4,17 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:andesite_wall"
-        },
-        {
-          "item": "minecraft:diorite_wall"
-        },
-        {
-          "item": "minecraft:granite_wall"
-        }
-      ]
+      "item": "minecraft:diorite_wall"
     }
   ],
   "burn_chance": 0.7

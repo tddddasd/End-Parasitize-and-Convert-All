@@ -4,32 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:stripped_acacia_wood"
-        },
-        {
-          "item": "minecraft:stripped_birch_wood"
-        },
-        {
-          "item": "minecraft:stripped_cherry_wood"
-        },
-        {
-          "item": "minecraft:stripped_dark_oak_wood"
-        },
-        {
-          "item": "minecraft:stripped_jungle_wood"
-        },
-        {
-          "item": "minecraft:stripped_mangrove_wood"
-        },
-        {
-          "item": "minecraft:stripped_oak_wood"
-        },
-        {
-          "item": "minecraft:stripped_spruce_wood"
-        }
-      ]
+      "item": "minecraft:stripped_oak_wood"
     }
   ],
   "burn_chance": 0.7

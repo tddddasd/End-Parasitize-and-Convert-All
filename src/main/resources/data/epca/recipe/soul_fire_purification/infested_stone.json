@@ -4,26 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:andesite"
-        },
-        {
-          "item": "minecraft:calcite"
-        },
-        {
-          "item": "minecraft:diorite"
-        },
-        {
-          "item": "minecraft:dripstone_block"
-        },
-        {
-          "item": "minecraft:granite"
-        },
-        {
-          "item": "minecraft:stone"
-        }
-      ]
+      "item": "minecraft:stone"
     }
   ],
   "burn_chance": 0.7

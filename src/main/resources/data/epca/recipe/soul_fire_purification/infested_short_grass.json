@@ -1,10 +1,10 @@
 {
   "type": "eej:soul_fire_purification",
-  "ingredient": "epca:infested_stripped_log",
+  "ingredient": "epca:infested_short_grass",
   "results": [
     {
       "chance": 0.3,
-      "item": "minecraft:stripped_oak_log"
+      "item": "minecraft:short_grass"
     }
   ],
   "burn_chance": 0.7

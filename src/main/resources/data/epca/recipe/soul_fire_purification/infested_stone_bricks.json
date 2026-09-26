@@ -4,14 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:mossy_stone_bricks"
-        },
-        {
-          "item": "minecraft:stone_bricks"
-        }
-      ]
+      "item": "minecraft:stone_bricks"
     }
   ],
   "burn_chance": 0.7

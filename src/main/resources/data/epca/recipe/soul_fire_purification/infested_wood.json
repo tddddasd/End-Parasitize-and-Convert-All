@@ -4,32 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:acacia_wood"
-        },
-        {
-          "item": "minecraft:birch_wood"
-        },
-        {
-          "item": "minecraft:cherry_wood"
-        },
-        {
-          "item": "minecraft:dark_oak_wood"
-        },
-        {
-          "item": "minecraft:jungle_wood"
-        },
-        {
-          "item": "minecraft:mangrove_wood"
-        },
-        {
-          "item": "minecraft:oak_wood"
-        },
-        {
-          "item": "minecraft:spruce_wood"
-        }
-      ]
+      "item": "minecraft:oak_wood"
     }
   ],
   "burn_chance": 0.7

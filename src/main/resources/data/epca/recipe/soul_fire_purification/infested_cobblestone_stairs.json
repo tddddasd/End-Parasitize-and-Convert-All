@@ -4,14 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:cobblestone_stairs"
-        },
-        {
-          "item": "minecraft:mossy_cobblestone_stairs"
-        }
-      ]
+      "item": "minecraft:cobblestone_stairs"
     }
   ],
   "burn_chance": 0.7

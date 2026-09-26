@@ -4,17 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:polished_andesite_stairs"
-        },
-        {
-          "item": "minecraft:polished_diorite_stairs"
-        },
-        {
-          "item": "minecraft:polished_granite_stairs"
-        }
-      ]
+      "item": "minecraft:polished_diorite_stairs"
     }
   ],
   "burn_chance": 0.7

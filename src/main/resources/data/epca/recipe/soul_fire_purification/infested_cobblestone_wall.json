@@ -4,14 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:cobblestone_wall"
-        },
-        {
-          "item": "minecraft:mossy_cobblestone_wall"
-        }
-      ]
+      "item": "minecraft:cobblestone_wall"
     }
   ],
   "burn_chance": 0.7

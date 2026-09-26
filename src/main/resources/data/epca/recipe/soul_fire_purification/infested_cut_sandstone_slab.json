@@ -4,14 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:cut_red_sandstone_slab"
-        },
-        {
-          "item": "minecraft:cut_sandstone_slab"
-        }
-      ]
+      "item": "minecraft:cut_sandstone_slab"
     }
   ],
   "burn_chance": 0.7

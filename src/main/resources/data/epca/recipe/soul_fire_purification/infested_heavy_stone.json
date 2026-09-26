@@ -4,14 +4,7 @@
   "results": [
     {
       "chance": 0.3,
-      "options": [
-        {
-          "item": "minecraft:deepslate"
-        },
-        {
-          "item": "minecraft:tuff"
-        }
-      ]
+      "item": "minecraft:deepslate"
     }
   ],
   "burn_chance": 0.7
