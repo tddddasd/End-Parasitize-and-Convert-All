@@ -1,8 +1,8 @@
 package org.tdddd.epca.impl.events.playeranimator;
 
-import dev.kosmx.playerAnim.api.firstPerson.FirstPersonConfiguration;
-import dev.kosmx.playerAnim.api.firstPerson.FirstPersonMode;
-import dev.kosmx.playerAnim.api.layered.modifier.AbstractModifier;
+import com.zigythebird.playeranimcore.animation.layered.modifier.AbstractModifier;
+import com.zigythebird.playeranimcore.api.firstPerson.FirstPersonConfiguration;
+import com.zigythebird.playeranimcore.api.firstPerson.FirstPersonMode;
 import org.jetbrains.annotations.NotNull;
 
 public class FirstPersonModifier extends AbstractModifier {
@@ -19,12 +19,12 @@ public class FirstPersonModifier extends AbstractModifier {
     }
 
     @Override
-    public @NotNull FirstPersonMode getFirstPersonMode(float tickDelta) {
+    public @NotNull FirstPersonMode getFirstPersonMode() {
         return mode;
     }
 
     @Override
-    public @NotNull FirstPersonConfiguration getFirstPersonConfiguration(float tickDelta) {
+    public @NotNull FirstPersonConfiguration getFirstPersonConfiguration() {
         return configuration;
     }
 }

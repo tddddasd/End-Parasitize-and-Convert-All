@@ -1,10 +1,9 @@
 package org.tdddd.epca.impl.events;
 
-import dev.kosmx.playerAnim.api.layered.IAnimation;
-import dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer;
-import dev.kosmx.playerAnim.api.layered.ModifierLayer;
-import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
-import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
+import com.zigythebird.playeranim.animation.PlayerAnimationController;
+import com.zigythebird.playeranim.api.PlayerAnimationAccess;
+import com.zigythebird.playeranimcore.animation.layered.IAnimation;
+import com.zigythebird.playeranimcore.animation.layered.ModifierLayer;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
@@ -42,17 +41,17 @@ public class SpearAttackHandler {
 
         
         if (isSpear && isLiving) {
-            
-            ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
-                    .getPlayerAssociatedData(player)
-                    .get(Identifier.fromNamespaceAndPath(epca.MODID, "stab"));
+            // Player Animation Library 1.2.6: the per-player layer is read back by the same id it was
+            // registered under, and the animation id is triggered on the PlayerAnimationController the
+            // factory put inside that layer. The library loads epca:stab itself from
+            // assets/epca/player_animations/stab.animation.json, so no registry lookup is needed.
+            IAnimation layer = PlayerAnimationAccess.getPlayerAnimationLayer(
+                    player,
+                    Identifier.fromNamespaceAndPath(epca.MODID, "stab"));
 
-            if (animation != null) {
-                
-                var keyframe = PlayerAnimationRegistry.getAnimation(Identifier.fromNamespaceAndPath(epca.MODID, "stab"));
-                if (keyframe != null) {
-                    animation.setAnimation(new KeyframeAnimationPlayer(keyframe));
-                }
+            if (layer instanceof ModifierLayer<?> modifierLayer
+                    && modifierLayer.getAnimation() instanceof PlayerAnimationController controller) {
+                controller.triggerAnimation(Identifier.fromNamespaceAndPath(epca.MODID, "stab"));
             }
         }
     }

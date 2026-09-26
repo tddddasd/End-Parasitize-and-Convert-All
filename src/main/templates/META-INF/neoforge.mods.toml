@@ -25,11 +25,13 @@ versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
+# 26.1.2: the player animations are built on the Player Animation Library (ZigyTheBird fork), which is a
+# hard prerequisite - the jar is not bundled, it is the `player_animation_library` mod the pack must ship.
 [[dependencies.${mod_id}]]
-modId = "playeranimator"
-type = "optional"
-versionRange = "[1,)"
-ordering = "NONE"
+modId = "player_animation_library"
+type = "required"
+versionRange = "[1.2.6,)"
+ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]

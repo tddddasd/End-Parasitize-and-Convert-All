@@ -14,8 +14,6 @@ java {
     }
 }
 
-sourceSets.main.java.srcDir 'compat/playeranimator'
-
 sourceSets.main.resources {
     srcDirs 'src/main/resources', 'src/generated/resources', 'src/generated/server-resources'
     exclude 'META-INF/mods.toml.1.20.1'
@@ -88,7 +86,11 @@ dependencies {
     jarJar(implementation files('libs/yawning_neko_api-1.0.5.jar'))
     implementation files('libs/eej-26.1.2.jar')
 
-    // player-animator has no 26.1.2 build; the no-op shim in compat/playeranimator supplies its API.
+    // Player Animation Library (ZigyTheBird fork, modId `player_animation_library`) - hard prerequisite:
+    // the mod's player animations are built on its API and there is no upstream 26.1.2 build, so the 26.1
+    // merged jar lives in libs/ (and is declared as a required dependency in neoforge.mods.toml).
+    compileOnly files('libs/PlayerAnimationLibMerged-1.2.6+mc.26.1.jar')
+    runtimeOnly files('libs/PlayerAnimationLibMerged-1.2.6+mc.26.1.jar')
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

@@ -1,10 +1,9 @@
 package org.tdddd.epca.impl.overworld.registry.items.item;
 
-import dev.kosmx.playerAnim.api.layered.IAnimation;
-import dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer;
-import dev.kosmx.playerAnim.api.layered.ModifierLayer;
-import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
-import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
+import com.zigythebird.playeranim.animation.PlayerAnimationController;
+import com.zigythebird.playeranim.api.PlayerAnimationAccess;
+import com.zigythebird.playeranimcore.animation.layered.IAnimation;
+import com.zigythebird.playeranimcore.animation.layered.ModifierLayer;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -103,16 +102,18 @@ public class KillStick extends Item {
                 if (player.getCooldowns().isOnCooldown(stack)) {
                     return;
                 }
-                ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
-                        .getPlayerAssociatedData(clientPlayer)
-                        .get(Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"));
-                if (animation != null) {
-                    var keyframe = PlayerAnimationRegistry.getAnimation(
+                // Player Animation Library 1.2.6: the layer is read back by the id it was registered
+                // under and the animation id is triggered on the PlayerAnimationController the factory
+                // put inside it. The library loads epca:kill_stick from
+                // assets/epca/player_animations/kill_stick.animation.json by itself.
+                IAnimation layer = PlayerAnimationAccess.getPlayerAnimationLayer(
+                        clientPlayer,
+                        Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"));
+                if (layer instanceof ModifierLayer<?> modifierLayer
+                        && modifierLayer.getAnimation() instanceof PlayerAnimationController controller) {
+                    controller.triggerAnimation(
                             Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick")
                     );
-                    if (keyframe != null) {
-                        animation.setAnimation(new KeyframeAnimationPlayer(keyframe));
-                    }
                 }
             }
         }
@@ -170,11 +171,14 @@ public class KillStick extends Item {
     }
 
     private static void clearAnimation(AbstractClientPlayer player) {
-        ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
-                .getPlayerAssociatedData(player)
-                .get(Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"));
-        if (animation != null) {
-            animation.setAnimation(null);
+        IAnimation layer = PlayerAnimationAccess.getPlayerAnimationLayer(
+                player,
+                Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"));
+        if (layer instanceof ModifierLayer<?> modifierLayer
+                && modifierLayer.getAnimation() instanceof PlayerAnimationController controller) {
+            // setAnimation(null) is gone: the controller stays installed and the triggered animation
+            // is what gets cleared, which is the same thing the old player-animator build cleared.
+            controller.stopTriggeredAnimation();
         }
     }
 
