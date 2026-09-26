@@ -40,6 +40,9 @@ public final class ArayaFireRenderer {
 
     private static final BlockState FIRE_STATE = Blocks.FIRE.defaultBlockState();
 
+    /** TEMP DIAGNOSTIC frame counter (remove together with the diagnostic in {@link #renderGeometry}). */
+    private static long diagnosticFrames;
+
     private ArayaFireRenderer() {
     }
 
@@ -55,6 +58,15 @@ public final class ArayaFireRenderer {
 
         long gameTime = minecraft.level.getGameTime();
         Vec3 camera = event.getCamera().getPosition();
+
+        // TEMP DIAGNOSTIC (remove once the effect is confirmed on screen): reaches here only when the
+        // client cache holds fire, so a line proves the fire geometry is really submitted.
+        if ((diagnosticFrames++ % 40L) == 0L) {
+            org.tdddd.epca.impl.epca.LOGGER.info(
+                    "[araya] submitting fire: {} fire(s), {} holder(s), camera=({}, {}, {})",
+                    ArayaClientCache.fires().size(), ArayaClientCache.holders().size(),
+                    camera.x, camera.y, camera.z);
+        }
         PoseStack poseStack = event.getPoseStack();
         BlockRenderDispatcher dispatcher = minecraft.getBlockRenderer();
         RandomSource random = RandomSource.create(42L);
