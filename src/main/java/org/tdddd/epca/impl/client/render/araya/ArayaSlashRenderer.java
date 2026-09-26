@@ -11,6 +11,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.tdddd.epca.impl.client.effect.ArayaSlashClientCache;
+import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.events.ArayaConstants;
 
 /**
@@ -51,6 +52,9 @@ import org.tdddd.epca.impl.events.ArayaConstants;
  */
 public final class ArayaSlashRenderer {
 
+    /** TEMP DIAGNOSTIC frame counter (remove together with the diagnostic in {@link #renderGeometry}). */
+    private static long diagnosticFrames;
+
     private ArayaSlashRenderer() {
     }
 
@@ -81,6 +85,14 @@ public final class ArayaSlashRenderer {
         float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
         float time = level.getGameTime() + partialTick;
         Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
+
+        // TEMP DIAGNOSTIC (remove once the slash is confirmed on screen): reaches here only when the
+        // client cache holds at least one slash, so a line proves the geometry is really submitted.
+        if ((diagnosticFrames++ % 40L) == 0L) {
+            epca.LOGGER.info("[araya] submitting {} slash(es); camera=({}, {}, {}) first={}",
+                    ArayaSlashClientCache.entries().size(), camera.x, camera.y, camera.z,
+                    ArayaSlashClientCache.entries().get(0).position);
+        }
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
 
@@ -121,9 +133,16 @@ public final class ArayaSlashRenderer {
             return;
         }
 
-        Vec3 centre = new Vec3(entry.position.x - camera.x, entry.position.y - camera.y,
-                entry.position.z - camera.z);
-        if (centre.lengthSqr() > ArayaConstants.RENDER_DISTANCE * ArayaConstants.RENDER_DISTANCE) {
+        // Absolute world coordinates: the stage's pose stack was already shifted to the camera-relative
+        // frame in renderGeometry, so subtracting the camera position here as well would place the blade
+        // one whole camera position away from the victim. The camera offset is only used for the distance
+        // test, exactly like the 1.20.1 twin does.
+        Vec3 world = entry.position;
+        double toCameraX = world.x - camera.x;
+        double toCameraY = world.y - camera.y;
+        double toCameraZ = world.z - camera.z;
+        if (toCameraX * toCameraX + toCameraY * toCameraY + toCameraZ * toCameraZ
+                > ArayaConstants.RENDER_DISTANCE * ArayaConstants.RENDER_DISTANCE) {
             return;
         }
 
@@ -149,13 +168,13 @@ public final class ArayaSlashRenderer {
         for (int side = -1; side <= 1; side += 2) {
             double inner = side * coreHalf;
             double outer = inner + side * band;
-            emitStrip(consumer, matrix, centre, u, w, halfLength, inner, outer,
+            emitStrip(consumer, matrix, world, u, w, halfLength, inner, outer,
                     ArayaConstants.SLASH_BAND_ALPHA * fade, band * 0.5D);
         }
-        emitStrip(consumer, matrix, centre, u, w, halfLength, -coreHalf, coreHalf,
+        emitStrip(consumer, matrix, world, u, w, halfLength, -coreHalf, coreHalf,
                 ArayaConstants.SLASH_CORE_ALPHA * fade, coreHalf);
         double haloHalf = coreHalf * ArayaConstants.SLASH_HALO_WIDTH_FACTOR;
-        emitStrip(consumer, matrix, centre, u, w, halfLength, -haloHalf, haloHalf,
+        emitStrip(consumer, matrix, world, u, w, halfLength, -haloHalf, haloHalf,
                 ArayaConstants.SLASH_CORE_ALPHA * ArayaConstants.SLASH_HALO_ALPHA * fade, haloHalf);
     }
 

@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Client-only cache of the slashes the server spawned: one entry per kill of a player by the named
- * Alayavijnana staff.
+ * Client-only cache of the slashes the server spawned: one entry per left click of the named
+ * Alayavijnana staff on a living entity.
  *
  * <p>An entry carries the position the slash was cut through and the direction the hit came from; the
  * direction is what makes the 50-degree blade frame (see {@code ArayaSlashRenderer}). The start time is
