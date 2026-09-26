@@ -14,7 +14,6 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.tdddd.epca.impl.client.effect.SacrificeRitualClientCache;
-import org.tdddd.epca.impl.epca;
 
 /**
  * Draws the sacrifice-ritual aura: a bright purple pillar from the altar to the sky, two 45-degree
@@ -33,10 +32,10 @@ import org.tdddd.epca.impl.epca;
  *       {@link #SQUARE_HIGH_SIDE}.</li>
  *   <li><b>Wavefield</b>: {@link #RING_COUNT} diagonal rings {@link #RING_LINE_WIDTH} wide that expand
  *       from radius 0 to {@link #RING_MAX_RADIUS} over {@link #RING_PERIOD_TICKS} ticks and fade as
- *       they grow. They are drawn in the air just above the altar top, and - clipped to the cell that
- *       the diagonal actually crosses - on the nearest block top surface of every block column inside
- *       {@link #WAVE_BAND} of the ring, which is what makes the wave appear on the ground in patches
- *       and, further out, as half a diamond at a time (the opposite half lands in the mirror cell).</li>
+ *       they grow. They are drawn in the air just above the altar top, and - clipped exactly to the
+ *       cell the diagonal crosses - on the nearest block top surface of every block column the ring
+ *       passes through, which is what makes the wave appear on the ground in patches and, further
+ *       out, as half a diamond at a time (the opposite half lands in the mirror cell).</li>
  *   <li><b>Sky</b>: one huge {@link #SKY_DISTANCE} away, camera facing, filled with
  *       {@link #SKY_RED}/{@link #SKY_GREEN}/{@link #SKY_BLUE} at up to {@link #SKY_MAX_ALPHA}. It is
  *       drawn at the level's own sky stage, so terrain, entities and the aura itself are all painted
@@ -127,7 +126,6 @@ public final class SacrificeRitualRenderer {
     /** Height above a block's top surface its wave segment is drawn at. */
     public static final float WAVE_SURFACE_OFFSET = 0.03F;
 
-
     // ---- pulsing -----------------------------------------------------------------------------------
 
     /** Ticks of one bright/dim cycle. */
@@ -194,18 +192,6 @@ public final class SacrificeRitualRenderer {
     /** Opacity factor of that halo quad. */
     public static final float LINE_HALO_ALPHA = 0.30F;
 
-    /**
-     * Temporary diagnostics: one INFO line per second while a ritual is known. It tells "nothing reaches
-     * the screen at all" apart from "the pipeline produces nothing"; switch it off once the look has
-     * been confirmed in game.
-     */
-    public static final boolean DEBUG_DIAGNOSTICS = true;
-
-    /** Vertices emitted this frame (diagnostics only). */
-    private static int debugVertices;
-    /** Level tick of the last diagnostics line, so it prints at most once a second. */
-    private static long debugLastTick = Long.MIN_VALUE;
-
     private SacrificeRitualRenderer() {
     }
 
@@ -238,39 +224,13 @@ public final class SacrificeRitualRenderer {
         PoseStack poseStack = cameraRelativeStack(event.getPoseStack(), camera);
         Matrix4f matrix = poseStack.last().pose();
         VertexConsumer consumer = buffers.getBuffer(QUAD_RENDER_TYPE);
-        debugVertices = 0;
         try {
             SacrificeRitualClientCache.forEach(entry ->
                     drawRitual(consumer, matrix, level, entry.center, entry.fade(), time, camera));
-            if (DEBUG_DIAGNOSTICS) {
-                long tick = level.getGameTime();
-                if (tick % 20L == 0L && tick != debugLastTick) {
-                    debugLastTick = tick;
-                    epca.LOGGER.info(
-                            "[ritual] client render: entries={} quads={} fade={} cam=({},{},{}) "
-                                    + "pose=({},{},{}) partial={}",
-                            countEntries(), debugVertices / 4, SacrificeRitualClientCache.strongestFade(),
-                            fmt(camera.x), fmt(camera.y), fmt(camera.z),
-                            fmt(matrix.m30()), fmt(matrix.m31()), fmt(matrix.m32()),
-                            fmt(partialTick));
-                }
-            }
         } finally {
             buffers.endBatch(QUAD_RENDER_TYPE);
             poseStack.popPose();
         }
-    }
-
-    /** Number of cached rituals; diagnostics only. */
-    private static int countEntries() {
-        int[] count = new int[1];
-        SacrificeRitualClientCache.forEach(entry -> count[0]++);
-        return count[0];
-    }
-
-    /** Locale-independent two-decimal formatting for the diagnostics line. */
-    private static String fmt(double value) {
-        return String.format(java.util.Locale.ROOT, "%.2f", value);
     }
 
     /**
@@ -729,7 +689,6 @@ public final class SacrificeRitualRenderer {
     private static void vertex(VertexConsumer consumer, Matrix4f matrix,
                                double x, double y, double z,
                                float red, float green, float blue, float alpha, float v) {
-        debugVertices++;
         consumer.addVertex(matrix, (float) x, (float) y, (float) z)
                 .setColor(red, green, blue, alpha);
     }

@@ -20,14 +20,14 @@ import org.tdddd.epca.impl.epca;
  * off and culling off.
  *
  * <h2>Why not the mod's custom {@code gas_cloud} pipeline</h2>
- * <p>The ritual aura was first drawn through {@code GasCloudRenderType.get()} together with a new
- * {@code RITUAL_STYLE_CHANNEL} branch in {@code gas_cloud.fsh}. In game that produced literally nothing,
- * while a positive-control quad drawn through the built-in {@code RenderType.debugQuads()} at the very
- * same pose, stage and buffer source was visible - so the level stage, the camera-relative pose space
- * and the render target were all correct and only the custom program or its state failed. This type
- * therefore reuses the vanilla program (exactly what the working control quad used) and adds the state
- * the ritual needs and that {@code debugQuads()} does not have: culling off, because the aura's quads
- * are seen from above and from below.</p>
+ * <p>The ritual aura was first drawn through {@code GasCloudRenderType.get()} together with a dedicated
+ * style branch in {@code gas_cloud.fsh} (removed again once this type worked). In game that produced
+ * literally nothing, while a positive-control quad drawn through the built-in
+ * {@code RenderType.debugQuads()} at the very same pose, stage and buffer source was visible - so the
+ * level stage, the camera-relative pose space and the render target were all correct and only the
+ * custom program or its state failed. This type therefore reuses the vanilla program (exactly what the
+ * working control quad used) and adds the state the ritual needs and that {@code debugQuads()} does not
+ * have: culling off, because the aura's quads are seen from above and from below.</p>
  *
  * <h2>1.20.1 -&gt; 26.1.2</h2>
  * <p>The 1.20.1 twin is a {@code RenderType} subclass whose constructor assembles
@@ -110,9 +110,6 @@ public final class RitualQuadRenderType {
     public static void registerPipeline(RegisterRenderPipelinesEvent event) {
         event.registerPipeline(RITUAL_QUADS_PIPELINE);
         pipelineRegistered = true;
-        epca.LOGGER.info("[ritual] pipeline: REGISTERED {} shaders={} format={}",
-                RITUAL_QUADS_PIPELINE.getLocation(), RITUAL_SHADER,
-                DefaultVertexFormat.POSITION_COLOR.getElementAttributeNames());
     }
 
     /** True once {@link #registerPipeline} has registered the ritual pipeline. */

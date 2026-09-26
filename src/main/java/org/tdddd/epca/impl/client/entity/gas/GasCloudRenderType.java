@@ -195,29 +195,6 @@ public final class GasCloudRenderType {
     public static final int HEART_MOTE_STYLE_CHANNEL = 253;
 
     /**
-     * Style channel value of the generic "flat glow" branch used by the sacrifice-ritual aura:
-     * the bright purple pillar, its two 45-degree squares and the expanding wavefield.
-     *
-     * <p>Unlike every other branch this one is geometry-agnostic: the CPU packs the colour into
-     * {@code Color.rgb} and the opacity into {@code Color.a}, while the quad's {@code V} axis carries
-     * the soft width profile ({@code RITUAL_GLOW_INNER}). Any oriented quad can therefore be drawn
-     * with it - a vertical pillar panel, one diamond edge, one wave segment, even the full-screen sky
-     * quad (whose four vertices all use {@code V = 0.5}, which the profile leaves at full strength).
-     * {@code gas_cloud.fsh}'s {@code RITUAL_STYLE_CHANNEL} const selects the branch; the Java and GLSL
-     * values are cross-checked by {@code build/javac-check/check-glsl-26.py}.</p>
-     */
-    public static final int RITUAL_STYLE_CHANNEL = 254;
-
-    /**
-     * Half width of the soft band the ritual style branch keeps around the quad's {@code V = 0.5}
-     * centre line: the glow profile is {@code 1 - smoothstep(RITUAL_GLOW_INNER, 0.5, |V - 0.5|)}. It is
-     * the Java mirror of the GLSL {@code RITUAL_GLOW_INNER} (cross-checked by
-     * {@code build/javac-check/check-glsl-26.py}); the shader is the only reader, it is mirrored so a
-     * future thickness tweak has one obvious place to happen in both trees.
-     */
-    public static final float RITUAL_GLOW_INNER = 0.18F;
-
-    /**
      * The same texture the INFESTIVE_GAS particle uses, so the clouds visually match the particles.
      * It is a 16x144 sheet of nine 16x16 animation frames; the raw 16x144 image is what
      * {@code SimpleTexture} uploads, so the fragment shader samples only the first frame band

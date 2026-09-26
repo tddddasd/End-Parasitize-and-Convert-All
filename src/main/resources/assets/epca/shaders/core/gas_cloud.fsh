@@ -12,16 +12,13 @@
 // Dissipation is therefore smooth in time (fade), in space (radial falloff times the noise mask)
 // and in depth (the far-distance fade below), instead of a hard cut-off.
 //
-// The same shader draws four further looks, selected by the style channel in gasSeed.y (UV1.y,
+// The same shader draws three further looks, selected by the style channel in gasSeed.y (UV1.y,
 // written by the CPU helper that submits the quad):
 //   * GAS_SPEC_STYLE_CHANNEL (250): the dark-red micro rectangle of epca:contaminated_water,
 //   * HEART_STYLE_CHANNEL (252): the golden plasma/flame column of epca:soul_protection,
-//   * HEART_MOTE_STYLE_CHANNEL (253): the tiny golden embers beside that flame,
-//   * RITUAL_STYLE_CHANNEL (254): the flat purple glow of the sacrifice-ritual aura.
+//   * HEART_MOTE_STYLE_CHANNEL (253): the tiny golden embers beside that flame.
 // The two soul-protection styles are fully procedural: they sample no texture and use no gas noise
-// mask, and the flame reuses gasFbm for its structure only. The ritual style is geometry-agnostic:
-// it takes the colour and the opacity straight from the vertex colour and shapes only the quad's V
-// axis.
+// mask, and the flame reuses gasFbm for its structure only.
 
 #moj_import <minecraft:dynamictransforms.glsl>
 
@@ -119,14 +116,6 @@ const bool GAS_DEBUG_OPAQUE = false;
 const int HEART_STYLE_CHANNEL = 252;
 const int HEART_MOTE_STYLE_CHANNEL = 253;
 
-// -- sacrifice-ritual glow -------------------------------------------------------------------------
-// One geometry-agnostic "flat glow" branch for the sacrifice-ritual aura: the bright purple pillar,
-// its two 45-degree squares and the expanding wavefield. The CPU packs the colour into Color.rgb and
-// the opacity into Color.a; the quad's V axis carries the soft width profile below, so a long thin
-// quad reads as a glowing line and a quad whose four vertices all use V = 0.5 (the sky cover) reads
-// as a flat fill. Mirrored by GasCloudRenderType.RITUAL_STYLE_CHANNEL / RITUAL_GLOW_INNER.
-const int RITUAL_STYLE_CHANNEL = 254;
-const float RITUAL_GLOW_INNER = 0.18;
 // Aspect ratio width : height = 1 : 2.1, and the hitbox padding the CPU applies to the quad height.
 const float HEART_ASPECT_HEIGHT = 2.1;
 const float HEART_SIZE_PADDING = 1.10;
@@ -366,21 +355,6 @@ void main() {
         vec4 mote = soulMoteColor(texCoord0);
         fragColor = vec4(mote.rgb * ColorModulator.rgb,
                          mote.a * vertexColor.a * edgeFade * ColorModulator.a);
-        return;
-    }
-
-    // SACRIFICE-RITUAL FLAT GLOW: no texture, no noise, no radial falloff. The colour and the opacity
-    // come straight from the vertex colour, and only the quad's V axis is shaped (a soft band around
-    // V = 0.5), so a long thin quad - the pillar panel, one edge of a diamond, one wave segment -
-    // reads as a glowing line. This branch is geometry-agnostic: any oriented quad can use it.
-    // edgeFade is deliberately NOT applied: it is the gas pipeline's 48..96 block distance fade, and
-    // the ritual sky quad alone is thousands of blocks across, so every one of its fragments would fade
-    // to fully transparent. The ritual geometry is culled by distance on the CPU instead
-    // (SacrificeRitualRenderer.MAX_SEGMENT_DISTANCE / MAX_PILLAR_DISTANCE).
-    if (gasSeed.y == RITUAL_STYLE_CHANNEL) {
-        float profile = 1.0 - smoothstep(RITUAL_GLOW_INNER, 0.5, abs(texCoord0.y - 0.5));
-        fragColor = vec4(vertexColor.rgb * ColorModulator.rgb,
-                         clamp(vertexColor.a * profile * ColorModulator.a, 0.0, 1.0));
         return;
     }
 
