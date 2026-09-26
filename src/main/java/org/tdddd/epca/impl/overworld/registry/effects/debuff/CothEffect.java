@@ -328,28 +328,21 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
     
     public static void executePlan(LivingEntity entity, ConversionPlan plan) {
-        if (plan == null) {
+        if (plan == null || planIsEmpty(plan)) {
             return;
         }
 
+        // The data pack rule runs first: convertUsingDataPackRule places the new entity at the
+        // position the original still occupies, which the generic conversion would vacate first.
         if (plan.targetEntity != null && !plan.targetEntity.isEmpty()) {
-            if (plan.generic) {
-                performGenericConversion(entity, plan.isSmallEntity, plan.isLargeEntity);
-            }
             convertUsingDataPackRule(entity, plan.targetEntity);
-            return;
         }
 
-        if (plan.targetEntity == null) {
-            return;
-        }
-
+        // A rule-less mob (no entity_conversions entry, e.g. a cat) plans target == null with
+        // generic == true; planIsEmpty() must not swallow it, so the default conversion still runs.
         if (plan.generic) {
             performGenericConversion(entity, plan.isSmallEntity, plan.isLargeEntity);
-            return;
         }
-
-        performGenericConversion(entity, plan.isSmallEntity, plan.isLargeEntity);
     }
 
     
