@@ -133,6 +133,27 @@ public class ModNetwork {
                 SyncRitualAuraPacket::encode,
                 SyncRitualAuraPacket::decode,
                 SyncRitualAuraPacket::handle);
+
+        // The Alayavijnana aura: which players carry a staff whose 天杀 counter reached the threshold
+        // (that is what drives the looping BGM and the fire field around them).
+        INSTANCE.registerMessage(id++, SyncArayaAuraPacket.class,
+                SyncArayaAuraPacket::encode,
+                SyncArayaAuraPacket::decode,
+                SyncArayaAuraPacket::handle);
+
+        // The render-only vanilla fire blocks around those players. The server rolls where, how tall and
+        // for how long; the client only draws.
+        INSTANCE.registerMessage(id++, SyncArayaFirePacket.class,
+                SyncArayaFirePacket::encode,
+                SyncArayaFirePacket::decode,
+                SyncArayaFirePacket::handle);
+
+        // One Alayavijnana slash: the white 50-degree cut with its refracting border, spawned by a kill
+        // of another player with the renamed staff.
+        INSTANCE.registerMessage(id++, SpawnArayaSlashPacket.class,
+                SpawnArayaSlashPacket::encode,
+                SpawnArayaSlashPacket::decode,
+                SpawnArayaSlashPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {

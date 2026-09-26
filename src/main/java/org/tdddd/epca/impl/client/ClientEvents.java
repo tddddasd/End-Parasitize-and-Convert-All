@@ -6,11 +6,15 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.tdddd.epca.impl.client.effect.ArayaBgmManager;
+import org.tdddd.epca.impl.client.effect.ArayaClientCache;
+import org.tdddd.epca.impl.client.effect.ArayaSlashClientCache;
 import org.tdddd.epca.impl.client.effect.SacrificeRitualClientCache;
 import org.tdddd.epca.impl.client.effect.SoulProtectionClientCache;
 import org.tdddd.epca.impl.client.entity.gas.GasCloudManager;
 import org.tdddd.epca.impl.client.entity.heart.SoulProtectionHeartRenderer;
 import org.tdddd.epca.impl.client.entity.layer.EndermanAfterimageLayer;
+import org.tdddd.epca.impl.client.render.araya.ArayaSceneCopy;
 import org.tdddd.epca.impl.epca;
 
 /**
@@ -47,8 +51,20 @@ public class ClientEvents {
         if (level != ritualLevel) {
             ritualLevel = level;
             SacrificeRitualClientCache.clear();
+            // The Alayavijnana aura belongs to a level too: a teleport, a dimension change or a
+            // disconnect must not leave the BGM playing or a fire field behind.
+            ArayaClientCache.clear();
+            ArayaSlashClientCache.clear();
+            ArayaBgmManager.stop();
+            ArayaBgmManager.invalidateAssetCache();
+            ArayaSceneCopy.invalidate();
         }
         SacrificeRitualClientCache.clientTick();
+        ArayaClientCache.clientTick(level == null ? 0L : level.getGameTime());
+        ArayaSlashClientCache.clientTick(level == null ? 0L : level.getGameTime());
+        // Starts, follows and stops the 天杀 BGM: the loop runs only while a holder with an active
+        // counter is reported and the local listener is inside the documented radius.
+        ArayaBgmManager.clientTick();
         if (tickCounter % 20 == 0) {
             EndermanAfterimageLayer.cleanupOrphaned();
         }

@@ -8,10 +8,14 @@ import dev.kosmx.playerAnim.api.layered.ModifierLayer;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,6 +37,8 @@ import java.util.Random;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.common.ForgeMod;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.events.ArayaConstants;
+import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
 public class KillStick extends Item {
     private final Multimap<Attribute, AttributeModifier> defaultModifiers;
@@ -192,6 +198,18 @@ public class KillStick extends Item {
 
                     var particle = RANDOM.nextBoolean() ? ParticleTypes.CLOUD : ParticleTypes.END_ROD;
                     serverLevel.sendParticles(particle, x, y, z, 1, 0, 0, 0, 0.1);
+                }
+
+                // The renamed staff's own hit: 444 points of the mod's MINIMUM damage type on the target
+                // of this click, so the kill (and therefore the trident sound, the slash and the 天杀
+                // counter in ArayaSyncHandler) has one unambiguous source. The source carries the player
+                // as its causing entity, which is what makes LivingDeathEvent able to name the killer.
+                if (entity instanceof LivingEntity livingTarget) {
+                    Holder<DamageType> holder = serverLevel.registryAccess()
+                            .registryOrThrow(Registries.DAMAGE_TYPE)
+                            .getHolderOrThrow(ModDamageTypes.MINIMUM);
+                    livingTarget.hurt(new DamageSource(holder, player, player),
+                            ArayaConstants.DAMAGE);
                 }
             }
 

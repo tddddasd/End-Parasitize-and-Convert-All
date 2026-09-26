@@ -3,6 +3,7 @@ package org.tdddd.epca.impl.client.render;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.client.render.compat.IrisShaderCompat;
+import org.tdddd.epca.impl.client.render.araya.ArayaSlashShaders;
 import org.tdddd.epca.impl.client.render.shader.EpcaShaders;
 import org.tdddd.epca.impl.client.render.sky.SkyRuptureShaders;
 import org.tdddd.epca.impl.epca;
@@ -27,6 +28,9 @@ public final class EpcaRenderClient {
     public static void init(IEventBus modEventBus) {
         modEventBus.addListener(EpcaShaders::onRegisterShaders);
         modEventBus.addListener(SkyRuptureShaders::onRegisterShaders);
+        // 阿赖耶识剑痕着色器：两个 render type 都是惰性建立的，会绑定这个 shader 实例，
+        // 所以这里和着色器注册本身没有先后要求。
+        modEventBus.addListener(ArayaSlashShaders::onRegisterShaders);
         // 方块图集缝合后解析 12 张结界星点 sprite 的 UV（参考项目同款做法）
         modEventBus.addListener(SkyRuptureShaders::onTextureAtlasStitched);
     }
