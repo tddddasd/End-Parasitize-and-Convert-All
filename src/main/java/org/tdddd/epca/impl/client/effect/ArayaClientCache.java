@@ -145,20 +145,26 @@ public final class ArayaClientCache {
         HOLDERS.addAll(next);
     }
 
-    /** Replaces the whole fire set with one batch. All fires of a batch share one roll tick. */
-    public static void applyFires(int[] xs, int[] ys, int[] zs, long rolledAtTick, int[] lifetimes,
-                                  float[] heights) {
+    /**
+     * Replaces the whole fire set with one batch. Every entry carries its own age ({@code bornAgoTicks}
+     * ticks before the batch's {@code rolledAtTick}), because the server lets successive waves overlap and
+     * only the batch that rolled a block knows when it was born.
+     */
+    public static void applyFires(int[] xs, int[] ys, int[] zs, long rolledAtTick, long[] bornAgoTicks,
+                                  int[] lifetimes, float[] heights) {
         int count = Math.min(Math.min(xs.length, ys.length), Math.min(zs.length, lifetimes.length));
         count = Math.min(count, heights.length);
+        count = Math.min(count, bornAgoTicks.length);
         List<Fire> next = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
+            long bornAtTick = rolledAtTick - Math.max(0L, bornAgoTicks[i]);
             Fire existing = findFire(xs[i], ys[i], zs[i]);
-            if (existing != null && existing.rolledAtTick == rolledAtTick
+            if (existing != null && existing.rolledAtTick == bornAtTick
                     && existing.lifetimeTicks == lifetimes[i]) {
                 // Same roll: keep the object so its fade-in age survives the resend.
                 next.add(existing);
             } else {
-                next.add(new Fire(new BlockPos(xs[i], ys[i], zs[i]), rolledAtTick, lifetimes[i],
+                next.add(new Fire(new BlockPos(xs[i], ys[i], zs[i]), bornAtTick, lifetimes[i],
                         heights[i]));
             }
         }

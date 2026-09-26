@@ -28,15 +28,17 @@ public class SyncArayaFirePacket {
     public static final int MAX_ENTRIES = 256;
 
     private final long rolledAtTick;
+    private final long[] bornAgoTicks;
     private final int[] xs;
     private final int[] ys;
     private final int[] zs;
     private final int[] lifetimes;
     private final float[] heights;
 
-    public SyncArayaFirePacket(long rolledAtTick, int[] xs, int[] ys, int[] zs, int[] lifetimes,
-                               float[] heights) {
+    public SyncArayaFirePacket(long rolledAtTick, long[] bornAgoTicks, int[] xs, int[] ys, int[] zs,
+                               int[] lifetimes, float[] heights) {
         this.rolledAtTick = rolledAtTick;
+        this.bornAgoTicks = bornAgoTicks;
         this.xs = xs;
         this.ys = ys;
         this.zs = zs;
@@ -48,6 +50,7 @@ public class SyncArayaFirePacket {
         int size = Math.min(Math.min(this.xs.length, this.ys.length), Math.min(this.zs.length,
                 this.lifetimes.length));
         size = Math.min(size, this.heights.length);
+        size = Math.min(size, this.bornAgoTicks.length);
         size = Math.min(size, MAX_ENTRIES);
         buf.writeVarInt(size);
         buf.writeVarLong(this.rolledAtTick);
@@ -57,6 +60,9 @@ public class SyncArayaFirePacket {
             // 1/255-block steps: the client multiplies by the same factor.
             int height = Math.round(this.heights[i] * 255.0F);
             buf.writeByte(Math.max(0, Math.min(255, height)));
+            // Age of this entry relative to the batch tick: the fire field keeps overlapping waves, so
+            // every block carries its own birthday instead of sharing the wave's.
+            buf.writeVarInt((int) Math.min(Integer.MAX_VALUE, Math.max(0L, this.bornAgoTicks[i])));
         }
     }
 
@@ -76,6 +82,7 @@ public class SyncArayaFirePacket {
         int[] zs = new int[size];
         int[] lifetimes = new int[size];
         float[] heights = new float[size];
+        long[] bornAgoTicks = new long[size];
         for (int i = 0; i < size; i++) {
             net.minecraft.core.BlockPos pos = buf.readBlockPos();
             xs[i] = pos.getX();
@@ -83,13 +90,14 @@ public class SyncArayaFirePacket {
             zs[i] = pos.getZ();
             lifetimes[i] = buf.readVarInt();
             heights[i] = (buf.readByte() & 0xFF) / HEIGHT_SCALE;
+            bornAgoTicks[i] = buf.readVarInt();
         }
-        return new SyncArayaFirePacket(rolledAtTick, xs, ys, zs, lifetimes, heights);
+        return new SyncArayaFirePacket(rolledAtTick, bornAgoTicks, xs, ys, zs, lifetimes, heights);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> ArayaClientCache.applyFires(this.xs, this.ys, this.zs,
-                this.rolledAtTick, this.lifetimes, this.heights));
+                this.rolledAtTick, this.bornAgoTicks, this.lifetimes, this.heights));
         ctx.get().setPacketHandled(true);
     }
 }
