@@ -17,6 +17,7 @@ import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.overworld.registry.ModTags;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -45,6 +46,37 @@ public class ItemAndEntityTagsData {
             tag(TagKey.create(ForgeRegistries.ITEMS.getRegistryKey(),
                     new ResourceLocation("forge", "enchanting_fuels")))
                     .add(modItem("infested_lapis_lazuli"));
+
+            // epca:organ_part GUI
+            //  entity  data/epca/loot_tables/entities/*.json
+            //
+            // src/generated/resources/data/epca/tags/items/organ_part.json
+            tag(ModTags.ORGAN_PART).add(
+                    //  infested_* / incomplete_form
+                    modItem("infested_flesh"),
+                    // infested_cow/drowned/husk/pig/fox/pillager/sheep/villager/vindicator/wolf/zombie/zombie_villager
+                    modItem("diseased_heart"),
+                    // infested_skeleton / medium_incomplete_form / large_incomplete_form
+                    modItem("infested_bone"),
+                    // fins / mozzie / ripper
+                    modItem("parasite_viscera"),
+                    // small / medium / large incomplete_form
+                    modItem("weird_minced_flesh"),
+                    // infested_slime_size0
+                    modItem("infested_slime_ball"),
+                    // reshape_longarms / reshape_yelloweye
+                    modItem("reshape_flesh"),
+                    modItem("twisted_bone"),
+                    modItem("tight_tendons"),
+                    modItem("gasbag_debris"),
+                    modItem("reshape_shell"),
+                    //  / infested_enderman
+                    modItem("infested_ender_pearl"),
+                    modItem("ender_blade_scrap"),
+                    // fins
+                    modItem("fins_fin"),
+                    // stage_i_beckon / stage_ii_beckon
+                    modItem("beckon_membrane"));
         }
 
         private Item modItem(String name) {
@@ -77,3 +109,4 @@ public class ItemAndEntityTagsData {
         }
     }
 }
+

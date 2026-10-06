@@ -13,6 +13,7 @@ import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import org.tdddd.epca.impl.client.block.InfestedSweetBerryBushGlowRenderer;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
 import org.tdddd.epca.impl.client.entity.gas.GasCloudRenderType;
 import org.tdddd.epca.impl.client.entity.model.*;
@@ -40,8 +41,8 @@ public class ClientHandler {
     @SubscribeEvent
     public static void onRegisterRenderers(final EntityRenderersEvent.RegisterRenderers event) {
 
-        // ── Auto-registered renderers (all entities via EpcaEntityManager.registerMobWithRender) ──
-        // These use EpcaTypeGeoRenderer + EpcaTypeGeoModel — reads model/texture/animation
+        //  Auto-registered renderers (all entities via EpcaEntityManager.registerMobWithRender)
+        // These use EpcaTypeGeoRenderer + EpcaTypeGeoModel  reads model/texture/animation
         // from EpcaEntityManager by entity type. No per-entity model class needed.
         for (EntityType<?> type : EpcaEntityManager.consumeRenderTypes()) {
             if (type == ModEntities.RESHAPE_YELLOWEYE.get()) {
@@ -54,9 +55,10 @@ public class ClientHandler {
             event.registerEntityRenderer(rawType, EpcaGeoRenderer::new);
         }
 
-        // ── Custom renderers ONLY (entities with special rendering: non-GeckoLib, shaders, etc.) ──
+        //  Custom renderers ONLY (entities with special rendering: non-GeckoLib, shaders, etc.)
         event.registerEntityRenderer(ModEntities.CONTAMINATED_WATER.get(), ContaminatedWaterRenderer::new);
         event.registerEntityRenderer(ModEntities.YAWNING_NYA.get(), YawningNyaRenderer::new);
+        event.registerEntityRenderer(ModEntities.BIO_TORT_INCARNATION.get(), BioTortIncarnationRenderer::new);
         event.registerEntityRenderer(ModEntities.BONE_FRAGMENT.get(), BoneFragmentRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_ENDER_PEARL.get(), InfestedThrownEnderPearlRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_SPIDER_WEB_PROJECTILE.get(), ThrownItemRenderer::new);
@@ -90,9 +92,14 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.ACID_BULLET.get(), AcidBulletRenderer::new);
         event.registerEntityRenderer(ModEntities.BONE_ARROW.get(), BoneArrowRenderer::new);
         event.registerEntityRenderer(ModEntities.BIOMASS_EGG.get(), BiomassEggRenderer::new);
-        event.registerEntityRenderer(ModEntities.INFESTED_PUMPKIN_HEAD.get(), InfestedPumpkinHeadRenderer::new);
+        //  Phase 3
+        //  epca_physics  SubLevelWorldRenderer
 
         event.registerBlockEntityRenderer(ModBlockEntities.SWALLOW_CYST.get(), ctx -> new GeoBlockRenderer<>(new SwallowCystModel()));
+        // age=3 InfestedSweetBerryBushGlowRenderer
+        //  JSON
+        event.registerBlockEntityRenderer(ModBlockEntities.INFESTED_SWEET_BERRY_BUSH.get(),
+                InfestedSweetBerryBushGlowRenderer::new);
     }
 
     @SubscribeEvent
@@ -158,3 +165,4 @@ public class ClientHandler {
         event.registerShader(shader, GasCloudRenderType::registerShader);
     }
 }
+

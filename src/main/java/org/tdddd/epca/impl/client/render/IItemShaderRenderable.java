@@ -5,10 +5,10 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 /**
- * 让 <b>物品类自己</b> 声明要挂哪些 shader 层，无需外部注册。
+ *  <b></b>  shader
  *
- * <p>与 RottenRuinsSplendiding 的 {@code ICosmicLayer} / {@code ICustomOutline}
- * 是同一个思路：接口优先级高于 {@link org.tdddd.epca.impl.events.render.ItemRenderRegistry} 的注册。</p>
+ * <p> RottenRuinsSplendiding  {@code ICosmicLayer} / {@code ICustomOutline}
+ *  {@link org.tdddd.epca.impl.events.render.ItemRenderRegistry} </p>
  *
  * <pre>{@code
  * public class EnderBlade extends SwordItem implements IItemShaderRenderable {
@@ -23,8 +23,9 @@ import java.util.List;
 public interface IItemShaderRenderable {
 
     /**
-     * 返回该物品要渲染的层。返回 {@code null} 或空列表时回退到
-     * {@link org.tdddd.epca.impl.events.render.ItemRenderRegistry} 的注册。
+     *  {@code null}
+     * {@link org.tdddd.epca.impl.events.render.ItemRenderRegistry}
      */
     List<ItemLayerBinding> shaderBindings(ItemStack stack);
 }
+

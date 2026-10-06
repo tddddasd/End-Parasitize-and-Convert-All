@@ -6,15 +6,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -24,12 +21,9 @@ import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
-import org.tdddd.epca.impl.overworld.registry.ModEntities;
+import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedPumpkinHead;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
-
-import java.util.List;
 
 public class InfestedPumpkin extends Block implements InfestedBlockInterface {
 
@@ -72,23 +66,26 @@ public class InfestedPumpkin extends Block implements InfestedBlockInterface {
     }
 
     @Override
-    public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state,
-                              @Nullable BlockEntity blockEntity, ItemStack tool) {
-        super.playerDestroy(level, player, pos, state, blockEntity, tool);
-        if (!level.isClientSide) {
-            
-            if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, tool) == 0) {
-                if (level.random.nextFloat() < 0.5f) {
-                    InfestedPumpkinHead entity = ModEntities.INFESTED_PUMPKIN_HEAD.get().create(level);
-                    if (entity != null) {
-                        entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-                        
-                        entity.setYRot(level.random.nextFloat() * 360.0F);
-                        level.addFreshEntity(entity);
-                    }
-                }
+    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        // onRemove
+        if (PumpkinPhysicsHelper.hasSilkTouch(player)) {
+            PumpkinPhysicsHelper.markSilkTouchBreak(level, pos);
+        }
+        super.playerWillDestroy(level, pos, state, player);
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+        if (!level.isClientSide && !state.is(newState.getBlock())) {
+            // /
+            if (!PumpkinPhysicsHelper.wasSilkTouchBreak(level, pos)) {
+                //  1
+                // // 5
+                PumpkinPhysicsHelper.spawnPhysicsPumpkin(level, pos,
+                        ModBlocks.INFESTED_CARVED_PUMPKIN.get().defaultBlockState());
             }
         }
+        super.onRemove(state, level, pos, newState, moved);
     }
 
     @Override

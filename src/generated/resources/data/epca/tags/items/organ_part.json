@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "epca:infested_flesh",
+    "epca:diseased_heart",
+    "epca:infested_bone",
+    "epca:parasite_viscera",
+    "epca:weird_minced_flesh",
+    "epca:infested_slime_ball",
+    "epca:reshape_flesh",
+    "epca:twisted_bone",
+    "epca:tight_tendons",
+    "epca:gasbag_debris",
+    "epca:reshape_shell",
+    "epca:infested_ender_pearl",
+    "epca:ender_blade_scrap",
+    "epca:fins_fin",
+    "epca:beckon_membrane"
+  ]
+}

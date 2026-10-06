@@ -40,9 +40,7 @@ public class AfterimageData {
         return age >= 0 && age < lifetime;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  Bone snapshot — works with CoreGeoBone (GeckoLib interface)
-    // ═══════════════════════════════════════════════════════════════
+    //  Bone snapshot  works with CoreGeoBone (GeckoLib interface)
 
     public static class BoneSnapshot {
         public final float rotX, rotY, rotZ;
@@ -82,3 +80,4 @@ public class AfterimageData {
         }
     }
 }
+

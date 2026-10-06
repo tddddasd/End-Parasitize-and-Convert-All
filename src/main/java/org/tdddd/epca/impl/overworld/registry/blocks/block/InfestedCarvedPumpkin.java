@@ -23,9 +23,7 @@ import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
-import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedPumpkinHead;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements InfestedBlockInterface {
@@ -69,26 +67,25 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
     }
 
     @Override
-    @Nullable
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Player player = context.getPlayer();
-        if (player != null && !player.isShiftKeyDown()) {
-            return null;
-        }
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        // onRemove
+        if (PumpkinPhysicsHelper.hasSilkTouch(player)) {
+            PumpkinPhysicsHelper.markSilkTouchBreak(level, pos);
+        }
+        super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!level.isClientSide && !state.is(newState.getBlock())) {
-            InfestedPumpkinHead entity = ModEntities.INFESTED_PUMPKIN_HEAD.get().create(level);
-            if (entity != null) {
-                entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-
-                Direction facing = state.getValue(FACING);
-                entity.setYRot(facing.toYRot());
-
-                level.addFreshEntity(entity);
+            // /
+            if (!PumpkinPhysicsHelper.wasSilkTouchBreak(level, pos)) {
+                PumpkinPhysicsHelper.spawnPhysicsPumpkin(level, pos, state);
             }
 
             level.updateNeighborsAt(pos, Blocks.AIR);

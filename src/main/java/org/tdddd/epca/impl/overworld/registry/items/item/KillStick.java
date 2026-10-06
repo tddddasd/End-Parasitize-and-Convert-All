@@ -202,7 +202,7 @@ public class KillStick extends Item {
                 }
 
                 // The renamed staff's own hit: 444 points of the mod's MINIMUM damage type on the target
-                // of this click, so the kill (and therefore the trident sound and the 天杀 counter in
+                // of this click, so the kill (and therefore the trident sound and the  counter in
                 // ArayaSyncHandler) has one unambiguous source. The source carries the player as its
                 // causing entity, which is what makes LivingDeathEvent able to name the killer.
                 if (entity instanceof LivingEntity livingTarget) {

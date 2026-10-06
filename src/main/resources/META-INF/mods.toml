@@ -38,3 +38,10 @@ mandatory = true
 versionRange = "[1.0.0,)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.epca]]
+modId = "epca_physics"
+mandatory = true
+versionRange = "[1.0.0,)"
+ordering = "AFTER"
+side = "BOTH"

@@ -32,7 +32,7 @@ public class CustomDataProviders {
         return Objects.requireNonNull(ForgeRegistries.ENTITY_TYPES.getKey(type)).toString();
     }
 
-    // ═══════════════════ 1. Entity Conversions ═══════════════════
+    //  1. Entity Conversions
 
     public static class EntityConversionRule {
         public String from, to, fins_to, mozzie_to;
@@ -182,7 +182,7 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Entity Conversions"; }
     }
 
-    // ═══════════════════ 3. Entity Carry ═══════════════════
+    //  3. Entity Carry
 
     public static class EntityCarryData {
         public List<String> carryable;
@@ -241,7 +241,7 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Entity Carry"; }
     }
 
-    // ═══════════════════ 4. Block Conversions ═══════════════════
+    //  4. Block Conversions
 
     public static class BlockConversionsData {
         public Map<String, String> conversions;
@@ -501,7 +501,7 @@ public class CustomDataProviders {
         }
     }
 
-    // ═══════════════════ 5b. Soul Fire Purification Recipes ═══════════════════
+    //  5b. Soul Fire Purification Recipes
 
     /**
      * Generates the {@code eej:soul_fire_purification} recipes for every infested input.
@@ -537,7 +537,7 @@ public class CustomDataProviders {
                 "epca:infested_coal",
                 "epca:infested_coal_ore",
                 "epca:infested_heavy_coal_ore");
-        /** The only junk item (虫染垃圾). */
+        /** The only junk item (). */
         public static final String JUNK_ITEM = "epca:infested_rubbish";
         /** Explicitly excluded: destroyed without a roll. */
         public static final String DESTROYED_ITEM = "epca:infested_flesh";
@@ -738,7 +738,7 @@ public class CustomDataProviders {
     }
 
 
-    // ═══════════════════ 5. Biomass Spawns ═══════════════════
+    //  5. Biomass Spawns
 
     public static class SpawnEffect {
         public String effect; public int duration; public int amplifier;
@@ -805,3 +805,4 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Biomass Spawns"; }
     }
 }
+

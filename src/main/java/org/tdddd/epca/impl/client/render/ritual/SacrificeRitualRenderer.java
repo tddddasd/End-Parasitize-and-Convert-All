@@ -46,7 +46,7 @@ import org.tdddd.epca.impl.client.effect.SacrificeRitualClientCache;
  * {@code FADE_IN_TICKS} once the server reports the ritual, stays while it is reported, and fades out
  * over {@code FADE_OUT_TICKS} after it stops - which is exactly when the ritual's lightning falls.
  * The pillar and the squares additionally breathe with {@link #PULSE_DEPTH} over
- * {@link #PULSE_PERIOD_TICKS} ("间隔的变暗/变亮").</p>
+ * {@link #PULSE_PERIOD_TICKS} ("/").</p>
  *
  * <h2>Rendering</h2>
  * <p>Everything is drawn through {@link RitualQuadRenderType} (see {@link #QUAD_RENDER_TYPE}): plain
@@ -665,3 +665,4 @@ public final class SacrificeRitualRenderer {
         return 1.0F - c * c * c;
     }
 }
+

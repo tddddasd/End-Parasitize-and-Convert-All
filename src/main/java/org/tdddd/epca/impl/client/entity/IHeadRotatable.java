@@ -48,7 +48,7 @@ public interface IHeadRotatable {
         return "head";
     }
 
-    /** Maximum head yaw rotation in degrees. Default ±60°. */
+    /** Maximum head yaw rotation in degrees. Default 60. */
     default float getMaxHeadYaw() {
         return 60.0f;
     }
@@ -65,3 +65,4 @@ public interface IHeadRotatable {
         return hasTarget || self.getDeltaMovement().horizontalDistanceSqr() > 0.001;
     }
 }
+

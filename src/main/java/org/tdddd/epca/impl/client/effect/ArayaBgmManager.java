@@ -13,13 +13,13 @@ import java.util.Optional;
  *
  * <h2>Rules implemented here (all of them from the feature request)</h2>
  * <ul>
- *   <li><b>Start</b>: the holder has an active aura (its 天杀 counter is at or above
+ *   <li><b>Start</b>: the holder has an active aura (its  counter is at or above
  *       {@link ArayaConstants#TIANSA_THRESHOLD}, which is what the server only reports in that case)
  *       and the local listener is inside {@link ArayaConstants#BGM_RADIUS}.</li>
  *   <li><b>Continue</b>: while the holder is still reported and the listener is still inside
  *       {@link ArayaConstants#BGM_STOP_RADIUS}. The two radii are the hysteresis that keeps the loop
  *       from stuttering for a player standing on the edge.</li>
- *   <li><b>Stop</b> ("距离持有者过远或没有该穷尽灭杖"): the listener is beyond the stop radius, no holder is
+ *   <li><b>Stop</b> (""): the listener is beyond the stop radius, no holder is
  *       reported any more (the staff was dropped, the counter fell below the threshold, or the holder
  *       logged out), or the client level changed. The instance is handed to
  *       {@code SoundManager#stop}, so the channel and its streamed buffers are released immediately -
@@ -145,3 +145,4 @@ public final class ArayaBgmManager {
         return present;
     }
 }
+

@@ -29,9 +29,9 @@ import java.util.List;
  *
  * <p>Custom per-entity behaviors are applied here via interfaces:</p>
  * <ul>
- *   <li>{@link IMotionAligned} — rotate to face velocity direction (projectiles)</li>
- *   <li>{@link IOverlayRenderable} — translucent overlay layer (villager plains, wolf collar)</li>
- *   <li>{@link IHeadRotatable} — handled in {@link EpcaGeoModel#setCustomAnimations}</li>
+ *   <li>{@link IMotionAligned}  rotate to face velocity direction (projectiles)</li>
+ *   <li>{@link IOverlayRenderable}  translucent overlay layer (villager plains, wolf collar)</li>
+ *   <li>{@link IHeadRotatable}  handled in {@link EpcaGeoModel#setCustomAnimations}</li>
  * </ul>
  */
 public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntityRenderer<T> {
@@ -56,9 +56,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         layerProviders.add(provider);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Color effects
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public void actuallyRender(PoseStack poseStack, T animatable, BakedGeoModel model, RenderType renderType,
@@ -88,9 +86,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return RenderType.entityTranslucent(texture);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Rotation: April Fools billboard  /  motion-aligned projectiles
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     protected void applyRotations(T entity, PoseStack poseStack, float rotationYaw,
@@ -118,9 +114,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Overlay rendering  (IOverlayRenderable)
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public void render(T entity, float entityYaw, float partialTick,
@@ -160,9 +154,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return OverlayTexture.NO_OVERLAY;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Public helper for external renderers (afterimages, layers, etc.)
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * Renders the model with explicit color/alpha using a specific RenderType.
@@ -181,9 +173,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
                 false, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  GeckoLib render layer → delegates to registered IGeoLayerProviders
-    // ═══════════════════════════════════════════════════════════════
+    //  GeckoLib render layer  delegates to registered IGeoLayerProviders
 
     /**
      * A GeckoLib {@link GeoRenderLayer} that dispatches to all
@@ -213,3 +203,4 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         }
     }
 }
+

@@ -7,6 +7,7 @@ import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BioTortIncarnation;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.Nullthing;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.*;
@@ -24,7 +25,7 @@ public class ModEntityEvents {
 
     /**
      * All entity attributes are now routed through EpcaEntityManager.
-     * ModEntities.registerMobAttributes() adds each type → EpcaEntityManager.registerMobNoRender()
+     * ModEntities.registerMobAttributes() adds each type  EpcaEntityManager.registerMobNoRender()
      * stores the attribute supplier. Then this single call processes them all.
      */
     @SubscribeEvent
@@ -65,6 +66,7 @@ public class ModEntityEvents {
         event.register(ModEntities.NULLTHING.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Nullthing::checkNullthingSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.MOZZIE.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Mozzie::checkGnatSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.YAWNING_NYA.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, YawningNya::checkNyaSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
+        event.register(ModEntities.BIO_TORT_INCARNATION.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, BioTortIncarnation::checkBioTortSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_SLIME_SIZE0.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSlimeSize0::checkInfestedSlimeSize0SpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_SLIME_SIZE1.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSlimeSize1::checkInfestedSlimeSize1SpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_SLIME_SIZE3.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSlimeSize3::checkInfestedSlimeSize3SpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
@@ -91,7 +93,7 @@ public class ModEntityEvents {
         event.register(ModEntities.RESHAPE_YELLOWEYE.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ReshapeYelloweye::checkReshapeYelloweyeSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_FOX.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedFox::checkInfestedFoxSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.WALKING_FOX_HEAD.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WalkingFoxHead::checkWalkingFoxHeadSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
-        event.register(ModEntities.INFESTED_PUMPKIN_HEAD.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedPumpkinHead::checkInfestedPumpkinHeadSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_BAT.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedBat::checkInfestedBatSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
     }
 }
+

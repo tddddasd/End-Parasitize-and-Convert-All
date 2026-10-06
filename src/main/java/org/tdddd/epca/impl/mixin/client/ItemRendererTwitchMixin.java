@@ -17,19 +17,19 @@ import org.tdddd.epca.impl.client.render.layer.CorruptionPulse;
 import org.tdddd.epca.impl.client.render.twitch.ITwitchItem;
 
 /**
- * 几何层面的“崩坏”：给物品叠加鬼畜抖动，对应 RottenRuinsSplendiding 的
- * {@code MixinItemRendererTwitch}。
+ *  RottenRuinsSplendiding
+ * {@code MixinItemRendererTwitch}
  *
- * <p>注入在 {@code ItemRenderer.render()} 的 HEAD，也就是所有变换之前 ——
- * 基础贴图、崩坏层、光影延迟回放录下的矩阵都会带上同一份抖动，因此
- * 几何与颜色两层崩坏完全同步。</p>
+ * <p> {@code ItemRenderer.render()}  HEAD
  *
- * <h3>触发条件</h3>
+ * </p>
+ *
+ * <h3></h3>
  * <ul>
- *   <li>物品实现 {@link ITwitchItem}，或</li>
- *   <li>某个已注册层把 {@code ItemLayerConfig.twitch(true)} 打开了</li>
+ *   <li> {@link ITwitchItem}</li>
+ *   <li> {@code ItemLayerConfig.twitch(true)} </li>
  * </ul>
- * GUI 里永不抖动（背包里抖会没法用）。
+ * GUI
  */
 @Mixin(ItemRenderer.class)
 public abstract class ItemRendererTwitchMixin {
@@ -76,3 +76,4 @@ public abstract class ItemRendererTwitchMixin {
         CorruptionPulse.applyTwitch(poseStack, stack, mc.level.getGameTime(), strength);
     }
 }
+

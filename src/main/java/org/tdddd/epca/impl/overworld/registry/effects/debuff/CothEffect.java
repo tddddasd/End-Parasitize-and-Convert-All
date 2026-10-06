@@ -39,6 +39,7 @@ import org.tdddd.epca.impl.overworld.registry.effects.RemovableEffect;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.utils.ClientOnlyHelper;
+import org.tdddd.epca.impl.utils.ConvertedEntitySupport;
 import org.tdddd.epca.impl.utils.EffectApplicationInterceptor;
 import org.tdddd.epca.impl.utils.EntityConversionUtil;
 import org.tdddd.epca.impl.utils.ParasiteHelper;
@@ -443,7 +444,16 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                     playConversionEffects(entity);
                     entity.remove(Entity.RemovalReason.KILLED);
                     entity.teleportTo(1000000, -4000, 1000000);
-                    
+
+                    // /
+                    // create()  MAX_HEALTH  0
+                    //  0 0  = isDeadOrDying() = true
+                    // LivingEntity#aiStep  isImmobile
+                    // LivingEntity#hurt  isDeadOrDying  ConvertedEntitySupport
+                    if (newEntity instanceof LivingEntity convertedLiving) {
+                        ConvertedEntitySupport.initializeConvertedEntity(convertedLiving);
+                    }
+
                     serverLevel.addFreshEntity(newEntity);
 
                     
@@ -705,3 +715,4 @@ public class CothEffect extends MobEffect implements RemovableEffect {
         return false;
     }
 }
+

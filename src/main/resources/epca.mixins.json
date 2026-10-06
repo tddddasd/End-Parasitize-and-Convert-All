@@ -19,7 +19,6 @@
     "common.SugarCaneBlockMixin"
   ],
   "client": [
-    "client.BeaconRendererMixin",
     "client.BiomeColorsMixin",
     "client.BlockColorsMixin",
     "client.CreateWorldScreenMixin",

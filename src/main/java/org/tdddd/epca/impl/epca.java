@@ -26,15 +26,19 @@ import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixins;
 import org.tdddd.eej.api.AltarInteractionRegistry;
 import org.tdddd.epca.impl.overworld.data.*;
+import org.tdddd.epca.impl.overworld.data.organ.NestLeaderOrganEffects;
+import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatManager;
+import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary;
 import org.tdddd.epca.impl.overworld.registry.blocks.EpcaAltarInteractionHandler;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
+import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedPumpkinBehaviour;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
+import org.tdddd.epca_physics.structure.SubLevelRegistry;
 import org.tdddd.epca.impl.overworld.registry.capability.ILifetimeCapability;
 import org.tdddd.epca.impl.client.ClientSetup;
 import org.tdddd.epca.impl.commands.*;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
-import org.tdddd.epca.impl.overworld.registry.entities.ai.ParasiteAttractionManager;
 import org.tdddd.epca.impl.events.EvolutionStageEvents;
 import org.tdddd.epca.impl.events.PendingConversionManager;
 import org.tdddd.epca.impl.events.ShieldAttachHandler;
@@ -77,12 +81,18 @@ public class epca {
         ModConfig.register();
         WingChestManager.init();
 
+        // Phase 3 epca_physics  id
+        //  SubLevelRegistry.registerBehaviour
+        // /
+        SubLevelRegistry.registerBehaviour(InfestedPumpkinBehaviour.ID,
+                data -> new InfestedPumpkinBehaviour());
+
         
         AltarInteractionRegistry.register(new EpcaAltarInteractionHandler());
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.register(ClientSetup.class);
-            // 光影兼容的物品 shader 层体系（崩坏渲染等）：注册 shader 加载事件
+            //  shader  shader
             org.tdddd.epca.impl.client.render.EpcaRenderClient.init(modEventBus);
         }
         
@@ -93,7 +103,7 @@ public class epca {
         forgeBus.addListener(this::onRegisterCommands);
         forgeBus.addListener(this::onServerStarted);
         forgeBus.addListener(this::onAddReloadListeners);
-        forgeBus.addListener(this::onServerTickForAttraction);
+        forgeBus.addListener(this::onServerTick);
         forgeBus.addListener(this::onPlayerTick);
     }
 
@@ -127,24 +137,48 @@ public class epca {
     }
 
     
+    /**
+     *  tick
+     *
+     * <p> {@code ParasiteAttractionManager.tick(level)}""
+     *  SPEC  A1
+     * {@link org.tdddd.epca.impl.events.PendingConversionManager#tick(MinecraftServer)}
+     *  tick </p>
+     */
     @SubscribeEvent
-    public void onServerTickForAttraction(TickEvent.ServerTickEvent event) {
+    public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             MinecraftServer server = event.getServer();
-            
-            for (ServerLevel level : server.getAllLevels()) {
-                ParasiteAttractionManager.tick(level);
-            }
 
-            
             PendingConversionManager.tick(server);
         }
     }
 
+    /**
+     *  tick  + STAGE 3
+     *
+     * <p> SPEC  2  3
+     * {@code NestLeaderManager#isNestLeader}
+     * {@link OrganStatSummary#compute}
+     * {@link NestLeaderOrganEffects#tick} STAGE A  7  9
+     * +  {@code entity_gravity} +
+     *  tick
+     *  {@link NestLeaderOrganEffects#notLeader} tick
+     * SPEC  1  2 </p>
+     */
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             LivingArmorBox.applyBiomassEffects(event.player);
+
+            // STAGE 3 NestLeaderOrganEffects
+            if (!event.player.level().isClientSide()) {
+                if (NestLeaderManager.isNestLeader(event.player.getUUID())) {
+                    NestLeaderOrganEffects.tick(event.player);
+                } else {
+                    NestLeaderOrganEffects.notLeader(event.player);
+                }
+            }
         }
     }
 
@@ -155,6 +189,9 @@ public class epca {
         event.addListener(new EntityKillCountManager());
         event.addListener(CarryConfigManager.INSTANCE);
         event.addListener(new BiomassSpawnManager());
+        // SPEC D6 json
+        // data/epca/organ_stats/<item>.json + _defaults.json OrganStatManager
+        event.addListener(new OrganStatManager());
     }
 
     // Attribute registration is now handled by ModEntityEvents.onEntityAttributeCreation()

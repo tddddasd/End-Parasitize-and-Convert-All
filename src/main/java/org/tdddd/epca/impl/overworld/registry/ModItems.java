@@ -150,6 +150,7 @@ public class ModItems {
     
     public static final RegistryObject<Item> BUGLIN_SPAWN_EGG = spawnEgg("curbug", ModEntities.CURBUG);
     public static final RegistryObject<Item> YAWNING_NYA_SPAWN_EGG = spawnEgg("yawning_nya", ModEntities.YAWNING_NYA);
+    public static final RegistryObject<Item> BIO_TORT_INCARNATION_SPAWN_EGG = spawnEgg("bio_tort_incarnation", ModEntities.BIO_TORT_INCARNATION);
     public static final RegistryObject<Item> RUPTER_SPAWN_EGG = spawnEgg("ripper", ModEntities.RIPPER);
     public static final RegistryObject<Item> SMALL_INCOMPLETE_FORM_SPAWN_EGG = spawnEgg("small_incomplete_form", ModEntities.SMALL_INCOMPLETE_FORM);
     public static final RegistryObject<Item> MEDIUM_INCOMPLETE_FORM_SPAWN_EGG = spawnEgg("medium_incomplete_form", ModEntities.MEDIUM_INCOMPLETE_FORM);

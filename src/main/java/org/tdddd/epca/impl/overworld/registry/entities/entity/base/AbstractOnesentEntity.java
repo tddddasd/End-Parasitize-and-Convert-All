@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  */
 public abstract class AbstractOnesentEntity extends AbstractEpcaEntity implements IOnesent, Enemy {
 
-    // ────────── Constructors ──────────
+    //  Constructors
 
     protected AbstractOnesentEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -38,7 +38,7 @@ public abstract class AbstractOnesentEntity extends AbstractEpcaEntity implement
         this.setMaxUpStep(0.5F);
     }
 
-    // ────────── Evolution stage ──────────
+    //  Evolution stage
 
     /**
      * Get the current evolution stage for the dimension this entity is in.
@@ -50,10 +50,10 @@ public abstract class AbstractOnesentEntity extends AbstractEpcaEntity implement
         return 0;
     }
 
-    // ────────── Step sounds ──────────
+    //  Step sounds
 
     /**
-     * Tick step sounds — call from tick(). Plays the step sound when on ground and moving.
+     * Tick step sounds  call from tick(). Plays the step sound when on ground and moving.
      * Returns true if a step sound was played this tick.
      */
     protected boolean tickStepSounds(net.minecraft.sounds.SoundEvent stepSound) {
@@ -71,7 +71,7 @@ public abstract class AbstractOnesentEntity extends AbstractEpcaEntity implement
         return false;
     }
 
-    // ────────── Random Idle Sound Goal ──────────
+    //  Random Idle Sound Goal
 
     /**
      * A goal that periodically plays a random idle sound.
@@ -107,3 +107,4 @@ public abstract class AbstractOnesentEntity extends AbstractEpcaEntity implement
         }
     }
 }
+

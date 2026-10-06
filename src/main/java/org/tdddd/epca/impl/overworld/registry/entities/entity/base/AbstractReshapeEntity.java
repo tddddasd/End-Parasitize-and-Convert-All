@@ -46,21 +46,21 @@ import java.util.function.Consumer;
  */
 public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implements IReshape, Enemy {
 
-    // ────────── Synched data ──────────
+    //  Synched data
     protected static final EntityDataAccessor<Boolean> DATA_IS_ATTACKING =
             SynchedEntityData.defineId(AbstractReshapeEntity.class, EntityDataSerializers.BOOLEAN);
     protected static final EntityDataAccessor<Integer> DATA_ATTACK_TYPE =
             SynchedEntityData.defineId(AbstractReshapeEntity.class, EntityDataSerializers.INT);
 
-    // ────────── Fake death config ──────────
+    //  Fake death config
     protected float fakeDeathBurstChance = 0.4f;
 
-    // ────────── Block breaking ──────────
+    //  Block breaking
     protected int blockBreakTimer = 0;
     protected final List<BlockPos> blocksToDestroy = new ArrayList<>();
     protected int destructionIndex = 0;
 
-    // ────────── Constructors ──────────
+    //  Constructors
 
     protected AbstractReshapeEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -75,7 +75,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         this.setMaxUpStep(1.6F);
     }
 
-    // ────────── Synched data ──────────
+    //  Synched data
 
     @Override
     protected void defineSynchedData() {
@@ -84,7 +84,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         this.entityData.define(DATA_ATTACK_TYPE, 0);
     }
 
-    // ────────── Attack state ──────────
+    //  Attack state
 
     public boolean isAttacking() { return this.entityData.get(DATA_IS_ATTACKING); }
     public int getAttackType() { return this.entityData.get(DATA_ATTACK_TYPE); }
@@ -93,7 +93,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         this.entityData.set(DATA_ATTACK_TYPE, type);
     }
 
-    // ────────── Fake death ──────────
+    //  Fake death
 
     @Override
     protected void onFakeDeathBurst() {
@@ -134,7 +134,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         serverLevel.addFreshEntity(cloud);
     }
 
-    // ────────── Remains blocks ──────────
+    //  Remains blocks
 
     protected static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
         if (level.isClientSide || deathPos == null) return;
@@ -169,7 +169,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         }
     }
 
-    // ────────── Block breaking ──────────
+    //  Block breaking
 
     /**
      * Build a list of breakable blocks in contact with the entity's bounding box.
@@ -259,13 +259,13 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         destructionIndex++;
     }
 
-    // ────────── Step sounds (reshape defaults: 20-30 tick delay, volume 1.0) ──────────
+    //  Step sounds (reshape defaults: 20-30 tick delay, volume 1.0)
 
     protected void tickStepSounds(net.minecraft.sounds.SoundEvent stepSound) {
         tickStepSounds(stepSound, 20, 30, 1.0F);
     }
 
-    // ────────── Overrides ──────────
+    //  Overrides
 
     @Override
     public boolean causeFallDamage(float fallDistance, float damageMultiplier, DamageSource source) {
@@ -277,7 +277,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         return true;
     }
 
-    // ────────── hurt() ──────────
+    //  hurt()
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
@@ -285,7 +285,7 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         return super.hurt(source, amount); // AbstractEpcaEntity handles the rest
     }
 
-    // ────────── die() ──────────
+    //  die()
 
     @Override
     public void die(DamageSource source) {
@@ -327,3 +327,4 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         startFakeDeath();
     }
 }
+

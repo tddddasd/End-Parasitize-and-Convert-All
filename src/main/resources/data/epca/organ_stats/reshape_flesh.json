@@ -1,0 +1,25 @@
+{
+  "epca:reshape_flesh": {
+    "attributes": {
+      "health": 2.0
+    },
+    "slot_bonuses": [
+      {
+        "condition": "outer",
+        "attributes": {
+          "attack_damage": 0.5
+        },
+        "adaptation_reduction": 0.6,
+        "adaptation_rounds_tags": {
+          "minecraft:is_fire": {
+            "0.25": 12
+          }
+        }
+      },
+      {
+        "condition": "arm",
+        "minimum_damage": 1.0
+      }
+    ]
+  }
+}

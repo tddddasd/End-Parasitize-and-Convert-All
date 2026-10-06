@@ -17,7 +17,6 @@ import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.ai.ParasiteAttractionManager;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationManager;
@@ -27,6 +26,23 @@ import java.util.UUID;
 public interface IParasite {
     String LAST_RAGE_TRIGGER_KEY = "lastRageTrigger";
     String FOLLOW_TARGET_KEY = "FollowTarget";
+
+    /**
+     *  /
+     *
+     * <p> Forge {@code Entity#getPersistentData()}1.20.1
+     * {@code Entity.java}  3420  {@code saveWithoutId}  1660
+     * {@code "ForgeData"}  {@code load}  1737 </p>
+     *
+     * <p><b></b>
+     *  /
+     * {@code BiomassSmall/Medium#explodeAndTransform}
+     * {@code BiomassEgg#spawnWalkingChickenHeads}
+     * <b></b> persistent NBT synced data
+     *  spawn reason
+     * <b></b> {@link #markBiomassSpawned} </p>
+     */
+    String BIOMASS_SPAWNED_KEY = "BiomassSpawned";
 
     default void setFollowTarget(UUID targetUuid) {
         LivingEntity entity = (LivingEntity) this;
@@ -72,6 +88,24 @@ public interface IParasite {
             return NestLeaderManager.isNestLeader(entity.getUUID());
         }
         return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite");
+    }
+
+    /**
+     *  {@link #BIOMASS_SPAWNED_KEY}
+     *
+     * <p> {@code default void setBiomassSpawned(...)}
+     *  {@code LivingEntity} json
+     *  {@link IParasite} {@code LivingEntity}
+     *  {@link #isBiomassSpawned()}</p>
+     */
+    static void markBiomassSpawned(LivingEntity entity) {
+        if (entity == null) return;
+        entity.getPersistentData().putBoolean(BIOMASS_SPAWNED_KEY, true);
+    }
+
+    /**  /  {@link #BIOMASS_SPAWNED_KEY} */
+    default boolean isBiomassSpawned() {
+        return ((LivingEntity) this).getPersistentData().getBoolean(BIOMASS_SPAWNED_KEY);
     }
 
     default boolean hasDamageAdaptationConfig() {
@@ -202,8 +236,9 @@ public interface IParasite {
         if (!isFriendlyParasite(attacker)) {
             
             trySwitchForcedTargetOnAttacked(attacker);
-            
-            ParasiteAttractionManager.onParasiteAttacked((LivingEntity) this, attacker);
+            // STAGE 1 / SPEC A1
+            // ParasiteAttractionManager.onParasiteAttacked(...)
+            // forcedTarget
         }
     }
 

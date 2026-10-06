@@ -40,7 +40,7 @@ public class InfestedEndermanRenderer extends EpcaGeoRenderer<InfestedEnderman> 
                 bone.ifPresent(b -> carried.setPos(b.getWorldPosition().x, b.getWorldPosition().y, b.getWorldPosition().z));
             }
         }
-        // Main render → afterimage layer renders automatically via OuterLayerDelegate
+        // Main render  afterimage layer renders automatically via OuterLayerDelegate
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
 
         if (entity.isGlowEnabled()) {
@@ -68,3 +68,4 @@ public class InfestedEndermanRenderer extends EpcaGeoRenderer<InfestedEnderman> 
         poseStack.popPose();
     }
 }
+

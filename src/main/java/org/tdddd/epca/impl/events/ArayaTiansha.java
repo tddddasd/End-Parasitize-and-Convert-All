@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import org.tdddd.epca.impl.overworld.registry.items.item.KillStick;
 
 /**
- * The 天杀 counter of the Alayavijnana staff: the small piece of logic shared by the kill path, the
+ * The  counter of the Alayavijnana staff: the small piece of logic shared by the kill path, the
  * client sync and the aura sweep.
  *
  * <h2>Storage</h2>
@@ -20,7 +20,7 @@ import org.tdddd.epca.impl.overworld.registry.items.item.KillStick;
  * logging out. Nothing is cached per player, so there is no state to lose or to desynchronise.</p>
  *
  * <h2>Counting</h2>
- * <p>Only a kill of <b>another player</b> counts ("每通过该穷尽灭杖击杀一名非自身的玩家增加1"). The victim
+ * <p>Only a kill of <b>another player</b> counts ("1"). The victim
  * is compared by identity and by UUID, so neither a self-kill nor a kill of a copy of the killer can
  * ever raise the counter.</p>
  */
@@ -29,7 +29,7 @@ public final class ArayaTiansha {
     private ArayaTiansha() {
     }
 
-    /** The 天杀 value of a stack, or 0 when the stack carries no counter. */
+    /** The  value of a stack, or 0 when the stack carries no counter. */
     public static int get(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return 0;
@@ -41,7 +41,7 @@ public final class ArayaTiansha {
         return Math.max(0, tag.getInt(ArayaConstants.TIANSHA_KEY));
     }
 
-    /** Writes the 天杀 value onto a stack, removing the key when it reaches zero. */
+    /** Writes the  value onto a stack, removing the key when it reaches zero. */
     public static void set(ItemStack stack, int value) {
         if (stack == null || stack.isEmpty()) {
             return;
@@ -114,3 +114,4 @@ public final class ArayaTiansha {
         return ItemStack.EMPTY;
     }
 }
+

@@ -14,8 +14,8 @@ import software.bernie.geckolib.model.GeoModel;
  *
  * <p>Resource resolution priority:
  * <ol>
- *   <li>Entity implements {@link IAutoRenderableEntity} → use entity.model/texture/animation()</li>
- *   <li>Otherwise → lookup from {@link EpcaEntityManager} by entity type</li>
+ *   <li>Entity implements {@link IAutoRenderableEntity}  use entity.model/texture/animation()</li>
+ *   <li>Otherwise  lookup from {@link EpcaEntityManager} by entity type</li>
  * </ol>
  *
  * <p>Per-entity custom logic (head rotation, layer rendering, etc.) is handled via
@@ -54,7 +54,7 @@ public class EpcaGeoModel<T extends Entity & GeoAnimatable> extends GeoModel<T> 
     public void setCustomAnimations(T animatable, long instanceId, AnimationState<T> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
-        // Head rotation via interface — only for LivingEntity (needs yBodyRot)
+        // Head rotation via interface  only for LivingEntity (needs yBodyRot)
         if (animatable instanceof LivingEntity living && animatable instanceof IHeadRotatable rotatable) {
             float partialTick = animationState.getPartialTick();
             float currentTime = living.tickCount + partialTick;
@@ -64,3 +64,4 @@ public class EpcaGeoModel<T extends Entity & GeoAnimatable> extends GeoModel<T> 
         }
     }
 }
+

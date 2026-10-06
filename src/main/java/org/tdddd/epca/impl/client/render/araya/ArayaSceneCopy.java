@@ -12,7 +12,7 @@ import org.tdddd.epca.impl.epca;
  *
  * <h2>What "refraction" means here</h2>
  * <p>The band around the slash is transparent, but it must not simply show the scene: it has to bend it
- * ("会折射透明部分后面的景象"). Faking that with a glow or a colour shift is explicitly not what was
+ * (""). Faking that with a glow or a colour shift is explicitly not what was
  * asked for, so the band really samples the frame: once per frame the finished main colour buffer is
  * copied into a private texture, and the band's fragment stage samples that copy with a small offset
  * computed from the geometry. Because the copy is taken <i>before</i> the band is drawn, there is no
@@ -184,3 +184,4 @@ public final class ArayaSceneCopy {
         }
     }
 }
+

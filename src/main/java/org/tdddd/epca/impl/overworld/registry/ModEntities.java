@@ -21,6 +21,7 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.poverty.*;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLongarms;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeYelloweye;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BioTortIncarnation;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.Nullthing;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya;
 
@@ -41,9 +42,7 @@ public class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, epca.MODID);
 
-    // ═══════════════════════════════════════════════════════════════
     //  Resource helpers
-    // ═══════════════════════════════════════════════════════════════
 
     private static ResourceLocation modelLoc(String name) {
         return new ResourceLocation(epca.MODID, "geo/entity/" + name + ".geo.json");
@@ -66,11 +65,9 @@ public class ModEntities {
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Registration helpers
-    // ═══════════════════════════════════════════════════════════════
 
-    /** Full auto: AbstractEpcaEntity → attributes + auto-renderer (EpcaGeoRenderer). */
+    /** Full auto: AbstractEpcaEntity  attributes + auto-renderer (EpcaGeoRenderer). */
     @SuppressWarnings("unchecked")
     public static <T extends AbstractEpcaEntity> RegistryObject<EntityType<T>> registerMob(
             String name, float width, float height,
@@ -83,7 +80,7 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity (doesn't extend AbstractEpcaEntity) → attributes + auto-renderer via name. */
+    /** Existing entity (doesn't extend AbstractEpcaEntity)  attributes + auto-renderer via name. */
     public static <T extends LivingEntity> RegistryObject<EntityType<T>> registerMobWithRender(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -97,7 +94,7 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity → auto-renderer with separate model/texture/animation base names. */
+    /** Existing entity  auto-renderer with separate model/texture/animation base names. */
     public static <T extends LivingEntity> RegistryObject<EntityType<T>> registerMobWithCustomModel(
             String name, String modelBase, String texBase, String animBase,
             float width, float height,
@@ -112,7 +109,7 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity with custom renderer → attributes only. */
+    /** Existing entity with custom renderer  attributes only. */
     public static <T extends LivingEntity> RegistryObject<EntityType<T>> registerMobAttributes(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -156,10 +153,8 @@ public class ModEntities {
                         .build(name));
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Entity registrations
-    //  All mob entities use registerMobWithRender → auto-render via EpcaTypeGeoRenderer
-    // ═══════════════════════════════════════════════════════════════
+    //  All mob entities use registerMobWithRender  auto-render via EpcaTypeGeoRenderer
 
     // --- Onesent ---
     public static final RegistryObject<EntityType<Curbug>> CURBUG =
@@ -264,8 +259,8 @@ public class ModEntities {
             registerMobWithRender("infested_fox", 0.8F, 0.9F, InfestedFox::new, MobCategory.MONSTER, 12, InfestedFox::setAttributes);
     public static final RegistryObject<EntityType<WalkingFoxHead>> WALKING_FOX_HEAD =
             registerMobWithRender("walking_fox_head", 0.6F, 0.6F, WalkingFoxHead::new, MobCategory.MONSTER, 12, WalkingFoxHead::setAttributes);
-    public static final RegistryObject<EntityType<InfestedPumpkinHead>> INFESTED_PUMPKIN_HEAD =
-            registerMobWithRender("infested_pumpkin_head",  1.0F, 1.0F, InfestedPumpkinHead::new, MobCategory.MONSTER, 12, InfestedPumpkinHead::setAttributes);
+    // Phase 3 epca
+    // InfestedPumpkinBehaviour + epca_physics  SubLevelBehaviour API
     // --- Slimes (createAttributes returns Builder) ---
     public static final RegistryObject<EntityType<InfestedSlimeSize0>> INFESTED_SLIME_SIZE0 =
             registerMobWithRender("infested_slime_size0", 0.5F, 0.5F, InfestedSlimeSize0::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize0.createAttributes().build());
@@ -311,6 +306,10 @@ public class ModEntities {
             registerMobWithRender("nullthing", 0.9F, 0.9F, Nullthing::new, MobCategory.MONSTER, 12, Nullthing::setAttributes);
     public static final RegistryObject<EntityType<YawningNya>> YAWNING_NYA =
             registerMobAttributes("yawning_nya", 0.6F, 1.8F, YawningNya::new, MobCategory.AMBIENT, 8, YawningNya::createAttributes);
+    //  Yawning_Nya ///
+    //  ClientHandler HumanoidMobRenderer +
+    public static final RegistryObject<EntityType<BioTortIncarnation>> BIO_TORT_INCARNATION =
+            registerMobAttributes("bio_tort_incarnation", 0.6F, 1.8F, BioTortIncarnation::new, MobCategory.AMBIENT, 8, BioTortIncarnation::createAttributes);
 
     // --- Misc entities (no attributes, custom renderers) ---
     public static final RegistryObject<EntityType<ContaminatedWater>> CONTAMINATED_WATER =

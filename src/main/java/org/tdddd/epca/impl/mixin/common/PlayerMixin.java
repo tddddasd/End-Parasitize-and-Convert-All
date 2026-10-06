@@ -8,13 +8,10 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.tdddd.epca.impl.overworld.data.NestLeaderDamageAdaptation;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 
 import java.util.UUID;
@@ -33,13 +30,10 @@ public abstract class PlayerMixin implements IParasite {
         ((Player)(Object)this).addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0));
     }
 
-    @ModifyVariable(method = "hurt", at = @At("HEAD"), argsOnly = true)
-    private float epca$applyDamageAdaptation(float amount, DamageSource source) {
-        if (epca$isNestLeader()) {
-            return NestLeaderDamageAdaptation.applyAdaptation((Player)(Object)this, source, amount);
-        }
-        return amount;
-    }
+    // STAGE 1 / SPEC A2 @ModifyVariable(method = "hurt", at = @At("HEAD"))
+    //  NestLeaderDamageAdaptation.applyAdaptation(...)
+    //  SPEC Player#hurt
+    //  mixin  ->  STAGE 3
 
     @Override
     public void onDeath(DamageSource source) {

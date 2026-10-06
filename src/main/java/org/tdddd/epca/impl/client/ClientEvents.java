@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.client.effect.ArayaBgmManager;
 import org.tdddd.epca.impl.client.effect.ArayaClientCache;
 import org.tdddd.epca.impl.client.effect.ArayaSlashClientCache;
+import org.tdddd.epca.impl.client.effect.BioTortClientState;
 import org.tdddd.epca.impl.client.effect.SacrificeRitualClientCache;
 import org.tdddd.epca.impl.client.effect.SoulProtectionClientCache;
 import org.tdddd.epca.impl.client.entity.gas.GasCloudManager;
@@ -58,11 +59,15 @@ public class ClientEvents {
             ArayaBgmManager.stop();
             ArayaBgmManager.invalidateAssetCache();
             ArayaSceneCopy.invalidate();
+            // /
+            BioTortClientState.clear();
         }
         SacrificeRitualClientCache.clientTick();
         ArayaClientCache.clientTick(level == null ? 0L : level.getGameTime());
         ArayaSlashClientCache.clientTick(level == null ? 0L : level.getGameTime());
-        // Starts, follows and stops the 天杀 BGM: the loop runs only while a holder with an active
+        // ""
+        BioTortClientState.clientTick();
+        // Starts, follows and stops the  BGM: the loop runs only while a holder with an active
         // counter is reported and the local listener is inside the documented radius.
         ArayaBgmManager.clientTick();
         if (tickCounter % 20 == 0) {
@@ -70,3 +75,4 @@ public class ClientEvents {
         }
     }
 }
+

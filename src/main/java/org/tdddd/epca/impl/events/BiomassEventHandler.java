@@ -59,21 +59,7 @@ public class BiomassEventHandler {
             return;
         }
 
-        int basePoints = 1;
-        int killCount = EntityKillCountManager.getCurrentKillCount(target);
-        Random rand = new Random();
-
-        if (target instanceof IInfested) {
-            basePoints = 2 + rand.nextInt(3) + killCount;
-        } else if (target instanceof IOnesent) {
-            basePoints = 1 + rand.nextInt(2) + killCount;
-        } else if (target instanceof IPoverty) {
-            basePoints = 2 + rand.nextInt(2) + killCount;
-        } else if (target instanceof IReshape) {
-            basePoints = 12 + 4 + rand.nextInt(3) + killCount;
-        } else if (target instanceof ILink) {
-            basePoints = 4 + killCount;
-        }
+        int basePoints = computeParasiteBiomass(target);
 
         target.remove(Entity.RemovalReason.DISCARDED);
 
@@ -89,7 +75,50 @@ public class BiomassEventHandler {
         player.getPersistentData().putLong("LastParasiteInteract", now);
     }
 
-    private static void addPointsAndSync(Player player, int amount) {
+    /**
+     *
+     *
+     * <p><b></b>
+     * <b></b>{@code BiomassManager}{@code BiomassPoints}
+     * {@code Player#getPersistentData()}  {@code BiomassManager.java}  6-18
+     * <b></b>/ synced data
+     *
+     * </p>
+     *
+     * <p><b></b>
+     * {@link #onLivingAttack}
+     * </p>
+     *
+     * <p>{@code EntityKillCountManager}
+     * {@code epca_kill_count}
+     * <b></b></p>
+     */
+    public static int computeParasiteBiomass(LivingEntity target) {
+        int basePoints = 1;
+        int killCount = EntityKillCountManager.getCurrentKillCount(target);
+        Random rand = new Random();
+
+        if (target instanceof IInfested) {
+            basePoints = 2 + rand.nextInt(3) + killCount;
+        } else if (target instanceof IOnesent) {
+            basePoints = 1 + rand.nextInt(2) + killCount;
+        } else if (target instanceof IPoverty) {
+            basePoints = 2 + rand.nextInt(2) + killCount;
+        } else if (target instanceof IReshape) {
+            basePoints = 12 + 4 + rand.nextInt(3) + killCount;
+        } else if (target instanceof ILink) {
+            basePoints = 4 + killCount;
+        }
+        return basePoints;
+    }
+
+    /**
+     * {@link BiomassSyncPacket}
+     *
+     * <p> private
+     * </p>
+     */
+    public static void addPointsAndSync(Player player, int amount) {
         
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
@@ -108,3 +137,4 @@ public class BiomassEventHandler {
         }
     }
 }
+

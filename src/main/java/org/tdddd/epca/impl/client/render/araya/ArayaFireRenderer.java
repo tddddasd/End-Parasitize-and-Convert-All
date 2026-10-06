@@ -21,7 +21,7 @@ import org.tdddd.epca.impl.events.ArayaConstants;
  * <p>The block itself is never placed. The renderer asks the vanilla {@code minecraft:fire} block's own
  * baked model - through {@code BlockRenderDispatcher#renderBatched}, the exact call the vanilla chunk
  * renderer makes - and supplies only the pose: translated to the fire's position and scaled so the model
- * is {@code FIRE_MIN_HEIGHT..FIRE_MAX_HEIGHT} blocks tall ("高度为0.8~1.5格"). The texture is the vanilla
+ * is {@code FIRE_MIN_HEIGHT..FIRE_MAX_HEIGHT} blocks tall ("0.8~1.5"). The texture is the vanilla
  * animated fire sprite out of the block atlas, so the animation is vanilla and costs nothing extra.
  * There is no copied model JSON in this mod that could drift from vanilla.</p>
  *
@@ -101,3 +101,4 @@ public final class ArayaFireRenderer {
         }
     }
 }
+

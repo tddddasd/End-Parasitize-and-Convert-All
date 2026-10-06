@@ -172,7 +172,15 @@ public abstract class LivingEntityMixin {
             }
 
             
-            float remainingDamage = ShieldProtectionHelper.applyShieldProtection(self, damage);
+            // ShieldEventHandler#onLivingHurt(LivingDamageEvent)  ShieldProtectionHelper
+            //  setHealth 1.20.1  setHealth
+            // Mth.clamp(health, 0.0F, getMaxHealth())
+            // _tmp_vanilla_src/net/minecraft/world/entity/LivingEntity.java:1050-1052
+            //  hurt()
+            // setHealth
+            //  ShieldProtectionHelper#applyShieldPool
+            //  LocalPlayer#hurtTo  setHealth
+            float remainingDamage = ShieldProtectionHelper.applyShieldPool(self, damage);
             if (remainingDamage <= 0) {
                 
                 processingSetHealth.set(true);
@@ -184,6 +192,7 @@ public abstract class LivingEntityMixin {
                 ci.cancel();
                 return;
             } else if (remainingDamage < damage) {
+                //  setHealth
                 
                 float actualNewHealth = oldHealth - remainingDamage;
                 processingSetHealth.set(true);
@@ -198,6 +207,7 @@ public abstract class LivingEntityMixin {
                 
                 processingSetHealth.set(true);
                 try {
+                    // KillStick  newHealth
                     self.setHealth(newHealth);
                 } finally {
                     processingSetHealth.set(false);
@@ -263,3 +273,4 @@ public abstract class LivingEntityMixin {
         }
     }
 }
+

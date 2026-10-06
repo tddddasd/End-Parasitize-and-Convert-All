@@ -46,6 +46,14 @@ public class EntityConversionUtil {
             
             newEntity.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
 
+            // create()
+            // MAX_HEALTH LivingEntity  setHealth(getMaxHealth())
+            //  MAX_HEALTH  0 0  1.20.1
+            //  isDeadOrDying() == true LivingEntity#hurt  false
+            // LivingEntity#aiStep  isImmobile()
+            // ConvertedEntitySupport  +  +  AI
+            ConvertedEntitySupport.initializeConvertedEntity(newEntity);
+
             
             entity.level().addFreshEntity(newEntity);
 

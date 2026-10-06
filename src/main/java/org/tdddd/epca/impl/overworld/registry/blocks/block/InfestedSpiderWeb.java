@@ -7,7 +7,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -18,7 +17,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -74,20 +72,42 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
         }
     }
 
+    /**
+     *  COTH+
+     *
+     * <p><b></b>
+     *  {@link IParasite#isParasiteByTagOrInterface}
+     * {@code entity instanceof IParasite} /
+     * {@code "Parasite"} {@code NestLeaderManager.isNestLeader}
+     *  {@code IParasite.java:77-91}
+     * {@code InfestedBlockHandler.java:23} COTH
+     * {@code InfestedVine.java:65-68} entityInside  COTH+
+     * {@code InfestedCactus.java:78}{@code InfestedSnow.java:90}
+     * {@code InfestedPumpkinBehaviour.java:472}
+     *
+     *  {@code living instanceof IParasite && living instanceof Player}
+     *
+     * <p><b></b>
+     * {@code BlockBehaviour#onPlace} {@code _tmp_vanilla_src/.../BlockBehaviour.java:158}
+     *  BlockEntity /  {@code PLACE_TIME}
+     *  {@code minecraft:cobweb  epca:infested_spider_web}
+     * {@code data/epca/block_conversions/*.json:47}
+     *
+     *
+     *
+     * {@code if (living instanceof IParasite p && p.getFollowTarget() == null) continue;}
+     * {@code FollowTarget}  {@code IParasite.java:28,47-75}</p>
+     */
     private void processEntitiesInBlock(BlockState state, ServerLevel level, BlockPos pos) {
         AABB box = new AABB(pos).inflate(0.1);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box,
                 Objects::nonNull);
 
         for (LivingEntity living : entities) {
-            if (!(living instanceof IParasite && living instanceof Player player)) {
-                applyCothAndDamage(living, level);
-            }else {
-                if (!(player instanceof Player && NestLeaderManager.isNestLeader(player.getUUID())))
-                {
-                    applyCothAndDamage(living, level);
-                }
+            if (IParasite.isParasiteByTagOrInterface(living)) {
+                continue;
             }
+            applyCothAndDamage(living, level);
         }
     }
 

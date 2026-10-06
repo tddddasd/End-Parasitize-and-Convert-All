@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 /**
  * Server -&gt; client batch sync of the render-only fire blocks the aura keeps alive.
  *
- * <p>The server decides where and when, exactly as the request asks ("服务端权威"): it rolls the fire
+ * <p>The server decides where and when, exactly as the request asks (""): it rolls the fire
  * field around each holder, picks the positions, and reports each block's lifetime and height, which the
  * client only draws. The client never invents a position, never extends a lifetime and never spawns a
  * fire of its own, so a blocked or lagging client cannot drift from the server's picture.</p>
@@ -101,3 +101,4 @@ public class SyncArayaFirePacket {
         ctx.get().setPacketHandled(true);
     }
 }
+

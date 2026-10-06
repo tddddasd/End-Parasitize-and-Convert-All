@@ -27,7 +27,7 @@ public class InfestedEndermiteRenderer extends EpcaGeoRenderer<InfestedEndermite
     public void render(InfestedEndermite entity, float entityYaw, float partialTick,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         this.animatable = entity;
-        // Main render → afterimage layer renders automatically via OuterLayerDelegate
+        // Main render  afterimage layer renders automatically via OuterLayerDelegate
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
 
         if (entity.isGlowEnabled()) {
@@ -55,3 +55,4 @@ public class InfestedEndermiteRenderer extends EpcaGeoRenderer<InfestedEndermite
         poseStack.popPose();
     }
 }
+

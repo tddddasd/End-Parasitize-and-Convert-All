@@ -7,11 +7,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.client.organ.NestLeaderOrganKeys;
 import org.tdddd.epca.impl.client.render.EpcaRenderClient;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystScreen;
@@ -24,7 +26,7 @@ import org.tdddd.epca.impl.overworld.registry.particles.partices.*;
 public class ClientSetup {
     @SubscribeEvent
     public static void onClientSetup1(FMLClientSetupEvent event) {
-        // 物品 shader 层（崩坏渲染等）的默认绑定注册
+        //  shader
         EpcaRenderClient.onClientSetup(event);
         
         event.enqueueWork(() -> {
@@ -40,6 +42,28 @@ public class ClientSetup {
                         return (float)(stage + 2);
                     });
         });
+    }
+
+    /**
+     *  GUI SPEC  1  B1 <b>H</b> -
+     *
+     * <p> Forge  {@link RegisterKeyMappingsEvent}mod
+     * {@code ClientHandlerI}  {@code InputEvent.Key}  GLFW
+     *  SPEC " H"</p>
+     *
+     * <p> {@code key.categories.epca}lang
+     *  {@code LangDataCN}/{@code LangDataEN}</p>
+     *
+     * <p>STAGE B  {@link NestLeaderOrganKeys#TELEPORT}
+     * SPEC  2 <b></b>
+     *  H  - </p>
+     */
+    @SubscribeEvent
+    public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        event.register(NestLeaderOrganKeys.OPEN_ORGANS);
+        event.register(NestLeaderOrganKeys.TELEPORT);
+        //  NestLeaderOrganKeys#DECOMPOSE_PARASITE
+        event.register(NestLeaderOrganKeys.DECOMPOSE_PARASITE);
     }
 
     @SubscribeEvent

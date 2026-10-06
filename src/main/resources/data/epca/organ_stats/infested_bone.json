@@ -1,0 +1,15 @@
+{
+  "epca:infested_bone": {
+    "attributes": {
+      "health": 0.0,
+      "armor": 1.0,
+      "attack_damage": 0.0,
+      "knockback_resistance": 0.0,
+      "movement_speed": 0.0,
+      "attack_range": 0.0,
+      "block_reach": 0.0
+    },
+    "minimum_damage": 0.0,
+    "adaptation_reduction": 0.0
+  }
+}

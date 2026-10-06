@@ -1,0 +1,13 @@
+{
+  "epca:infested_ender_pearl": {
+    "_comment": "STAGE B 已启用（原 _stage_b_slot_bonuses 改名为 slot_bonuses）：处于头部内部（3x3 红网格）槽位时每颗 +0.08 移动速度，即 SPEC 的「+8% 移动速度」。数值口径与其它物品完全一致 —— JSON 里的数就是 minecraft:generic.movement_speed 的 ADDITION 原始增量（NestLeaderOrganEffects#applyAttribute 用 AttributeModifier.Operation.ADDITION 直接加），仓库里既有的 0.025 = 「+2.5%」就是这么写的。注意：玩家默认基础移速是 0.1，所以 0.08 是「+0.08 绝对值」而不是「相对基础值的 8%」，这一点见 STAGE B 报告。瞬移按键（头部内部 >= 2 颗解锁、默认未绑定、最大 24 格、安全落点、20 秒冷却）实现在 NestLeaderOrganTeleportHandler + NestLeaderOrganTeleportPacket。",
+    "slot_bonuses": [
+      {
+        "condition": "head_inner",
+        "attributes": {
+          "movement_speed": 0.08
+        }
+      }
+    ]
+  }
+}

@@ -56,6 +56,15 @@ public final class PendingConversionManager {
             }
         }
 
+        // /
+        // holdAlivenoAi + invulnerable tick()
+        // !isAlive()
+        //  1  hold
+        if (!entity.isAlive() || entity.isRemoved()) {
+            CothEffect.executePlan(entity, plan);
+            return;
+        }
+
         Pending pending = new Pending(entity, plan, delayTicks,
                 entity.isInvulnerable(), isNoAi(entity));
         holdAlive(entity, pending.wasInvulnerable);
@@ -83,6 +92,11 @@ public final class PendingConversionManager {
     
     
     private static void holdAlive(LivingEntity entity, boolean wasInvulnerable) {
+        // / setNoAi(true) + setInvulnerable(true)
+        //  schedule()
+        if (!entity.isAlive() || entity.isRemoved()) {
+            return;
+        }
         setNoAi(entity, true);
         if (entity instanceof Mob mob) {
             mob.setTarget(null);
@@ -129,12 +143,27 @@ public final class PendingConversionManager {
             Pending p = it.next();
             LivingEntity e = p.entity;
 
-            if (e == null || !e.isAlive() || e.isRemoved()) {
+            if (e == null || e.isRemoved()) {
                 it.remove();
                 continue;
             }
 
-            
+            if (!e.isAlive()) {
+                it.remove();
+
+                //  hold  noAi + invulnerable holdAlive
+                //  invulnerable/
+                //  continue +
+                //  1.20.1  20 tick
+                if (CothEffect.planIsEmpty(p.plan)) {
+                    releaseAfterPending(e, p.wasInvulnerable, p.wasNoAi);
+                } else {
+                    CothEffect.executePlan(e, p.plan);
+                }
+                continue;
+            }
+
+            //  5%
             holdAlive(e, p.wasInvulnerable);
             if (!e.isOnFire()) {
                 float min = e.getMaxHealth() * MIN_HEALTH_FRACTION;
@@ -159,3 +188,4 @@ public final class PendingConversionManager {
         PENDING.clear();
     }
 }
+

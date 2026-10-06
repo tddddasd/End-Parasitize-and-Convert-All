@@ -107,7 +107,11 @@ mixin {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    flatDir { dir 'libs' }
+    flatDir {
+        dir 'libs'
+        // 鍓嶇疆妯＄粍 epca_physics 鍦ㄨ嚜宸辩殑鏍戦噷鏋勫缓锛氭妸瀹冪殑浜у嚭鐩綍涔熷綋鎴愭湰鍦颁粨搴擄紝
+        // 杩欐牱 libs/ 閲岃繕娌″鍒?jar 鏃朵篃鑳界洿鎺ョ紪璇戯紙澶嶅埗杩?libs 鐨?jar 浼樺厛锛夈€?
+    }
 
     maven {
         name = "GeckoLib"
@@ -131,12 +135,19 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     // GeckoLib + mclib from Cloudsmith Maven (jar-in-jar)
-    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-1.20.1:4.7.1")
+    // GeckoLib 4.7.1 -> 4.7.4: 4.7.4 is the newest version present in the local Gradle cache
+    // (the repository also lists 4.8.2, but its jar/pom are NOT cached, so it cannot be built
+    // with `gradlew build --offline`).  Both the compile dependency and the jar-in-jar entry
+    // below are pinned to 4.7.4 so compile classpath and embedded jar agree.
+    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-1.20.1:4.8.4")
     implementation fg.deobf("com.eliotlash.mclib:mclib:20")
 
     implementation fg.deobf("org.tdddd.yawning_neko_api:yawningapi:1.0.5")
 
     implementation fg.deobf("org.tdddd.eej:eej:1.0.0")
+
+    // 鍓嶇疆妯＄粍 epca_physics锛氱墿鐞嗗寲鏂瑰潡/缁撴瀯鐨勫疄浣撳熀绫伙紙寮轰緷璧栵紝瑙?META-INF/mods.toml锛?
+    implementation fg.deobf("org.tdddd.epca_physics:epca_physics:1.0.0")
 
     // Other external mods
     implementation fg.deobf("curse.maven:jade-324717:6855440")
@@ -152,9 +163,14 @@ dependencies {
     jarJar(group: 'com.tterrag.registrate', name: 'Registrate', version: "[MC1.20,)")
 
     // Jar-in-Jar: bundle all shipped libraries
-    jarJar(group: 'software.bernie.geckolib', name: 'geckolib-forge-1.20.1', version: '[4.7.1,4.8)')
+    jarJar(group: 'software.bernie.geckolib', name: 'geckolib-forge-1.20.1', version: '[4.8.4,4.9)')
     jarJar(group: 'com.eliotlash.mclib', name: 'mclib', version: '[20,)')
     jarJar(group: 'org.tdddd.yawning_neko_api', name: 'yawningapi', version: '[1.0.4,)')
+
+    // epca_physics (prerequisite mod, resolved from flatDir 'libs'): bundle it inside our own jar.
+    // Maven-style coordinates are used so JarJar gets a real group/artifact id and a supported
+    // version range; the same file is already on the compile classpath via the fg.deobf line above.
+    jarJar(group: 'org.tdddd.epca_physics', name: 'epca_physics', version: '[1.0.0,)')
 }
 
 minecraftVersions.each { mcVersion, forgeVersion ->
@@ -261,3 +277,4 @@ tasks.named('jar', Jar).configure {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
+

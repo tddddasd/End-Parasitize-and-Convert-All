@@ -42,7 +42,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     private static final Map<UUID, List<AfterimageData>> AFTERIMAGES = new HashMap<>();
     private static final Map<UUID, Integer> LAST_SPAWN_TICK = new HashMap<>();
 
-    /** Cache: base texture → afterimage texture. */
+    /** Cache: base texture  afterimage texture. */
     private static final Map<ResourceLocation, ResourceLocation> TEX_CACHE = new HashMap<>();
 
     /** Derive afterimage texture from the entity type's Forge registry key. */
@@ -94,15 +94,15 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     ) {
         int currentTick = (int) entity.level().getGameTime();
 
-        // ── 1. Try spawn (with bone snapshot from current bakedModel) ──
+        //  1. Try spawn (with bone snapshot from current bakedModel)
         trySpawn(entity, bakedModel, currentTick);
 
-        // ── 2. Get active afterimages, prune expired ──
+        //  2. Get active afterimages, prune expired
         List<AfterimageData> afterimages = AFTERIMAGES.get(entity.getUUID());
         if (afterimages == null || afterimages.isEmpty()) return;
         afterimages.removeIf(data -> !data.isAlive(currentTick));
 
-        // ── 3. Render each afterimage with its frozen bone pose ──
+        //  3. Render each afterimage with its frozen bone pose
         ResourceLocation afterimageTex = getAfterimageTexture(entity);
         RenderType afterimageRenderType = RenderType.entityTranslucent(afterimageTex);
         for (AfterimageData data : afterimages) {
@@ -133,11 +133,9 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Bone pose save / apply / restore
-    // ═══════════════════════════════════════════════════════════════
 
-    // ── Bone iteration: walk the baked model's bone tree ──
+    //  Bone iteration: walk the baked model's bone tree
 
     /** Find top-level bones (parent == null) from the baked model's bone list. */
     private static List<CoreGeoBone> topLevelBones(BakedGeoModel model) {
@@ -183,9 +181,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Spawning
-    // ═══════════════════════════════════════════════════════════════
 
     private static void trySpawn(LivingEntity entity, BakedGeoModel bakedModel, int currentTick) {
         UUID id = entity.getUUID();
@@ -220,9 +216,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Global cleanup
-    // ═══════════════════════════════════════════════════════════════
 
     public static void cleanupOrphaned() {
         Minecraft mc = Minecraft.getInstance();
@@ -251,3 +245,4 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         });
     }
 }
+

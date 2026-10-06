@@ -23,9 +23,10 @@ import java.util.Map;
  * Client-only renderer for the golden "Heart" style of the {@code epca:soul_protection} effect: the
  * tall, irregular golden plasma/flame column of the reference image plus its little golden embers.
  *
- * <p>The class (and the style marker {@link GasCloudRenderType#HEART_STYLE_CHANNEL}) keeps the
- * effect's "Heart" wording even though the look is a flame, because that marker is part of the
- * 1.20.1 / 26.1.2 twin contract.</p>
+ * <p>The class (and the style markers {@link GasCloudRenderType#HEART_STYLE_CHANNEL} /
+ * {@link GasCloudRenderType#HEART_MOTE_STYLE_CHANNEL}) keeps the effect's "Heart" wording even
+ * though the look is a flame, because those markers are part of the 1.20.1 / 26.1.2 twin
+ * contract.</p>
  *
  * <p>Every {@link LivingEntity} that carries the effect gets one column, whatever mod or vanilla type
  * it is. The check has two sources, because vanilla only sends
@@ -43,13 +44,15 @@ import java.util.Map;
  *
  * <h2>Geometry</h2>
  * <p>The column's quad is {@code width : height = 1 : 2.1} ({@link #HEART_ASPECT_HEIGHT}) and its
- * height comes from the entity's hitbox, {@code height = max(bbHeight, bbWidth * 2.1) * 1.10}
- * ({@link #HEART_SIZE_PADDING}), so a tall mob is sized by its height and a wide one by its width. It
- * is centred on the entity's centre ({@code y + bbHeight * 0.5}) plus the {@link #HEART_BOB_AMPLITUDE}
- * bob, pushed towards the camera by {@link #HEART_CAMERA_OFFSET_SCALE} times the hitbox width (so the
- * entity's own depth-writing model cannot clip the column) and submitted through
- * {@link GasCloudRenderer#submitBillboard}, so it uses the same proven camera-relative billboard frame
- * and the same custom core shader as the gas clouds
+ * height comes from the entity's hitbox,
+ * {@code height = max(bbHeight, bbWidth * 2.1) * 1.10 * 1.50} ({@link #HEART_SIZE_PADDING} times
+ * {@link #HEART_SIZE_SCALE}), so a tall mob is sized by its height and a wide one by its width. It is
+ * centred on the entity's centre ({@code y + bbHeight * 0.5}) plus the {@link #HEART_BOB_AMPLITUDE}
+ * bob, then pushed {@link #HEART_CAMERA_OFFSET_SCALE} times the hitbox width AWAY from the camera, so
+ * the aura sits on the far side of the entity and the entity's own model occludes it. Both the column
+ * and the embers are submitted through {@link GasCloudRenderer#submitVerticalBillboard}, an upright
+ * quad that follows only the camera's yaw, so the effect never tilts with the camera's pitch; they use
+ * the same proven camera-relative billboard frame and the same custom core shader as the gas clouds
  * ({@code assets/epca/shaders/core/gas_cloud.fsh}). All shape, colour and motion numbers of the look
  * live in that shader's tunable HEART_* block and its mirror below; this class only computes where
  * the quads go, how big they are and which phases/fade the shader gets.</p>

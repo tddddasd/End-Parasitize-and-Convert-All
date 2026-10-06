@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Client-only cache of the "Alayavijnana / Araya staff" aura: which players currently carry a staff
- * whose 天杀 counter reached {@code ArayaConstants.TIANSA_THRESHOLD}, and which render-only fire blocks
+ * whose  counter reached {@code ArayaConstants.TIANSA_THRESHOLD}, and which render-only fire blocks
  * the server put around them.
  *
  * <p>Everything here is fed by two server batches ({@code SyncArayaAuraPacket},
@@ -228,3 +228,4 @@ public final class ArayaClientCache {
         return null;
     }
 }
+

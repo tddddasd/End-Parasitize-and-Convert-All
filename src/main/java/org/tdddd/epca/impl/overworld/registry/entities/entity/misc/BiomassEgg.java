@@ -122,6 +122,9 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
                 ));
 
                 
+                //  IParasite#BIOMASS_SPAWNED_KEY
+                IParasite.markBiomassSpawned(walkingChickenHead);
+
                 this.level().addFreshEntity(walkingChickenHead);
             }
         }
@@ -154,3 +157,4 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
         return this.cache;
     }
 }
+

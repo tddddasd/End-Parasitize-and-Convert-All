@@ -1,0 +1,11 @@
+{
+  "epca:gasbag_debris": {
+    "_comment": "-2% 下落速度用 forge:entity_gravity 近似：下落速度在到达终端速度前与重力成正比（v(t)=g*(1-0.98^t)/0.02），所以 -2% 下落速度 = -2% 重力 = -0.02*0.08 = -0.0016（原版重力默认 0.08）。不写成 -0.02 是因为 4 件就会把重力减到 0（人会飘起来）。-10% 摔落伤害是 #minecraft:is_fall 的受击倍率增量 -0.1（基准 1.0 -> 0.9）。",
+    "attributes": {
+      "entity_gravity": -0.0016
+    },
+    "damage_taken_add": {
+      "#minecraft:is_fall": -0.1
+    }
+  }
+}

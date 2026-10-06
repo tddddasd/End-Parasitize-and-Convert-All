@@ -31,7 +31,7 @@ public final class ArayaSlashShaders {
     /** Strength of the emissive white term; 1.0 is the shipped look. */
     public static final float GLOW_STRENGTH = 1.0F;
 
-    /** Colour of the glowing line ("一道白色...剑痕"): pure white. */
+    /** Colour of the glowing line ("..."): pure white. */
     public static final float GLOW_RED = 1.0F;
     public static final float GLOW_GREEN = 1.0F;
     public static final float GLOW_BLUE = 1.0F;
@@ -76,3 +76,4 @@ public final class ArayaSlashShaders {
         return shader;
     }
 }
+

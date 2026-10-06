@@ -16,10 +16,10 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.events.render.ItemRenderRegistry;
 
 /**
- * 把一个 {@link ItemLayerBinding} 真正画到屏幕上。
+ *  {@link ItemLayerBinding}
  *
- * <p>调用前必须保证基础物品模型已经渲染并 {@code endBatch()} 过，
- * 这样深度缓冲里才有物品轮廓，{@code EQUAL} 深度测试才能精确贴合。</p>
+ * <p> {@code endBatch()}
+ * {@code EQUAL} </p>
  */
 public final class ItemShaderRenderHelper {
 
@@ -27,9 +27,9 @@ public final class ItemShaderRenderHelper {
     }
 
     /**
-     * 绘制一个层。
      *
-     * @param lateRender {@code true} 表示这是光影延迟回放（走 after_level RenderType）
+     *
+     * @param lateRender {@code true}  after_level RenderType
      */
     public static void drawBinding(ItemLayerBinding binding, ItemStack stack, ItemDisplayContext ctx,
                                    PoseStack poseStack, MultiBufferSource buffer,
@@ -42,7 +42,7 @@ public final class ItemShaderRenderHelper {
 
         ShaderInstance shader = layer.shader();
         if (shader == null) {
-            // shader 还没加载（资源重载中）——静默跳过，不影响原版渲染
+            // shader
             return;
         }
 
@@ -69,13 +69,13 @@ public final class ItemShaderRenderHelper {
                 stack, packedLight, packedOverlay);
 
         if (!lateRender && buffer instanceof MultiBufferSource.BufferSource bufferSource) {
-            // 每条独立 flush：不同物品的 uniform 值不同，不能合并批次
+            //  flush uniform
             bufferSource.endBatch(renderType);
         }
     }
 
     /**
-     * 应用用户自定义 uniform（在本层默认 uniform 之后，因而可以覆盖）。
+     *  uniform uniform
      */
     private static void applyCustomUniforms(ItemLayerConfig config, ItemStack stack, ShaderInstance shader) {
         var shaper = config.uniformShaper();
@@ -83,14 +83,14 @@ public final class ItemShaderRenderHelper {
             try {
                 shaper.accept(stack, shader);
             } catch (Exception ignored) {
-                // 自定义 uniform 出错不应影响渲染
+                //  uniform
             }
         }
     }
 
     /**
-     * 便捷方法：由物品注册名推导“物品自己的贴图”作为遮罩。
-     * 与 {@link org.tdddd.epca.impl.events.render.ItemRenderRegistry#defaultMaskFor} 等价，这里再暴露一次方便层实现调用。
+     *
+     *  {@link org.tdddd.epca.impl.events.render.ItemRenderRegistry#defaultMaskFor}
      */
     public static ResourceLocation itemTexture(ItemStack stack) {
         ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
@@ -100,3 +100,4 @@ public final class ItemShaderRenderHelper {
         return new ResourceLocation(itemId.getNamespace(), "item/" + itemId.getPath());
     }
 }
+

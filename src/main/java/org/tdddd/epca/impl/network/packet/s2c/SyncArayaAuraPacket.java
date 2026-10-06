@@ -8,7 +8,7 @@ import org.tdddd.epca.impl.events.ArayaConstants;
 import java.util.function.Supplier;
 
 /**
- * Server -&gt; client batch sync of the players whose Alayavijnana staff reached its 天杀 threshold.
+ * Server -&gt; client batch sync of the players whose Alayavijnana staff reached its  threshold.
  *
  * <p>The server owns the counter (it is what the kills are counted on) and therefore also owns who has
  * an active aura; the client only needs to know <em>who</em> and <em>where</em>, because the aura decides
@@ -73,3 +73,4 @@ public class SyncArayaAuraPacket {
         ctx.get().setPacketHandled(true);
     }
 }
+

@@ -15,29 +15,29 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 /**
- * 世界结界破损着色器的注册与 uniform 句柄。
+ *  uniform
  *
- * <h3>星点粒子来自哪里</h3>
- * 参考项目 RottenRuinsSplendiding 的宇宙渲染不做程序化星星，而是把 12 张
- * <b>带动画的星点贴图</b>（{@code hall:shader/cosmic_0..11}）放进方块图集，
- * 每帧把 12 个 UV 矩形作为 {@code mat2 cosmicuvs[12]} 传给着色器，
- * 着色器再按"多层球面壳 + 网格哈希"把这些星点铺到天空上。
+ * <h3></h3>
+ *  RottenRuinsSplendiding  12
+ * <b></b>{@code hall:shader/cosmic_0..11}
+ *  12  UV  {@code mat2 cosmicuvs[12]}
+ * " + "
  *
- * <p>本项目把那 12 张贴图原样复制到
- * {@code assets/epca/textures/shader/cosmic_0..11.png}（含 .mcmeta 动画），
- * 并通过 {@code assets/minecraft/atlases/blocks.json} 的目录源注册进图集，
- * 于是这一整套逻辑与参考项目完全一致。</p>
+ * <p> 12
+ * {@code assets/epca/textures/shader/cosmic_0..11.png} .mcmeta
+ *  {@code assets/minecraft/atlases/blocks.json}
+ * </p>
  *
- * <h3>uniform 声明里的坑</h3>
- * {@code cosmicuvs} 在 JSON 里必须写成
- * {@code "type":"matrix2x2","count":48}：Forge 的 {@code Uniform} 对矩阵类型走
- * {@code glUniformMatrix2fv(location, transpose, FloatBuffer)}，
- * <b>矩阵个数由 buffer 长度推导</b>（48 / 4 = 12 个 mat2）。
- * 写成别的 count 要么上传长度不足、要么被 {@code set(float[])} 的尺寸校验拒绝。
+ * <h3>uniform </h3>
+ * {@code cosmicuvs}  JSON
+ * {@code "type":"matrix2x2","count":48}Forge  {@code Uniform}
+ * {@code glUniformMatrix2fv(location, transpose, FloatBuffer)}
+ * <b> buffer </b>48 / 4 = 12  mat2
+ *  count  {@code set(float[])}
  */
 public final class SkyRuptureShaders {
 
-    /** 星点贴图数量，必须与着色器里的 {@code cosmiccount} 一致。 */
+    /**  {@code cosmiccount}  */
     public static final int SPRITE_COUNT = 12;
 
     public static ShaderInstance skyRuptureShader;
@@ -47,28 +47,28 @@ public final class SkyRuptureShaders {
     public static Uniform uBreakAmount;
     public static Uniform uFade;
     public static Uniform uSeed;
-    /** 裂纹场 / 噪声场的随机偏移（碎片布局每次触发不同）。 */
+    /**  /  */
     public static Uniform uPatternOffset;
     public static Uniform uRimColor;
     public static Uniform uVoidColor;
     public static Uniform uFlashColor;
     public static Uniform uCosmicUvs;
-    /** 黑暗吞噬（天空部分）：前沿推进 + 不透明度。 */
+    /**  +  */
     public static Uniform uSkyDarkProgress;
     public static Uniform uSkyDarkOpacity;
 
-    /** 相机基向量：rayRight / rayUp 已乘好 tan(fov/2)，用于重建该像素的世界方向。 */
+    /** rayRight / rayUp  tan(fov/2) */
     public static Uniform uRayForward;
     public static Uniform uRayRight;
     public static Uniform uRayUp;
 
-    /** 12 个星点 sprite 的 UV 矩形，按 [u0, v0, u1, v1] × 12 展开。 */
+    /** 12  sprite  UV  [u0, v0, u1, v1]  12  */
     public static final float[] COSMIC_UVS = new float[SPRITE_COUNT * 4];
-    /** 12 个星点 sprite（图集重载后重新解析）。 */
+    /** 12  sprite */
     public static final TextureAtlasSprite[] COSMIC_SPRITES = new TextureAtlasSprite[SPRITE_COUNT];
 
     static {
-        // 兜底：万一图集事件还没到，先用 1 个纹素的大小，避免采样到整张图集
+        //  1
         for (int i = 0; i < SPRITE_COUNT; i++) {
             COSMIC_UVS[i * 4 + 2] = 1.0f / 1024.0f;
             COSMIC_UVS[i * 4 + 3] = 1.0f / 1024.0f;
@@ -111,8 +111,8 @@ public final class SkyRuptureShaders {
     }
 
     /**
-     * 方块图集缝合完成后取出 12 个星点 sprite 的 UV 矩形，
-     * 与参考项目的 {@code CosmicShaders#onTextureAtlasStitched} 一致。
+     *  12  sprite  UV
+     *  {@code CosmicShaders#onTextureAtlasStitched}
      */
     public static void onTextureAtlasStitched(TextureStitchEvent event) {
         if (!event.getAtlas().location().equals(InventoryMenu.BLOCK_ATLAS)) {
@@ -131,11 +131,11 @@ public final class SkyRuptureShaders {
         epca.LOGGER.info("[epca-render] 已解析 {} 个结界星点 sprite", SPRITE_COUNT);
     }
 
-    // ── Embeddium / Sodium 动画兼容 ──────────────────────────────────
+    //  Embeddium / Sodium
 
-    // 星点 sprite 通过 shader uniform 采样，不走标准顶点消费路径，
-    // Embeddium 的 animateOnlyVisibleTextures 优化看不到它们 → 动画帧不推进。
-    // 参考项目用反射每帧标记 sprite 活跃，这里照搬。
+    //  sprite  shader uniform
+    // Embeddium  animateOnlyVisibleTextures
+    //  sprite
     private static volatile Method markSpriteActiveMethod;
     private static volatile boolean markSpriteActiveResolved;
 
@@ -146,15 +146,15 @@ public final class SkyRuptureShaders {
                                 "me.jellysquid.mods.sodium.client.render.texture.SpriteUtil")
                         .getMethod("markSpriteActive", TextureAtlasSprite.class);
             } catch (Throwable ignored) {
-                // 没装 Embeddium/Sodium：原版动画系统正常工作，不需要这个
+                //  Embeddium/Sodium
             }
             markSpriteActiveResolved = true;
         }
     }
 
     /**
-     * 每帧调用：把 12 个星点 sprite 标记为活跃，保证其动画帧推进。
-     * Embeddium 在每个 tick 末尾会重置活跃标记，所以必须每帧调，不能只调一次。
+     *  12  sprite
+     * Embeddium  tick
      */
     public static void markSpritesActive() {
         resolveMarkSpriteActive();
@@ -168,7 +168,7 @@ public final class SkyRuptureShaders {
                 }
             }
         } catch (Throwable ignored) {
-            // 兼容性代码，失败不影响渲染
         }
     }
 }
+

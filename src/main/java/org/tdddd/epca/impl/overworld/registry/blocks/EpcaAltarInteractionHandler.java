@@ -161,3 +161,4 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
                 entity instanceof Evoker;
     }
 }
+

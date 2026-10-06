@@ -14,6 +14,9 @@ import org.tdddd.epca.impl.network.packet.c2s.*;
 import org.tdddd.epca.impl.network.packet.s2c.*;
 
 public class ModNetwork {
+    // STAGE B  1  C2S
+    // <b> id </b>id
+    // /
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(epca.MODID, "main"),
@@ -134,7 +137,7 @@ public class ModNetwork {
                 SyncRitualAuraPacket::decode,
                 SyncRitualAuraPacket::handle);
 
-        // The Alayavijnana aura: which players carry a staff whose 天杀 counter reached the threshold
+        // The Alayavijnana aura: which players carry a staff whose  counter reached the threshold
         // (that is what drives the looping BGM and the fire field around them).
         INSTANCE.registerMessage(id++, SyncArayaAuraPacket.class,
                 SyncArayaAuraPacket::encode,
@@ -154,6 +157,58 @@ public class ModNetwork {
                 SpawnArayaSlashPacket::encode,
                 SpawnArayaSlashPacket::decode,
                 SpawnArayaSlashPacket::handle);
+
+        //  1 20
+        //  0 =
+        INSTANCE.registerMessage(id++, SyncHotbarMarkPacket.class,
+                SyncHotbarMarkPacket::encode,
+                SyncHotbarMarkPacket::decode,
+                SyncHotbarMarkPacket::handle);
+
+        //  2 2 /4  + 1.5
+        //  3 ""
+        INSTANCE.registerMessage(id++, ScreenCorruptionPacket.class,
+                ScreenCorruptionPacket::encode,
+                ScreenCorruptionPacket::decode,
+                ScreenCorruptionPacket::handle);
+
+        //  GUISTAGE 1
+        //  C2S "" getSender()
+        //  S2C 52  ItemStack + 52
+        //       handle  lambda
+        INSTANCE.registerMessage(id++, RequestOpenNestLeaderOrgansPacket.class,
+                RequestOpenNestLeaderOrgansPacket::encode,
+                RequestOpenNestLeaderOrgansPacket::decode,
+                RequestOpenNestLeaderOrgansPacket::handle);
+        INSTANCE.registerMessage(id++, SyncNestLeaderOrgansPacket.class,
+                SyncNestLeaderOrgansPacket::encode,
+                SyncNestLeaderOrgansPacket::decode,
+                SyncNestLeaderOrgansPacket::handle);
+
+        //  GUISTAGE 2
+        //   +  +
+        //   /  /  /  /
+        //   S2C
+        INSTANCE.registerMessage(id++, NestLeaderOrganActionPacket.class,
+                NestLeaderOrganActionPacket::encode,
+                NestLeaderOrganActionPacket::decode,
+                NestLeaderOrganActionPacket::handle);
+
+        //  GUISTAGE B
+        //  ""
+        //   >= 2  20
+        //  id  id
+        INSTANCE.registerMessage(id++, NestLeaderOrganTeleportPacket.class,
+                NestLeaderOrganTeleportPacket::encode,
+                NestLeaderOrganTeleportPacket::decode,
+                NestLeaderOrganTeleportPacket::handle);
+
+        //  ""
+        //  id  id
+        INSTANCE.registerMessage(id++, NestLeaderDecomposeParasitePacket.class,
+                NestLeaderDecomposeParasitePacket::encode,
+                NestLeaderDecomposeParasitePacket::decode,
+                NestLeaderDecomposeParasitePacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {

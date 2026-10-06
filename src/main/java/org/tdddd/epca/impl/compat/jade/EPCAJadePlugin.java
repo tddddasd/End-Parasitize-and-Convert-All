@@ -13,6 +13,7 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBloc
 import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BioTortIncarnation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 import org.tdddd.yawning_neko_api.data.IAdaptationData;
@@ -29,6 +30,8 @@ public class EPCAJadePlugin implements IWailaPlugin {
             new ResourceLocation(epca.MODID, "damage_adaptation_info");
     public static final ResourceLocation KILL_COUNT_INFO =
             new ResourceLocation(epca.MODID, "kill_count_info");
+    public static final ResourceLocation UNKNOWN_HEALTH_INFO =
+            new ResourceLocation(epca.MODID, "unknown_health");
 
     
     private static final ItemStack ICON_STACK = new ItemStack(ModItems.BIOMASS_COUNT_ICON.get());
@@ -52,6 +55,9 @@ public class EPCAJadePlugin implements IWailaPlugin {
         
         registration.registerBlockComponent(KillCountBlockProvider.INSTANCE, BeckonCore.class);
 
+        // /Unknown
+        registration.registerEntityComponent(UnknownHealthEntityProvider.INSTANCE, BioTortIncarnation.class);
+
         
         // Config keys may already be registered by yawningapi
         try {
@@ -60,6 +66,10 @@ public class EPCAJadePlugin implements IWailaPlugin {
         }
         try {
             registration.addConfig(DAMAGE_ADAPTATION_INFO, true);
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            registration.addConfig(UNKNOWN_HEALTH_INFO, true);
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -129,6 +139,35 @@ public class EPCAJadePlugin implements IWailaPlugin {
         @Override
         public ResourceLocation getUid() {
             return KILL_COUNT_INFO;
+        }
+    }
+
+    /**
+     *  Jade en_us: "Unknown"
+     *
+     * <p>{@code setHealth}/{@code setMaxHealth}
+     * {@code getHealth()}/{@code getMaxHealth()}
+     *  {@code jade.epca.unknown_health} </p>
+     */
+    public static class UnknownHealthEntityProvider implements IEntityComponentProvider {
+        public static final UnknownHealthEntityProvider INSTANCE = new UnknownHealthEntityProvider();
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
+            if (!config.get(UNKNOWN_HEALTH_INFO)) return;
+            Entity entity = accessor.getEntity();
+            if (!(entity instanceof BioTortIncarnation incarnation)) return;
+
+            tooltip.add(Component.translatable("jade.epca.unknown_health"));
+            //  2 " 2"
+            if (incarnation.isPhaseTwo()) {
+                tooltip.add(Component.translatable("entity.epca.bio_tort_incarnation.phase_two"));
+            }
+        }
+
+        @Override
+        public ResourceLocation getUid() {
+            return UNKNOWN_HEALTH_INFO;
         }
     }
 

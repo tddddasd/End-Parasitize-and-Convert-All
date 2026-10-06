@@ -23,7 +23,7 @@ public class InfestedZombieRenderer extends EpcaGeoRenderer<InfestedZombie> {
     public void render(InfestedZombie entity, float entityYaw, float partialTick,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         this.animatable = entity;
-        // Main render → afterimage layer renders automatically via OuterLayerDelegate
+        // Main render  afterimage layer renders automatically via OuterLayerDelegate
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
 /*/
         if (entity.isGlowEnabled()) {
@@ -55,3 +55,4 @@ public class InfestedZombieRenderer extends EpcaGeoRenderer<InfestedZombie> {
 
  */
 }
+

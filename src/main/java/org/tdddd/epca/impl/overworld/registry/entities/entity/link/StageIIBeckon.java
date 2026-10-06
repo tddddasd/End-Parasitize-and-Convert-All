@@ -808,6 +808,12 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 int current = EntityKillCountManager.getCurrentKillCount(this);
                 EntityKillCountManager.setKillCount(this, Math.max(0, current - BIOMASS_COST));
                 biomass.setPos(x, y, z);
+                //  spawnBiomass
+                //  Beckon
+                //  IParasite#BIOMASS_SPAWNED_KEY
+                if (biomass instanceof LivingEntity livingBiomass) {
+                    IParasite.markBiomassSpawned(livingBiomass);
+                }
                 this.level().addFreshEntity(biomass);
             }
         }

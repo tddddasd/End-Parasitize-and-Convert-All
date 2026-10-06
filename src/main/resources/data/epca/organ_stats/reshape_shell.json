@@ -1,0 +1,18 @@
+{
+  "epca:reshape_shell": {
+    "attributes": {
+      "armor": 2.5
+    },
+    "slot_bonuses": [
+      {
+        "condition": "outer",
+        "adaptation_reduction": 0.6,
+        "adaptation_rounds_tags": {
+          "minecraft:is_fire": {
+            "0.25": 12
+          }
+        }
+      }
+    ]
+  }
+}
