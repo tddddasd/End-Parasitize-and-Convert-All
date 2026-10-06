@@ -94,12 +94,6 @@ public class DifficultyEffects {
         return true;
     }
 
-    
-    public static boolean isAttractionRangeEnabled(Level level) {
-        DifficultyLevel diff = getEffectiveDifficulty(level);
-        return diff != DifficultyLevel.EASY;
-    }
-
     public static boolean isCothEffectEnabled(Level level) {
         return getEffectiveDifficulty(level) == DifficultyLevel.LEGENDARY;
     }

@@ -23,11 +23,11 @@ import java.util.function.Consumer;
  */
 public abstract class AbstractPovertyEntity extends AbstractEpcaEntity implements IPoverty, Enemy {
 
-    // ────────── Tick counter ──────────
+    //  Tick counter
     protected static final EntityDataAccessor<Integer> TICK_COUNT =
             SynchedEntityData.defineId(AbstractPovertyEntity.class, EntityDataSerializers.INT);
 
-    // ────────── Constructors ──────────
+    //  Constructors
 
     protected AbstractPovertyEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -40,7 +40,7 @@ public abstract class AbstractPovertyEntity extends AbstractEpcaEntity implement
         this.xpReward = 0;
     }
 
-    // ────────── Synched data ──────────
+    //  Synched data
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
@@ -48,7 +48,7 @@ public abstract class AbstractPovertyEntity extends AbstractEpcaEntity implement
         entityData.define(TICK_COUNT, 0);
     }
 
-    // ────────── Tick counter ──────────
+    //  Tick counter
 
     /**
      * Get the current tick count (lifetime counter).
@@ -73,3 +73,4 @@ public abstract class AbstractPovertyEntity extends AbstractEpcaEntity implement
         return getTickCount() >= tick;
     }
 }
+

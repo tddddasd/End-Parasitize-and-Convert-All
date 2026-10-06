@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
-import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.SyncEvolutionStagePacket;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
@@ -290,20 +289,6 @@ public class EvolutionManager {
         Identifier dimId = level.dimension().identifier();
         int stage = getStage();
         ModNetwork.sendToPlayer(player, new SyncEvolutionStagePacket(dimId, stage));
-    }
-
-    public int getAttractionRadius() {
-        if (!DifficultyEffects.isAttractionRangeEnabled(level)) return 0;
-        int stage = getStage();
-        switch (stage) {
-            case 5: return 32;
-            case 6: return 48;
-            case 7: return 64;
-            case 8: return 96;
-            case 9: return 112;
-            case 10: return 128;
-            default: return 0; 
-        }
     }
 
     private Integer overriddenStage = null;  

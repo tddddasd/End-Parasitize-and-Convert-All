@@ -40,7 +40,7 @@ public class CustomTab extends CreativeModeTab {
             displayItemsSearchTab.addAll(entry.getItemsToAddToSearch(parameters));
         };
         displayItems = items;
-        // 26.1.2: CreativeModeTab#rebuildSearchTree() no longer exists — the creative search tree is built by
+        // 26.1.2: CreativeModeTab#rebuildSearchTree() no longer exists  the creative search tree is built by
         // CreativeModeInventoryScreen from getSearchTabDisplayItems(), so there is nothing left to rebuild here.
     };
 

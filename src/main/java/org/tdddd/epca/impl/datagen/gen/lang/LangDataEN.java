@@ -133,7 +133,6 @@ public class LangDataEN extends LanguageProvider {
         add("entity.epca.infested_fox", "Infested Fox");
         add("entity.epca.walking_fox_head", "Walking Fox Head");
         add("entity.epca.reshape_part", "Reshape-Longarms");
-        add("entity.epca.infested_pumpkin_head", "Infested Pumpkin Head");
         add("entity.epca.infested_spider_web_projectile", "Infested Spider Web Projectile");
         add("entity.epca.infested_spider_web_blood_projectile", "Infested Blood Spider Web Projectile");
         add("entity.epca.infested_cave_spider_web_projectile", "Infested Cave Spider Web Projectile");
@@ -461,6 +460,75 @@ public class LangDataEN extends LanguageProvider {
         add("key.epca.switch_state", "Switch NestLeader State");
         add("key.epca.follow", "Follow Parasites");
         add("key.epca.follow_cancel", "Cancel Follow Parasite");
+
+        //  Nest Leader organ GUI + related keybinds (ported from 1.20.1)
+        // 26.1.2's KeyMapping.Category derives its label key from its own Identifier:
+        //   Category#label() = Component.translatable(id.toLanguageKey("key.category"))
+        // so the epca:keys category key is key.category.epca.keys
+        // (1.20.1's key.categories.epca has no consumer left on 26.1.2; the old key is kept
+        //  above only as history).
+        add("key.category.epca.keys", "E-PCA");
+        add("key.epca.open_organs", "Open Nest Leader Organ GUI");
+        // STAGE B: the infested ender pearl teleport key (default unbound, see NestLeaderOrganKeys#TELEPORT).
+        add("key.epca.organ_teleport", "Organ Teleport (Pearls)");
+        // Nest Leader skill "Decompose Parasite" key (default unbound,
+        // see NestLeaderOrganKeys#DECOMPOSE_PARASITE).
+        add("key.epca.decompose_parasite", "Decompose Parasite (aim at a parasite)");
+        add("tag.epca.organ_part", "Organ Part");
+
+        // Every user-visible string in the screen comes from one of these keys; the
+        // zh_cn and en_us key sets must stay identical.
+        add("epca.organ_gui.title", "Nest Leader Organs");
+
+        // The biomass-point readout in the top-left corner of the panel (%s = current points).
+        add("epca.organ_gui.biomass", "Biomass: %s");
+
+        // The hint line under the title: four segments plus a separator key (a locale
+        // may translate the separator to an empty string).
+        add("epca.organ_gui.hint.drag", "Drag with the left button to rotate the model");
+        add("epca.organ_gui.hint.quick_move", "Shift-click to quick-move");
+        add("epca.organ_gui.hint.transfer", "Inventory and slots can be moved between");
+        add("epca.organ_gui.hint.close", "ESC to close");
+        add("epca.organ_gui.hint.separator", "  ·  ");
+
+        // Shown while the server-side slot data has not arrived / when there is no local player.
+        add("epca.organ_gui.waiting_data", "Waiting for server slot data...");
+        add("epca.organ_gui.model.none", "(no player model)");
+
+        // Inventory / hotbar headings.
+        add("epca.organ_gui.inventory", "Inventory");
+        add("epca.organ_gui.hotbar", "Hotbar");
+
+        // Slot group names (6 purple groups + the 2 red regions; grouping table is OrganSlotGroup).
+        add("epca.organ_gui.group.head", "Head");
+        add("epca.organ_gui.group.torso", "Torso");
+        add("epca.organ_gui.group.left_arm", "Left Arm");
+        add("epca.organ_gui.group.right_arm", "Right Arm");
+        add("epca.organ_gui.group.left_leg", "Left Leg");
+        add("epca.organ_gui.group.right_leg", "Right Leg");
+        add("epca.organ_gui.group.torso_inner", "Torso Inner");
+        add("epca.organ_gui.group.head_inner", "Head Inner");
+
+        // Non-numeric text of both readouts. Purple (bottom left): 9 attribute names plus
+        // 3 source names. Green (bottom right): 2 labels plus the percent unit (the numbers
+        // themselves are still formatted by OrganStatDefaults, at most 2 decimals).
+        // STAGE A: the attribute table grew from 7 to 9 (Armor Toughness / Swim Speed); the
+        // key set must stay identical to zh_cn.
+        add("epca.organ_gui.attribute.health.name", "Max Health");
+        add("epca.organ_gui.attribute.armor.name", "Armor");
+        add("epca.organ_gui.attribute.armor_toughness.name", "Armor Toughness");
+        add("epca.organ_gui.attribute.attack_damage.name", "Attack Damage");
+        add("epca.organ_gui.attribute.knockback_resistance.name", "Knockback Resistance");
+        add("epca.organ_gui.attribute.movement_speed.name", "Movement Speed");
+        add("epca.organ_gui.attribute.swim_speed.name", "Swim Speed");
+        add("epca.organ_gui.attribute.attack_range.name", "Attack Range");
+        add("epca.organ_gui.attribute.block_reach.name", "Block Reach");
+        add("epca.organ_gui.source.purple", "Purple slots bonus");
+        add("epca.organ_gui.source.torso_inner", "Torso inner bonus");
+        add("epca.organ_gui.source.head_inner", "Head inner bonus");
+        add("epca.organ_gui.readout.adaptation_chance", "Adaptation chance");
+        add("epca.organ_gui.readout.adaptation_reduction", "Adaptation damage reduction");
+        add("epca.organ_gui.readout.percent", "%");
 
         // Notes & messages
         add("epca.note.title", "E-PCA Note");

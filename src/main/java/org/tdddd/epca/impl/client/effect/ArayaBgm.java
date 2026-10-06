@@ -13,7 +13,7 @@ import org.tdddd.epca.impl.events.ArayaConstants;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 
 /**
- * The looping BGM the Alayavijnana staff plays while its 天杀 counter is at or above
+ * The looping BGM the Alayavijnana staff plays while its  counter is at or above
  * {@link ArayaConstants#TIANSHA_THRESHOLD}.
  *
  * <h2>Why this is an {@link AbstractSoundInstance} and not a {@code level.playSound}</h2>
@@ -113,3 +113,4 @@ public final class ArayaBgm extends AbstractSoundInstance {
         return minecraft.player.position().distanceTo(this.holderPosition);
     }
 }
+

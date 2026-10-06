@@ -8,9 +8,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.tdddd.epca.impl.overworld.data.NestLeaderDamageAdaptation;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,13 +30,11 @@ public abstract class PlayerMixin implements IParasite {
         ((Player)(Object)this).addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0));
     }
 
-    @ModifyVariable(method = "hurtServer", at = @At("HEAD"), argsOnly = true)
-    private float epca$applyDamageAdaptation(float amount, ServerLevel level, DamageSource source) {
-        if (epca$isNestLeader()) {
-            return NestLeaderDamageAdaptation.applyAdaptation((Player)(Object)this, source, amount);
-        }
-        return amount;
-    }
+    // Old nest-leader damage adaptation was removed here (SPEC A2): the injection used to
+    // redirect the leader's incoming damage (Player#hurtServer) into the old per-damage-type
+    // store NestLeaderDamageAdaptation.applyAdaptation(...). The new organ-based adaptation
+    // is applied by NestLeaderOrganDamageHandler -> NestLeaderOrganAdaptation.resolve(...),
+    // so Player#hurtServer is no longer rewritten by this mixin.
 
     @Override
     public void onDeath(DamageSource source) {

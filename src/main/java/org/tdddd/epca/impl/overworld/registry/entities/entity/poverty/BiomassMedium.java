@@ -275,6 +275,9 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
                 }
             }
 
+            //  IParasite#BIOMASS_SPAWNED_KEY
+            IParasite.markBiomassSpawned(living);
+
             this.level().addFreshEntity(living);
         }
 

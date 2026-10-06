@@ -133,7 +133,6 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.infested_fox", "虫染狐狸");
         add("entity.epca.walking_fox_head", "虫染狐狸头颅");
         add("entity.epca.reshape_part", "重塑体-长臂");
-        add("entity.epca.infested_pumpkin_head", "虫染南瓜头");
         add("entity.epca.infested_spider_web_projectile", "虫染蜘蛛网团");
         add("entity.epca.infested_spider_web_blood_projectile", "虫染流血蜘蛛网团");
         add("entity.epca.infested_cave_spider_web_projectile", "虫染洞穴蜘蛛网团");
@@ -460,6 +459,69 @@ public class LangDataCN extends LanguageProvider {
         add("key.epca.switch_state", "切换领巢者伪装状态");
         add("key.epca.follow", "寄生虫跟随");
         add("key.epca.follow_cancel", "取消寄生体跟随");
+
+        //   GUI + 26  1.20.1
+        // 26.1.2  KeyMapping.Category  Identifier
+        //   Category#label() = Component.translatable(id.toLanguageKey("key.category"))
+        //  epca:keys  lang  key.category.epca.keys
+        // 1.20.1  key.categories.epca  26.1.2
+        add("key.category.epca.keys", "终末-归寄万物");
+        add("key.epca.open_organs", "打开领巢者器官界面");
+        // STAGE B NestLeaderOrganKeys#TELEPORT
+        add("key.epca.organ_teleport", "器官瞬移（末影珍珠）");
+        //  NestLeaderOrganKeys#DECOMPOSE_PARASITE
+        add("key.epca.decompose_parasite", "分解寄生体（准星指向寄生体）");
+        add("tag.epca.organ_part", "器官部位");
+
+        // zh_cn  en_us
+        add("epca.organ_gui.title", "领巢者器官");
+
+        // %s =
+        add("epca.organ_gui.biomass", "生物质：%s");
+
+        //  +
+        add("epca.organ_gui.hint.drag", "拖动左键旋转模型");
+        add("epca.organ_gui.hint.quick_move", "Shift 点击快速移动");
+        add("epca.organ_gui.hint.transfer", "背包与槽位可互相搬运");
+        add("epca.organ_gui.hint.close", "ESC 关闭");
+        add("epca.organ_gui.hint.separator", "　·　");
+
+        //  /
+        add("epca.organ_gui.waiting_data", "等待服务端槽位数据…");
+        add("epca.organ_gui.model.none", "（无玩家模型）");
+
+        //  /
+        add("epca.organ_gui.inventory", "背包");
+        add("epca.organ_gui.hotbar", "快捷栏");
+
+        //  6  +  2  OrganSlotGroup
+        add("epca.organ_gui.group.head", "头部");
+        add("epca.organ_gui.group.torso", "躯干");
+        add("epca.organ_gui.group.left_arm", "左臂");
+        add("epca.organ_gui.group.right_arm", "右臂");
+        add("epca.organ_gui.group.left_leg", "左腿");
+        add("epca.organ_gui.group.right_leg", "右腿");
+        add("epca.organ_gui.group.torso_inner", "躯干内部");
+        add("epca.organ_gui.group.head_inner", "头部内部");
+
+        //  +
+        //  +  OrganStatDefaults  2
+        // STAGE A 7  9  /  en_us
+        add("epca.organ_gui.attribute.health.name", "最大生命值");
+        add("epca.organ_gui.attribute.armor.name", "护甲值");
+        add("epca.organ_gui.attribute.armor_toughness.name", "盔甲韧性");
+        add("epca.organ_gui.attribute.attack_damage.name", "基础攻击伤害");
+        add("epca.organ_gui.attribute.knockback_resistance.name", "基础击退抗性");
+        add("epca.organ_gui.attribute.movement_speed.name", "移动速度");
+        add("epca.organ_gui.attribute.swim_speed.name", "游泳速度");
+        add("epca.organ_gui.attribute.attack_range.name", "基础攻击距离");
+        add("epca.organ_gui.attribute.block_reach.name", "基础方块触及距离");
+        add("epca.organ_gui.source.purple", "紫色槽增幅");
+        add("epca.organ_gui.source.torso_inner", "躯干内部增幅");
+        add("epca.organ_gui.source.head_inner", "头部内部增幅");
+        add("epca.organ_gui.readout.adaptation_chance", "适应概率");
+        add("epca.organ_gui.readout.adaptation_reduction", "适应满减免");
+        add("epca.organ_gui.readout.percent", "%");
 
         
         add("epca.note.title", "寄巢笔记");

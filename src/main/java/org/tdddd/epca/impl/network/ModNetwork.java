@@ -41,6 +41,20 @@ public class ModNetwork {
         registrar.playToServer(InfestedSourcePacket.RequestAllInfestedSourcesPacket.TYPE,
                 InfestedSourcePacket.RequestAllInfestedSourcesPacket.STREAM_CODEC,
                 InfestedSourcePacket.RequestAllInfestedSourcesPacket::handle);
+        //  GUISPEC  2
+        //  /  /
+        registrar.playToServer(RequestOpenNestLeaderOrgansPacket.TYPE,
+                RequestOpenNestLeaderOrgansPacket.STREAM_CODEC,
+                RequestOpenNestLeaderOrgansPacket::handle);
+        registrar.playToServer(NestLeaderOrganActionPacket.TYPE,
+                NestLeaderOrganActionPacket.STREAM_CODEC,
+                NestLeaderOrganActionPacket::handle);
+        registrar.playToServer(NestLeaderOrganTeleportPacket.TYPE,
+                NestLeaderOrganTeleportPacket.STREAM_CODEC,
+                NestLeaderOrganTeleportPacket::handle);
+        registrar.playToServer(NestLeaderDecomposeParasitePacket.TYPE,
+                NestLeaderDecomposeParasitePacket.STREAM_CODEC,
+                NestLeaderDecomposeParasitePacket::handle);
 
         
         registrar.playToClient(AcidWaterColorPacket.TYPE, AcidWaterColorPacket.STREAM_CODEC,
@@ -75,7 +89,7 @@ public class ModNetwork {
         // server-side BlockConversionManager owns and fade it out when the lightning falls.
         registrar.playToClient(SyncRitualAuraPacket.TYPE, SyncRitualAuraPacket.STREAM_CODEC,
                 SyncRitualAuraPacket::handle);
-        // The Alayavijnana aura: which players carry a staff whose 天杀 counter reached the threshold
+        // The Alayavijnana aura: which players carry a staff whose  counter reached the threshold
         // (that is what drives the looping BGM and the fire field around them).
         registrar.playToClient(SyncArayaAuraPacket.TYPE, SyncArayaAuraPacket.STREAM_CODEC,
                 SyncArayaAuraPacket::handle);
@@ -87,6 +101,9 @@ public class ModNetwork {
         // another player with the renamed staff.
         registrar.playToClient(SpawnArayaSlashPacket.TYPE, SpawnArayaSlashPacket.STREAM_CODEC,
                 SpawnArayaSlashPacket::handle);
+        //  GUI 52  +  +  +
+        registrar.playToClient(SyncNestLeaderOrgansPacket.TYPE, SyncNestLeaderOrgansPacket.STREAM_CODEC,
+                SyncNestLeaderOrgansPacket::handle);
     }
 
     
@@ -116,3 +133,4 @@ public class ModNetwork {
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, payload);
     }
 }
+

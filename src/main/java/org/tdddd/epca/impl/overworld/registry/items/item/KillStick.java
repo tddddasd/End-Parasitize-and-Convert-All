@@ -46,7 +46,7 @@ import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
  *   <li>{@code Item#getDefaultAttributeModifiers(EquipmentSlot)} is gone: item attributes are a
  *       data component now, so the reach bonus is built with {@link ItemAttributeModifiers} and
  *       installed through {@code Item.Properties#attributes(...)} in the constructor.</li>
- *   <li>{@code NeoForgeMod.ENTITY_REACH} does not exist in 26.1.2 — the reach attribute is vanilla
+ *   <li>{@code NeoForgeMod.ENTITY_REACH} does not exist in 26.1.2  the reach attribute is vanilla
  *       {@code Attributes.ENTITY_INTERACTION_RANGE} (verified: {@code NeoForgeMod} only declares
  *       SWIM_SPEED / NAMETAG_DISTANCE / CREATIVE_FLIGHT).</li>
  *   <li>{@code AttributeModifier} is a record {@code (Identifier, double, Operation)}.</li>
@@ -220,7 +220,7 @@ public class KillStick extends Item {
                 }
 
                 // The renamed staff's own hit: 444 points of the mod's MINIMUM damage type on the target
-                // of this click, so the kill (and therefore the trident sound and the 天杀 counter in
+                // of this click, so the kill (and therefore the trident sound and the  counter in
                 // ArayaSyncHandler) has one unambiguous source. The source carries the player as its
                 // causing entity, which is what lets LivingDeathEvent name the killer.
                 if (entity instanceof LivingEntity livingTarget) {
@@ -319,3 +319,4 @@ public class KillStick extends Item {
         return lowest;
     }
 }
+

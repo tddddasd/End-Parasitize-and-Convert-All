@@ -30,7 +30,7 @@ public final class ArayaSlashShaders {
     /** Strength of the emissive white term, mirror of {@code GLOW_STRENGTH} in the fragment stage. */
     public static final float GLOW_STRENGTH = 1.0F;
 
-    /** Colour of the glowing line ("一道白色...剑痕"): pure white, mirror of {@code GLOW_COLOR}. */
+    /** Colour of the glowing line ("..."): pure white, mirror of {@code GLOW_COLOR}. */
     public static final float GLOW_RED = 1.0F;
     public static final float GLOW_GREEN = 1.0F;
     public static final float GLOW_BLUE = 1.0F;
@@ -38,3 +38,4 @@ public final class ArayaSlashShaders {
     private ArayaSlashShaders() {
     }
 }
+

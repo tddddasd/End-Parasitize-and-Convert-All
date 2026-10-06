@@ -77,20 +77,41 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
         }
     }
 
+    /**
+     *  COTH+
+     *
+     * <p><b> 1.20.1 </b>
+     *  {@link IParasite#isParasiteByTagOrInterface}
+     * {@code entity instanceof IParasite} /
+     * {@code "Parasite"} {@code NestLeaderManager.isNestLeader}
+     *  {@code IParasite.java:69-92}
+     * {@code InfestedBlockHandler.java:24}{@code InfestedVine.java:82}
+     * {@code InfestedCactus.java:85}{@code InfestedSnow.java:91}
+     * {@code InfestedSweetBerryBush.java:100}
+     *
+     *  {@code living instanceof IParasite && living instanceof Player} </p>
+     *
+     * <p><b></b>
+     * {@code BlockBehaviour#onPlace}  BlockEntity /
+     *  {@code PLACE_TIME}
+     * {@code minecraft:cobweb  epca:infested_spider_web}
+     * {@code data/epca/block_conversions/*.json}
+     *
+     *
+     *
+     * {@code if (living instanceof IParasite p && p.getFollowTarget() == null) continue;}
+     * {@code FollowTarget}  {@code IParasite.java}</p>
+     */
     private void processEntitiesInBlock(BlockState state, ServerLevel level, BlockPos pos) {
         AABB box = new AABB(pos).inflate(0.1);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box,
                 Objects::nonNull);
 
         for (LivingEntity living : entities) {
-            if (!(living instanceof IParasite && living instanceof Player player)) {
-                applyCothAndDamage(living, level);
-            }else {
-                if (!(player instanceof Player && NestLeaderManager.isNestLeader(player.getUUID())))
-                {
-                    applyCothAndDamage(living, level);
-                }
+            if (IParasite.isParasiteByTagOrInterface(living)) {
+                continue;
             }
+            applyCothAndDamage(living, level);
         }
     }
 

@@ -363,7 +363,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         if (this.level().isClientSide()) return;
         ServerLevel serverLevel = (ServerLevel) this.level();
         BlockPos center = this.blockPosition();
-        int radius = 3; // 7×7×7
+        int radius = 3;  // 777
         AABB area = new AABB(center).inflate(radius);
 
         

@@ -54,7 +54,7 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
     /**
      * 26.1.2: the neighbour update became
      * {@code updateShape(state, LevelReader, ScheduledTickAccess, pos, directionToNeighbour,
-     * neighbourPos, neighbourState, random)} — the level is a reader and ticking goes through
+     * neighbourPos, neighbourState, random)}  the level is a reader and ticking goes through
      * {@code ScheduledTickAccess}, so {@code BlockTicks} is no longer reachable from here.
      */
     @Override
@@ -234,3 +234,4 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         return RenderShape.MODEL;
     }
 }
+

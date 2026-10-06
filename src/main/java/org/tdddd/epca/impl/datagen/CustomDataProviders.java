@@ -32,7 +32,7 @@ public class CustomDataProviders {
         return Objects.requireNonNull(BuiltInRegistries.ENTITY_TYPE.getKey(type)).toString();
     }
 
-    // ═══════════════════ 1. Entity Conversions ═══════════════════
+    //  1. Entity Conversions
 
     public static class EntityConversionRule {
         public String from, to, fins_to, mozzie_to;
@@ -172,7 +172,7 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Entity Conversions"; }
     }
 
-    // ═══════════════════ 3. Entity Carry ═══════════════════
+    //  3. Entity Carry
 
     public static class EntityCarryData {
         public List<String> carryable;
@@ -231,7 +231,7 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Entity Carry"; }
     }
 
-    // ═══════════════════ 4. Block Conversions ═══════════════════
+    //  4. Block Conversions
 
     public static class BlockConversionsData {
         public Map<String, String> conversions;
@@ -471,7 +471,7 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Block Conversions"; }
     }
 
-    // ═══════════════════ 5. Biomass Spawns ═══════════════════
+    //  5. Biomass Spawns
 
     public static class SpawnEffect {
         public String effect; public int duration; public int amplifier;
@@ -538,3 +538,4 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Biomass Spawns"; }
     }
 }
+

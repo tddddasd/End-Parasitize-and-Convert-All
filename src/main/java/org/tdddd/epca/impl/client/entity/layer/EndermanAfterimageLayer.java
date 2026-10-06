@@ -34,23 +34,23 @@ import java.util.*;
  * <p>Movement detection uses the per-tick position delta ({@code getX() - xo}),
  * which is reliable on the client side. Spawning is throttled to once per game tick.</p>
  *
- * <h2>Frozen position — the 26.1.2 transform chain</h2>
+ * <h2>Frozen position  the 26.1.2 transform chain</h2>
  * <p>Vanilla's {@code EntityRenderDispatcher} translates the pose stack by the entity's
  * <i>interpolated</i> render position ({@code EntityRenderState.x/y/z}) and GeckoLib's
  * {@code GeoEntityRenderer.applyRotations} then post-multiplies its own rotation, so at layer time
  * the stack is</p>
- * <pre>  T(renderPos) · R(180 - bodyYaw) [· living extras]</pre>
+ * <pre>  T(renderPos)  R(180 - bodyYaw) [ living extras]</pre>
  * <p>A plain {@code translate(delta)} from there is applied <b>inside the entity's rotated frame</b>:
  * the offset gets rotated by the entity's current yaw, which makes the ghost drift sideways and
  * appear to follow the entity. The layer therefore resets the current pose to the pass's
  * <i>pre-render</i> matrix ({@link RenderPassInfo#getPreRenderMatrixPose()}, captured in
  * {@code RenderPassInfo}'s constructor <b>before</b> GeckoLib's rotation) and rebuilds the ghost's
  * own transform from world axes:</p>
- * <pre>  T(renderPos) · T(spawnPos - renderPos) · R(180 - spawnYaw)</pre>
+ * <pre>  T(renderPos)  T(spawnPos - renderPos)  R(180 - spawnYaw)</pre>
  * <p>which puts the ghost exactly at its spawn position, facing its spawn direction, for every
- * frame of its fade — regardless of where the entity has moved or turned since.</p>
+ * frame of its fade  regardless of where the entity has moved or turned since.</p>
  *
- * <h2>GeckoLib 4 → 5.5.2 — pose freeze (documented behaviour change)</h2>
+ * <h2>GeckoLib 4  5.5.2  pose freeze (documented behaviour change)</h2>
  * <p>GeckoLib 4's layer received the live {@code BakedGeoModel} and could read and write each
  * {@code CoreGeoBone} transform, so afterimages replayed a <b>frozen per-bone pose</b>.
  * GeckoLib 5 no longer exposes a mutable bone transform at submission time: the animated pose
@@ -71,7 +71,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     private static final Map<UUID, List<AfterimageData>> AFTERIMAGES = new HashMap<>();
     private static final Map<UUID, Integer> LAST_SPAWN_TICK = new HashMap<>();
 
-    /** Cache: base texture → afterimage texture. */
+    /** Cache: base texture  afterimage texture. */
     private static final Map<Identifier, Identifier> TEX_CACHE = new HashMap<>();
 
     /** Derive afterimage texture from the entity type's registry key. */
@@ -107,9 +107,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  Extraction phase — spawn / prune
-    // ═══════════════════════════════════════════════════════════════
+    //  Extraction phase  spawn / prune
 
     @Override
     public void addLayerData(GeoRenderState renderState, float partialTick) {
@@ -125,9 +123,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  Submission phase — draw every live afterimage
-    // ═══════════════════════════════════════════════════════════════
+    //  Submission phase  draw every live afterimage
 
     @Override
     @SuppressWarnings("rawtypes")
@@ -170,9 +166,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Spawning
-    // ═══════════════════════════════════════════════════════════════
 
     private static void trySpawn(LivingEntity entity, GeoRenderState renderState, float partialTick, int currentTick) {
         if (!(renderState instanceof EntityRenderState state)) return;
@@ -207,9 +201,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Global cleanup
-    // ═══════════════════════════════════════════════════════════════
 
     public static void cleanupOrphaned() {
         Minecraft mc = Minecraft.getInstance();
@@ -238,3 +230,4 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         });
     }
 }
+

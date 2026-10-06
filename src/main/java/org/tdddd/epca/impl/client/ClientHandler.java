@@ -20,10 +20,12 @@ import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import org.tdddd.epca.impl.client.block.InfestedSweetBerryBushGlowRenderer;
 import org.tdddd.epca.impl.client.entity.EpcaGeoRenderer;
 import org.tdddd.epca.impl.client.entity.gas.GasCloudRenderType;
 import org.tdddd.epca.impl.client.entity.model.*;
 import org.tdddd.epca.impl.client.entity.renderer.*;
+import org.tdddd.epca.impl.client.render.EmissiveBlockRenderType;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.gen.model.SwallowCystModel;
@@ -37,8 +39,8 @@ public class ClientHandler {
     @SubscribeEvent
     public static void onRegisterRenderers(final EntityRenderersEvent.RegisterRenderers event) {
 
-        // ── Auto-registered renderers (all entities via EpcaEntityManager.registerMobWithRender) ──
-        // These use EpcaGeoModel/EpcaGeoRenderer — reads model/texture/animation
+        //  Auto-registered renderers (all entities via EpcaEntityManager.registerMobWithRender)
+        // These use EpcaGeoModel/EpcaGeoRenderer  reads model/texture/animation
         // from EpcaEntityManager by entity type. No per-entity model class needed.
         for (EntityType<?> type : EpcaEntityManager.consumeRenderTypes()) {
             @SuppressWarnings({"unchecked", "rawtypes"})
@@ -46,7 +48,7 @@ public class ClientHandler {
             event.registerEntityRenderer(rawType, EpcaGeoRenderer::new);
         }
 
-        // ── Custom renderers ONLY (entities with special rendering: non-GeckoLib, shaders, etc.) ──
+        //  Custom renderers ONLY (entities with special rendering: non-GeckoLib, shaders, etc.)
         event.registerEntityRenderer(ModEntities.CONTAMINATED_WATER.get(), ContaminatedWaterRenderer::new);
         event.registerEntityRenderer(ModEntities.YAWNING_NYA.get(), YawningNyaRenderer::new);
         event.registerEntityRenderer(ModEntities.BONE_FRAGMENT.get(), BoneFragmentRenderer::new);
@@ -84,10 +86,13 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.ACID_BULLET.get(), AcidBulletRenderer::new);
         event.registerEntityRenderer(ModEntities.BONE_ARROW.get(), BoneArrowRenderer::new);
         event.registerEntityRenderer(ModEntities.BIOMASS_EGG.get(), BiomassEggRenderer::new);
-        event.registerEntityRenderer(ModEntities.INFESTED_PUMPKIN_HEAD.get(), InfestedPumpkinHeadRenderer::new);
 
         event.registerBlockEntityRenderer(ModBlockEntities.SWALLOW_CYST.get(),
                 ctx -> new GeoBlockRenderer<>(ctx, new SwallowCystModel()));
+        // ModBlockEntities.INFESTED_SWEET_BERRY_BUSH
+        //  tick""
+        event.registerBlockEntityRenderer(ModBlockEntities.INFESTED_SWEET_BERRY_BUSH.get(),
+                InfestedSweetBerryBushGlowRenderer::new);
     }
 
     /**
@@ -96,7 +101,7 @@ public class ClientHandler {
      * dispatches on it with {@code minecraft:range_dispatch}.
      *
      * <p>The two EPCA properties keep their exact names ({@code epca:living},
-     * {@code epca:age}) and values, so the item model JSON only has to name them — recorded as a
+     * {@code epca:age}) and values, so the item model JSON only has to name them  recorded as a
      * datagen change request.</p>
      */
     @SubscribeEvent
@@ -105,7 +110,7 @@ public class ClientHandler {
         event.register(Identifier.fromNamespaceAndPath(epca.MODID, "age"), AgeProperty.CODEC);
     }
 
-    /** {@code epca:living} — 1.0 while the swallow cyst holds its "Living" flag, else 0.0. */
+    /** {@code epca:living}  1.0 while the swallow cyst holds its "Living" flag, else 0.0. */
     public record LivingProperty() implements RangeSelectItemModelProperty {
         public static final MapCodec<LivingProperty> CODEC = MapCodec.unit(new LivingProperty());
 
@@ -125,7 +130,7 @@ public class ClientHandler {
         }
     }
 
-    /** {@code epca:age} — the infested sweet berry bush growth stage. */
+    /** {@code epca:age}  the infested sweet berry bush growth stage. */
     public record AgeProperty() implements RangeSelectItemModelProperty {
         public static final MapCodec<AgeProperty> CODEC = MapCodec.unit(new AgeProperty());
 
@@ -172,6 +177,9 @@ public class ClientHandler {
         // Registers the fire pipeline of the same feature: the vanilla terrain state with culling off and
         // a translucent blend, for the render-only fire blocks the aura spawns.
         org.tdddd.epca.impl.client.render.araya.ArayaFireRenderType.registerPipeline(event);
+        // Registers the emissive block overlay pipeline used by the ripe infested sweet berry bush fruit
+        // layer. It re-emits the block's own baked quads, unlit, through the vanilla entity emissive state.
+        EmissiveBlockRenderType.registerPipeline(event);
     }
 
     @SubscribeEvent
@@ -182,3 +190,4 @@ public class ClientHandler {
         });
     }
 }
+

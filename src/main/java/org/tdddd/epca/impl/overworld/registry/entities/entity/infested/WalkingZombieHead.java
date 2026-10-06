@@ -34,7 +34,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    // ────────── Attributes ──────────
+    //  Attributes
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
@@ -45,7 +45,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
                 .build();
     }
 
-    // ────────── AI Goals ──────────
+    //  AI Goals
 
     @Override
     protected void registerGoals() {
@@ -59,7 +59,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
     }
 
-    // ────────── Sounds ──────────
+    //  Sounds
 
     @Override
     protected SoundEvent getAmbientSound() {
@@ -76,7 +76,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         return ModSoundEvents.WALKING_HEAD_DEATH.get();
     }
 
-    // ────────── No fake death (simple hurt is inherited from AbstractInfestedEntity) ──────────
+    //  No fake death (simple hurt is inherited from AbstractInfestedEntity)
 
     @Override
     public void die(DamageSource source) {
@@ -84,7 +84,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         this.onDeath(source);
     }
 
-    // ────────── Animation ──────────
+    //  Animation
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -101,7 +101,7 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         return PlayState.CONTINUE;
     }
 
-    // ────────── Spawn Rules ──────────
+    //  Spawn Rules
 
     public static boolean checkWalkingZombieHeadSpawnRules(
             EntityType<WalkingZombieHead> entityType, ServerLevelAccessor level,
@@ -113,3 +113,4 @@ public class WalkingZombieHead extends AbstractInfestedEntity {
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
 }
+

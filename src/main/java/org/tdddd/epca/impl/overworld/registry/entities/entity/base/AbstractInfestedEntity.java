@@ -48,22 +48,22 @@ import java.util.function.Consumer;
  */
 public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implements IInfested, Enemy {
 
-    // ────────── Wander speed modifier (shared by all infested) ──────────
+    //  Wander speed modifier (shared by all infested)
     protected static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath(epca.MODID, "wander_speed_reduction");
     protected static final AttributeModifier WANDER_SPEED_REDUCTION =
             new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
-    // ────────── Movement speeds ──────────
+    //  Movement speeds
     protected double baseSpeed = 0.27D;
     protected double chaseSpeed = 0.38D;
 
-    // ────────── Fake death burst config ──────────
+    //  Fake death burst config
     protected float fakeDeathBurstChance = 0.4f;
 
-    // ────────── Jump cooldown ──────────
+    //  Jump cooldown
     protected int jumpCooldown = 0;
 
-    // ────────── Constructors ──────────
+    //  Constructors
 
     protected AbstractInfestedEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -82,7 +82,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         if (stepHeight != null) stepHeight.setBaseValue(0.5F);
     }
 
-    // ────────── Fake death burst ──────────
+    //  Fake death burst
 
     /**
      * Called when fake death timer expires. Performs the infested burst
@@ -143,7 +143,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         serverLevel.addFreshEntity(cloud);
     }
 
-    // ────────── Remains block spawning ──────────
+    //  Remains block spawning
 
     /**
      * Spawn remains blocks (large, medium, small) around a death position.
@@ -190,7 +190,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         }
     }
 
-    // ────────── Movement speed management ──────────
+    //  Movement speed management
 
     /**
      * Apply standard infested movement speed: faster when chasing, slower when wandering.
@@ -209,13 +209,13 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         }
     }
 
-    // ────────── Step sounds (infested defaults: 20-30 tick delay, volume 1.0) ──────────
+    //  Step sounds (infested defaults: 20-30 tick delay, volume 1.0)
 
     protected void tickStepSounds(SoundEvent stepSound) {
         tickStepSounds(stepSound, 20, 30, 1.0F);
     }
 
-    // ────────── hurt() ──────────
+    //  hurt()
 
     @Override
     public boolean hurtServer(ServerLevel serverLevel, DamageSource source, float amount) {
@@ -223,11 +223,11 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         return super.hurtServer(serverLevel, source, amount); // AbstractEpcaEntity handles the rest
     }
 
-    // ────────── die() ──────────
+    //  die()
 
     @Override
     public void die(DamageSource source) {
-        // Already faking death — die normally
+        // Already faking death  die normally
         if (isFakingDeath()) {
             super.die(source);
             return;
@@ -247,7 +247,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
             }
         }
 
-        // On fire — skip fake death
+        // On fire  skip fake death
         if (this.isOnFire()) {
             super.die(source);
             this.onDeath(source);
@@ -282,7 +282,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         startFakeDeath();
     }
 
-    // ────────── onKillEntity() ──────────
+    //  onKillEntity()
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
@@ -299,3 +299,4 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         }
     }
 }
+

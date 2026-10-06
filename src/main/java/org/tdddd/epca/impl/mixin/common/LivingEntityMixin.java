@@ -127,7 +127,14 @@ public abstract class LivingEntityMixin {
             }
 
             
-            float remainingDamage = ShieldProtectionHelper.applyShieldProtection(self, damage);
+            // ShieldEventHandler#onLivingHurt(LivingIncomingDamageEvent)
+            // ShieldProtectionHelper
+            //  setHealth vanilla  setHealth
+            // Mth.clamp(health, 0.0F, getMaxHealth()) hurt()
+            //   setHealth
+            //  ShieldProtectionHelper#applyShieldPool
+            //  LocalPlayer#hurtTo  setHealth
+            float remainingDamage = ShieldProtectionHelper.applyShieldPool(self, damage);
             if (remainingDamage <= 0) {
                 
                 processingSetHealth.set(true);
@@ -218,3 +225,4 @@ public abstract class LivingEntityMixin {
         }
     }
 }
+

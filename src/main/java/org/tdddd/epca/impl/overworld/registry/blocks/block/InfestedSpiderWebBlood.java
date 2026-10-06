@@ -80,20 +80,24 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
         }
     }
 
+    /**
+     *  COTH +  {@code InfestedSpiderWeb#processEntitiesInBlock}
+     *
+     * <p><b> 1.20.1 </b>
+     *  {@link IParasite#isParasiteByTagOrInterface}  +
+     *
+     * {@code living instanceof IParasite && living instanceof Player} </p>
+     */
     private void processEntitiesInBlock(BlockState state, ServerLevel level, BlockPos pos) {
         AABB box = new AABB(pos).inflate(0.1);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box,
                 Objects::nonNull);
 
         for (LivingEntity living : entities) {
-            if (!(living instanceof IParasite && living instanceof Player player)) {
-                applyCothAndDamage(living, level);
-            }else {
-                if (!(player instanceof Player && NestLeaderManager.isNestLeader(player.getUUID())))
-                {
-                    applyCothAndDamage(living, level);
-                }
+            if (IParasite.isParasiteByTagOrInterface(living)) {
+                continue;
             }
+            applyCothAndDamage(living, level);
         }
     }
 

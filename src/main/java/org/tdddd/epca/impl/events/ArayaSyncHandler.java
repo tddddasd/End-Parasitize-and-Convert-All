@@ -319,7 +319,7 @@ public final class ArayaSyncHandler {
     /**
      * The position a fire may be drawn at in one column, or {@code null}.
      *
-     * <p>"完整方块" is checked with the block's own collision shape ({@code isCollisionShapeFullBlock})
+     * <p>"" is checked with the block's own collision shape ({@code isCollisionShapeFullBlock})
      * rather than with a block tag, so it means the same thing for modded blocks; the position above the
      * floor also has to be replaceable and dry, so the fire never sticks out of a wall or floats on
      * water.</p>
@@ -349,3 +349,4 @@ public final class ArayaSyncHandler {
         return null;
     }
 }
+

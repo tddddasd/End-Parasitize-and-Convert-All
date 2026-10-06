@@ -9,6 +9,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
@@ -16,6 +17,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.client.organ.NestLeaderOrganKeys;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystScreen;
 import org.tdddd.epca.impl.overworld.registry.particles.AdaptationParticleProvider;
@@ -48,7 +50,7 @@ public class ClientSetup {
 
     /**
      * 26.1.2: {@code ItemProperties.register(item, "stage", predicate)} was deleted along with the whole
-     * {@code ItemProperties} class — item model predicates are declared in resources and resolved through
+     * {@code ItemProperties} class  item model predicates are declared in resources and resolved through
      * {@code RangeSelectItemModelProperty}. This registers the equivalent of the old {@code "stage"} predicate
      * as {@code epca:evolution_stage} so {@code assets/epca/items/bloody_clock.json} can drive the model.
      */
@@ -58,7 +60,7 @@ public class ClientSetup {
     }
 
     /**
-     * Numeric item model property reproducing the 1.20.1 {@code ItemProperties.register(bloodyClock, "stage", …)}
+     * Numeric item model property reproducing the 1.20.1 {@code ItemProperties.register(bloodyClock, "stage", )}
      * predicate: {@code stageForDimension(level) + 2}, evaluated against the item owner's level (or the item's
      * own level when there is no living owner).
      */
@@ -83,6 +85,26 @@ public class ClientSetup {
         public MapCodec<EvolutionStageProperty> type() {
             return MAP_CODEC;
         }
+    }
+
+    /**
+     *  GUI SPEC  1  B1 <b>H</b> -
+     *
+     * <p> NeoForge  {@link RegisterKeyMappingsEvent}mod
+     *  {@code ClientHandlerI}  {@code InputEvent.Key}  GLFW
+     *  SPEC " H"</p>
+     *
+     * <p>26.1.2{@code KeyMapping}
+     * {@code KeyMapping.Category} {@link NestLeaderOrganKeys#CATEGORY}
+     *  lang  {@code key.category.epca.keys}
+     *  /  /
+     *  - </p>
+     */
+    @SubscribeEvent
+    public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        event.register(NestLeaderOrganKeys.OPEN_ORGANS);
+        event.register(NestLeaderOrganKeys.TELEPORT);
+        event.register(NestLeaderOrganKeys.DECOMPOSE_PARASITE);
     }
 
     @SubscribeEvent
@@ -181,3 +203,4 @@ public class ClientSetup {
         event.registerSpriteSet(ModParticles.P_ADAPTATION.get(), AdaptationParticleProvider::new);
     }
 }
+

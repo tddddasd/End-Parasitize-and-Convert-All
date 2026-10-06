@@ -42,9 +42,7 @@ public class ModEntities {
     public static final DeferredRegister.Entities ENTITIES =
             DeferredRegister.createEntities(epca.MODID);
 
-    // ═══════════════════════════════════════════════════════════════
     //  Resource helpers
-    // ═══════════════════════════════════════════════════════════════
 
     private static ResourceKey<EntityType<?>> entityKey(String name) {
         return ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, name));
@@ -64,7 +62,7 @@ public class ModEntities {
      * {@code GeckoLibResources.stripPrefixAndSuffix(id)}, whose patterns are
      * {@code PREFIX_STRIPPER = ^(geckolib/)((animations/)|(models/))?} and
      * {@code SUFFIX_STRIPPER = ((\.geo)|((\.animation)s?))?(\.json)$}. The legacy
-     * {@code epca:geo/entity/x.geo.json} form therefore does <b>not</b> strip to {@code epca:x} —
+     * {@code epca:geo/entity/x.geo.json} form therefore does <b>not</b> strip to {@code epca:x}
      * it leaves {@code epca:geo/entity/x}, misses the cache and only produces the
      * "Superfluous prefix or suffix" error.</p>
      *
@@ -93,11 +91,9 @@ public class ModEntities {
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Registration helpers
-    // ═══════════════════════════════════════════════════════════════
 
-    /** Full auto: AbstractEpcaEntity → attributes + auto-renderer (EpcaGeoRenderer). */
+    /** Full auto: AbstractEpcaEntity  attributes + auto-renderer (EpcaGeoRenderer). */
     @SuppressWarnings("unchecked")
     public static <T extends AbstractEpcaEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMob(
             String name, float width, float height,
@@ -112,7 +108,7 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity (doesn't extend AbstractEpcaEntity) → attributes + auto-renderer via name. */
+    /** Existing entity (doesn't extend AbstractEpcaEntity)  attributes + auto-renderer via name. */
     public static <T extends LivingEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMobWithRender(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -129,8 +125,8 @@ public class ModEntities {
     /**
      * Same as the overload above, but pins the registered type's eye height.
      *
-     * <p>26.1.2 made {@code Entity#getEyeHeight(Pose)} final — it returns
-     * {@code getDimensions(pose).eyeHeight()} — and deleted
+     * <p>26.1.2 made {@code Entity#getEyeHeight(Pose)} final  it returns
+     * {@code getDimensions(pose).eyeHeight()}  and deleted
      * {@code LivingEntity#getStandingEyeHeight(Pose, EntityDimensions)}, so an entity can no
      * longer pick its own eye height. It has to be declared on the {@code EntityType} here.
      * Without it the value is {@code EntityDimensions#defaultEyeHeight(height)} = {@code height * 0.85F}.</p>
@@ -153,7 +149,7 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity → auto-renderer with separate model/texture/animation base names. */
+    /** Existing entity  auto-renderer with separate model/texture/animation base names. */
     public static <T extends LivingEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMobWithCustomModel(
             String name, String modelBase, String texBase, String animBase,
             float width, float height,
@@ -168,7 +164,7 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity with custom renderer → attributes only. */
+    /** Existing entity with custom renderer  attributes only. */
     public static <T extends LivingEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMobAttributes(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -212,10 +208,8 @@ public class ModEntities {
                         .build(entityKey(name)));
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Entity registrations
-    //  All mob entities use registerMobWithRender → auto-render via EpcaTypeGeoRenderer
-    // ═══════════════════════════════════════════════════════════════
+    //  All mob entities use registerMobWithRender  auto-render via EpcaTypeGeoRenderer
 
     // --- Onesent ---
     public static final DeferredHolder<EntityType<?>, EntityType<Curbug>> CURBUG =
@@ -320,13 +314,8 @@ public class ModEntities {
             registerMobWithRender("infested_fox", 0.8F, 0.9F, InfestedFox::new, MobCategory.MONSTER, 12, InfestedFox::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<WalkingFoxHead>> WALKING_FOX_HEAD =
             registerMobWithRender("walking_fox_head", 0.6F, 0.6F, WalkingFoxHead::new, MobCategory.MONSTER, 12, WalkingFoxHead::setAttributes);
-    // infested_pumpkin_head: GeoAnimatable with a geo model + texture but NO animation asset
-    // (geckolib/animations/infested_pumpkin_head.animation.json does not exist and never existed in
-    // the 1.20.1 baseline either). Its registerControllers() override is deliberately empty; adding
-    // any AnimationController here would make GeckoLib's AnimationTimeline.create throw
-    // NoSuchElementException at render time (empty stage list + non-zero transition ticks).
-    public static final DeferredHolder<EntityType<?>, EntityType<InfestedPumpkinHead>> INFESTED_PUMPKIN_HEAD =
-            registerMobWithRender("infested_pumpkin_head",  1.0F, 1.0F, InfestedPumpkinHead::new, MobCategory.MONSTER, 12, InfestedPumpkinHead::setAttributes);
+    // Restored: the infested carved-pumpkin head mob.  The bad transplant replaced this
+    // was an unresolvable symbol in InfestedCarvedPumpkin and InfestedPumpkin.
     // --- Slimes (createAttributes returns Builder) ---
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedSlimeSize0>> INFESTED_SLIME_SIZE0 =
             registerMobWithRender("infested_slime_size0", 0.5F, 0.5F, InfestedSlimeSize0::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize0.createAttributes().build());
@@ -356,11 +345,10 @@ public class ModEntities {
      * <p>Consequences, both of which this class must respect:</p>
      * <ul>
      *   <li>An entity <b>without</b> an animation asset must register <b>no</b> controller at all
-     *       (see {@code AcidBullet}, {@code BoneArrow}, {@code InfestedPumpkinHead} and
-     *       {@code LivingArmorItem}, all of which have a deliberately empty
-     *       {@code registerControllers}).</li>
-     *   <li>An entity that is not a {@code GeoAnimatable} at all — every plain vanilla-rendered
-     *       projectile — must not go through {@link #registerMiscWithRender}/
+     *       (see {@code AcidBullet}, {@code BoneArrow} and {@code LivingArmorItem}, all of which
+     *       have a deliberately empty {@code registerControllers}).</li>
+     *   <li>An entity that is not a {@code GeoAnimatable} at all  every plain vanilla-rendered
+     *       projectile  must not go through {@link #registerMiscWithRender}/
      *       {@link #registerMobWithRender}; use {@link #registerMisc} so it never reaches GeckoLib.
      *       </li>
      * </ul>
@@ -462,3 +450,5 @@ public class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownNetheriteSpear>> THROWN_NETHERITE_SPEAR =
             registerMiscTracking("thrown_netherite_spear", 0.5F, 0.5F, ThrownNetheriteSpear::new, 4, 20);
 }
+
+

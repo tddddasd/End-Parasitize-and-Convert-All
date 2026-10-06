@@ -42,7 +42,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
 
     public enum Variant { DEFAULT, FIRED }
 
-    // ────────── Variant synched data ──────────
+    //  Variant synched data
     private static final EntityDataAccessor<Integer> DATA_VARIANT =
             SynchedEntityData.defineId(InfestedSkeleton.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<String> DATA_POSE_ANIM =
@@ -56,13 +56,13 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
     private static final EntityDataAccessor<Float> DATA_SHOOT_THETA =
             SynchedEntityData.defineId(InfestedSkeleton.class, EntityDataSerializers.FLOAT);
 
-    // ────────── Ranged attack config ──────────
+    //  Ranged attack config
     private static final int ATTACK_COOLDOWN = 40;
     private static final int MAX_RANGE = 21;
     private static final float ARROW_SPEED = 1.6F;
     private static final Vec3 LOCATOR_OFFSET = new Vec3(0.0, 1.2, 0.5);
 
-    // ────────── Retreat config ──────────
+    //  Retreat config
     private static final double SAFE_DISTANCE = 0.0D;
     private static final double MIN_DISTANCE = 0.0D;
     private boolean isRetreating = false;
@@ -71,7 +71,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
 
     private static final ThreadLocal<EntitySpawnReason> SPAWN_TYPE = new ThreadLocal<>();
 
-    // ────────── Constructor ──────────
+    //  Constructor
 
     public InfestedSkeleton(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -94,7 +94,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    // ────────── Variant ──────────
+    //  Variant
 
     public Variant getVariant() {
         Integer ordinal = this.entityData.get(DATA_VARIANT);
@@ -127,7 +127,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         }
     }
 
-    // ────────── Synched data ──────────
+    //  Synched data
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
@@ -145,7 +145,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
     private void setShootAnimationTimer(int timer) { this.entityData.set(DATA_SHOOT_ANIM_TIMER, timer); }
     public float getShootTheta() { return this.entityData.get(DATA_SHOOT_THETA); }
 
-    // ────────── Attributes ──────────
+    //  Attributes
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
@@ -158,7 +158,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
                 .build();
     }
 
-    // ────────── AI Goals ──────────
+    //  AI Goals
 
     @Override
     protected void registerGoals() {
@@ -180,7 +180,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
     }
 
-    // ────────── Ranged Attack ──────────
+    //  Ranged Attack
 
     @Override
     public void performRangedAttack(LivingEntity target, float distanceFactor) {
@@ -216,7 +216,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         return this.position().add(dx, LOCATOR_OFFSET.y, dz);
     }
 
-    // ────────── Tick ──────────
+    //  Tick
 
     @Override
     public void tick() {
@@ -270,7 +270,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         return (float) Mth.clamp(Math.toDegrees(Math.atan2(dy, horizontalDist)), -30.0, 90.0);
     }
 
-    // ────────── Retreat ──────────
+    //  Retreat
 
     private void startRetreating(LivingEntity target) {
         if (target == null) return;
@@ -290,7 +290,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         this.getNavigation().stop();
     }
 
-    // ────────── Normal death ──────────
+    //  Normal death
 
     @Override
     protected void onNormalDeathActions(DamageSource source) {
@@ -305,7 +305,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         }
     }
 
-    // ────────── Sounds ──────────
+    //  Sounds
 
     @Override
     protected SoundEvent getAmbientSound() {
@@ -322,7 +322,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         return ModSoundEvents.INFESTED_SKELETON_DEATH.get();
     }
 
-    // ────────── Animation ──────────
+    //  Animation
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -341,7 +341,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         return PlayState.CONTINUE;
     }
 
-    // ────────── Spawn Rules ──────────
+    //  Spawn Rules
 
     public static boolean checkInfestedSkeletonSpawnRules(
             EntityType<InfestedSkeleton> entityType, ServerLevelAccessor level,
@@ -354,3 +354,4 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
         return level.getMaxLocalRawBrightness(pos) < 8;
     }
 }
+

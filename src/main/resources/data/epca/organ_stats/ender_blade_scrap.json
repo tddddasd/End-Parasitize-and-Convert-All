@@ -1,0 +1,13 @@
+{
+  "epca:ender_blade_scrap": {
+    "slot_bonuses": [
+      {
+        "condition": "arm",
+        "attributes": {
+          "attack_damage": 1.0
+        },
+        "minimum_damage": 0.5
+      }
+    ]
+  }
+}

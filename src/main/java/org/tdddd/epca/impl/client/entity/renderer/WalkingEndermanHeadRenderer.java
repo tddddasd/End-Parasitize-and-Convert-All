@@ -17,7 +17,7 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingEn
 /**
  * Renderer for the walking enderman head.
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>The deleted {@code render(...)} override did two things; both were re-expressed on GeckoLib 5
  * hooks: the carried entity is positioned through a
  * {@code RenderPassInfo.BonePositionListener} added in {@link #preRenderPass}, and the glow pass
@@ -67,3 +67,4 @@ public class WalkingEndermanHeadRenderer extends EpcaGeoRenderer<WalkingEnderman
         }
     }
 }
+

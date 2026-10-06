@@ -76,7 +76,10 @@ configurations {
 
 dependencies {
         // GeckoLib 5 - hard dependency: epca's entity/item renderers extend its classes.
-    implementation files('libs/geckolib-neoforge-26.1.2-5.5.2.jar')
+    // 用 Maven 坐标声明（而非 libs/ 平铺 jar）：MDG 的 jarJar 才能拿到真正的 group/artifact/version
+    // 写入 META-INF/jarjar/metadata.json，且无需给嵌套 jar 补 Automatic-Module-Name。
+    // 精确版本（不用动态区间）：--offline 下区间需要版本列表才能解析，会直接失败。
+    jarJar(implementation("com.geckolib:geckolib-neoforge-26.1.2:5.5.2"))
 
     // Jade - optional integration; its plugin classes are only touched when Jade is present.
     compileOnly files('libs/Jade-mc26.1-NeoForge-26.1.11.jar')
@@ -85,6 +88,16 @@ dependencies {
     // Sibling mods, ported and built for 26.1.2 in this same session.
     jarJar(implementation files('libs/yawning_neko_api-1.0.5.jar'))
     implementation files('libs/eej-26.1.2.jar')
+
+    // EPCA-Physics - hard prerequisite: the physicalized infested carved pumpkin (the
+    // `epca:infested_carved_pumpkin_physics` entity) extends its `PhysicsEntity` base class, so this
+    // jar is also a mandatory `[[dependencies.epca]]` entry in
+    // src/main/templates/META-INF/neoforge.mods.toml, mirroring the eej / yawning_neko_api entries.
+    implementation files('libs/epca_physics-1.0.0.jar')
+
+    // ... and, exactly like `yawning_neko_api-1.0.5.jar` above, the physics mod is embedded in this
+    // tree's own output as a jar-in-jar so the packed build ships it.
+    jarJar(implementation files('libs/epca_physics-1.0.0.jar'))
 
     // Player Animation Library (ZigyTheBird fork, modId `player_animation_library`) - hard prerequisite:
     // the mod's player animations are built on its API and there is no upstream 26.1.2 build, so the 26.1

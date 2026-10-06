@@ -41,6 +41,17 @@ versionRange = "[1.0.0,)"
 ordering = "AFTER"
 side = "BOTH"
 
+# 26.1.2: EPCA-Physics is a hard prerequisite too - the `epca:infested_carved_pumpkin_physics` entity
+# extends its `PhysicsEntity` base class. The jar is shipped inside this mod's own output via
+# `jarJar(implementation files('libs/epca_physics-1.0.0.jar'))` in build.gradle, exactly like
+# yawning_neko_api.
+[[dependencies.${mod_id}]]
+modId = "epca_physics"
+type = "required"
+versionRange = "[1.0.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
 # 26.1.2: mixin configs are declared here, not through the jar-manifest
 # `MixinConfigs` attribute (NeoForge 26.x reads them from neoforge.mods.toml,
 # exactly like NeoForge's own META-INF/neoforge.mods.toml does).
@@ -57,5 +68,14 @@ file = "META-INF/accesstransformer.cfg"
 modId = "yawning_neko_api"
 type = "required"
 versionRange = "[1.0.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+# GeckoLib 5 是硬前置：实体/方块/物品渲染器继承其类。jar 通过 build.gradle 的
+# jarJar(implementation("com.geckolib:geckolib-neoforge-26.1.2:5.5.2")) 内嵌进本模组自身输出。
+[[dependencies.${mod_id}]]
+modId = "geckolib"
+type = "required"
+versionRange = "[5.5.2,6.0)"
 ordering = "AFTER"
 side = "BOTH"

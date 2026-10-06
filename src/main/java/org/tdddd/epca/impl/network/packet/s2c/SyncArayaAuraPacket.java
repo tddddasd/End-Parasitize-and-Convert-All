@@ -10,7 +10,7 @@ import org.tdddd.epca.impl.events.ArayaConstants;
 import org.tdddd.epca.impl.network.ModNetwork;
 
 /**
- * Server to client batch sync of the players whose Alayavijnana staff reached its 天杀 threshold.
+ * Server to client batch sync of the players whose Alayavijnana staff reached its  threshold.
  *
  * <p>The server owns the counter (it is what the kills are counted on) and therefore also owns who has an
  * active aura; the client only needs to know <em>who</em> and <em>where</em>, because the aura decides two
@@ -91,3 +91,4 @@ public class SyncArayaAuraPacket implements CustomPacketPayload {
         ctx.enqueueWork(() -> ArayaClientCache.applyHolders(packet.entityIds, packet.positions));
     }
 }
+

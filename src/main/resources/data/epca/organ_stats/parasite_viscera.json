@@ -1,0 +1,7 @@
+{
+  "epca:parasite_viscera": {
+    "attributes": {
+      "movement_speed": 0.025
+    }
+  }
+}

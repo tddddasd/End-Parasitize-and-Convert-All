@@ -1,0 +1,16 @@
+{
+  "epca:beckon_membrane": {
+    "slot_bonuses": [
+      {
+        "condition": "outer",
+        "attributes": {
+          "armor_toughness": 2.0,
+          "armor": 3.0
+        }
+      }
+    ],
+    "damage_taken_add": {
+      "#minecraft:is_fire": -0.25
+    }
+  }
+}

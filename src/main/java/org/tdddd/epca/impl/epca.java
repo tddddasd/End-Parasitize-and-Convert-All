@@ -2,7 +2,6 @@ package org.tdddd.epca.impl;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.gamerules.GameRuleCategory;
 import net.minecraft.world.level.gamerules.GameRules;
@@ -13,7 +12,6 @@ import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -25,6 +23,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tdddd.eej.api.AltarInteractionRegistry;
 import org.tdddd.epca.impl.overworld.data.*;
+import org.tdddd.epca.impl.overworld.data.organ.NestLeaderOrganEffects;
+import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatManager;
 import org.tdddd.epca.impl.overworld.registry.blocks.EpcaAltarInteractionHandler;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
@@ -33,7 +33,6 @@ import org.tdddd.epca.impl.client.ClientSetup;
 import org.tdddd.epca.impl.commands.*;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
-import org.tdddd.epca.impl.overworld.registry.entities.ai.ParasiteAttractionManager;
 import org.tdddd.epca.impl.events.EvolutionStageEvents;
 import org.tdddd.epca.impl.events.ShieldCapabilityHandler;
 import org.tdddd.epca.impl.fluid.ModFluids;
@@ -109,7 +108,6 @@ public class epca {
         forgeBus.addListener(this::onRegisterCommands);
         forgeBus.addListener(this::onServerStarted);
         forgeBus.addListener(this::onAddReloadListeners);
-        forgeBus.addListener(this::onServerTickForAttraction);
         forgeBus.addListener(this::onPlayerTick);
     }
 
@@ -141,21 +139,36 @@ public class epca {
         EvolutionDataStorage.get(overworld);
     }
 
-    
-    @SubscribeEvent
-    public void onServerTickForAttraction(ServerTickEvent.Post event) {
-        
-        MinecraftServer server = event.getServer();
-
-        for (ServerLevel level : server.getAllLevels()) {
-            ParasiteAttractionManager.tick(level);
-        }
-    }
-
+    // SPEC A1: the old "attract parasites" server-tick hook and its forgeBus listener
+    // registration were removed here. Nothing else drove ParasiteAttractionManager; the
+    // pending-conversion queue is ticked by CothEffectTickHandler.
+    /**
+     *  tick + STAGE 3
+     *
+     * <p> SPEC  2  3
+     * {@code NestLeaderManager#isNestLeader}
+     * {@link org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary#compute}
+     *  {@link NestLeaderOrganEffects#tick}
+     * +  {@code entity_gravity} +
+     *  tick
+     *  {@link NestLeaderOrganEffects#notLeader} tick
+     * SPEC  1  2 </p>
+     *
+     * <p>26.1.21.20.1  {@code TickEvent.PlayerTickEvent} {@code phase}
+     * {@code net.neoforged.neoforge.event.tick.PlayerTickEvent.Post} phase </p>
+     */
     @SubscribeEvent
     public void onPlayerTick(PlayerTickEvent.Post event) {
-        
         LivingArmorBox.applyBiomassEffects(event.getEntity());
+
+        // STAGE 3 NestLeaderOrganEffects
+        if (!event.getEntity().level().isClientSide()) {
+            if (NestLeaderManager.isNestLeader(event.getEntity().getUUID())) {
+                NestLeaderOrganEffects.tick(event.getEntity());
+            } else {
+                NestLeaderOrganEffects.notLeader(event.getEntity());
+            }
+        }
     }
 
     @SubscribeEvent
@@ -166,6 +179,9 @@ public class epca {
         event.addListener(asResource("entity_kill_count"), new EntityKillCountManager());
         event.addListener(asResource("carry_config"), CarryConfigManager.INSTANCE);
         event.addListener(asResource("biomass_spawn"), new BiomassSpawnManager());
+        // SPEC D6 json
+        // data/epca/organ_stats/<item>.json + _defaults.json OrganStatManager
+        event.addListener(asResource("organ_stats"), new OrganStatManager());
     }
 
     // Attribute registration is now handled by ModEntityEvents.onEntityAttributeCreation()
@@ -179,3 +195,4 @@ public class epca {
     // initializer; it is registered by the RegisterEvent listener in the constructor.
     public static net.minecraft.world.level.gamerules.GameRule<Boolean> DO_INFESTED_FALLBACK;
 }
+

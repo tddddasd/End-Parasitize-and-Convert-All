@@ -12,6 +12,19 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 @EventBusSubscriber
 public class ShieldEventHandler {
 
+    /**
+     *  1.20.1
+     * {@code ShieldEventHandler#onLivingHurt(LivingDamageEvent)}
+     *
+     * <p>26.1.2  {@code LivingIncomingDamageEvent} + {@code DamageContainer}
+     * {@link ShieldProtectionHelper#applyDamageIgnore(LivingEntity, float)}
+     *  {@code applyShieldProtection}
+     * {@code applyDamageIgnore} + {@code applyShieldPool} setHealth
+     * </p>
+     *
+     * <p><b></b> {@code mixin/common/LivingEntityMixin#onSetHealth}
+     *  {@link ShieldProtectionHelper#applyShieldPool(LivingEntity, float)} </p>
+     */
     @SubscribeEvent
     public static void onLivingHurt(LivingIncomingDamageEvent event) {
         LivingEntity entity = event.getEntity();
@@ -19,7 +32,7 @@ public class ShieldEventHandler {
         float original = event.getAmount();
         if (original <= 0) return;
 
-        float remaining = ShieldProtectionHelper.applyShieldProtection(entity, original);
+        float remaining = ShieldProtectionHelper.applyDamageIgnore(entity, original);
         if (remaining <= 0) {
             event.setCanceled(true);
         } else {

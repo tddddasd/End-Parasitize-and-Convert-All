@@ -12,12 +12,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * persistent {@link HeadState} that tracks the smoothed yaw. When the entity
  * has no look target or stops moving, the yaw gradually returns to 0.</p>
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>GeckoLib 4 applied this from {@code GeoModel#setCustomAnimations} by grabbing the bone
  * through {@code GeoModel#getAnimationProcessor()} and calling {@code bone.setRotY(...)}.
  * In GeckoLib 5 bones are immutable during rendering: the pose is expressed as a
  * {@code BoneSnapshot} produced by a {@code RenderPassInfo.BoneUpdater}. So this class no
- * longer touches bones at all — it only computes the smoothed yaw in radians, and
+ * longer touches bones at all  it only computes the smoothed yaw in radians, and
  * {@link EpcaGeoRenderer} installs the value into the head bone's snapshot.</p>
  */
 public class HeadRotationHandler {
@@ -83,3 +83,4 @@ public class HeadRotationHandler {
         float idleTicks = RESET_DELAY;
     }
 }
+

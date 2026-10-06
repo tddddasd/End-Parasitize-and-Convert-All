@@ -586,7 +586,7 @@ public class BlockConversionManager {
                 state.getBlock() instanceof net.minecraft.world.level.block.LeavesBlock;
     }
 
-    // ═══════════════════ Cursed world: silent chunk-level conversion ═══════════════════
+    //  Cursed world: silent chunk-level conversion
 
     /**
      * The conversion targets that are plants and therefore keep their own leaf/face state instead of going

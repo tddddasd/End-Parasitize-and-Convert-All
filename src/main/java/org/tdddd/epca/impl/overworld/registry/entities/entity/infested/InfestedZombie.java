@@ -56,7 +56,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    // ────────── Attributes ──────────
+    //  Attributes
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
@@ -69,7 +69,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
                 .build();
     }
 
-    // ────────── AI Goals ──────────
+    //  AI Goals
 
     @Override
     protected void registerGoals() {
@@ -85,7 +85,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         this.targetSelector.addGoal(0, new FollowPathGoal(this));
     }
 
-    // ────────── Custom AI Step ──────────
+    //  Custom AI Step
 
     @Override
     protected void customServerAiStep(ServerLevel level) {
@@ -136,7 +136,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         return level().getMinY();
     }
 
-    // ────────── Tick ──────────
+    //  Tick
 
     @Override
     public void tick() {
@@ -171,7 +171,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         }
     }
 
-    // ────────── Fake death burst ──────────
+    //  Fake death burst
 
     @Override
     protected void performFakeDeathBurst(BlockPos burstPos) {
@@ -187,7 +187,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         }
     }
 
-    // ────────── Normal death actions ──────────
+    //  Normal death actions
 
     @Override
     protected void onNormalDeathActions(DamageSource source) {
@@ -201,7 +201,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         }
     }
 
-    // ────────── Buglin spawning ──────────
+    //  Buglin spawning
 
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 3; i++) {
@@ -223,7 +223,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         }
     }
 
-    // ────────── Ambience ──────────
+    //  Ambience
 
     @Override
     protected SoundEvent getAmbientSound() {
@@ -240,7 +240,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         return ModSoundEvents.INFESTED_ZOMBIE_DEATH.get();
     }
 
-    // ────────── Animation ──────────
+    //  Animation
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -260,7 +260,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         return PlayState.CONTINUE;
     }
 
-    // ────────── Spawn Rules ──────────
+    //  Spawn Rules
 
     public static boolean checkInfestedZombieSpawnRules(
             EntityType<InfestedZombie> entityType,
@@ -276,9 +276,7 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         return level.getMaxLocalRawBrightness(pos) < 8;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // Waypoint / Path following system (InfestedZombie-specific)
-    // ═══════════════════════════════════════════════════════════════
 
     private final List<Waypoint> waypoints = new ArrayList<>();
     private long lastRecordTime = 0;
@@ -444,3 +442,4 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         return this.isHim;
     }
 }
+

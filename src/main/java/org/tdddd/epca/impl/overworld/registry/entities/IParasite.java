@@ -17,7 +17,6 @@ import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.ai.ParasiteAttractionManager;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationManager;
@@ -27,6 +26,23 @@ import java.util.UUID;
 public interface IParasite {
     String LAST_RAGE_TRIGGER_KEY = "lastRageTrigger";
     String FOLLOW_TARGET_KEY = "FollowTarget";
+
+    /**
+     *  /
+     *
+     * <p>{@code Entity#getPersistentData()}26.1.2
+     * {@code "neoforge:data"} </p>
+     *
+     * <p><b></b>
+     *  /
+     * {@code BiomassSmall/Medium#explodeAndTransform}
+     * {@code BiomassEgg#spawnWalkingChickenHeads}
+     * <b></b> persistent NBT synced data
+     *  spawn reason
+     * <b></b> {@link #markBiomassSpawned}
+     * 26  5 StageIBeckon / StageIIBeckon / BiomassSmall / BiomassMedium / BiomassEgg</p>
+     */
+    String BIOMASS_SPAWNED_KEY = "BiomassSpawned";
 
     default void setFollowTarget(UUID targetUuid) {
         LivingEntity entity = (LivingEntity) this;
@@ -64,6 +80,29 @@ public interface IParasite {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    /**
+     *  {@link #BIOMASS_SPAWNED_KEY}
+     *
+     * <p> {@code default void setBiomassSpawned(...)}
+     *  {@code LivingEntity} json
+     *  {@link IParasite} {@code LivingEntity}
+     *  {@link #isBiomassSpawned()}</p>
+     */
+    static void markBiomassSpawned(LivingEntity entity) {
+        if (entity == null) return;
+        entity.getPersistentData().putBoolean(BIOMASS_SPAWNED_KEY, true);
+    }
+
+    /**
+     *  /  {@link #BIOMASS_SPAWNED_KEY}
+     *
+     * <p>26.1.2{@code CompoundTag#getBooleanOr(name, )}  1.20.1
+     * {@code getBoolean(name)}_tmp_26src {@code CompoundTag.java}  395 </p>
+     */
+    default boolean isBiomassSpawned() {
+        return ((LivingEntity) this).getPersistentData().getBooleanOr(BIOMASS_SPAWNED_KEY, false);
     }
 
     static boolean isParasiteByTagOrInterface(LivingEntity entity) {
@@ -210,8 +249,10 @@ public interface IParasite {
         if (!isFriendlyParasite(attacker)) {
             
             trySwitchForcedTargetOnAttacked(attacker);
-            
-            ParasiteAttractionManager.onParasiteAttacked((LivingEntity) this, attacker);
+            // SPEC A1: the old "attract parasites" hook was removed here. It used to call
+            // ParasiteAttractionManager.onParasiteAttacked(...) and pull every nearby parasite
+            // onto the attacker (the nest leader). The forced-target switch above is a
+            // separate mechanism and is kept.
         }
     }
 

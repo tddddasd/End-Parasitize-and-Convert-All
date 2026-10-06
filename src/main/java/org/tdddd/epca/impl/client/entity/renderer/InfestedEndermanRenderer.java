@@ -17,15 +17,15 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedE
 /**
  * Renderer for the infested enderman.
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
- * <p>The old code overrode {@code render(T, float, float, PoseStack, MultiBufferSource, int)} —
- * a method GeckoLib 5 deleted — to (a) place the carried entity on the {@code carry_locator}
+ * <h2>GeckoLib 4  5.5.2</h2>
+ * <p>The old code overrode {@code render(T, float, float, PoseStack, MultiBufferSource, int)}
+ * a method GeckoLib 5 deleted  to (a) place the carried entity on the {@code carry_locator}
  * bone and (b) draw a glow pass. Both were re-expressed on GeckoLib 5 hooks:</p>
  * <ul>
- *   <li>carried entity → a {@code RenderPassInfo.BonePositionListener} registered in
+ *   <li>carried entity  a {@code RenderPassInfo.BonePositionListener} registered in
  *       {@link #preRenderPass}; GeckoLib 5 exposes a bone's world position only while the pass is
  *       running (the old {@code GeoBone#getWorldPosition()} is gone),</li>
- *   <li>glow pass → a {@link IGeoLayerProvider} that re-submits the model with
+ *   <li>glow pass  a {@link IGeoLayerProvider} that re-submits the model with
  *       {@code RenderTypes.eyes(glowTexture)} and the glow colour.</li>
  * </ul>
  */
@@ -73,3 +73,4 @@ public class InfestedEndermanRenderer extends EpcaGeoRenderer<InfestedEnderman> 
         }
     }
 }
+

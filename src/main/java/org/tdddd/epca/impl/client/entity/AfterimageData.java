@@ -12,7 +12,7 @@ import java.util.Map;
  * Records world position, yaw, and (optionally) the bone pose so the afterimage renders
  * frozen at its spawn moment regardless of subsequent animation.
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>GeckoLib 4 exposed the live, mutable {@code CoreGeoBone} transform, so the old code could
  * read {@code getRotX()/getPosX()/getScaleX()} straight off the bone and write them back with
  * {@code setRotX(...)}. GeckoLib 5 makes bones immutable while rendering: the animated pose
@@ -50,9 +50,7 @@ public class AfterimageData {
         return age >= 0 && age < lifetime;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  Bone snapshot — GeckoLib 5 BoneSnapshot adapter
-    // ═══════════════════════════════════════════════════════════════
+    //  Bone snapshot  GeckoLib 5 BoneSnapshot adapter
 
     public static class BoneSnapshot {
         public final float rotX, rotY, rotZ;
@@ -88,3 +86,4 @@ public class AfterimageData {
         }
     }
 }
+

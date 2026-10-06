@@ -16,10 +16,10 @@ public class AcidBulletRenderer extends EpcaGeoRenderer<AcidBullet> {
     }
 
     /**
-     * 26.1.2: the GeckoLib 4 {@code render(entity, entityYaw, …)} override is gone (the pipeline
+     * 26.1.2: the GeckoLib 4 {@code render(entity, entityYaw, )} override is gone (the pipeline
      * is extract-then-submit now). The yaw/pitch this class used to apply to the pose stack
-     * before calling {@code super.render(…)} moves to {@link EpcaGeoRenderer#adjustRenderPose},
-     * the GeckoLib 5 hook that runs inside the render pass with the same pose stack — and with
+     * before calling {@code super.render()} moves to {@link EpcaGeoRenderer#adjustRenderPose},
+     * the GeckoLib 5 hook that runs inside the render pass with the same pose stack  and with
      * the same ordering, since the base class still rotates towards the velocity afterwards.
      *
      * <p>{@code RenderPassInfo} is raw for the reason documented on {@link EpcaGeoRenderer}.</p>

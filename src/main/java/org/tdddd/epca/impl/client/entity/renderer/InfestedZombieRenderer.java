@@ -8,7 +8,7 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedZ
 /**
  * Renderer for the infested zombie.
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>The old {@code render(...)} override only assigned the (now removed)
  * {@code GeoRenderer#animatable} field so the inherited render path could see the entity; the glow
  * pass it fed was already commented out in the 1.20.1 sources. GeckoLib 5 passes the animatable to
@@ -20,3 +20,4 @@ public class InfestedZombieRenderer extends EpcaGeoRenderer<InfestedZombie> {
         super(renderManager, new InfestedZombieModel());
     }
 }
+

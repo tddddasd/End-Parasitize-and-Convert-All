@@ -11,7 +11,7 @@ import org.tdddd.epca.impl.epca;
 
 /**
  * 26.1.2: humanoid renderers now carry three type parameters {@code <T entity, S render state, M model>} and
- * {@code PlayerModel} is no longer generic — it is fixed to {@link AvatarRenderState}.
+ * {@code PlayerModel} is no longer generic  it is fixed to {@link AvatarRenderState}.
  *
  * <p>1.20.1 was {@code HumanoidMobRenderer<YawningNya, PlayerModel<YawningNya>>}; the 26.1.2 equivalent is
  * {@code HumanoidMobRenderer<YawningNya, AvatarRenderState, PlayerModel>}. {@code AvatarRenderState} is the state

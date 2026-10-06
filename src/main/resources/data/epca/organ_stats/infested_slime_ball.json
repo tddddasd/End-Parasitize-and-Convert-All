@@ -1,0 +1,8 @@
+{
+  "epca:infested_slime_ball": {
+    "damage_taken_add": {
+      "#minecraft:is_fire": 0.05,
+      "fallback": -0.01
+    }
+  }
+}

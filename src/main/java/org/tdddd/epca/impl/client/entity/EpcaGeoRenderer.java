@@ -32,23 +32,23 @@ import java.util.List;
  *
  * <p>Custom per-entity behaviors are applied here via interfaces:</p>
  * <ul>
- *   <li>{@link IMotionAligned} — rotate to face velocity direction (projectiles)</li>
- *   <li>{@link IOverlayRenderable} — translucent overlay layer (villager plains, wolf collar)</li>
- *   <li>{@link IHeadRotatable} — head rotation, applied to the head bone snapshot</li>
+ *   <li>{@link IMotionAligned}  rotate to face velocity direction (projectiles)</li>
+ *   <li>{@link IOverlayRenderable}  translucent overlay layer (villager plains, wolf collar)</li>
+ *   <li>{@link IHeadRotatable}  head rotation, applied to the head bone snapshot</li>
  * </ul>
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>GeckoLib 5 split rendering into render-state extraction and submission, and the
  * animatable is no longer reachable while drawing. The EPCA customisations were re-expressed
  * on the GeckoLib 5 hooks:</p>
  * <ul>
- *   <li>tint / hurt-overlay → {@link #getRenderColor} / {@link #getPackedOverlay}
+ *   <li>tint / hurt-overlay  {@link #getRenderColor} / {@link #getPackedOverlay}
  *       (both still receive the animatable),</li>
- *   <li>translucent render type → {@link #getRenderType(EntityRenderState, Identifier)},</li>
- *   <li>billboard / motion-aligned rotation → {@link #adjustRenderPose},</li>
- *   <li>head rotation → a {@code RenderPassInfo.BoneUpdater} installed in
+ *   <li>translucent render type  {@link #getRenderType(EntityRenderState, Identifier)},</li>
+ *   <li>billboard / motion-aligned rotation  {@link #adjustRenderPose},</li>
+ *   <li>head rotation  a {@code RenderPassInfo.BoneUpdater} installed in
  *       {@link #preRenderPass} (GeckoLib 4 mutated the bone directly),</li>
- *   <li>overlays and afterimages → a single delegate {@link GeoRenderLayer} that
+ *   <li>overlays and afterimages  a single delegate {@link GeoRenderLayer} that
  *       re-submits the model with another texture/colour/alpha.</li>
  * </ul>
  *
@@ -84,9 +84,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         layerProviders.add(provider);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Render-state extraction
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * GeckoLib 5 only hands the animatable to the extraction phase. {@link EpcaGeoModel}
@@ -98,9 +96,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         super.captureDefaultRenderState(animatable, renderData, renderState, partialTick);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Color effects
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public int getRenderColor(T animatable, Void renderData, float partialTick) {
@@ -126,9 +122,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return RenderTypes.entityTranslucent(texture);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Rotation: April Fools billboard  /  motion-aligned projectiles
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public void adjustRenderPose(RenderPassInfo passInfo) {
@@ -157,9 +151,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Head rotation  (IHeadRotatable)
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * GeckoLib 5 replaced direct bone mutation with bone updaters. The updater is resolved
@@ -185,9 +177,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Public helpers for external renderers / layers
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * Re-submits the current model pass with an explicit colour and alpha.
@@ -236,9 +226,7 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return channel < 0 ? 0 : Math.min(channel, 255);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  GeckoLib render layer → overlays + registered IGeoLayerProviders
-    // ═══════════════════════════════════════════════════════════════
+    //  GeckoLib render layer  overlays + registered IGeoLayerProviders
 
     /**
      * A GeckoLib {@link GeoRenderLayer} that first re-draws the model for

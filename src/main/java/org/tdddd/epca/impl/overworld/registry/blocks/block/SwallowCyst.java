@@ -151,7 +151,7 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
         if (!level.isClientSide()) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof SwallowCystBlockEntity cyst && player instanceof ServerPlayer serverPlayer) {
-                // 26.1.2: NetworkHooks.openScreen(...) → ServerPlayer#openMenu(MenuProvider, Consumer<RegistryFriendlyByteBuf>)
+                // 26.1.2: NetworkHooks.openScreen(...)  ServerPlayer#openMenu(MenuProvider, Consumer<RegistryFriendlyByteBuf>)
                 serverPlayer.openMenu(cyst, buf -> buf.writeBlockPos(pos));
                 return InteractionResult.CONSUME;
             }

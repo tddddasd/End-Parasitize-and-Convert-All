@@ -37,6 +37,7 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBloc
 import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.entities.ILink;
+import net.minecraft.world.entity.LivingEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
@@ -678,6 +679,12 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                 int current = EntityKillCountManager.getCurrentKillCount(this);
                 EntityKillCountManager.setKillCount(this, Math.max(0, current - BIOMASS_COST));
                 biomass.setPos(x, y, z);
+                //  spawnBiomass
+                //  Beckon
+                //  IParasite#BIOMASS_SPAWNED_KEY  BiomassSpawned  5
+                if (biomass instanceof LivingEntity livingBiomass) {
+                    IParasite.markBiomassSpawned(livingBiomass);
+                }
                 this.level().addFreshEntity(biomass);
             }
         }

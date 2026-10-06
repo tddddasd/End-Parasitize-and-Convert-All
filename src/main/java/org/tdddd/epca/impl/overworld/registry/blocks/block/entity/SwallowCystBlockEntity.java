@@ -204,14 +204,12 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
         return new SwallowCystMenu(id, inv, this);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Persistence
     //
     //  26.1.2: BlockEntity#saveAdditional/loadAdditional speak ValueOutput/ValueInput
-    //  (the Forge capability API — LazyOptional / Capability / ForgeCapabilities /
-    //  invalidateCaps — no longer exists at all). ItemStackHandler is ValueIOSerializable,
+    //  (the Forge capability API  LazyOptional / Capability / ForgeCapabilities /
+    //  invalidateCaps  no longer exists at all). ItemStackHandler is ValueIOSerializable,
     //  so it is written through a child view; the keys are unchanged.
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {

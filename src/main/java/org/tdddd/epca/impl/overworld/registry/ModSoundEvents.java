@@ -100,8 +100,8 @@ public class ModSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> PARCIAL_ADAPTATION = register("parcial_adaptation");
     public static final DeferredHolder<SoundEvent, SoundEvent> FULL_ADAPTATION = register("full_adaptation");
     /**
-     * The Alayavijnana BGM ("阿赖耶识"): the long streamed track the client loops while a staff with an
-     * active 天杀 counter is near. {@code sounds.json} ships the entry with {@code stream: true}, which is
+     * The Alayavijnana BGM (""): the long streamed track the client loops while a staff with an
+     * active  counter is near. {@code sounds.json} ships the entry with {@code stream: true}, which is
      * what makes vanilla stream the 184-second OGG instead of preloading its decoded PCM.
      */
     public static final DeferredHolder<SoundEvent, SoundEvent> ARAYA = register("araya");

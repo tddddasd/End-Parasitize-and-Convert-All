@@ -2,19 +2,17 @@ package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -24,12 +22,8 @@ import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
-import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedPumpkinHead;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
-
-import java.util.List;
 
 public class InfestedPumpkin extends Block implements InfestedBlockInterface {
 
@@ -71,26 +65,29 @@ public class InfestedPumpkin extends Block implements InfestedBlockInterface {
         return super.getCollisionShape(state, level, pos, context);
     }
 
+    /**
+     * 26.1.2: {@code onRemove(state, level, pos, newState, moved)} was replaced by
+     * {@code affectNeighborsAfterRemoval(BlockState,ServerLevel,BlockPos,boolean)}. The old
+     * {@code playerDestroy} override is gone with that method, so this is now the removal hook.
+     *
+     * <p>Kit 4: kit 2 had used this hook to roll a 1/2 chance of spawning the
+     * {@code ModEntities.INFESTED_PUMPKIN_HEAD} mob, gated on a silk-touch marker that
+     * {@code playerWillDestroy} had stashed in a static set.  Both the roll and the marker are
+     * removed together with that entity and its renderer, so destroying an infested pumpkin now
+     * only runs the vanilla removal path below: the block disappears, the loot table
+     * {@code data/epca/loot_table/blocks/infested_pumpkin.json} decides the drop (the block
+     * itself, with any tool), and the PUMPKIN break sound/particles play.  No entity is spawned,
+     * and nothing else those blocks did is affected: placement still clears {@code natural_spawn},
+     * the collision shape still lets {@code InfestedSilverfish} pass, and
+     * flammability / fire spread are unchanged.</p>
+     *
+     * <p>The statement above about the old {@code onRemove} /
+     * {@code affectNeighborsAfterRemoval} migration is history; the method body is now
+     * deliberately trivial.</p>
+     */
     @Override
-    public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state,
-                              @Nullable BlockEntity blockEntity, ItemStack tool) {
-        super.playerDestroy(level, player, pos, state, blockEntity, tool);
-        if (!level.isClientSide()) {
-            
-if (EnchantmentHelper.getItemEnchantmentLevel(
-                    level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
-                            .getOrThrow(Enchantments.SILK_TOUCH), tool) == 0) {
-                if (level.getRandom().nextFloat() < 0.5f) {
-InfestedPumpkinHead entity = ModEntities.INFESTED_PUMPKIN_HEAD.get().create(level, net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
-                    if (entity != null) {
-                        entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-                        
-                        entity.setYRot(level.getRandom().nextFloat() * 360.0F);
-                        level.addFreshEntity(entity);
-                    }
-                }
-            }
-        }
+    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
+        super.affectNeighborsAfterRemoval(state, level, pos, moved);
     }
 
     @Override

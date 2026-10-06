@@ -1,0 +1,10 @@
+{
+  "epca:tight_tendons": {
+    "attributes": {
+      "armor_toughness": 0.05,
+      "attack_damage": 0.2,
+      "movement_speed": 0.02,
+      "health": 1.0
+    }
+  }
+}

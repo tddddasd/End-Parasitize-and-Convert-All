@@ -33,3 +33,4 @@ public class AfterimageModule extends LivingArmorBoxModuleItem {
         return Component.translatable("tooltip.epca.negative", " ");
     }
 }
+

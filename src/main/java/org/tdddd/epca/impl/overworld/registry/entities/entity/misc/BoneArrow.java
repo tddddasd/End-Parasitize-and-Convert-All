@@ -115,8 +115,8 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
     /**
      * Deliberately empty: the bone arrow renders statically.
      *
-     * <p>There is no {@code assets/epca/geckolib/animations/bone_arrow.animation.json} — not in the
-     * 26.1.2 tree and not in the 1.20.1 baseline either — so a controller's {@code RawAnimation}
+     * <p>There is no {@code assets/epca/geckolib/animations/bone_arrow.animation.json}  not in the
+     * 26.1.2 tree and not in the 1.20.1 baseline either  so a controller's {@code RawAnimation}
      * stages would all resolve to {@code null} and GeckoLib 5.5.2's
      * {@code AnimationTimeline.create} would call {@code List#getLast()} on the resulting empty
      * stage list (non-zero transition ticks), throwing {@code NoSuchElementException} while
@@ -133,3 +133,4 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
         return this.cache;
     }
 }
+

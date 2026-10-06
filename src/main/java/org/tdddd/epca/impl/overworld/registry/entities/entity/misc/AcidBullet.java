@@ -167,8 +167,8 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
     /**
      * Deliberately empty: the acid bullet renders statically.
      *
-     * <p>There is no {@code assets/epca/geckolib/animations/acid_bullet.animation.json} — not in
-     * the 26.1.2 tree and not in the 1.20.1 baseline either — so every {@code RawAnimation} stage a
+     * <p>There is no {@code assets/epca/geckolib/animations/acid_bullet.animation.json}  not in
+     * the 26.1.2 tree and not in the 1.20.1 baseline either  so every {@code RawAnimation} stage a
      * controller asked for would resolve to {@code null}. GeckoLib 5.5.2 then ends up with an
      * empty stage list in {@code AnimationTimeline.create} and calls {@code List#getLast()} on it
      * whenever the controller's transition length is non-zero, throwing
@@ -188,3 +188,4 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
         return this.cache;
     }
 }
+

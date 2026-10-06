@@ -36,7 +36,7 @@ import org.tdddd.epca.impl.events.ArayaConstants;
  * </ul>
  *
  * <h2>Timing</h2>
- * <p>{@link ArayaConstants#SLASH_HOLD_TICKS} ticks at full strength ("持续存在3秒"), then
+ * <p>{@link ArayaConstants#SLASH_HOLD_TICKS} ticks at full strength ("3"), then
  * {@link ArayaConstants#SLASH_FADE_TICKS} of easing out, driven by the level's game time.</p>
  *
  * <h2>1.20.1 -&gt; 26.1.2</h2>
@@ -243,3 +243,4 @@ public final class ArayaSlashRenderer {
                 .setUv((float) uvX, (float) halfWidth);
     }
 }
+

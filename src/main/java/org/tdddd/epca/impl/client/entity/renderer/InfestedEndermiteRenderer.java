@@ -16,7 +16,7 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedE
 /**
  * Renderer for the infested endermite.
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>The deleted {@code render(...)} override only drew an extra glow pass; in GeckoLib 5 that is
  * a {@link IGeoLayerProvider} re-submitting the model with {@code RenderTypes.eyes(glowTexture)}.
  * The afterimage layer keeps working through the same delegate layer.</p>
@@ -51,3 +51,4 @@ public class InfestedEndermiteRenderer extends EpcaGeoRenderer<InfestedEndermite
         }
     }
 }
+

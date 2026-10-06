@@ -9,19 +9,19 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
  * Implementations are registered per entity type and invoked by the
  * {@link EpcaGeoRenderer}'s delegate render layer.
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>The GeckoLib 4 contract was one imperative method
  * {@code renderAdditionalLayer(renderer, entity, bakedModel, renderType, bufferSource, buffer, poseStack, partialTick, packedLight, packedOverlay)}
- * — it drew immediately and had direct access to the entity, the {@code MultiBufferSource}
+ *  it drew immediately and had direct access to the entity, the {@code MultiBufferSource}
  * and the {@code VertexConsumer}.</p>
  * <p>GeckoLib 5 removed all three: rendering is split into a render-state <b>extraction</b>
  * phase (while the animatable is still reachable) and a <b>submission</b> phase (after the
  * entity is forgotten, where draw calls go into a {@code SubmitNodeCollector}). The contract
  * therefore has two methods:</p>
  * <ul>
- *   <li>{@link #addLayerData} — extraction: read whatever per-entity data the layer needs
+ *   <li>{@link #addLayerData}  extraction: read whatever per-entity data the layer needs
  *       (reachable via {@link EpcaGeoModel#entityOf}) into the render state.</li>
- *   <li>{@link #submitLayer} — submission: emit this layer's draw calls. The renderer is
+ *   <li>{@link #submitLayer}  submission: emit this layer's draw calls. The renderer is
  *       reachable again through {@link RenderPassInfo#renderer()}.</li>
  * </ul>
  */
@@ -53,3 +53,4 @@ public interface IGeoLayerProvider {
     default void submitLayer(RenderPassInfo passInfo, SubmitNodeCollector collector) {
     }
 }
+

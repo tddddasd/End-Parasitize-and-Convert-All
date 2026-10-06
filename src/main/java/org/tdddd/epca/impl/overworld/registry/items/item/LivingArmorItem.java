@@ -27,7 +27,7 @@ import java.util.function.Consumer;
  * {@link ArmorType} and applies that property itself, which keeps the platform owner's call site
  * {@code new LivingArmorItem(material, type, properties)} unchanged.</p>
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>GeckoLib 4 supplied the armour model through NeoForge's
  * {@code IClientItemExtensions#getHumanoidArmorModel}, returning the {@code GeoArmorRenderer}
  * itself (it used to be a {@code HumanoidModel}). In GeckoLib 5 {@code GeoArmorRenderer} is a
@@ -86,3 +86,4 @@ public final class LivingArmorItem extends Item implements GeoItem {
         return true;
     }
 }
+

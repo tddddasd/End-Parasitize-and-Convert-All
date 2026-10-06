@@ -25,7 +25,7 @@ public class ModEntityEvents {
 
     /**
      * All entity attributes are now routed through EpcaEntityManager.
-     * ModEntities.registerMobAttributes() adds each type → EpcaEntityManager.registerMobNoRender()
+     * ModEntities.registerMobAttributes() adds each type  EpcaEntityManager.registerMobNoRender()
      * stores the attribute supplier. Then this single call processes them all.
      */
     @SubscribeEvent
@@ -92,7 +92,8 @@ public class ModEntityEvents {
         event.register(ModEntities.RESHAPE_YELLOWEYE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ReshapeYelloweye::checkReshapeYelloweyeSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.INFESTED_FOX.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedFox::checkInfestedFoxSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.WALKING_FOX_HEAD.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WalkingFoxHead::checkWalkingFoxHeadSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
-        event.register(ModEntities.INFESTED_PUMPKIN_HEAD.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedPumpkinHead::checkInfestedPumpkinHeadSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.INFESTED_BAT.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedBat::checkInfestedBatSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
     }
 }
+
+

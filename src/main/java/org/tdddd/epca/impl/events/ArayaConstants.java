@@ -3,10 +3,10 @@ package org.tdddd.epca.impl.events;
 /**
  * Every tunable number of the "Alayavijnana / Araya staff" feature, in one place.
  *
- * <p>The feature is: a 穷尽灭杖 renamed by anvil to the name {@code KillStick#isAlayavijnana} already
+ * <p>The feature is: a  renamed by anvil to the name {@code KillStick#isAlayavijnana} already
  * checks kills another player with {@link #DAMAGE} points of {@code yawning_neko_api:minimum} damage,
  * which plays the vanilla trident throw sound and draws a white 50-degree oblique sword slash whose
- * transparent border refracts the scene; each such kill adds one to the staff's 天杀 counter; and from
+ * transparent border refracts the scene; each such kill adds one to the staff's  counter; and from
  * {@link #TIANSHA_THRESHOLD} upwards the holder broadcasts a looping BGM and spawns render-only vanilla
  * fire blocks around itself.</p>
  *
@@ -51,7 +51,7 @@ public final class ArayaConstants {
 
     // ------------------------------------------------------------------ the slash
 
-    /** Length of the slash, in blocks ("剑痕长3格"). */
+    /** Length of the slash, in blocks ("3"). */
     public static final float SLASH_LENGTH = 3.0F;
 
     /** Width of the glowing line at the start of its growth, in blocks. */
@@ -64,13 +64,13 @@ public final class ArayaConstants {
     public static final int SLASH_GROW_TICKS = 10;
 
     /**
-     * Angle of the slash against the horizontal, in degrees ("斜50°"): the blade rises along its own
-     * length by {@code tan(50°) * dx}, i.e. it is a 50-degree oblique cut across the victim rather
+     * Angle of the slash against the horizontal, in degrees ("50"): the blade rises along its own
+     * length by {@code tan(50) * dx}, i.e. it is a 50-degree oblique cut across the victim rather
      * than a vertical or a horizontal one.
      */
     public static final float SLASH_ANGLE_DEGREES = 50.0F;
 
-    /** Ticks the slash is fully visible before it starts to fade ("持续存在3秒"). */
+    /** Ticks the slash is fully visible before it starts to fade ("3"). */
     public static final int SLASH_HOLD_TICKS = 60;
 
     /** Ticks the fade-out takes after {@link #SLASH_HOLD_TICKS}. */
@@ -78,7 +78,7 @@ public final class ArayaConstants {
 
     /**
      * Width of the transparent, refracting border on each side of the glowing line, in blocks
-     * ("剑痕周围0.05格的部分为透明，但会折射透明部分后面的景象").
+     * ("0.05").
      */
     public static final float SLASH_BAND_WIDTH = 0.05F;
 
@@ -107,17 +107,17 @@ public final class ArayaConstants {
      */
     public static final float SLASH_REFRACTION_RATIO = 0.0625F;
 
-    // ------------------------------------------------------------------ the 天杀 counter
+    // ------------------------------------------------------------------ the  counter
 
     /**
-     * NBT / custom-data key of the 天杀 counter on the staff stack. Deliberately namespace-free like the
+     * NBT / custom-data key of the  counter on the staff stack. Deliberately namespace-free like the
      * neighbouring {@code epca:ender_blade} flag is namespaced - see {@code KillStick} for the existing
      * per-stack keys. The counter lives on the <b>stack</b>, so moving the staff, dropping it, putting
      * it in a chest and taking it out again all keep it.
      */
     public static final String TIANSHA_KEY = "epca:tiansha";
 
-    /** Kills of other players needed before the aura starts ("当该值大于等于9时"). */
+    /** Kills of other players needed before the aura starts ("9"). */
     public static final int TIANSHA_THRESHOLD = 9;
 
     // ------------------------------------------------------------------ the BGM
@@ -182,7 +182,7 @@ public final class ArayaConstants {
     /** Ticks between two re-rolls of the fire field; the longest lifetime, so a wave is never cut. */
     public static final int FIRE_REROLL_TICKS = FIRE_MAX_LIFETIME_TICKS;
 
-    /** Smallest height of a fire block, in blocks ("高度为0.8~1.5格"). */
+    /** Smallest height of a fire block, in blocks ("0.8~1.5"). */
     public static final float FIRE_MIN_HEIGHT = 0.8F;
 
     /** Largest height of a fire block, in blocks. */
@@ -224,3 +224,4 @@ public final class ArayaConstants {
         return FIRE_MIN_LIFETIME_TICKS + (int) (t * span);
     }
 }
+

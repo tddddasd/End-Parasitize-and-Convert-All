@@ -39,14 +39,14 @@ import java.util.function.Consumer;
  */
 public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements ILink, Enemy {
 
-    // ────────── Animation states (shared by all beckons) ──────────
+    //  Animation states (shared by all beckons)
     public static final int ANIM_STATE_IDLE = 0;
     public static final int ANIM_STATE_OPEN = 1;
     public static final int ANIM_STATE_IDLE_OPEN = 2;
     public static final int ANIM_STATE_CLOSE = 3;
     public static final int ANIM_STATE_SPAWN = 4;
 
-    // ────────── Synched data ──────────
+    //  Synched data
     protected static final EntityDataAccessor<Integer> TICK_COUNT =
             SynchedEntityData.defineId(AbstractLinkEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> ANIMATION_STATE =
@@ -62,11 +62,11 @@ public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements I
     protected static final EntityDataAccessor<Float> TARGET_Z =
             SynchedEntityData.defineId(AbstractLinkEntity.class, EntityDataSerializers.FLOAT);
 
-    // ────────── Persistent state ──────────
+    //  Persistent state
     protected BlockPos spawnTargetPos;
     protected int suffocationCooldown = 0;
 
-    // ────────── Constructors ──────────
+    //  Constructors
 
     protected AbstractLinkEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -81,7 +81,7 @@ public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements I
         this.noPhysics = false;
     }
 
-    // ────────── Synched data ──────────
+    //  Synched data
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
@@ -95,7 +95,7 @@ public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements I
         entityData.define(TARGET_Z, 0.0f);
     }
 
-    // ────────── Persistence ──────────
+    //  Persistence
 
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
@@ -112,14 +112,14 @@ public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements I
         return true;
     }
 
-    // ────────── Pushable ──────────
+    //  Pushable
 
     @Override
     public boolean isPushable() {
         return false;
     }
 
-    // ────────── Rise effect ──────────
+    //  Rise effect
 
     /**
      * Set the target position for rise-from-ground and begin the rise effect.
@@ -176,7 +176,7 @@ public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements I
         this.setPos(this.getX(), currentY, this.getZ());
     }
 
-    // ────────── Suffocation ──────────
+    //  Suffocation
 
     /**
      * Handle suffocation by destroying blocks around the entity's head.
@@ -211,7 +211,7 @@ public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements I
         }
     }
 
-    // ────────── Core placement ──────────
+    //  Core placement
 
     /**
      * Check if a beckon core exists nearby.
@@ -255,3 +255,4 @@ public abstract class AbstractLinkEntity extends AbstractEpcaEntity implements I
         return !aboveState.isCollisionShapeFullBlock(level, above);
     }
 }
+

@@ -105,3 +105,4 @@ public class DamageAdaptationEntityComponentProvider implements IEntityComponent
         return damageTypeStr;
     }
 }
+

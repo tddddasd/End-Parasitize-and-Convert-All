@@ -13,11 +13,11 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLon
 /**
  * Renderer for the reshape longarms.
  *
- * <h2>GeckoLib 4 → 5.5.2</h2>
+ * <h2>GeckoLib 4  5.5.2</h2>
  * <p>GeckoLib 4 hid the removed back parts by mutating bones before rendering
  * ({@code model.getAnimationProcessor().getBone(name).setHidden(hide)}). GeckoLib 5 bones are
  * immutable while rendering, so the same effect is expressed as a
- * {@code RenderPassInfo.BoneUpdater} that calls {@code BoneSnapshot#skipRender} — which is exactly
+ * {@code RenderPassInfo.BoneUpdater} that calls {@code BoneSnapshot#skipRender}  which is exactly
  * what {@link EpcaGeoRenderer#addBoneHider} installs.</p>
  */
 public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
@@ -46,3 +46,4 @@ public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
         }
     }
 }
+

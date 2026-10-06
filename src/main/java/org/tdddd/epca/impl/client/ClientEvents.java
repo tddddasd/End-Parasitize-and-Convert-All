@@ -14,6 +14,7 @@ import org.tdddd.epca.impl.client.effect.SoulProtectionClientCache;
 import org.tdddd.epca.impl.client.entity.gas.GasCloudManager;
 import org.tdddd.epca.impl.client.entity.heart.SoulProtectionHeartRenderer;
 import org.tdddd.epca.impl.client.entity.layer.EndermanAfterimageLayer;
+import org.tdddd.epca.impl.client.organ.NestLeaderOrganClientInput;
 import org.tdddd.epca.impl.client.render.araya.ArayaSceneCopy;
 import org.tdddd.epca.impl.epca;
 
@@ -54,8 +55,13 @@ public class ClientEvents {
         SacrificeRitualClientCache.clientTick();
         ArayaClientCache.clientTick(level == null ? 0L : level.getGameTime());
         ArayaSlashClientCache.clientTick(level == null ? 0L : level.getGameTime());
-        // Starts, follows and stops the 天杀 BGM: the loop runs only while a holder with an active counter
+        // Starts, follows and stops the  BGM: the loop runs only while a holder with an active counter
         // is reported and the local listener is inside the documented radius.
         ArayaBgmManager.clientTick();
+        //  GUI H  /  /
+        //  ClientTickEvent + KeyMapping#consumeClick()
+        //  -
+        NestLeaderOrganClientInput.tick();
     }
 }
+

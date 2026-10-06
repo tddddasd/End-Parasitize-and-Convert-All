@@ -45,6 +45,14 @@ public class EntityConversionUtil {
 
             newEntity.snapTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
 
+            // create()
+            // MAX_HEALTH LivingEntity  setHealth(getMaxHealth())
+            //  MAX_HEALTH  0 0
+            // isDeadOrDying() == true LivingEntity#hurt  false
+            // LivingEntity#aiStep  isImmobile()
+            // ConvertedEntitySupport  +  +  AI
+            ConvertedEntitySupport.initializeConvertedEntity(newEntity);
+
             entity.level().addFreshEntity(newEntity);
 
             CothEffect.notifyConvertedEntity(newEntity);
@@ -68,3 +76,4 @@ public class EntityConversionUtil {
                 count, 0.5, 0.5, 0.5, 0.05);
     }
 }
+

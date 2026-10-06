@@ -19,7 +19,7 @@ import java.util.function.Supplier;
  */
 public class EpcaEntityManager {
 
-    /** Entity types → attribute suppliers for EntityAttributeCreationEvent. */
+    /** Entity types  attribute suppliers for EntityAttributeCreationEvent. */
     private static final Map<EntityType<? extends LivingEntity>, Supplier<AttributeSupplier>> ATTRIBUTE_BLUEPRINTS = new LinkedHashMap<>();
 
     /** Entity types that receive auto-renderers via EpcaGeoRenderer. */
@@ -33,9 +33,7 @@ public class EpcaEntityManager {
     /** Tracked living entity instances (server-side). */
     private static final Map<EntityType<?>, Set<LivingEntity>> TRACKED_ENTITIES = new ConcurrentHashMap<>();
 
-    // ═══════════════════════════════════════════════════════════════
     //  Registration
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * Register a mob with attributes + auto-renderer. Entity extends AbstractEpcaEntity.
@@ -82,9 +80,7 @@ public class EpcaEntityManager {
         return type;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Event hooks
-    // ═══════════════════════════════════════════════════════════════
 
     /** Called from ModEntityEvents to create all registered attributes. */
     public static void createAttributes(EntityAttributeCreationEvent event) {
@@ -100,9 +96,7 @@ public class EpcaEntityManager {
         return result;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Resource lookups  (for auto-renderer model)
-    // ═══════════════════════════════════════════════════════════════
 
     public static Identifier getModel(EntityType<?> type) {
         return MODEL_MAP.get(type);
@@ -116,9 +110,7 @@ public class EpcaEntityManager {
         return ANIMATION_MAP.get(type);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     //  Entity tracking
-    // ═══════════════════════════════════════════════════════════════
 
     public static void track(LivingEntity entity) {
         if (entity.level().isClientSide()) return;
@@ -143,3 +135,4 @@ public class EpcaEntityManager {
         TRACKED_ENTITIES.clear();
     }
 }
+
