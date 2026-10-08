@@ -32,8 +32,10 @@ import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedFox;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSkeleton;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSpider;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedWolf;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingFoxHead;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingSpiderHead;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.Fins;
 import org.tdddd.epca.impl.overworld.data.EntityConversionManager;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
@@ -406,6 +408,27 @@ public class CothEffect extends MobEffect implements RemovableEffect {
      * <p>{@code targetEntity == null && !generic} means the original code did nothing for this
      * entity (unresolvable target), and must keep doing nothing.</p>
      */
+    /**
+     * Rolls the spider variant for a conversion.
+     *
+     * <p>User spec: a converted minecraft:cave_spider is ALWAYS the cave form (100 %, no roll); a
+     * converted minecraft:spider is 30 % BLOOD, 15 % CAVE, otherwise DEFAULT (55 %). The roll uses
+     * the server level's own RandomSource, so it is authoritative on the server.</p>
+     */
+    private static InfestedSpider.Variant rollSpiderVariant(ServerLevel level, EntityType<?> sourceType) {
+        if (sourceType == EntityType.CAVE_SPIDER) {
+            return InfestedSpider.Variant.CAVE;
+        }
+        float roll = level.getRandom().nextFloat();
+        if (roll < 0.30F) {
+            return InfestedSpider.Variant.BLOOD;
+        }
+        if (roll < 0.45F) {
+            return InfestedSpider.Variant.CAVE;
+        }
+        return InfestedSpider.Variant.DEFAULT;
+    }
+
     public static final class ConversionPlan {
         public static final ConversionPlan NONE = new ConversionPlan(false, null);
 
@@ -504,6 +527,24 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                         infestedSkeleton.setVariant(hasFlame ?
                                 InfestedSkeleton.Variant.FIRED :
                                 InfestedSkeleton.Variant.DEFAULT);
+                    }
+
+                    // Spiders: both vanilla spiders collapse into one infested type, so the variant is
+                    // decided here by entity TYPE (no Spider class check) and the buffs the original
+                    // carried are copied over. README: every buff except invisibility is inherited,
+                    // by the converted spider and by its head.
+                    boolean convertingSpider = entity.getType() == EntityType.SPIDER
+                            || entity.getType() == EntityType.CAVE_SPIDER;
+                    if (convertingSpider) {
+                        InfestedSpider.Variant rolled = rollSpiderVariant(serverLevel, entity.getType());
+                        if (newEntity instanceof InfestedSpider infestedSpider) {
+                            infestedSpider.setVariant(rolled);
+                            infestedSpider.applyInheritedEffects(entity.getActiveEffects());
+                        }
+                        if (newEntity instanceof WalkingSpiderHead walkingHead) {
+                            walkingHead.setVariant(WalkingSpiderHead.Variant.values()[rolled.ordinal()]);
+                            walkingHead.applyInheritedEffects(entity.getActiveEffects());
+                        }
                     }
 
                     if (entity.hasCustomName()) {

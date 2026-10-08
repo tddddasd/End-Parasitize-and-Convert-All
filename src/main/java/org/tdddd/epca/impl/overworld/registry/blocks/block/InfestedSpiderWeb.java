@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.WebBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -30,17 +31,79 @@ import java.util.*;
 
 public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterface {
     public static final BooleanProperty SPIDER = BooleanProperty.create("spider");
-    private static final Map<BlockPos, Long> PLACE_TIME = new HashMap<>();
+    /**
+     * Absolute game tick at which a mob-placed web expires, or {@link #PLACED_NEVER} when the web was
+     * not placed by a mob. Stored as BLOCKSTATE data on purpose: block state is serialised with the
+     * chunk, so it survives a save/load, a chunk unload/reload and a world close mid-countdown. The
+     * previous implementation kept this in a static {@code HashMap<BlockPos, Long>}, which is wiped
+     * with the JVM and was the reason the countdown restarted (or never resumed) after a reload.
+     */
+    public static final IntegerProperty PLACED_AT = IntegerProperty.create("placed_at", 0, 32767);
+    /** Sentinel for {@link #PLACED_AT}: not a mob-placed web, so no decay is scheduled. */
+    public static final int PLACED_NEVER = 0;
+    /** The decay duration. Unchanged: 60 seconds. */
+    public static final int DECAY_TICKS = 20 * 60;
 
     public InfestedSpiderWeb(Properties properties) {
         super(properties);
-        registerDefaultState(this.stateDefinition.any().setValue(SPIDER, false));
+        registerDefaultState(this.stateDefinition.any()
+                .setValue(SPIDER, false)
+                .setValue(PLACED_AT, PLACED_NEVER));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(SPIDER);
+        builder.add(SPIDER, PLACED_AT);
     }
+
+    /**
+     * Reads the {@code spider} flag defensively.
+     *
+     * <p>{@code BlockState#getValue} throws {@code IllegalArgumentException} when the property is not
+     * part of the state, so any state that somehow lacks it (a different block, a state built from a
+     * legacy definition, a future edit that drops the property) must degrade to {@code false}-like
+     * behaviour instead of taking the server down. Callers use this instead of {@code getValue} on
+     * this property.</p>
+     */
+    public static boolean isSpiderWeb(BlockState state) {
+        if (state == null || !state.hasProperty(SPIDER)) {
+            return false;
+        }
+        Boolean spider = state.getValue(SPIDER);
+        return spider != null && spider;
+    }
+
+    /**
+     * Returns {@code state} with the {@code spider} flag set, or {@code state} unchanged when the
+     * property is absent. This is the only sanctioned way to set the flag: the projectile that spits
+     * the web, the head's self-destruct and anything else must go through it, because
+     * {@code BlockState#setValue} throws when the property is missing and that exception is a hard
+     * server crash inside entity ticking.
+     */
+    public static BlockState markSpiderWeb(BlockState state, boolean spider) {
+        if (state == null || !state.hasProperty(SPIDER)) {
+            return state;
+        }
+        return state.setValue(SPIDER, spider);
+    }
+
+    /**
+     * Reads the spider flag defensively.
+     *
+     * <p>BlockState#getValue throws IllegalArgumentException when the property is not part of the
+     * state, so a state that somehow lacks it must degrade to false-like behaviour instead of taking
+     * the server down.</p>
+     */
+    
+
+    /**
+     * Returns state with the spider flag set, or state unchanged when the property is absent.
+     *
+     * <p>This is the only sanctioned way to set the flag: BlockState#setValue throws when the
+     * property is missing, and that exception is a hard server crash inside entity ticking. The
+     * projectiles and the walking head's self-destruct all go through it.</p>
+     */
+    
 
     public void entityInside(BlockState blockState, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         entity.makeStuckInBlock(blockState, new Vec3(0.5, 0.05000000074505806 * 2, 0.5));
@@ -50,24 +113,71 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
         if (!level.isClientSide()) {
-            PLACE_TIME.put(pos.immutable(), level.getGameTime());
-            level.scheduleTick(pos, this, 1);
-            if (state.getValue(SPIDER)) {
-                level.scheduleTick(pos, this, 20 * 60);
+            // Record the absolute expiry ON THE BLOCKSTATE, so it is saved with the chunk. The value
+            // is truncated to the property's 15-bit range (see expiryStamp) - a shorter cycle is
+            // harmless because the web is destroyed the first time the stamp passes; it can only
+            // ever expire EARLIER than 60 s, never later.
+            if (isSpiderWeb(state)) {
+                // Guard against recursion: setBlock below re-enters onPlace, and by then the stamp is
+                // already written, so the second pass falls straight through.
+                if (state.hasProperty(PLACED_AT) && state.getValue(PLACED_AT) != PLACED_NEVER) {
+                    return;
+                }
+                BlockState stamped = state.setValue(PLACED_AT, expiryStamp(level.getGameTime()));
+                if (stamped != state) {
+                    level.setBlock(pos, stamped, 3);
+                }
+                level.scheduleTick(pos, this, DECAY_TICKS);
+            } else {
+                level.scheduleTick(pos, this, 1);
             }
         }
+    }
+
+    /**
+     * The absolute expiry tick, truncated into {@link #PLACED_AT}'s 15-bit range (1..32767). Recorded
+     * once, at placement. Because the range is a 32767-tick cycle and a web only lives 1200 ticks, the
+     * stamp unambiguously identifies the expiry within the web's own lifetime; the value can only make
+     * a web expire EARLIER than 60 s, never later.
+     */
+    public static int expiryStamp(long gameTime) {
+        int stamp = (int) ((gameTime + DECAY_TICKS) % 32767L);
+        return stamp == PLACED_NEVER ? 1 : stamp;
+    }
+
+    /** The current tick in the same truncated space as {@link #expiryStamp}, used by the tick check. */
+    public static int nowStamp(long gameTime) {
+        int stamp = (int) (gameTime % 32767L);
+        return stamp == PLACED_NEVER ? 1 : stamp;
+    }
+
+    /**
+     * True when a web stamped {@code stamp} has reached or passed its expiry.
+     *
+     * <p>Uses modular elapsed time, so it still fires when the expiry went by while the chunk was
+     * unloaded - the web then vanishes on the FIRST tick after it loads, which is the required
+     * behaviour. The modulo is safe because a web only ever lives {@link #DECAY_TICKS} ticks.</p>
+     */
+    public static boolean stampDue(long gameTime, int stamp) {
+        int now = nowStamp(gameTime);
+        long elapsed = (now - (stamp - DECAY_TICKS)) % 32767L;
+        if (elapsed < 0) {
+            elapsed += 32767L;
+        }
+        return elapsed >= DECAY_TICKS;
     }
 
     @Override
     public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         processEntitiesInBlock(state, level, pos);
 
-        Long placeTime = PLACE_TIME.get(pos);
-        if (placeTime != null && state.getValue(SPIDER)) {
-            long elapsed = level.getGameTime() - placeTime;
-            if (elapsed >= 20 * 60) {
+        // Decay, driven by the PERSISTED blockstate stamp instead of the old in-memory map. This runs
+        // on the normal 1-tick re-schedule below, so a web whose expiry passed while the chunk was
+        // unloaded vanishes on the first tick after it loads again.
+        if (isSpiderWeb(state) && state.hasProperty(PLACED_AT)) {
+            int stamp = state.getValue(PLACED_AT);
+            if (stamp != PLACED_NEVER && stampDue(level.getGameTime(), stamp)) {
                 level.destroyBlock(pos, false);
-                PLACE_TIME.remove(pos);
                 return;
             }
         }

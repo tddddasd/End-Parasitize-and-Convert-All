@@ -310,6 +310,24 @@
       "epca:bleeding": 0.05
     }
   },
+  "epca:infested_spider": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7
+    }
+  },
+  "epca:walking_spider_head": {
+    "min_level": 0,
+    "max_level": 5,
+    "default_level": 0,
+    "random_chance": 0.0,
+    "level_up_chances": {
+      "epca:coth": 0.7
+    }
+  },
   "epca:walking_fox_head": {
     "min_level": 0,
     "max_level": 5,

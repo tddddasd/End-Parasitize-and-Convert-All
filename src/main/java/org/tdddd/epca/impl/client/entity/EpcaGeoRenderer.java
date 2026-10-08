@@ -21,6 +21,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.tdddd.epca.impl.client.ClientColorEffect;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSpider;
 import org.tdddd.epca.impl.utils.entity.BillboardRenderHelper;
 
 import java.time.LocalDate;
@@ -151,6 +152,11 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
     }
 
+    /** Parent bone of all eight leg pairs in infested_spider.geo.json. */
+    private static final String CAVE_SHOOT_LEG_BONE = "legs";
+    /** 1 pixel down. GeckoLib model units are pixels and +Y points up, so the drop is negative. */
+    private static final float CAVE_SHOOT_LEG_OFFSET_Y = -1.0F;
+
     //  Head rotation  (IHeadRotatable)
 
     /**
@@ -174,6 +180,27 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
             String boneName = rotatable.getHeadBoneName();
             passInfo.addBoneUpdater((info, snapshots) ->
                     snapshots.ifPresent(boneName, snapshot -> snapshot.setRotY(radians)));
+        }
+
+        // User requirement: while the CAVE infested spider is FIRING a projectile its leg model drops
+        // by 1 pixel. 1 pixel is 1 model unit (16 units = 1 block) and +Y points up, so the drop is
+        // -1 on the Y translation, keeping X and Z exactly as the animation set them.
+        //
+        // GeckoLib 5 has no mutable bone: the pose only exists as a BoneSnapshot, writable through a
+        // RenderPassInfo.BoneUpdater - the same mechanism the head rotation above and
+        // AfterimageData.BoneSnapshot#applyTo use. The 1.20.1 tree instead mutates the CoreGeoBone
+        // from InfestedSpiderModel#setCustomAnimations, because GeckoLib 4 still allows that.
+        //
+        // Bone: "legs", the parent of all eight leg pairs in infested_spider.geo.json. Offsetting the
+        // one parent translates every leg by the same pixel and cannot make them drift apart.
+        if (entity instanceof InfestedSpider spider
+                && spider.getVariant() == InfestedSpider.Variant.CAVE
+                && spider.isShooting()) {
+            passInfo.addBoneUpdater((info, snapshots) ->
+                    snapshots.ifPresent(CAVE_SHOOT_LEG_BONE, snapshot -> snapshot.setTranslation(
+                            snapshot.getTranslateX(),
+                            snapshot.getTranslateY() + CAVE_SHOOT_LEG_OFFSET_Y,
+                            snapshot.getTranslateZ())));
         }
     }
 
