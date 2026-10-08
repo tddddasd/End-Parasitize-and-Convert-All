@@ -203,6 +203,32 @@ public class ModItems {
             ITEMS.register("living_flesh_spawn_egg",
                     () -> new ForgeSpawnEggItem(() -> ModEntities.LIVING_FLESH_SIZE0.get(), -1, -1, new Item.Properties()));
     public static final RegistryObject<Item> INFESTED_BAT_SPAWN_EGG = spawnEgg("infested_bat", ModEntities.INFESTED_BAT);
+    // Spiders: FOUR eggs, one per supplied texture. The cave forms are a synced Variant on the same
+    // entity type, so each egg is a VariantSpawnEgg that writes its own variant onto the mob it
+    // creates (a plain ForgeSpawnEggItem can only produce the default variant).
+    // Variant ordinals: 0 = DEFAULT, 1 = BLOOD, 2 = CAVE.
+    // The RegistryObject is passed ITSELF, never .get(): ModItems is populated during the ITEM
+    // registration phase, which runs BEFORE entity types are registered, so resolving an entity
+    // holder here throws "Registry Object not present: epca:..." and the mod fails to load.
+    //
+    // Variant rules (user spec):
+    //   plain spider / plain head egg : 30 % BLOOD, otherwise DEFAULT, NEVER CAVE -> weights {55,30,0}
+    //   cave spider / cave head egg   : always CAVE                              -> pinned ordinal 2
+    /** Weights for the plain eggs, indexed by variant ordinal: DEFAULT 55, BLOOD 30, CAVE 0. */
+    private static final int[] PLAIN_SPIDER_EGG_WEIGHTS = {55, 30, 0};
+
+    public static final RegistryObject<Item> INFESTED_SPIDER_SPAWN_EGG =
+            customItem("infested_spider_spawn_egg",
+                    () -> new VariantSpawnEgg(ModEntities.INFESTED_SPIDER, PLAIN_SPIDER_EGG_WEIGHTS, new Item.Properties()));
+    public static final RegistryObject<Item> INFESTED_CAVE_SPIDER_SPAWN_EGG =
+            customItem("infested_cave_spider_spawn_egg",
+                    () -> new VariantSpawnEgg(ModEntities.INFESTED_SPIDER, 2, new Item.Properties()));
+    public static final RegistryObject<Item> WALKING_SPIDER_HEAD_SPAWN_EGG =
+            customItem("walking_spider_head_spawn_egg",
+                    () -> new VariantSpawnEgg(ModEntities.WALKING_SPIDER_HEAD, PLAIN_SPIDER_EGG_WEIGHTS, new Item.Properties()));
+    public static final RegistryObject<Item> WALKING_CAVE_SPIDER_HEAD_SPAWN_EGG =
+            customItem("walking_cave_spider_head_spawn_egg",
+                    () -> new VariantSpawnEgg(ModEntities.WALKING_SPIDER_HEAD, 2, new Item.Properties()));
 
     
 

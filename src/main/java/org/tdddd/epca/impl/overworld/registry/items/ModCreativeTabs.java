@@ -117,6 +117,10 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_FOX_SPAWN_EGG));
                 builder.add(i(ModItems.WALKING_FOX_HEAD_SPAWN_EGG));
                 builder.add(i(ModItems.INFESTED_BAT_SPAWN_EGG));
+                builder.add(i(ModItems.INFESTED_SPIDER_SPAWN_EGG));
+                builder.add(i(ModItems.INFESTED_CAVE_SPIDER_SPAWN_EGG));
+                builder.add(i(ModItems.WALKING_SPIDER_HEAD_SPAWN_EGG));
+                builder.add(i(ModItems.WALKING_CAVE_SPIDER_HEAD_SPAWN_EGG));
                 builder.add(i(ModItems.RESHAPE_LONGARMS_SPAWN_EGG));
                 builder.add(i(ModItems.RESHAPE_YELLOWEYE_SPAWN_EGG));
                 builder.add(i(ModItems.STAGE_I_BECKON_SPAWN_EGG));

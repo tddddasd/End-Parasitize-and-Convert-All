@@ -52,7 +52,8 @@ public class CustomDataProviders {
                 "skeleton", "bat", "villager", "pillager", "vindcator", "enderman", "endermite",
                 "silverfish", "slime_size0", "slime_size1", "slime_size3", "creeper", "iron_golem",
                 "guardian", "elder_guardian", "warden", "magma_cube", "vex", "allay", "blaze",
-                "ender_dragon", "fox", "fox_baby", "wolf", "wolf_baby"
+                "ender_dragon", "fox", "fox_baby", "wolf", "wolf_baby",
+                "spider", "cave_spider"
         );
 
         private static boolean noMeat(String file) {
@@ -82,6 +83,11 @@ public class CustomDataProviders {
             conv(cache, tasks, "endermite",EntityType.ENDERMITE, ModEntities.INFESTED_ENDERMITE,      true,  1);
             conv(cache, tasks, "silverfish",EntityType.SILVERFISH,ModEntities.INFESTED_SILVERFISH,    true,  1);
             conv(cache, tasks, "bat",EntityType.BAT ,ModEntities.INFESTED_BAT,    true,  1);
+            // Spiders: both vanilla spiders convert into the single infested_spider type. The variant
+            // (DEFAULT vs CAVE) is assigned by CothEffect#convertUsingDataPackRule, because a
+            // data-driven rule can only name the target entity type, not a variant of it.
+            conv(cache, tasks, "spider",      EntityType.SPIDER,      ModEntities.INFESTED_SPIDER, true, 1);
+            conv(cache, tasks, "cave_spider", EntityType.CAVE_SPIDER, ModEntities.INFESTED_SPIDER, true, 1);
 
             
             convNbt(cache, tasks, "slime_size0", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE0, false, 1, Map.of("Size", 0));

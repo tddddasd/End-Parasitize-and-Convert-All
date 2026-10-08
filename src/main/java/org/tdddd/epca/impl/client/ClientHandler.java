@@ -80,6 +80,10 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.WALKING_FOX_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingFoxHeadModel()));
         event.registerEntityRenderer(ModEntities.INFESTED_SKELETON.get(), ctx -> new EpcaGeoRenderer<>(ctx, new InfestedSkeletonModel()));
         event.registerEntityRenderer(ModEntities.WALKING_SKELETON_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingSkeletonHeadModel()));
+        // Variant spiders: the three variants share one model/animation file each and only differ in
+        // the texture, which the model reads back from the entity.
+        event.registerEntityRenderer(ModEntities.INFESTED_SPIDER.get(), ctx -> new EpcaGeoRenderer<>(ctx, new InfestedSpiderModel()));
+        event.registerEntityRenderer(ModEntities.WALKING_SPIDER_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingSpiderHeadModel()));
 
         event.registerEntityRenderer(ModEntities.THROWN_WOODEN_SPEAR.get(), ThrownWoodenSpearRenderer::new);
         event.registerEntityRenderer(ModEntities.THROWN_STONE_SPEAR.get(), ThrownStoneSpearRenderer::new);

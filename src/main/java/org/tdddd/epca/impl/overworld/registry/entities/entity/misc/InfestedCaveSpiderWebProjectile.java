@@ -2,6 +2,7 @@ package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.Item;
@@ -12,6 +13,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedCaveSpiderWeb;
+import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 public class InfestedCaveSpiderWebProjectile extends ThrowableItemProjectile {
     public InfestedCaveSpiderWebProjectile(EntityType<? extends ThrowableItemProjectile> type, Level level) {
@@ -42,7 +44,9 @@ public class InfestedCaveSpiderWebProjectile extends ThrowableItemProjectile {
     @Override
     protected void onHitEntity(EntityHitResult result) {
         if (!this.level().isClientSide) {
-            tryPlaceWeb(this.blockPosition());
+            // User requirement: a non-parasite, non-nest-leader target gets the cave web at ITS FEET;
+            // parasites and nest leaders keep the projectile-position behaviour.
+            tryPlaceWeb(webTargetFor(result));
             this.discard();
         }
         super.onHitEntity(result);
@@ -60,14 +64,46 @@ public class InfestedCaveSpiderWebProjectile extends ThrowableItemProjectile {
         super.onHitBlock(result);
     }
 
+    /**
+     * Places this projectile's cave web with the {@code spider} flag set.
+     *
+     * <p>Guarded through {@link InfestedCaveSpiderWeb#markSpiderWeb}: a direct {@code setValue} on
+     * the property throws when the state does not carry it, and this runs from entity ticking, so
+     * the unguarded call is a hard server crash.</p>
+     */
+    /**
+     * Resolves where the cave web should go for a hit on {@code result}'s entity.
+     *
+     * <p>Classification uses the mod's OWN predicate,
+     * {@link IParasite#isParasiteByTagOrInterface(net.minecraft.world.entity.LivingEntity)}, which
+     * already covers both halves of the requirement: for a {@code Player} it delegates to
+     * {@code NestLeaderManager.isNestLeader(uuid)}, and otherwise it checks the {@code IParasite}
+     * interface or the {@code "Parasite"} persistent-data flag.</p>
+     *
+     * <p>Feet block first, block below as fallback; an entity already standing in a web resolves to
+     * the block below, so webs never stack. If both are blocked the projectile's own position is used.</p>
+     */
+    private BlockPos webTargetFor(EntityHitResult result) {
+        if (result.getEntity() instanceof LivingEntity living
+                && !IParasite.isParasiteByTagOrInterface(living)) {
+            BlockPos feet = living.blockPosition();
+            if (this.level().getBlockState(feet).canBeReplaced()) {
+                return feet;
+            }
+            BlockPos below = feet.below();
+            if (this.level().getBlockState(below).canBeReplaced()) {
+                return below;
+            }
+        }
+        return this.blockPosition();
+    }
+
     private void tryPlaceWeb(BlockPos pos) {
         Level level = this.level();
         BlockState state = level.getBlockState(pos);
         if (state.canBeReplaced()) {
-            level.setBlock(pos,
-                    ModBlocks.INFESTED_CAVE_SPIDER_WEB.get().defaultBlockState()
-                            .setValue(InfestedCaveSpiderWeb.SPIDER, true),
-                    3);
+            BlockState web = ModBlocks.INFESTED_CAVE_SPIDER_WEB.get().defaultBlockState();
+            level.setBlock(pos, InfestedCaveSpiderWeb.markSpiderWeb(web, true), 3);
         }
     }
 }

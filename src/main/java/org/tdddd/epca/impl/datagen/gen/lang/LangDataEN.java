@@ -139,6 +139,9 @@ public class LangDataEN extends LanguageProvider {
         add("entity.epca.infested_spider_web_blood_projectile", "Infested Blood Spider Web Projectile");
         add("entity.epca.infested_cave_spider_web_projectile", "Infested Cave Spider Web Projectile");
         add("entity.epca.infested_bat", "Infested Bat");
+        // Spiders: the blood and cave forms are variants of these two types, not separate entities.
+        add("entity.epca.infested_spider", "Infested Spider");
+        add("entity.epca.walking_spider_head", "Walking Spider Head");
 
         // Thrown spears
         add("entity.epca.thrown_wooden_spear", "Wooden Spear");
@@ -227,6 +230,10 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.infested_fox_spawn_egg", "Infested Fox Spawn Egg");
         add("item.epca.walking_fox_head_spawn_egg", "Walking Fox Head Spawn Egg");
         add("item.epca.infested_bat_spawn_egg", "Infested Bat Spawn Egg");
+        add("item.epca.infested_spider_spawn_egg", "Infested Spider Spawn Egg");
+        add("item.epca.infested_cave_spider_spawn_egg", "Infested Cave Spider Spawn Egg");
+        add("item.epca.walking_spider_head_spawn_egg", "Walking Spider Head Spawn Egg");
+        add("item.epca.walking_cave_spider_head_spawn_egg", "Walking Cave Spider Head Spawn Egg");
 
         // Materials & special items
         add("item.epca.copper_nugget", "Copper Nugget");

@@ -94,6 +94,8 @@ public class ModEntityEvents {
         event.register(ModEntities.INFESTED_FOX.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedFox::checkInfestedFoxSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.WALKING_FOX_HEAD.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WalkingFoxHead::checkWalkingFoxHeadSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(ModEntities.INFESTED_BAT.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedBat::checkInfestedBatSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
+        event.register(ModEntities.INFESTED_SPIDER.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSpider::checkInfestedSpiderSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
+        event.register(ModEntities.WALKING_SPIDER_HEAD.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WalkingSpiderHead::checkWalkingSpiderHeadSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
     }
 }
 

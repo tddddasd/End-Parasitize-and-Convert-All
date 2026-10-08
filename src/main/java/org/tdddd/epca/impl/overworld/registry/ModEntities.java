@@ -270,6 +270,14 @@ public class ModEntities {
             registerMobWithRender("infested_slime_size3", 2.5F, 2.5F, InfestedSlimeSize3::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize3.createAttributes().build());
     public static final RegistryObject<EntityType<InfestedBat>> INFESTED_BAT =
             registerMobWithRender("infested_bat", 0.5F, 0.8F, InfestedBat::new, MobCategory.MONSTER, 12, InfestedBat::setAttributes);
+    // --- Spiders: one entity type per mob. The bleeding / cave forms are a synced Variant on the
+    // same type (the convention Ripper / InfestedFox already use), so no extra type is registered. ---
+    public static final RegistryObject<EntityType<InfestedSpider>> INFESTED_SPIDER =
+            registerMobWithRender("infested_spider", 1.4F, 0.9F, InfestedSpider::new, MobCategory.MONSTER, 12, InfestedSpider::setAttributes);
+    public static final RegistryObject<EntityType<WalkingSpiderHead>> WALKING_SPIDER_HEAD =
+            registerMobWithCustomModel("walking_spider_head", "walking_spider_head", "walking_spider_head",
+                    "walking_spider_head", 0.8F, 0.6F, WalkingSpiderHead::new, MobCategory.MONSTER, 12,
+                    WalkingSpiderHead::setAttributes);
 
     /** Misc entity with auto-renderer but no attributes. */
     public static <T extends Entity> RegistryObject<EntityType<T>> registerMiscWithRender(

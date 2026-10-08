@@ -139,6 +139,9 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.infested_spider_web_blood_projectile", "虫染流血蜘蛛网团");
         add("entity.epca.infested_cave_spider_web_projectile", "虫染洞穴蜘蛛网团");
         add("entity.epca.infested_bat", "虫染蝙蝠");
+        // Spiders: the blood and cave forms are variants of these two types, not separate entities.
+        add("entity.epca.infested_spider", "虫染蜘蛛");
+        add("entity.epca.walking_spider_head", "虫染蜘蛛头颅");
 
         
         add("entity.epca.thrown_wooden_spear", "木矛");
@@ -227,6 +230,10 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.infested_fox_spawn_egg", "虫染狐狸刷怪蛋");
         add("item.epca.walking_fox_head_spawn_egg", "虫染狐狸头颅刷怪蛋");
         add("item.epca.infested_bat_spawn_egg", "虫染蝙蝠刷怪蛋");
+        add("item.epca.infested_spider_spawn_egg", "虫染蜘蛛刷怪蛋");
+        add("item.epca.infested_cave_spider_spawn_egg", "虫染洞穴蜘蛛刷怪蛋");
+        add("item.epca.walking_spider_head_spawn_egg", "虫染蜘蛛头颅刷怪蛋");
+        add("item.epca.walking_cave_spider_head_spawn_egg", "虫染洞穴蜘蛛头颅刷怪蛋");
 
         
         add("item.epca.copper_nugget", "铜粒");
