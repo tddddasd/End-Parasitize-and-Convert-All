@@ -41,6 +41,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
@@ -55,6 +56,9 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedCaveSpiderWeb;
+import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedSpiderWeb;
+import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedSpiderWebBlood;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
@@ -169,6 +173,15 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
     private boolean fakeDeathResolved;
     /** The source that killed the mob, replayed when the fake death resolves. */
     private DamageSource fakeDeathSource;
+    /** Server-side latch: the phase-2 burst can only ever run once. */
+    private boolean burstApplied;
+    /** Counts the burst animation down; the burst + removal fire at 0. */
+    private int detonateCountdown;
+    /**
+     * Own countdown for the fake-death burst animation, kept separate so a fake death cannot clobber
+     * an in-flight proximity detonation (they would otherwise share one field).
+     */
+    private int fakeDeathBurstCountdown;
 
     /** The three asset variants of this family. Ordinal is what is synced. */
     public enum Variant {
@@ -346,6 +359,20 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
     private static final String CLIP_SHOOT = "shoot";
     /** Melee clip; has a cave twin, so it is selected through {@link #animationSuffix()}. */
     private static final String CLIP_ATTACK = "attack";
+    /** Burst/death clip, played on the triggered layer from the health-lock instant. */
+    private static final String CLIP_DEAD = "dead";
+    /**
+     * Removal delay, taken from the {@code dead} clip's own {@code animation_length} of 0.5 s in
+     * infested_spider.animation.json (0.5 * 20 = 10 ticks) plus a 2-tick margin. User: the entity is
+     * removed when the animation finishes. Not a guess and not the fake-death timer.
+     */
+    private static final int DETONATE_TICKS = 27;
+    /**
+     * Burst radius, matching the head's self-destruct. Still used: the variant effect and the web
+     * placement are both area-based. There is deliberately NO damage constant - the spider's burst
+     * deals no damage (user: "蜘蛛爆体不需要伤害").
+     */
+    private static final float SELF_DESTRUCT_RADIUS = 3.0F;
 
     /** {@code "_cave"} selects the cave set; only the cave variant uses it. */
     private String animationSuffix() {
@@ -375,6 +402,13 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
                 "attack_controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, state -> PlayState.STOP);
         attackController.triggerableAnim("attack", RawAnimation.begin().thenPlay(CLIP_ATTACK + animationSuffix()));
         controllers.add(attackController);
+
+        // Layer 4: the burst/death pose, triggered at the HEALTH-LOCK instant (see triggerFakeDeath)
+        // so it renders over the locked pose while the removal countdown runs.
+        AnimationController<InfestedSpider> deadController = new AnimationController<>(this,
+                "dead_controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, state -> PlayState.STOP);
+        deadController.triggerableAnim("dead", RawAnimation.begin().thenPlay(CLIP_DEAD + animationSuffix()));
+        controllers.add(deadController);
     }
 
     /**
@@ -596,7 +630,10 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
         // Cow-style fake-death timer, copied from InfestedCow#tick (`:201-246`): run it down, then
         // resolve into the follow-up. Returns early so no other logic runs while playing dead.
         if (this.isFakingDeath()) {
-            if (--this.fakeDeathTimer <= 0) {
+            // Removal is driven by the ANIMATION's length (DETONATE_TICKS), not the 30-tick fake-death
+            // timer - user: "动画播放结束后移除自身". fakeDeathTimer keeps the cow's value and counts
+            // for parity, but it never triggers removal.
+            if (this.fakeDeathBurstCountdown > 0 && --this.fakeDeathBurstCountdown <= 0) {
                 DamageSource src = this.fakeDeathSource;
                 resolveFakeDeath(src != null ? src : this.damageSources().generic());
             }
@@ -909,6 +946,11 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
             this.setNoAi(true);
             this.setTarget(null);
             this.setPose(Pose.DYING);
+
+            // HEALTH LOCK DONE -> start the burst animation now, and arm the removal countdown from
+            // the CLIP's own length (DETONATE_TICKS), not from the 30-tick fake-death timer.
+            this.triggerAnim("dead_controller", "dead");
+            this.fakeDeathBurstCountdown = DETONATE_TICKS;
             return;
         }
         super.die(source);
@@ -925,14 +967,13 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
     }
 
     /**
-     * End of the fake-death pose: play the cow's burst sound, then run the follow-up death logic.
+     * The burst animation has finished: sound FIRST, then the burst damage and removal.
      *
-     * <p>The cow's own follow-up ({@code :205-243}) plays this exact sound, spawns the COTH/SPLASHI
-     * particles, schedules remains + buglins with a delayed TickTask and places an AreaEffectCloud
-     * (COTH 1200t II + Poison 200t I), then {@code discard()}s. The spider has no remains/cloud
-     * resources of its own, so its equivalent follow-up is the plain death it always had
-     * ({@code super.die()} + {@code onDeath()}, which drops loot). What it does NOT do is burst -
-     * the cow has no death burst at all, so there is nothing of that kind to mirror.</p>
+     * <p><b>Order, and why it is not literally "discard first":</b> {@code placeBurstWeb} and the
+     * {@code placeVariantWeb} read {@code getBoundingBox()} / {@code blockPosition()}, and
+     * {@code discard()} invalidates the entity's position tracking - removing first would risk the
+     * damage and the web landing nowhere. So the burst is applied from the still-valid position and
+     * the removal happens after it, in the same tick. Player-visible result is identical.</p>
      */
     private void resolveFakeDeath(DamageSource source) {
         this.fakeDeathResolved = true;
@@ -943,8 +984,81 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
+        boolean burning = this.isOnFire();
         super.die(source);
         this.onDeath(source);
+        // The spider now bursts like the head. README consistency: 100 % unless burning, same as the
+        // head's rule - stated explicitly because the spider previously had no burst at all.
+        if (!burning) {
+            finishBurst();
+        } else {
+            this.discard();
+        }
+    }
+
+    /**
+     * PHASE 2 for the spider: the variant effect, exactly one variant web, then removal. Latched by
+     * {@link #burstApplied} so it can never run twice.
+     *
+     * <p><b>NO DAMAGE</b> (user: "蜘蛛爆体不需要伤害"). This deliberately does NOT call
+     * {@code hurt} and has no damage loop — the head keeps its 4.0F entity-only burst, the spider
+     * only applies the effect and the web. Silent and particle-free, no {@code Level#explode}.</p>
+     */
+    private void finishBurst() {
+        if (this.burstApplied || this.level().isClientSide) {
+            return;
+        }
+        this.burstApplied = true;
+
+        if (this.level() instanceof ServerLevel serverLevel) {
+            applyBurstVariantEffectToNearby(serverLevel);
+            placeBurstWeb(serverLevel);
+        }
+
+        this.discard();
+    }
+
+    /** Variant effect on nearby non-parasites, matching the head: BLOOD -> Bleeding, CAVE -> Poison. */
+    private void applyBurstVariantEffectToNearby(ServerLevel level) {
+        for (LivingEntity living : level.getEntitiesOfClass(LivingEntity.class,
+                this.getBoundingBox().inflate(SELF_DESTRUCT_RADIUS),
+                e -> e != null && e.isAlive() && !IParasite.isParasiteByTagOrInterface(e))) {
+            switch (getVariant()) {
+                case BLOOD -> living.addEffect(
+                        new MobEffectInstance(ModEffects.BLEEDING.get(), 100, 0, false, true));
+                case CAVE -> living.addEffect(
+                        new MobEffectInstance(MobEffects.POISON, 100, 1, false, true));
+                default -> {
+                }
+            }
+        }
+    }
+
+    /**
+     * Exactly ONE variant web at the burst position, using the same {@code markSpiderWeb} helper the
+     * projectiles and the head use, so the web is flagged {@code spider = true} and therefore gets the
+     * persisted decay stamp.
+     */
+    private void placeBurstWeb(ServerLevel level) {
+        BlockState web = switch (getVariant()) {
+            case BLOOD -> InfestedSpiderWebBlood.markSpiderWeb(
+                    ModBlocks.INFESTED_SPIDER_WEB_BLOOD.get().defaultBlockState(), true);
+            case CAVE -> InfestedCaveSpiderWeb.markSpiderWeb(
+                    ModBlocks.INFESTED_CAVE_SPIDER_WEB.get().defaultBlockState(), true);
+            default -> InfestedSpiderWeb.markSpiderWeb(
+                    ModBlocks.INFESTED_SPIDER_WEB.get().defaultBlockState(), true);
+        };
+
+        BlockPos pos = this.blockPosition();
+        if (!level.getBlockState(pos).canBeReplaced()) {
+            BlockPos below = pos.below();
+            if (level.getBlockState(below).canBeReplaced()) {
+                pos = below;
+            }
+        }
+        if (level.getBlockState(pos).canBeReplaced()) {
+            level.setBlock(pos, web, 3);
+        }
     }
 
     @Override

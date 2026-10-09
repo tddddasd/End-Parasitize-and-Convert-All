@@ -184,6 +184,12 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
     private boolean burstApplied;
     /** Counts phase 1 down; the burst fires when it reaches 0. */
     private int detonateCountdown;
+    /**
+     * Separate countdown for the fake-death burst animation. It MUST be its own field: the fake death
+     * and the proximity self-destruct both need a countdown, and sharing one would let a fake death
+     * clobber an in-flight detonation (or vice versa).
+     */
+    private int fakeDeathBurstCountdown;
 
     /**
      * Cow-style fake-death bit. While set the head is invulnerable, frozen and lying in
@@ -486,7 +492,10 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
         // then resolve into the follow-up. Checked before the detonation driver, and it returns early
         // so no other tick logic runs while the mob is playing dead.
         if (this.isFakingDeath()) {
-            if (--this.fakeDeathTimer <= 0) {
+            // Removal is driven by the ANIMATION's length (DETONATE_TICKS), not the 30-tick fake-death
+            // timer - user: "动画播放结束后移除自身". fakeDeathTimer is therefore no longer the gate;
+            // it stays as the cow's value and keeps counting for parity, but it never triggers removal.
+            if (this.fakeDeathBurstCountdown > 0 && --this.fakeDeathBurstCountdown <= 0) {
                 DamageSource src = this.fakeDeathSource;
                 resolveFakeDeath(src != null ? src : this.damageSources().generic());
             }
@@ -717,10 +726,14 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
     /**
      * Cow-style fake death, copied from {@code InfestedCow#triggerFakeDeath} ({@code :622-633}).
      *
-     * <p>Every value is the cow's: timer 30, health {@code burstHealth(this, 0.02F)} (2 %),
-     * invulnerable, {@code setNoAi(true)}, {@code setTarget(null)}, {@code Pose.DYING}. The only
-     * difference is that the head does NOT call {@code super.die()} here - it survives the pose and
-     * plays its burst when the timer ends.</p>
+     * <p>Every health/pose value is the cow's: timer 30, health {@code burstHealth(this, 0.02F)}
+     * (2 %), invulnerable, {@code setNoAi(true)}, {@code setTarget(null)}, {@code Pose.DYING}.</p>
+     *
+     * <p><b>This is the HEALTH-LOCK instant, and it is where the burst animation starts</b> (user:
+     * the burst animation must trigger at the moment the health is locked). The pose is played on the
+     * triggered {@code dead_controller} layer so it renders over the locked pose, and the removal is
+     * driven by {@link #DETONATE_TICKS} - the clip's own {@code animation_length} - not by the 30-tick
+     * fake-death timer.</p>
      */
     private void triggerFakeDeath(DamageSource source) {
         setFakingDeath(true);
@@ -732,18 +745,32 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
         this.setInvulnerable(true);
         this.setTarget(null);
         this.setPose(Pose.DYING);
+
+        // HEALTH LOCK DONE -> start the burst animation immediately, and arm the removal countdown
+        // from the CLIP's length (DETONATE_TICKS = dead's animation_length in ticks + margin).
+        this.triggerAnim("dead_controller", "dead");
+        this.fakeDeathBurstCountdown = DETONATE_TICKS;
     }
 
     /**
-     * End of the fake-death pose: play the cow's burst sound, then proceed into the follow-up damage
-     * logic - the head's existing two-phase burst, or a plain death when burning.
+     * The animation has finished: sound FIRST, then the damage + removal.
+     *
+     * <p><b>Order, and why it is not literally "discard first":</b> the user's sequence is remove ->
+     * sound -> damage, but {@code applyBurstDamage} and {@code placeVariantWeb} read
+     * {@code getBoundingBox()} and {@code blockPosition()}, and {@code discard()} invalidates the
+     * entity's position tracking. Removing first would therefore put the damage and the web at risk of
+     * landing nowhere - exactly the failure the requirement warns about ("do not let damage fail
+     * because the entity is already gone"). So the burst is applied first, from the still-valid
+     * position, and the removal happens LAST via {@code finishDetonation}'s {@code discard()}. The
+     * player-visible result is identical: the animation ends, the web/burst lands, and the mob is
+     * gone in the same tick.</p>
      */
     private void resolveFakeDeath(DamageSource source) {
         this.fakeDeathResolved = true;
         setFakingDeath(false);
 
-        // The cow's burst sound, verbatim: same SoundEvent, same source, same volume/pitch
-        // (InfestedCow :207-208).
+        // The cow's burst sound, verbatim: same SoundEvent, source, volume and pitch (InfestedCow
+        // :207-208). Server-side broadcast, unchanged.
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
@@ -751,9 +778,11 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
         super.die(source);
         this.onDeath(source);
         if (!burning) {
+            // The head's burst: entity-only damage 4.0F in a 3.0F radius, the variant effect, exactly
+            // one variant web, then discard(). Latched by burstApplied.
             selfDestruct();
         } else {
-            // On fire: no burst at all. Clears the frozen pose and removes the mob.
+            // On fire: no burst at all, just removal.
             this.discard();
         }
     }
