@@ -54,8 +54,13 @@ public class EpcaGeoModel<T extends Entity & GeoAnimatable> extends GeoModel<T> 
     public void setCustomAnimations(T animatable, long instanceId, AnimationState<T> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
-        // Head rotation via interface  only for LivingEntity (needs yBodyRot)
-        if (animatable instanceof LivingEntity living && animatable instanceof IHeadRotatable rotatable) {
+        // Head rotation via interface  only for LivingEntity (needs yBodyRot).
+        // SKIPPED during an afterimage ghost pass: this block recomputes the head bone from the OWNER's
+        // LIVE yBodyRot, which would overwrite the ghost's captured pose. Gated on FrozenGhostRender so
+        // every normal render is unchanged.
+        if (!FrozenGhostRender.isActive()
+                && animatable instanceof LivingEntity living
+                && animatable instanceof IHeadRotatable rotatable) {
             float partialTick = animationState.getPartialTick();
             float currentTime = living.tickCount + partialTick;
             float bodyYaw = Mth.rotLerp(partialTick, living.yBodyRotO, living.yBodyRot);

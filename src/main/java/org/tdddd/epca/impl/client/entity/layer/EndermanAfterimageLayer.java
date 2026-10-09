@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
@@ -117,16 +118,39 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
                     afterPos.y - entity.getY() + 0.02,
                     afterPos.z - entity.getZ()
             );
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - data.yRot));
+            // Y rotation. This layer runs INSIDE the entity's already-yawed pose stack
+            // (EpcaGeoRenderer#render delegates to GeckoLib's GeoEntityRenderer, a LivingEntityRenderer
+            // that applies the LIVE interpolated entity yaw before dispatching layers), so the ghost's
+            // world facing was (LIVE yaw) + (this term) - a live additive term that made the ghost track
+            // its owner no matter what the frozen record held.
+            //
+            // So we CANCEL the live term first, then apply the FROZEN one:
+            //   (a) rotate by -liveYaw  -> cancels the base transform
+            //   (b) rotate by data.yRot -> the frozen facing
+            // Net world facing = data.yRot: only the FROZEN contribution survives.
+            //
+            // The user asked for an ADDITIONAL 180 on the initial Y ("残影的初始Y轴需旋转180°") on top of
+            // the earlier direction flip. This is the one term that determines the ghost's facing, and
+            // 180 + 180 = 360 == 0, so the extra half-turn is expressible exactly by DROPPING the
+            // constant: `180.0F + data.yRot` -> `data.yRot`. That is a genuine additional 180 (the
+            // earlier `+` handedness is preserved, not reverted) and it is the only place the frozen
+            // facing is decided - the ghost has no entity of its own, so there is no separate base yaw
+            // to carry the extra half-turn.
+            float liveYaw = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot());
+            poseStack.mulPose(Axis.YP.rotationDegrees(-liveYaw));
+            poseStack.mulPose(Axis.YP.rotationDegrees(data.yRot));
 
-            // Apply the frozen bone pose, then render
+            // FROZEN render: this entry point marks the pass so GeckoLib's animation cannot overwrite
+            // the captured pose (see FrozenGhostRender), and re-applies data.bonePose inside preRender -
+            // after the animation pass, before geometry. The walkApply/walkRestore pair is kept so the
+            // live model is left exactly as it was for the owner's own draw.
             Map<String, BoneSnapshot> savedPose = new HashMap<>();
             walkApply(bakedModel, data.bonePose, savedPose);
             float alpha = fade * MAX_ALPHA;
             VertexConsumer buf = bufferSource.getBuffer(afterimageRenderType);
-            renderer.renderModelWithAlpha(poseStack, entity, bakedModel, afterimageRenderType,
+            renderer.renderModelWithAlphaFrozenPose(poseStack, entity, bakedModel, afterimageRenderType,
                     bufferSource, buf, partialTick, packedLight,
-                    OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, alpha);
+                    OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, alpha, data.bonePose);
             walkRestore(bakedModel, savedPose);
 
             poseStack.popPose();
@@ -209,6 +233,11 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
             list.add(new AfterimageData(
                     entity.position(),
                     entity.getYRot(),
+                    entity.yBodyRot,
+                    entity.getYHeadRot(),
+                    entity.yRotO,
+                    entity.yBodyRotO,
+                    entity.yHeadRotO,
                     currentTick,
                     AFTERIMAGE_LIFETIME,
                     bonePose

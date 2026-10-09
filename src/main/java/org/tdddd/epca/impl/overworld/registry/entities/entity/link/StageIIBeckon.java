@@ -125,7 +125,18 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
     private int giveCorePointsTimer = 0;
     private int placeCoreCooldown = 0;
     private int fastAttackCounter = 0; 
-    private static final int AREA_CONVERSION_RADIUS = 17;
+    /**
+     * SPHERE radius of the Stage II block-conversion region, in blocks.
+     *
+     * <p>Was 17 as a CUBE half-extent (a 35x35x35 box). The user asked for a sphere of radius 27, so
+     * this is the radius of the sphere and the candidate test is
+     * {@code dx*dx + dy*dy + dz*dz <= r*r}. Deliberately NOT shared with Stage I - the two stages have
+     * different radii and one constant for both would be a silent mis-tuning.</p>
+     */
+    private static final int AREA_CONVERSION_SPHERE_RADIUS = 27;
+    /** The same radius squared, so the candidate test needs no square root. */
+    private static final int AREA_CONVERSION_SPHERE_RADIUS_SQ =
+            AREA_CONVERSION_SPHERE_RADIUS * AREA_CONVERSION_SPHERE_RADIUS;
 
     public StageIIBeckon(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -422,7 +433,7 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
 
         BlockPos center = this.blockPosition();
-        int radius = AREA_CONVERSION_RADIUS; 
+        int radius = AREA_CONVERSION_SPHERE_RADIUS;
         RandomSource random = this.random;
 
         
@@ -432,6 +443,11 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
             int dx = random.nextInt(2 * radius + 1) - radius;
             int dy = random.nextInt(2 * radius + 1) - radius;
             int dz = random.nextInt(2 * radius + 1) - radius;
+
+            // SPHERE test: reject candidates outside radius 27 (was an implicit cube - any offset in
+            // [-r, +r] was accepted). Squared distance, so no sqrt on this hot path.
+            if (dx * dx + dy * dy + dz * dz > AREA_CONVERSION_SPHERE_RADIUS_SQ) continue;
+
             BlockPos targetPos = center.offset(dx, dy, dz);
 
             if (serverLevel.getBlockState(targetPos).getBlock() instanceof InfestedBlockInterface) continue;

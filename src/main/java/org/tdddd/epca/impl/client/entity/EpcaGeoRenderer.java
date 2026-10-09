@@ -23,6 +23,7 @@ import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Single generic Geo renderer for ALL EPCA entities.
@@ -171,6 +172,47 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
 
         this.actuallyRender(poseStack, entity, model, renderType, bufferSource, buffer,
                 false, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+    }
+
+    /**
+     * GHOST entry point: renders the model with explicit alpha AND a FROZEN bone pose.
+     *
+     * <p>The afterimage layer calls this. It marks the pass via {@link FrozenGhostRender} so that (a)
+     * {@code EpcaGeoModel#setCustomAnimations} skips its head-rotation block - which otherwise
+     * recomputes the head bone from the OWNER's live {@code yBodyRot} - and (b) {@link #preRender}
+     * re-applies {@code frozenPose} AFTER GeckoLib's animation pass, so the captured pose is what gets
+     * drawn. The flag is restored in a {@code finally}, so non-ghost rendering is untouched.</p>
+     */
+    public void renderModelWithAlphaFrozenPose(PoseStack poseStack, T entity, BakedGeoModel model,
+                                                RenderType renderType, MultiBufferSource bufferSource,
+                                                VertexConsumer buffer, float partialTick,
+                                                int packedLight, int packedOverlay,
+                                                float red, float green, float blue, float alpha,
+                                                Map<String, AfterimageData.BoneSnapshot> frozenPose) {
+        boolean previous = FrozenGhostRender.begin(frozenPose);
+        try {
+            this.renderModelWithAlpha(poseStack, entity, model, renderType, bufferSource, buffer,
+                    partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+        } finally {
+            FrozenGhostRender.end(previous);
+        }
+    }
+
+    /**
+     * GeckoLib calls this AFTER {@code setCustomAnimations} and BEFORE geometry, which is the one
+     * window where the captured pose can be re-applied over the live animation pass. No-op unless a
+     * ghost pass is active (see {@link FrozenGhostRender}).
+     */
+    @Override
+    public void preRender(PoseStack poseStack, T animatable, BakedGeoModel model,
+                           MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
+                           float partialTick, int packedLight, int packedOverlay,
+                           float red, float green, float blue, float alpha) {
+        super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender,
+                partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+        if (FrozenGhostRender.isActive()) {
+            FrozenGhostRender.reapplyPose(model.getBones());
+        }
     }
 
     //  GeckoLib render layer  delegates to registered IGeoLayerProviders

@@ -27,13 +27,23 @@ import java.util.*;
 public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterface {
     public static final BooleanProperty SPIDER = BooleanProperty.create("spider");
     /**
+     * Cycle length for {@link #PLACED_AT}, in ticks. MUST stay small: a block's state count is the
+     * product of all its properties' ranges, and vanilla materialises EVERY combination at
+     * registration (it builds the state definition and the per-state neighbour tables up front). With
+     * a range of 32768 this one property made each web block 65536 states - 196608 across the three -
+     * which hangs the game during block registration, before any world loads. 1024 still comfortably
+     * exceeds {@link #DECAY_TICKS} (1200 is close, so 1024 would be too tight - see the note below).
+     */
+    public static final int PLACED_CYCLE = 2048;
+    /**
      * Absolute game tick at which a mob-placed web expires, or {@link #PLACED_NEVER} when the web was
      * not placed by a mob. Stored as BLOCKSTATE data on purpose: block state is serialised with the
-     * chunk, so it survives a save/load, a chunk unload/reload and a world close mid-countdown. The
-     * previous implementation kept this in a static {@code HashMap<BlockPos, Long>}, which is wiped
-     * with the JVM and was the reason the countdown restarted (or never resumed) after a reload.
+     * chunk, so it survives a save/load, a chunk unload/reload and a world close mid-countdown.
+     *
+     * <p>Range kept to [0, {@link #PLACED_CYCLE}) so the block has only 2 * 2048 = 4096 states.</p>
      */
-    public static final IntegerProperty PLACED_AT = IntegerProperty.create("placed_at", 0, 32767);
+    public static final IntegerProperty PLACED_AT =
+            IntegerProperty.create("placed_at", 0, PLACED_CYCLE - 1);
     /** Sentinel for {@link #PLACED_AT}: not a mob-placed web, so no decay is scheduled. */
     public static final int PLACED_NEVER = 0;
     /** The decay duration. Unchanged: 60 seconds. */
@@ -112,19 +122,19 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
     }
 
     /**
-     * The absolute expiry tick, truncated into {@link #PLACED_AT}'s 15-bit range (1..32767). Recorded
-     * once, at placement. Because the range is a 32767-tick cycle and a web only lives 1200 ticks, the
-     * stamp unambiguously identifies the expiry within the web's own lifetime; the value can only make
-     * a web expire EARLIER than 60 s, never later.
+     * The absolute expiry tick, truncated into the {@link #PLACED_CYCLE}-tick sealed range
+     * (1..{@code PLACED_CYCLE - 1}). Recorded once, at placement. Because the cycle (2048) exceeds a
+     * web's whole life ({@link #DECAY_TICKS} = 1200), the stamp identifies the expiry unambiguously
+     * within that lifetime, and the value can only make a web expire EARLIER than 60 s, never later.
      */
     public static int expiryStamp(long gameTime) {
-        int stamp = (int) ((gameTime + DECAY_TICKS) % 32767L);
+        int stamp = (int) ((gameTime + DECAY_TICKS) % (long) PLACED_CYCLE);
         return stamp == PLACED_NEVER ? 1 : stamp;
     }
 
     /** The current tick in the same truncated space as {@link #expiryStamp}, used by the tick check. */
     public static int nowStamp(long gameTime) {
-        int stamp = (int) (gameTime % 32767L);
+        int stamp = (int) (gameTime % (long) PLACED_CYCLE);
         return stamp == PLACED_NEVER ? 1 : stamp;
     }
 
@@ -137,9 +147,9 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
      */
     public static boolean stampDue(long gameTime, int stamp) {
         int now = nowStamp(gameTime);
-        long elapsed = (now - (stamp - DECAY_TICKS)) % 32767L;
+        long elapsed = (now - (stamp - DECAY_TICKS)) % (long) PLACED_CYCLE;
         if (elapsed < 0) {
-            elapsed += 32767L;
+            elapsed += PLACED_CYCLE;
         }
         return elapsed >= DECAY_TICKS;
     }

@@ -182,14 +182,16 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
     private boolean detonated;
     /** Server-side latch: the burst in phase 2 can only ever run once. */
     private boolean burstApplied;
-    /** Counts phase 1 down; the burst fires when it reaches 0. */
-    private int detonateCountdown;
     /**
-     * Separate countdown for the fake-death burst animation. It MUST be its own field: the fake death
-     * and the proximity self-destruct both need a countdown, and sharing one would let a fake death
-     * clobber an in-flight detonation (or vice versa).
+     * THE single burst countdown, shared by both burst paths. The death burst and the proximity
+     * self-destruct now run through one lock/animate/remove sequence, so ONE countdown is correct and
+     * the old split (`detonateCountdown` vs `fakeDeathBurstCountdown`) is gone - two fields would let
+     * one path clobber the other's window. `burstLocked` gates the driver; `fakeDeathSource` is non-null
+     * only for the death path, which is what selects the ending.
      */
-    private int fakeDeathBurstCountdown;
+    private int burstCountdown;
+    /** True once a burst has been locked (either path); gates the countdown driver in tick(). */
+    private boolean burstLocked;
 
     /**
      * Cow-style fake-death bit. While set the head is invulnerable, frozen and lying in
@@ -488,26 +490,23 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
             return;
         }
 
-        // Cow-style fake-death timer, copied from InfestedCow#tick (`:201-246`): run the timer down,
-        // then resolve into the follow-up. Checked before the detonation driver, and it returns early
-        // so no other tick logic runs while the mob is playing dead.
-        if (this.isFakingDeath()) {
-            // Removal is driven by the ANIMATION's length (DETONATE_TICKS), not the 30-tick fake-death
-            // timer - user: "动画播放结束后移除自身". fakeDeathTimer is therefore no longer the gate;
-            // it stays as the cow's value and keeps counting for parity, but it never triggers removal.
-            if (this.fakeDeathBurstCountdown > 0 && --this.fakeDeathBurstCountdown <= 0) {
-                DamageSource src = this.fakeDeathSource;
-                resolveFakeDeath(src != null ? src : this.damageSources().generic());
-            }
-            return;
-        }
-
-        // PHASE 1 driver. Checked BEFORE anything else so the AI freeze cannot skip the countdown,
-        // and it returns early so no other tick logic (climb, pounce, self-destruct re-trigger) runs
-        // during the death pose.
-        if (this.detonated) {
-            if (this.detonateCountdown > 0 && --this.detonateCountdown <= 0) {
-                finishDetonation();
+        // THE burst driver, for BOTH paths (death and proximity). Gated on burstLocked, which either
+        // path sets via burstLock(); it returns early so no other tick logic (climb, pounce, a second
+        // self-destruct) runs while the mob is locked in its burst pose.
+        //
+        // The removal window is the ANIMATION's length (DETONATE_TICKS), not the 30-tick fake-death
+        // timer - user: "动画播放结束后移除自身". fakeDeathTimer keeps the cow's value for parity but
+        // never triggers removal.
+        //
+        // NOTE: the previous revision decremented the proximity countdown inside `if (this.detonated)`
+        // but the death burst inside `if (this.isFakingDeath())`, and the proximity path never set
+        // isFakingDeath() - so the proximity burst fired the animation and froze the mob but NEVER
+        // reached its burst. One gate for both paths fixes that as well as unifying them.
+        if (this.burstLocked) {
+            if (this.burstCountdown > 0 && --this.burstCountdown <= 0) {
+                // fakeDeathSource != null selects the DEATH ending (fire-gated, loot, onDeath);
+                // null selects the PROXIMITY ending (no fire check).
+                resolveBurst(this.fakeDeathSource);
             }
             return;
         }
@@ -579,34 +578,74 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
      * pose is driven by the synced flag (so the CLIENT renders it) and the burst stays server-only.</p>
      */
     public void selfDestruct() {
-        if (this.detonated || this.level().isClientSide) {
+        if (this.detonated || this.burstLocked || this.level().isClientSide) {
             return;
         }
         this.detonated = true;
-
-        // PHASE 1 - visible wind-up. No playSound and no explode call: the burst stays silent and
-        // particle-free by design.
-        this.entityData.set(DATA_IS_DETONATING, true);
-        this.triggerAnim("dead_controller", "dead");
-        this.detonateCountdown = DETONATE_TICKS;
-
-        // Freeze the mob so the death pose is what the player sees. getNavigation().stop() plus
-        // setNoAi(true) is the combination that reliably halts goals AND movement; setDeltaMovement
-        // pins the current velocity so it does not keep sliding during the pose.
-        this.getNavigation().stop();
-        this.setDeltaMovement(Vec3.ZERO);
-        this.setNoAi(true);
+        // PROXIMITY path: same lock/animate/remove sequence as the death burst. It has NO fire check -
+        // that is unchanged from before, so a burning head still detonates on proximity; only the
+        // death path is fire-gated (see resolveBurst()).
+        burstLock(null);
     }
 
     /**
-     * PHASE 2 - the actual burst, run once when the phase-1 countdown reaches zero.
+     * THE shared health-lock entry point for both burst paths ("锁血随后移除自身").
      *
-     * <p>Server-only and latched by {@link #burstApplied}, so a mob that dies or is removed by
-     * something else during phase 1 can never have the burst applied twice. Everything the old
-     * single-tick {@code selfDestruct} did is here, unchanged: entity-only damage, the variant effect,
-     * exactly one variant web, then {@code discard()}.</p>
+     * <p>Locks the health, starts the burst animation on the triggered layer, freezes the mob and arms
+     * the single {@link #burstCountdown}. The ending is NOT decided here: {@link #resolveBurst} picks it
+     * from whether {@code source} was a death ({@code fakeDeathSource} non-null). This is what lets the
+     * proximity self-destruct and the death burst share one sequence instead of duplicating it.</p>
      */
-    private void finishDetonation() {
+    private void burstLock(DamageSource source) {
+        this.fakeDeathSource = source;
+        this.burstLocked = true;
+
+        // Health lock: the cow's values (InfestedCow#triggerFakeDeath :622-633).
+        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
+        this.setInvulnerable(true);
+        this.setNoAi(true);
+        this.setTarget(null);
+        this.setPose(Pose.DYING);
+        this.getNavigation().stop();
+        this.setDeltaMovement(Vec3.ZERO);
+
+        // SYNCHED, so the CLIENT renders the dead pose for the whole window. The locomotion predicate
+        // keys off isDetonating(); without this the client would play idle/walk while the server holds
+        // the pose. The triggered dead_controller layer is synced separately.
+        this.entityData.set(DATA_IS_DETONATING, true);
+        this.triggerAnim("dead_controller", "dead");
+        this.burstCountdown = DETONATE_TICKS;
+    }
+
+    /**
+     * Shared ending when the burst animation has finished: SOUND, then the path-specific follow-up.
+     *
+     * <p>Death path ({@code fakeDeathSource != null}): 100 % unless burning, unchanged. Proximity path:
+     * no fire check, so it always bursts - matching its behaviour before this change.</p>
+     */
+    private void resolveBurst(DamageSource source) {
+        this.fakeDeathResolved = true;
+        setFakingDeath(false);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
+
+        if (source != null) {
+            boolean burning = this.isOnFire();
+            super.die(source);
+            this.onDeath(source);
+            if (!burning) {
+                selfDestructBurst();
+            } else {
+                this.discard();
+            }
+        } else {
+            this.selfDestructBurst();
+        }
+    }
+
+    /** PHASE 2: entity-only damage 4.0F, the variant effect, exactly one web, then discard. */
+    private void selfDestructBurst() {
         if (this.burstApplied || this.level().isClientSide) {
             return;
         }
@@ -619,6 +658,18 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
         }
 
         this.discard();
+    }
+
+    /**
+     * PHASE 2 - the actual burst, run once when the phase-1 countdown reaches zero.
+     *
+     * <p>Server-only and latched by {@link #burstApplied}, so a mob that dies or is removed by
+     * something else during phase 1 can never have the burst applied twice. Everything the old
+     * single-tick {@code selfDestruct} did is here, unchanged: entity-only damage, the variant effect,
+     * exactly one variant web, then {@code discard()}.</p>
+     */
+    private void finishDetonation() {
+        selfDestructBurst();
     }
 
     /**
@@ -737,54 +788,21 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
      */
     private void triggerFakeDeath(DamageSource source) {
         setFakingDeath(true);
-        setInvulnerable(true);
         fakeDeathTimer = 30;
-        this.fakeDeathSource = source;
-        this.setHealth(EntityHealthUtils.burstHealth(this, 0.02F));
-        this.setNoAi(true);
-        this.setInvulnerable(true);
-        this.setTarget(null);
-        this.setPose(Pose.DYING);
-
-        // HEALTH LOCK DONE -> start the burst animation immediately, and arm the removal countdown
-        // from the CLIP's length (DETONATE_TICKS = dead's animation_length in ticks + margin).
-        this.triggerAnim("dead_controller", "dead");
-        this.fakeDeathBurstCountdown = DETONATE_TICKS;
+        // Everything else - health lock, invulnerability, AI freeze, Pose.DYING, the burst animation and
+        // the countdown - is the SHARED lock, so the death burst and the proximity self-destruct cannot
+        // drift apart. `source` marks this as the death path.
+        burstLock(source);
     }
 
     /**
      * The animation has finished: sound FIRST, then the damage + removal.
      *
      * <p><b>Order, and why it is not literally "discard first":</b> the user's sequence is remove ->
-     * sound -> damage, but {@code applyBurstDamage} and {@code placeVariantWeb} read
-     * {@code getBoundingBox()} and {@code blockPosition()}, and {@code discard()} invalidates the
-     * entity's position tracking. Removing first would therefore put the damage and the web at risk of
-     * landing nowhere - exactly the failure the requirement warns about ("do not let damage fail
-     * because the entity is already gone"). So the burst is applied first, from the still-valid
-     * position, and the removal happens LAST via {@code finishDetonation}'s {@code discard()}. The
-     * player-visible result is identical: the animation ends, the web/burst lands, and the mob is
-     * gone in the same tick.</p>
+     * Replaced by {@link #resolveBurst}, which both paths share.
      */
     private void resolveFakeDeath(DamageSource source) {
-        this.fakeDeathResolved = true;
-        setFakingDeath(false);
-
-        // The cow's burst sound, verbatim: same SoundEvent, source, volume and pitch (InfestedCow
-        // :207-208). Server-side broadcast, unchanged.
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
-
-        boolean burning = this.isOnFire();
-        super.die(source);
-        this.onDeath(source);
-        if (!burning) {
-            // The head's burst: entity-only damage 4.0F in a 3.0F radius, the variant effect, exactly
-            // one variant web, then discard(). Latched by burstApplied.
-            selfDestruct();
-        } else {
-            // On fire: no burst at all, just removal.
-            this.discard();
-        }
+        resolveBurst(source);
     }
 
     //  Goals

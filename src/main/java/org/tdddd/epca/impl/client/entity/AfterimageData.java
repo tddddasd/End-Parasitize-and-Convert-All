@@ -13,17 +13,34 @@ import java.util.Map;
  */
 public class AfterimageData {
     public final Vec3 position;
+    /** Frozen body yaw captured at spawn; drives the ghost's facing. */
     public final float yRot;
+    /**
+     * Frozen body/head yaw and their previous-tick values, captured alongside {@link #yRot}. These
+     * exist so a renderer that recomputes the head bone from the OWNER's gaze cannot make the ghost's
+     * head track the player - the ghost carries its own frozen values instead.
+     */
+    public final float yBodyRot;
+    public final float yHeadRot;
+    public final float yRotO;
+    public final float yBodyRotO;
+    public final float yHeadRotO;
     public final int spawnTick;
     public final int lifetime;
 
     /** Frozen bone transforms captured at spawn time. Key = bone name. */
     public final Map<String, BoneSnapshot> bonePose;
 
-    public AfterimageData(Vec3 position, float yRot, int spawnTick, int lifetime,
-                          Map<String, BoneSnapshot> bonePose) {
+    public AfterimageData(Vec3 position, float yRot, float yBodyRot, float yHeadRot,
+                          float yRotO, float yBodyRotO, float yHeadRotO,
+                          int spawnTick, int lifetime, Map<String, BoneSnapshot> bonePose) {
         this.position = position;
         this.yRot = yRot;
+        this.yBodyRot = yBodyRot;
+        this.yHeadRot = yHeadRot;
+        this.yRotO = yRotO;
+        this.yBodyRotO = yBodyRotO;
+        this.yHeadRotO = yHeadRotO;
         this.spawnTick = spawnTick;
         this.lifetime = lifetime;
         this.bonePose = bonePose;
