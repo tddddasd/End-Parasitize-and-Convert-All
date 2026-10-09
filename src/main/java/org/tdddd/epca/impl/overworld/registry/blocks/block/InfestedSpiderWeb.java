@@ -38,7 +38,9 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
      * previous implementation kept this in a static {@code HashMap<BlockPos, Long>}, which is wiped
      * with the JVM and was the reason the countdown restarted (or never resumed) after a reload.
      */
-    public static final IntegerProperty PLACED_AT = IntegerProperty.create("placed_at", 0, 32767);
+    /** Must exceed DECAY_TICKS (1200) so a stamp cannot collide within one web lifetime. */
+    public static final int PLACED_CYCLE = 2048;
+    public static final IntegerProperty PLACED_AT = IntegerProperty.create("placed_at", 0, PLACED_CYCLE - 1);
     /** Sentinel for {@link #PLACED_AT}: not a mob-placed web, so no decay is scheduled. */
     public static final int PLACED_NEVER = 0;
     /** The decay duration. Unchanged: 60 seconds. */
@@ -135,19 +137,19 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
     }
 
     /**
-     * The absolute expiry tick, truncated into {@link #PLACED_AT}'s 15-bit range (1..32767). Recorded
-     * once, at placement. Because the range is a 32767-tick cycle and a web only lives 1200 ticks, the
+     * The absolute expiry tick, truncated into {@link #PLACED_AT}'s 15-bit range (1..PLACED_CYCLE). Recorded
+     * once, at placement. Because the range is a PLACED_CYCLE-tick cycle and a web only lives 1200 ticks, the
      * stamp unambiguously identifies the expiry within the web's own lifetime; the value can only make
      * a web expire EARLIER than 60 s, never later.
      */
     public static int expiryStamp(long gameTime) {
-        int stamp = (int) ((gameTime + DECAY_TICKS) % 32767L);
+        int stamp = (int) ((gameTime + DECAY_TICKS) % PLACED_CYCLE);
         return stamp == PLACED_NEVER ? 1 : stamp;
     }
 
     /** The current tick in the same truncated space as {@link #expiryStamp}, used by the tick check. */
     public static int nowStamp(long gameTime) {
-        int stamp = (int) (gameTime % 32767L);
+        int stamp = (int) (gameTime % PLACED_CYCLE);
         return stamp == PLACED_NEVER ? 1 : stamp;
     }
 
@@ -160,9 +162,9 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
      */
     public static boolean stampDue(long gameTime, int stamp) {
         int now = nowStamp(gameTime);
-        long elapsed = (now - (stamp - DECAY_TICKS)) % 32767L;
+        long elapsed = (now - (stamp - DECAY_TICKS)) % PLACED_CYCLE;
         if (elapsed < 0) {
-            elapsed += 32767L;
+            elapsed += PLACED_CYCLE;
         }
         return elapsed >= DECAY_TICKS;
     }

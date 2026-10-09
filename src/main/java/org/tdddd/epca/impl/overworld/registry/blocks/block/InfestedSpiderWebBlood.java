@@ -40,7 +40,9 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
      * countdown survives save/load and chunk unload/reload. The old static
      * {@code HashMap<BlockPos, Long>} did not, which is why the timer restarted after a reload.
      */
-    public static final IntegerProperty PLACED_AT = IntegerProperty.create("placed_at", 0, 32767);
+    /** Must exceed DECAY_TICKS (1200) so a stamp cannot collide within one web lifetime. */
+    public static final int PLACED_CYCLE = 2048;
+    public static final IntegerProperty PLACED_AT = IntegerProperty.create("placed_at", 0, PLACED_CYCLE - 1);
     /** Sentinel for {@link #PLACED_AT}: not a mob-placed web. */
     public static final int PLACED_NEVER = 0;
     /** The decay duration. Unchanged: 60 seconds. */
@@ -126,13 +128,13 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
 
     /** The absolute expiry tick truncated into {@link #PLACED_AT}'s range. See the base web class. */
     public static int expiryStamp(long gameTime) {
-        int stamp = (int) ((gameTime + DECAY_TICKS) % 32767L);
+        int stamp = (int) ((gameTime + DECAY_TICKS) % PLACED_CYCLE);
         return stamp == PLACED_NEVER ? 1 : stamp;
     }
 
     /** The current tick in the same truncated space as {@link #expiryStamp}. */
     public static int nowStamp(long gameTime) {
-        int stamp = (int) (gameTime % 32767L);
+        int stamp = (int) (gameTime % PLACED_CYCLE);
         return stamp == PLACED_NEVER ? 1 : stamp;
     }
 
@@ -142,9 +144,9 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
      */
     public static boolean stampDue(long gameTime, int stamp) {
         int now = nowStamp(gameTime);
-        long elapsed = (now - (stamp - DECAY_TICKS)) % 32767L;
+        long elapsed = (now - (stamp - DECAY_TICKS)) % PLACED_CYCLE;
         if (elapsed < 0) {
-            elapsed += 32767L;
+            elapsed += PLACED_CYCLE;
         }
         return elapsed >= DECAY_TICKS;
     }
