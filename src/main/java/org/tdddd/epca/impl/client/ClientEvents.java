@@ -7,6 +7,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.client.effect.ArayaBgmManager;
+import org.tdddd.epca.impl.client.effect.ArayaBossBgmManager;
 import org.tdddd.epca.impl.client.effect.ArayaClientCache;
 import org.tdddd.epca.impl.client.effect.ArayaSlashClientCache;
 import org.tdddd.epca.impl.client.effect.BioTortClientState;
@@ -58,6 +59,10 @@ public class ClientEvents {
             ArayaSlashClientCache.clear();
             ArayaBgmManager.stop();
             ArayaBgmManager.invalidateAssetCache();
+            // The naming-egg theme belongs to an entity in a level too, so the same level-change hook
+            // stops it and drops its cached asset answer.
+            ArayaBossBgmManager.stop();
+            ArayaBossBgmManager.invalidateAssetCache();
             ArayaSceneCopy.invalidate();
             // /
             BioTortClientState.clear();
@@ -70,6 +75,9 @@ public class ClientEvents {
         // Starts, follows and stops the  BGM: the loop runs only while a holder with an active
         // counter is reported and the local listener is inside the documented radius.
         ArayaBgmManager.clientTick();
+        // Starts, follows and stops the ARAYA NAMING EGG theme: the loop runs only while a renamed
+        // infested enderman in Araya mode is within the documented radius of the listener.
+        ArayaBossBgmManager.clientTick();
         if (tickCounter % 20 == 0) {
             EndermanAfterimageLayer.cleanupOrphaned();
         }

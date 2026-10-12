@@ -39,6 +39,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
 import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
+import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -119,6 +120,12 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     private int jumpCooldown = 0;
     private static final int CLIMB_COOLDOWN_TICKS = 200;
     private int climbCooldown = 0;
+    /** Ripper count below which a Ripper actively flees non-Nest-Leader players. */
+    private static final int EVADE_NON_LEADER_MAX_RIPPER_COUNT = 3;
+    /** Ticks between two recomputations of {@link #cachedNearbyRipperCount} (throttle). */
+    private static final int RIPPER_COUNT_CACHE_TICKS = 15;
+    private int cachedNearbyRipperCount = 1;
+    private int nearbyRipperCountCacheTicker = 0;
 
     public Ripper(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -223,6 +230,11 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     @Override
     protected void registerGoals() {
         super.registerGoals();
+        // Priority 0: while fewer than 3 Rippers are nearby, fleeing a non-Nest-Leader player
+        // outranks every other movement goal (panic/climb/leap at 1, stroll at 2,
+        // follow/melee at 3, beckon at 4, float at 5). It stops on its own as soon as the
+        // local Ripper count reaches 3, restoring all normal behaviour.
+        this.goalSelector.addGoal(0, new AvoidNonLeaderPlayersGoal(this));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         this.goalSelector.addGoal(1, new ClimbTowardsTargetGoal(this));
@@ -660,6 +672,32 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         ).size();
     }
 
+    /**
+     * Throttled, server-side view of {@link #getNearbyRupterCount()} used by every goal that needs
+     * the local pack size.
+     *
+     * <p>The entity lookup is refreshed at most once every {@link #RIPPER_COUNT_CACHE_TICKS} ticks
+     * instead of once per goal query per tick, so the cost stays bounded no matter how many goals
+     * ask for it. The counting Ripper is part of its own bounding-box query, so a lone Ripper
+     * reports 1 and is therefore below {@link #EVADE_NON_LEADER_MAX_RIPPER_COUNT}.</p>
+     */
+    private int getCachedNearbyRipperCount() {
+        if (--this.nearbyRipperCountCacheTicker > 0) {
+            return this.cachedNearbyRipperCount;
+        }
+        this.nearbyRipperCountCacheTicker = RIPPER_COUNT_CACHE_TICKS;
+        if (this.level().isClientSide) {
+            return this.cachedNearbyRipperCount;
+        }
+        this.cachedNearbyRipperCount = this.getNearbyRupterCount();
+        return this.cachedNearbyRipperCount;
+    }
+
+    /** True while this Ripper is outnumbered, i.e. fewer than 3 Rippers are nearby. */
+    private boolean isBelowRipperPackThreshold() {
+        return this.getCachedNearbyRipperCount() < EVADE_NON_LEADER_MAX_RIPPER_COUNT;
+    }
+
     private int getEvolutionStage() {
         if (this.level() instanceof ServerLevel serverLevel) {
             EvolutionManager evolutionManager;
@@ -679,6 +717,21 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
     private boolean isMoving() {
         return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6;
+    }
+
+    /**
+     * Target filter for {@link AvoidNonLeaderPlayersGoal}: only players who are not Nest Leaders
+     * are avoided. Nest Leaders stay exempt, which matches the rest of the mod, where
+     * {@code IParasite.isParasiteByTagOrInterface} treats every Nest Leader as friendly.
+     */
+    private boolean isNonLeaderPlayer(LivingEntity entity) {
+        if (!(entity instanceof Player player)) {
+            return false;
+        }
+        if (!EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(player)) {
+            return false;
+        }
+        return !NestLeaderManager.isNestLeader(player.getUUID());
     }
 
     
@@ -833,6 +886,34 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
+    /**
+     * Active only while fewer than 3 Rippers are nearby: the Ripper runs away from any player who
+     * is not a Nest Leader ({@code NestLeaderManager.isNestLeader(UUID)}). Nest Leaders are never
+     * avoided, and once the local pack reaches 3 Rippers the goal stops on its own and every other
+     * goal behaves exactly as before.
+     *
+     * <p>Built on the vanilla {@link AvoidEntityGoal} (avoid-predicate constructor) so the vanilla
+     * flee pathing, sprint and line-of-sight handling are reused instead of re-implemented. The
+     * walking speed follows the Ripper's existing panic flee speed (1.5D walk / 1.5D sprint); its
+     * base MOVEMENT_SPEED attribute is 0.3D, see {@code Ripper#setAttributes()}.</p>
+     */
+    static class AvoidNonLeaderPlayersGoal extends AvoidEntityGoal<Player> {
+        private final Ripper rupter;
+
+        public AvoidNonLeaderPlayersGoal(Ripper rupter) {
+            super(rupter, Player.class, 16.0F, 1.5D, 1.5D, rupter::isNonLeaderPlayer);
+            this.rupter = rupter;
+        }
+
+        @Override
+        public boolean canUse() {
+            if (!this.rupter.isBelowRipperPackThreshold()) {
+                return false;
+            }
+            return super.canUse();
+        }
+    }
+
     static class ConditionalAvoidGoal<T extends LivingEntity> extends AvoidEntityGoal<T> {
         private final Ripper rupter;
 
@@ -880,7 +961,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
             if (stage < -2 || stage > 1) {
                 return false;
             }
-            int count = rupter.getNearbyRupterCount();
+            int count = rupter.getCachedNearbyRipperCount();
             return count >= 3 && super.canUse();
         }
 
