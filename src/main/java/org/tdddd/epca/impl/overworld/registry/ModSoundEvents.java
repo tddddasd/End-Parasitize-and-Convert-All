@@ -106,6 +106,15 @@ public class ModSoundEvents {
      */
     public static final DeferredHolder<SoundEvent, SoundEvent> ARAYA = register("araya");
 
+    /**
+     * The Araya NAMING EASTER EGG theme ("araya_boss"): the long streamed track the client loops while a
+     * renamed infested enderman is in Araya mode. Separate from {@link #ARAYA} on purpose - that one
+     * belongs to the staff aura, this one to the named enderman, and they must be able to coexist and be
+     * started/stopped independently. {@code sounds.json} ships it with {@code stream: true} for the same
+     * reason: a multi-megabyte OGG must be streamed, not preloaded as decoded PCM.
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ARAYA_BOSS = register("araya_boss");
+
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(
                 Identifier.fromNamespaceAndPath(epca.MODID, name)

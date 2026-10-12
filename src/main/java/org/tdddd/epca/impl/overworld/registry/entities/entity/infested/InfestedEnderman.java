@@ -123,6 +123,21 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private static final EntityDataAccessor<Integer> DATA_CARRIED_ENTITY_ID = SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.INT);
 
     public boolean isArayaMode = false;
+    /**
+     * Client-visible mirror of {@link #isArayaMode}: a plain field is server-only, so without a synced
+     * copy the client's entity always reads "not in Araya mode" and the naming-egg BGM can never start.
+     */
+    private static final EntityDataAccessor<Boolean> DATA_IS_ARAYA_MODE =
+            SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.BOOLEAN);
+    /**
+     * Tracks whether WE raised the vanilla shift flag for the grab escape, so it is only ever cleared
+     * when we were the ones who set it and it cannot leak a permanent "sneaking" state.
+     */
+    private boolean arayaShiftHeld = false;
+    /** Ticks between two shift pulses of the grab escape: 38 + 1 press tick + 1 release tick = 40 ticks = exactly 2.000 s press-to-press at 20 tps. */
+    private static final int ARAYA_SHIFT_PULSE_TICKS = 38;
+    /** Ticks left before the next pulse; 0 means "press on the next tick". */
+    private int arayaShiftCooldown = 0;
     private int summoningTicks = 0;               
     private int summonsRemaining = 0;              
     private LivingEntity summonTarget;             
@@ -319,6 +334,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         }
 
         if (isArayaMode && !level().isClientSide()) {
+            applyArayaGrabEscape();
             arayaBuffTimer++;
             if (arayaBuffTimer >= 60 * 20) {
                 arayaBuffTimer = 0;
@@ -639,8 +655,70 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         }
     }
 
+    /**
+     * Lets the Araya easter egg "press Shift" while ANOTHER mod's grab is holding it, so the grab's own
+     * logic releases it the same way it releases a player.
+     *
+     * <p><b>Why the vanilla shift state.</b> A player's Shift press sets {@code Entity}'s shift-down flag,
+     * and that flag is the only thing a third-party grab can consult through vanilla API - so matching it
+     * is exactly "doing what a player does", with no dependency on any other mod's classes (which this
+     * mod must never have).</p>
+     *
+     * <p><b>Pulsed, not held.</b> The flag is raised for a single tick every
+     * {@link #ARAYA_SHIFT_PULSE_TICKS} ticks instead of being held down: a grab that watches for a press
+     * edge (or a one-shot input) needs an actual press, and a permanently raised flag would also change
+     * this mob's own movement and step behaviour. One pulse is: press on one tick, release on the next,
+     * then wait out the cooldown. The counter is re-armed the moment the entity is no longer carried, so
+     * the next grab presses immediately instead of waiting out the previous window.</p>
+     *
+     * <p><b>Set only while actually held.</b> The pulse runs only when this entity is a
+     * <b>passenger</b> ({@link #isPassenger()}), i.e. something is carrying it. Note this is the opposite
+     * direction from this class's own {@code carriedEntity}, which is what the enderman holds - being
+     * the grabber must not press the flag.</p>
+     *
+     * <p><b>Never forces a release.</b> {@code stopRiding()} is deliberately NOT called: the user's
+     * escapes come from <i>some</i> mobs' grabs, and forcing a dismount would free the enderman from
+     * things it should not escape. Only the input is provided; the grab decides.</p>
+     *
+     * <p><b>Cleared as soon as it is not held</b>, so the mob is neither left permanently sneaking nor
+     * left with a flag this class did not raise.</p>
+     *
+     * <p><b>Server side</b>, from the entity's own {@code tick()}, where its state is authoritative - the
+     * flag is part of the entity's synced/movement state and a client-only set would not be what a grab
+     * on the server reads.</p>
+     */
+    private void applyArayaGrabEscape() {
+        // One clean PRESS per window, never a held state: a grab that looks for a press edge (or a
+        // one-shot input) sees an actual press, and nothing is left raised between pulses.
+        if (!this.isPassenger()) {
+            // Not carried any more: drop a flag WE raised and re-arm, so the next grab presses at once.
+            if (this.arayaShiftHeld) {
+                this.setShiftKeyDown(false);
+                this.arayaShiftHeld = false;
+            }
+            this.arayaShiftCooldown = 0;
+            return;
+        }
+        if (this.arayaShiftHeld) {
+            // Second tick of the pulse: release, leaving a clean press edge behind.
+            this.setShiftKeyDown(false);
+            this.arayaShiftHeld = false;
+            return;
+        }
+        if (this.arayaShiftCooldown > 0) {
+            this.arayaShiftCooldown--;
+            return;
+        }
+        // Press for this one tick; the next tick releases it, then the cooldown runs down.
+        this.setShiftKeyDown(true);
+        this.arayaShiftHeld = true;
+        this.arayaShiftCooldown = ARAYA_SHIFT_PULSE_TICKS;
+    }
+
     private void enterArayaMode() {
         isArayaMode = true;
+        // Tell the client, or its copy of this entity keeps isArayaMode() false and nobody hears the BGM.
+        this.entityData.set(DATA_IS_ARAYA_MODE, true);
         
         AttributeInstance maxHealth = this.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealth != null) {
@@ -661,6 +739,15 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
 
     private void exitArayaMode() {
         isArayaMode = false;
+        this.entityData.set(DATA_IS_ARAYA_MODE, false);
+        // Leaving Araya mode must not leave the shift flag raised or a pulse half-scheduled: the escape
+        // only applies while the easter egg is active, so both are reset here rather than leaking into
+        // normal behaviour.
+        if (this.arayaShiftHeld) {
+            this.setShiftKeyDown(false);
+            this.arayaShiftHeld = false;
+        }
+        this.arayaShiftCooldown = 0;
         
         AttributeInstance maxHealth = this.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealth != null) {
@@ -857,6 +944,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         entityData.define(DATA_CARRIED_ENTITY_ID, -1);
         entityData.define(DATA_VARIANT, InfestedEnderman.Variant.DEFAULT.ordinal());
         entityData.define(DATA_IS_STATIONARY_MINION, false);
+        entityData.define(DATA_IS_ARAYA_MODE, false);
     }
 
     @Override
@@ -1538,7 +1626,14 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         return false;
     }
 
+    /**
+     * Current Araya state. The client has no access to the server's plain field, so it reads the synced
+     * mirror instead; the server keeps using the authoritative field, so its own logic is untouched.
+     */
     public boolean isArayaMode() {
+        if (this.level().isClientSide()) {
+            return this.entityData.get(DATA_IS_ARAYA_MODE);
+        }
         return isArayaMode;
     }
 

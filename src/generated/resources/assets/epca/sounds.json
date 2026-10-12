@@ -8,6 +8,15 @@
     ],
     "subtitle": "subtitles.epca.araya"
   },
+  "araya_boss": {
+    "sounds": [
+      {
+        "name": "epca:araya_boss",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.epca.araya_boss"
+  },
   "beckon_stage1": {
     "sounds": [
       "epca:mob/link/beckon/beckon_stage1"

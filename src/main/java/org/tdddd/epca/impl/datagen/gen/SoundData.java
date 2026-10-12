@@ -28,7 +28,7 @@ public class SoundData extends SoundDefinitionsProvider {
             var definition = SoundDefinition.definition();
             // The araya battle theme is a long track, so it is streamed from disk
             // instead of being preloaded into memory like the short sound effects.
-            boolean stream = eventName.equals("araya");
+            boolean stream = eventName.equals("araya") || eventName.equals("araya_boss");
             for (String file : files) {
                 Identifier soundLoc = Identifier.fromNamespaceAndPath(epca.MODID, file);
                 var soundEntry = sound(soundLoc, SoundDefinition.SoundType.SOUND);
@@ -238,6 +238,9 @@ public class SoundData extends SoundDefinitionsProvider {
 
         // --- araya battle theme ---
         map.put("araya", List.of("araya"));
+        // Araya NAMING EASTER EGG theme. The file is several megabytes, so it MUST be streamed; the
+        // `stream` flag below is keyed on the event name, so "araya_boss" is added to that check.
+        map.put("araya_boss", List.of("araya_boss"));
 
         return map;
     }
