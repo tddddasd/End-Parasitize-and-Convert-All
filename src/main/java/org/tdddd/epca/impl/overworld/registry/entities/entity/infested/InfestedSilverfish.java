@@ -17,6 +17,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.entity.vehicle.minecart.Minecart;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,6 +32,7 @@ import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.InfestedSilverfishNavigation;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
 import com.geckolib.animatable.manager.AnimatableManager;
@@ -50,7 +52,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
         super(type, level);
         this.xpReward = 8;
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new InfestedSilverfishNavigation(this, level);
     }
 
     @Override
@@ -95,47 +97,37 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                 }
             }
             LivingEntity target = this.getTarget();
-            BlockPos footPos = this.blockPosition();
-            boolean inInfestedBlock = this.level().getBlockState(footPos).getBlock() instanceof InfestedBlockInterface;
-            boolean shouldHaveNoGravity = false;
 
-            if (target == null) {
-                
-                BlockState footState = this.level().getBlockState(footPos);
-                BlockState belowState = this.level().getBlockState(footPos.below());
-                shouldHaveNoGravity = footState.getBlock() instanceof InfestedBlockInterface ||
-                        belowState.getBlock() instanceof InfestedBlockInterface;
-            } else {
-                
+            if (target != null) {
                 double dy = target.getY() - this.getY();
                 double horizontalDistSq = this.distanceToSqr(target.getX(), this.getY(), target.getZ());
-                if (dy > 0.5 && inInfestedBlock) {
-                    shouldHaveNoGravity = true; 
+
+                if (Math.abs(dy) < 1.5 && horizontalDistSq < 4.0) {
                     Vec3 motion = this.getDeltaMovement();
-                    
-                    if (motion.y < 0.2) {
-                        this.setDeltaMovement(motion.x, Math.min(motion.y + 0.05, 0.2), motion.z);
-                    }
-                } else {
-                    shouldHaveNoGravity = false; 
-                    
-                    if (Math.abs(dy) < 1.5 && horizontalDistSq < 4.0) {
-                        Vec3 motion = this.getDeltaMovement();
-                        if (motion.y < 0) {
-                            this.setDeltaMovement(motion.x, 0, motion.z);
-                        }
+                    if (motion.y < 0) {
+                        this.setDeltaMovement(motion.x, 0, motion.z);
                     }
                 }
+
                 if (this.navigation.isDone() && this.random.nextInt(20) == 0) {
                     this.navigation.moveTo(target, 1.0);
                 }
             }
-            if (this.isNoGravity() != shouldHaveNoGravity) {
-                this.setNoGravity(shouldHaveNoGravity);
-                
-                if (shouldHaveNoGravity && this.getDeltaMovement().y < 0) {
-                    this.setDeltaMovement(this.getDeltaMovement().multiply(1, 0, 1));
+
+            // Gravity is never switched off any more: the mob walks inside infested blocks exactly
+            // like on any other ground, instead of floating and drifting as if it were in water.
+            BlockPos epcaFoot = this.blockPosition();
+            boolean epcaInsideInfested =
+                    this.level().getBlockState(epcaFoot).getBlock() instanceof InfestedBlockInterface
+                            || this.level().getBlockState(epcaFoot.above()).getBlock() instanceof InfestedBlockInterface;
+            if (epcaInsideInfested) {
+                this.setNoGravity(true);
+                Vec3 epcaMotion = this.getDeltaMovement();
+                if (epcaMotion.y != 0.0D) {
+                    this.setDeltaMovement(epcaMotion.x, 0.0D, epcaMotion.z);
                 }
+            } else if (this.isNoGravity()) {
+                this.setNoGravity(false);
             }
             updateFloating();
         }
@@ -312,6 +304,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
+
     @Override
     public boolean isInWall() {
         

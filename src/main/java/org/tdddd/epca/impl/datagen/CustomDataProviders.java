@@ -453,6 +453,19 @@ public class CustomDataProviders {
             put(general, "minecraft:mangrove_roots", "epca:infested_mangrove_roots");
             put(general, "minecraft:short_grass", "epca:infested_grass");
             put(general, "minecraft:dead_bush", "epca:infested_dead_bush");
+
+            // Moss. The moss BLOCK entry comes first so that the reverse purification lookup below
+            // picks a source that exists in this version.
+            put(general, "minecraft:moss_block", "epca:infested_moss_block");
+            put(general, "minecraft:pale_moss_block", "epca:infested_moss_block");
+            put(general, "minecraft:moss_carpet", "epca:infested_moss_carpet");
+            put(general, "minecraft:pale_moss_carpet", "epca:infested_moss_carpet");
+            // Bush and dry grass.
+            put(general, "minecraft:bush", "epca:infested_bush");
+            put(general, "minecraft:short_dry_grass", "epca:infested_short_dry_grass");
+            put(general, "minecraft:tall_dry_grass", "epca:infested_tall_dry_grass");
+            // Vanilla firefly bush becomes infested SHORT GRASS (not a bush) by explicit request.
+            put(general, "minecraft:firefly_bush", "epca:infested_short_grass");
             put(general, "minecraft:fern", "epca:infested_fern");
             put(general, "minecraft:tall_grass", "epca:infested_tall_grass");
             put(general, "minecraft:large_fern", "epca:infested_tall_fern");
@@ -521,7 +534,8 @@ public class CustomDataProviders {
                     e(ModEntities.INFESTED_CHICKEN, 5,2,2), e(ModEntities.INFESTED_BAT, 5,4,5),
                     e(ModEntities.RIPPER, 5,2,3), e(ModEntities.INFESTED_SKELETON, 5,1,1),
                     e(ModEntities.FLYING_CARRIER, 5,1,1), e(ModEntities.LIGHT_CARRIER, 2,1,1),
-                    e(ModEntities.INFESTED_ENDERMAN, 2,1,1), e(ModEntities.INFESTED_FOX, 5,1,2));
+                    e(ModEntities.INFESTED_ENDERMAN, 2,1,1), e(ModEntities.INFESTED_FOX, 5,1,2),
+                    e(ModEntities.INFESTED_SPIDER, 5,1,1));
 
             return CompletableFuture.allOf(
                     saveSpawns(cache, "biomass_small", small),

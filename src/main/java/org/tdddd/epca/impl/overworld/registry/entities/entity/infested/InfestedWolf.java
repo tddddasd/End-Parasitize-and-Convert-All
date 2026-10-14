@@ -28,6 +28,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LeapSeekGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -64,7 +69,7 @@ import com.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.UUID;
 
-public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
+public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable, GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     @Nullable
     private UUID ownerUUID;
@@ -111,7 +116,8 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
         if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
         
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID);
         this.howlCooldown = this.random.nextInt(HOWL_COOLDOWN_TICKS / 2, HOWL_COOLDOWN_TICKS);
     }
 
@@ -292,6 +298,10 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
     }
 
     @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
+    }
+
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
@@ -309,6 +319,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
+        this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID));
     }
 
     @Override

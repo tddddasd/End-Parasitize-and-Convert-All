@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "epca:block/infested_short_dry_grass"
+  }
+}

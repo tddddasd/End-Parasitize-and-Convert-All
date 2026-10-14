@@ -794,4 +794,34 @@ public class ModBlocks {
             InfestedDeadBush::new,
             () -> BlockBehaviour.Properties.ofFullCopy(Blocks.DEAD_BUSH).ignitedByLava()
     );
+
+    public static final DeferredBlock<Block> INFESTED_MOSS_BLOCK = BLOCKS.registerBlock(
+            "infested_moss_block",
+            InfestedMossBlock::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.MOSS_BLOCK).randomTicks()
+    );
+
+    public static final DeferredBlock<Block> INFESTED_MOSS_CARPET = BLOCKS.registerBlock(
+            "infested_moss_carpet",
+            InfestedMossCarpet::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.MOSS_CARPET).randomTicks()
+    );
+
+    public static final DeferredBlock<Block> INFESTED_BUSH = BLOCKS.registerBlock(
+            "infested_bush",
+            InfestedBush::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.BUSH).ignitedByLava()
+    );
+
+    public static final DeferredBlock<Block> INFESTED_SHORT_DRY_GRASS = BLOCKS.registerBlock(
+            "infested_short_dry_grass",
+            InfestedShortDryGrass::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SHORT_DRY_GRASS).ignitedByLava()
+    );
+
+    public static final DeferredBlock<Block> INFESTED_TALL_DRY_GRASS = BLOCKS.registerBlock(
+            "infested_tall_dry_grass",
+            InfestedTallDryGrass::new,
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.TALL_DRY_GRASS).ignitedByLava()
+    );
 }

@@ -23,6 +23,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LeapSeekGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.boat.Boat;
@@ -57,7 +62,7 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
+public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable , GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     public int tryApplyCothEffect(Mob mob, int currentCooldown) {
         return 0;
@@ -85,7 +90,8 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
         var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
         if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
         
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID);
     }
 
     @Override
@@ -168,8 +174,13 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
     }
 
     @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
+    }
+
     protected void registerGoals() {
         super.registerGoals();
+        this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         

@@ -26,6 +26,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LeapSeekGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LongarmsGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -70,7 +75,7 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
-public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasite, IReshape, Enemy {
+public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasite, IReshape, Enemy , GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
@@ -122,7 +127,8 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         this.xpReward = 45;
         var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
         if (epcaStepHeight != null) epcaStepHeight.setBaseValue(1.6F);
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new LongarmsGroundNavigation(this, level);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_RESHAPE_LONGARMS);
 
         if (!level.isClientSide()) {
             
@@ -954,8 +960,14 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     }
 
     @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
+    }
+
+    @Override
     protected void registerGoals() {
         super.registerGoals();
+        this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_RESHAPE_LONGARMS));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         this.goalSelector.addGoal(1, new Goal() {

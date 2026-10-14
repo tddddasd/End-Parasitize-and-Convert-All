@@ -31,7 +31,11 @@ import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import net.minecraft.world.level.biome.Biome;
 
@@ -90,6 +94,12 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
             spawnCactus(level, pos, random);
         }
 
+        // Infested dry grass: a sparse 0.5 % roll that only ever fires in desert / badlands type biomes,
+        // 5~9 plants per attempt of which 2~4 are the tall variant.
+        if (random.nextFloat() < 0.005f) {
+            spawnDryGrasses(level, pos, random);
+        }
+
         if (hasWaterAround(level, pos) && level.getBlockState(pos.above()).isAir()) {
             if (random.nextFloat() < 0.0075f) {
                 spawnSugarCanes(level, pos, random, 5 + random.nextInt(2), 2, 1, 2); 
@@ -98,6 +108,85 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                 spawnSugarCanes(level, pos, random, 2 + random.nextInt(3), 1, 1, 1); 
             }
         }
+    }
+
+    /**
+     * Sows infested short / tall dry grass on the infested sand around {@code pos}.
+     *
+     * <p>Only desert and badlands type biomes qualify. The presence scan covers a radius of 12 blocks,
+     * plants are only ever placed inside a radius of 8 blocks, and one attempt sows 5~9 plants of which
+     * 2~4 are {@link ModBlocks#INFESTED_TALL_DRY_GRASS}.
+     */
+    private void spawnDryGrasses(ServerLevel level, BlockPos pos, RandomSource random) {
+        if (!isDryGrassBiome(level, pos)) return;
+
+        final int checkRadius = 12;
+        final int spawnRadius = 8;
+
+        Set<BlockPos> existingGrasses = new HashSet<>();
+        BlockPos.betweenClosedStream(
+                        pos.offset(-checkRadius, -checkRadius, -checkRadius),
+                        pos.offset(checkRadius, checkRadius, checkRadius))
+                .forEach(p -> {
+                    Block block = level.getBlockState(p).getBlock();
+                    if (block == ModBlocks.INFESTED_SHORT_DRY_GRASS.get()
+                            || block == ModBlocks.INFESTED_TALL_DRY_GRASS.get()) {
+                        existingGrasses.add(p.immutable());
+                    }
+                });
+
+        int count = 5 + random.nextInt(5); // 5~9
+        int tallCount = 2 + random.nextInt(3); // 2~4 of them are the tall variant
+        List<Integer> tallIndices = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            tallIndices.add(i);
+        }
+        Collections.shuffle(tallIndices, new Random(random.nextLong()));
+        Set<Integer> tallSlots = new HashSet<>(tallIndices.subList(0, Math.min(tallCount, count)));
+
+        for (int i = 0; i < count; i++) {
+            for (int attempt = 0; attempt < 30; attempt++) {
+                int dx = random.nextInt(2 * spawnRadius + 1) - spawnRadius;
+                int dy = random.nextInt(2 * spawnRadius + 1) - spawnRadius;
+                int dz = random.nextInt(2 * spawnRadius + 1) - spawnRadius;
+                BlockPos targetPos = pos.offset(dx, dy, dz);
+
+                if (targetPos.equals(pos)) continue;
+
+                if (!level.isEmptyBlock(targetPos)) continue;
+
+                BlockPos below = targetPos.below();
+                BlockState belowState = level.getBlockState(below);
+                if (belowState.getBlock() != ModBlocks.INFESTED_SAND.get()) continue;
+
+                boolean tooClose = false;
+                for (BlockPos grassPos : existingGrasses) {
+                    if (grassPos.distSqr(targetPos) < 16) {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                if (tooClose) continue;
+
+                Block target = tallSlots.contains(i)
+                        ? ModBlocks.INFESTED_TALL_DRY_GRASS.get()
+                        : ModBlocks.INFESTED_SHORT_DRY_GRASS.get();
+                level.setBlock(targetPos, target.defaultBlockState(), 3);
+                existingGrasses.add(targetPos.immutable());
+                break;
+            }
+        }
+    }
+
+    /** True when the biome at {@code pos} is a desert or a badlands type biome. */
+    private boolean isDryGrassBiome(ServerLevel level, BlockPos pos) {
+        Holder<Biome> biome = level.getBiome(pos);
+        return biome.unwrapKey()
+                .map(key -> {
+                    String path = key.identifier().getPath();
+                    return path.contains("desert") || path.contains("badlands") || path.contains("mesa");
+                })
+                .orElse(false);
     }
 
     private void spawnCactus(ServerLevel level, BlockPos pos, RandomSource random) {

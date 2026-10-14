@@ -92,6 +92,12 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
             spawnPumpkins(level, pos, random);
         }
 
+        // Infested bush: the very same chance and range as the infested pumpkin above, only with no
+        // biome requirement and 2~5 plants per attempt instead of the pumpkin's 3~8.
+        if (random.nextFloat() < 0.005f) {
+            spawnBushes(level, pos, random);
+        }
+
         if (hasWaterAround(level, pos) && level.getBlockState(pos.above()).isAir()) {
             if (random.nextFloat() < 0.0075f) {
                 spawnSugarCanes(level, pos, random, 5 + random.nextInt(2), 2, 1, 2); 
@@ -194,6 +200,53 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                 if (tooClose) continue;
 
                 level.setBlock(targetPos, ModBlocks.INFESTED_PUMPKIN.get().defaultBlockState(),3);
+
+                placed++;
+                break;
+            }
+        }
+    }
+
+    private void spawnBushes(ServerLevel level, BlockPos pos, RandomSource random) {
+        // Same shape as spawnPumpkins: same 64 block presence check, same +-5 / +-3 spawn range and the
+        // same 64 block minimum distance between two plants.
+        Set<BlockPos> existingBushes = new HashSet<>();
+        BlockPos.betweenClosedStream(pos.offset(-64, -64, -64), pos.offset(64, 64, 64))
+                .forEach(p -> {
+                    if (level.getBlockState(p).getBlock() == ModBlocks.INFESTED_BUSH.get()) {
+                        existingBushes.add(p.immutable());
+                    }
+                });
+
+        int count = 2 + random.nextInt(4); // 2~5
+        int placed = 0;
+        for (int i = 0; i < count; i++) {
+            for (int attempt = 0; attempt < 30; attempt++) {
+
+                int dx = random.nextInt(11) - 5;
+                int dy = random.nextInt(7) - 3;
+                int dz = random.nextInt(11) - 5;
+                BlockPos targetPos = pos.offset(dx, dy, dz);
+
+
+                if (!level.isEmptyBlock(targetPos)) continue;
+
+
+                BlockPos below = targetPos.below();
+                BlockState belowState = level.getBlockState(below);
+                if (belowState.getBlock() != ModBlocks.INFESTED_DIRT.get()) continue;
+
+
+                boolean tooClose = false;
+                for (BlockPos bushPos : existingBushes) {
+                    if (bushPos.distSqr(targetPos) < 64 * 64) {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                if (tooClose) continue;
+
+                level.setBlock(targetPos, ModBlocks.INFESTED_BUSH.get().defaultBlockState(), 3);
 
                 placed++;
                 break;

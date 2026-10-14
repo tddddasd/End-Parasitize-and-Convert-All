@@ -45,11 +45,17 @@ import com.geckolib.animation.object.PlayState;
 import com.geckolib.util.GeckoLibUtil;
 
 import java.util.Objects;
+import java.util.EnumSet;
+import java.util.List;
+import java.lang.ref.WeakReference;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.Nullable;
 
 public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesent, Enemy {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final float SWIM_SPEED_MULTIPLIER = 0.5f; 
-    private int waterSearchCooldown = 0;
     public enum Variant {
         DEFAULT,
         BLOOD
@@ -73,8 +79,24 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     
     private int landMovementCooldown = 0;
     private boolean isOnLand = false;
+    private int flopCooldown = 0;
+    private int flopHopCooldown = 0;
+    @Nullable
+    private BlockPos waterTarget;
+
+    @Nullable
+    private WeakReference<Fins> schoolLeader;
+    private int schoolSize = 1;
     private int deepSneakCheckCooldown = 0;
     private static final int DEEP_SNEAK_CHECK_INTERVAL = 100; 
+    private int waterSearchCooldown = 0;
+    private static final int WATER_SEARCH_INTERVAL = 20;
+    private static final double WATER_TARGET_RANGE_SQR = 12.0D * 12.0D;
+    private static final int FLOP_MIN_INTERVAL = 12;
+    private static final int FLOP_MAX_INTERVAL = 26;
+    private static final int FLOP_HOP_INTERVAL = 12;
+    private static final double FLOP_HOP_UP = 0.42D;
+    private static final double FLOP_HOP_FORWARD = 0.18D;
 
     public Fins(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -137,6 +159,7 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         this.goalSelector.addGoal(3, new Fins.FinsLandMoveGoal(this)); 
         this.goalSelector.addGoal(4, new RandomSwimmingGoal(this, 0.5D, 10));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(4, new Fins.FinsSchoolGoal(this));
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 32.0D));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true,
                 (entity, serverLevel) -> {
@@ -262,9 +285,13 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
         }
         boolean wasOnLand = this.isOnLand;
         this.isOnLand = !this.isInWater() && this.onGround();
-        if (!this.isInWater() && this.waterSearchCooldown-- <= 0) {
-            this.waterSearchCooldown = 20; 
-            this.findWater();
+        this.tickLandBehaviour();
+
+        if (this.flopCooldown > 0) {
+            this.flopCooldown--;
+        }
+        if (this.flopHopCooldown > 0) {
+            this.flopHopCooldown--;
         }
         if (!this.isInWater() && this.getAirSupply() < this.getMaxAirSupply()) {
             this.setAirSupply(this.getMaxAirSupply());
@@ -377,20 +404,233 @@ public class Fins extends PathfinderMob implements GeoEntity, IParasite, IOnesen
     }
 
     private void findWater() {
-        BlockPos currentPos = this.blockPosition();
-
-        for (int range = 1; range <= 8; range++) {
-            for (BlockPos pos : BlockPos.withinManhattan(currentPos, range, range, range)) {
-                if (this.level().getBlockState(pos).is(Blocks.WATER)) {
-                    
-                    this.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.0D);
-                    return;
+        BlockPos origin = this.blockPosition().below();
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+        // 3x3x3 = 27 position tests per call, and only on the call interval while on land.
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    BlockPos pos = origin.offset(dx, dy, dz);
+                    if (!this.level().getBlockState(pos).is(Blocks.WATER)) {
+                        continue;
+                    }
+                    double distance = this.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D,
+                            pos.getZ() + 0.5D);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        best = pos;
+                    }
                 }
             }
         }
+        this.waterTarget = best == null ? null : best.immutable();
     }
 
-    @Override
+    private void tickLandBehaviour() {
+        if (this.isInWater()) {
+            this.waterTarget = null;
+            return;
+        }
+
+        // 1. Water search: staggered, 3x3x3 around the block under the mob.
+        if (--this.waterSearchCooldown <= 0) {
+            this.waterSearchCooldown = WATER_SEARCH_INTERVAL + this.random.nextInt(WATER_SEARCH_INTERVAL);
+            this.findWater();
+        }
+
+        // 2. Drop a target that has gone stale.
+        if (this.waterTarget != null) {
+            boolean stale;
+            if (!this.level().getBlockState(this.waterTarget).is(Blocks.WATER)) {
+                stale = true;
+            } else {
+                double dx = this.waterTarget.getX() + 0.5D - this.getX();
+                double dz = this.waterTarget.getZ() + 0.5D - this.getZ();
+                stale = dx * dx + dz * dz > WATER_TARGET_RANGE_SQR;
+            }
+            if (stale) {
+                this.waterTarget = null;
+            }
+        }
+
+        // 3. Flop: the vanilla fish-out-of-water sound, on a randomised interval.
+        if (this.onGround() && this.flopCooldown <= 0) {
+            this.flopCooldown = FLOP_MIN_INTERVAL + this.random.nextInt(FLOP_MAX_INTERVAL - FLOP_MIN_INTERVAL);
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.COD_FLOP,
+                    SoundSource.HOSTILE, 0.6F, 0.9F + this.random.nextFloat() * 0.2F);
+        }
+
+        // 4. A small dedicated hop, deliberately NOT the gap-jump leap.
+        if (this.onGround() && this.flopHopCooldown <= 0) {
+            this.flopHopCooldown = FLOP_HOP_INTERVAL;
+            this.setDeltaMovement(this.getDeltaMovement().x, FLOP_HOP_UP, this.getDeltaMovement().z);
+            this.hurtMarked = true;
+        }
+
+        // 5. Steer the flop toward the remembered water.
+        if (this.waterTarget != null && this.onGround()) {
+            double dx = this.waterTarget.getX() + 0.5D - this.getX();
+            double dz = this.waterTarget.getZ() + 0.5D - this.getZ();
+            double length = Math.sqrt(dx * dx + dz * dz);
+            if (length > 0.5D && this.flopHopCooldown == FLOP_HOP_INTERVAL) {
+                double vx = dx / length * FLOP_HOP_FORWARD;
+                double vz = dz / length * FLOP_HOP_FORWARD;
+                Vec3 motion = this.getDeltaMovement();
+                this.setDeltaMovement(vx, motion.y, vz);
+                this.setYRot((float) (Mth.atan2(vz, vx) * 180.0D / Math.PI) - 90.0F);
+                this.yBodyRot = this.getYRot();
+            }
+        }
+    }
+    static class FinsSchoolGoal extends Goal {
+        /** Same-type fish within this radius may share a school. */
+        private static final double SCHOOL_RADIUS = 8.0D;
+        /** Hard cap, as requested: at most 7 per school (leader included). */
+        private static final int MAX_SCHOOL_SIZE = 7;
+        /** Members follow the leader only once they drift past this distance. */
+        private static final double FOLLOW_DISTANCE_SQR = 9.0D;
+        /** Re-evaluation interval, staggered per instance. */
+        private static final int SEARCH_INTERVAL_MIN = 40;
+        private static final int SEARCH_INTERVAL_MAX = 80;
+        /** Horizontal speed of the follow steering. */
+        private static final double FOLLOW_SPEED = 0.45D;
+
+        private final Fins fins;
+        private int cooldown;
+
+        FinsSchoolGoal(Fins fins) {
+            this.fins = fins;
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
+            // Stagger the first evaluation so a group spawned together does not scan on one tick.
+            this.cooldown = SEARCH_INTERVAL_MIN + fins.getRandom().nextInt(SEARCH_INTERVAL_MAX - SEARCH_INTERVAL_MIN);
+        }
+
+        @Override
+        public boolean canUse() {
+            if (this.fins.level().isClientSide()) {
+                return false;
+            }
+            if (this.cooldown > 0) {
+                this.cooldown--;
+                return false;
+            }
+            this.cooldown = SEARCH_INTERVAL_MIN + this.fins.getRandom().nextInt(SEARCH_INTERVAL_MAX - SEARCH_INTERVAL_MIN);
+
+            // A swimming fish with a live leader keeps it; otherwise look for a school to join.
+            Fins leader = this.leader();
+            if (leader == this.fins && this.fins.schoolLeader != null) {
+                // The old leader is gone or dead: forget it before searching again.
+                this.fins.schoolLeader = null;
+            } else if (leader != this.fins && this.fins.distanceToSqr(leader) > (SCHOOL_RADIUS * 2.0D) * (SCHOOL_RADIUS * 2.0D)) {
+                // Drifted too far from the old school: leave it, and give the count back so the leader's
+                // capacity reflects reality rather than only ever growing.
+                leader.schoolSize = Math.max(1, leader.schoolSize - 1);
+                this.fins.schoolLeader = null;
+                leader = null;
+            }
+            if (leader == null || leader == this.fins) {
+                Fins found = this.findSchoolLeader();
+                if (found != null) {
+                    this.setLeader(found);
+                } else {
+                    this.fins.schoolLeader = null;
+                    this.fins.schoolSize = Math.max(1, this.fins.schoolSize);
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            Fins leader = this.leader();
+            return leader == null || this.fins.distanceToSqr(leader) <= (SCHOOL_RADIUS * 4.0D) * (SCHOOL_RADIUS * 4.0D);
+        }
+
+        @Override
+        public void tick() {
+            if (!this.fins.isInWater() || this.fins.getTarget() != null) {
+                return;
+            }
+            Fins leader = this.leader();
+            if (leader == null || leader == this.fins) {
+                return;
+            }
+            if (this.fins.distanceToSqr(leader) <= FOLLOW_DISTANCE_SQR) {
+                return;
+            }
+            double dx = leader.getX() - this.fins.getX();
+            double dy = leader.getY() - this.fins.getY();
+            double dz = leader.getZ() - this.fins.getZ();
+            double horizontal = Math.sqrt(dx * dx + dz * dz);
+            if (horizontal < 1.0E-4D) {
+                return;
+            }
+            Vec3 motion = this.fins.getDeltaMovement();
+            this.fins.setDeltaMovement(
+                    Mth.lerp(0.2D, motion.x, dx / horizontal * FOLLOW_SPEED),
+                    Mth.lerp(0.2D, motion.y, Mth.clamp(dy * 0.1D, -0.05D, 0.05D)),
+                    Mth.lerp(0.2D, motion.z, dz / horizontal * FOLLOW_SPEED));
+            this.fins.setYRot(Mth.rotLerp(0.2F, this.fins.getYRot(),
+                    (float) (Mth.atan2(dz, dx) * 180.0D / Math.PI) - 90.0F));
+            this.fins.yBodyRot = this.fins.getYRot();
+        }
+
+        @Override
+        public void stop() {
+            // Nothing persistent to clear: the leader reference is only re-read on the next evaluation.
+        }
+
+        /** The leader reference, or this fish itself when it is a school leader. */
+        @Nullable
+        private Fins leader() {
+            if (this.fins.schoolLeader == null) {
+                return this.fins;
+            }
+            Fins leader = this.fins.schoolLeader.get();
+            return leader == null || !leader.isAlive() ? this.fins : leader;
+        }
+
+        /** The nearest same-type leader whose school is not full; null when there is none in range. */
+        @Nullable
+        private Fins findSchoolLeader() {
+            AABB area = this.fins.getBoundingBox().inflate(SCHOOL_RADIUS);
+            List<Fins> candidates = this.fins.level().getEntitiesOfClass(Fins.class, area,
+                    other -> other != this.fins
+                            && other.isAlive()
+                            && other.getVariant() == this.fins.getVariant()
+                            && this.leaderOf(other).schoolSize < MAX_SCHOOL_SIZE);
+            Fins best = null;
+            double bestDistance = Double.MAX_VALUE;
+            for (Fins candidate : candidates) {
+                double distance = this.fins.distanceToSqr(candidate);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    best = candidate;
+                }
+            }
+            return best;
+        }
+
+        /** The school record a candidate belongs to: itself when it has no live leader. */
+        private Fins leaderOf(Fins candidate) {
+            if (candidate.schoolLeader == null) {
+                return candidate;
+            }
+            Fins leader = candidate.schoolLeader.get();
+            return leader == null || !leader.isAlive() ? candidate : leader;
+        }
+
+        private void setLeader(@Nullable Fins leader) {
+            if (leader == null || leader == this.fins) {
+                this.fins.schoolLeader = null;
+                this.fins.schoolSize = Math.max(this.fins.schoolSize, 1);
+                return;
+            }
+            this.fins.schoolLeader = new WeakReference<>(leader);
+            leader.schoolSize = Math.min(MAX_SCHOOL_SIZE, Math.max(1, leader.schoolSize) + 1);
+        }
+    }
     public boolean canBreatheUnderwater() {
         return true; 
     }

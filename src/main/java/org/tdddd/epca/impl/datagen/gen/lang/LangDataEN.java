@@ -229,7 +229,6 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.infested_bat_spawn_egg", "Infested Bat Spawn Egg");
         add("item.epca.infested_spider_spawn_egg", "Infested Spider Spawn Egg");
         add("item.epca.infested_cave_spider_spawn_egg", "Infested Cave Spider Spawn Egg");
-        add("item.epca.walking_spider_head_spawn_egg", "Walking Spider Head Spawn Egg");
         add("item.epca.walking_cave_spider_head_spawn_egg", "Walking Cave Spider Head Spawn Egg");
         add("item.epca.walking_spider_head_spawn_egg", "Walking Spider Head Spawn Egg");
 
@@ -406,6 +405,11 @@ public class LangDataEN extends LanguageProvider {
         // Both keys must exist or the item renders as "item.epca.infested_carved_pumpkin".
         add("item.epca.infested_carved_pumpkin", "Infested Carved Pumpkin");
         add("block.epca.infested_pumpkin", "Infested Pumpkin");
+        add("block.epca.infested_moss_block", "Infested Moss Block");
+        add("block.epca.infested_moss_carpet", "Infested Moss Carpet");
+        add("block.epca.infested_bush", "Infested Bush");
+        add("block.epca.infested_short_dry_grass", "Infested Short Dry Grass");
+        add("block.epca.infested_tall_dry_grass", "Infested Tall Dry Grass");
         add("block.epca.infested_short_grass", "Infested Short Grass");
         add("block.epca.infested_tall_grass", "Infested Tall Grass");
         add("block.epca.infested_tall_fern", "Infested Tall Fern");

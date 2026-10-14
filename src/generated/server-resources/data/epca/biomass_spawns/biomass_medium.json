@@ -356,6 +356,23 @@
       "max_count": 2,
       "min_count": 1,
       "weight": 5
+    },
+    {
+      "effects": [
+        {
+          "ambient": false,
+          "amplifier": 1,
+          "duration": 1200,
+          "effect": "epca:rage",
+          "icon": true,
+          "visible": true
+        }
+      ],
+      "entity": "epca:infested_spider",
+      "life_time": 1200,
+      "max_count": 1,
+      "min_count": 1,
+      "weight": 5
     }
   ],
   "water_spawns": [

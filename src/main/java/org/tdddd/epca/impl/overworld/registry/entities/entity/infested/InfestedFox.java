@@ -28,6 +28,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LeapSeekGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.boat.Boat;
@@ -63,7 +68,7 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
+public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable , GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
@@ -95,6 +100,12 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     private LivingEntity pendingAttackTarget;       
     private boolean isPouncing = false;
     public double pounceStartY;
+public double pounceTopY;
+public boolean pounceHitDelivered;
+public double pounceLastY;
+
+public static final float POUNCE_BASE_DAMAGE = 4.0F;
+public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
     private double pounceDamageBonus;               
     private static final int MAX_POUNCE_HEIGHT = 8; 
     private static final int POUNCE_CHECK_HEIGHT = 3; 
@@ -123,7 +134,8 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         super(type, level);
         this.xpReward = 8;
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level, ParasitePathing.MAX_GAP_JUMP_FOX);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_FOX);
     }
 
     public enum Variant {
@@ -148,8 +160,14 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     }
 
     @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
+    }
+
+    @Override
     protected void registerGoals() {
         super.registerGoals();
+        this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_FOX));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         
@@ -709,6 +727,16 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         return false;
     }
 
+    private boolean canHitNow(LivingEntity target, double lastY) {
+        if (!this.onGround() && Math.abs(this.getY() - target.getY()) > AIRBORNE_ATTACK_WINDOW) {
+            return false;
+        }
+        net.minecraft.world.phys.AABB sweep = this.getBoundingBox()
+                .expandTowards(0.0D, lastY - this.getY(), 0.0D)
+                .inflate(this.getBbWidth() + 0.2D);
+        return sweep.intersects(target.getBoundingBox());
+    }
+
     public class PounceGoal extends Goal {
         private final InfestedFox fox;
         private LivingEntity target;
@@ -778,6 +806,9 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             fox.setPouncing(true);
             fox.setNoActionTime(0);
             fox.pounceStartY = fox.getY();
+            fox.pounceTopY = fox.getY();
+            fox.pounceHitDelivered = false;
+            fox.pounceLastY = fox.getY();
 
             if (target != null) {
                 
@@ -814,20 +845,23 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
             fox.setPouncing(false);
             fox.setPounceTargetId(-1);
             fox.pounceDamageBonus = 0;
+            fox.pounceHitDelivered = false;
             forceMaxHeight = false; 
         }
 
         @Override
         public void tick() {
-            if (fox.isPouncing() && fox.onGround()) {
+            double lastY = fox.pounceLastY;
+            fox.pounceLastY = fox.getY();
+            if (fox.getY() > fox.pounceTopY) { fox.pounceTopY = fox.getY(); }
+            if (fox.isPouncing()) {
                 LivingEntity target = (LivingEntity) fox.level().getEntity(fox.getPounceTargetId());
-                if (target != null && target.isAlive()) {
+                if (target != null && target.isAlive() && !fox.pounceHitDelivered && fox.canHitNow(target, lastY)) {
                     double distSq = fox.distanceToSqr(target.getX(), fox.getY(), target.getZ());
-                    if (distSq < 1.25 * 1.25) {
-                        double fallDistance = fox.pounceStartY - fox.getY();
-                        if (fallDistance < 0) fallDistance = 0;
-                        float damage = 4.0f + (float) fallDistance;
-                        fox.doPounceAttack(target, damage);
+                    if (distSq < 4.0) {   // relaxed: the swept-AABB test above is the real hit check
+                        double descent = fox.pounceTopY - Math.max(fox.getY(), target.getY());
+                        fox.doPounceAttack(target, POUNCE_BASE_DAMAGE + (float) Math.max(0.0D, descent));
+                        fox.pounceHitDelivered = true;
                         fox.attackCooldownTimer = 10;
                     }
                 }
