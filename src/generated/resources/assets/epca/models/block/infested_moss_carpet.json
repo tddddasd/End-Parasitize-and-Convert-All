@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/carpet",
   "textures": {
-    "all": "epca:block/infested_moss_carpet"
+    "wool": "epca:block/infested_moss_block"
   }
 }
