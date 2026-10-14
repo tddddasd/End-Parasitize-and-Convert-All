@@ -404,6 +404,11 @@ public class LangDataEN extends LanguageProvider {
         add("block.epca.infested_lily_pad", "Infested Lily Pad");
         add("block.epca.infested_carved_pumpkin", "Infested Carved Pumpkin");
         add("block.epca.infested_pumpkin", "Infested Pumpkin");
+        add("block.epca.infested_moss_block", "Infested Moss Block");
+        add("block.epca.infested_moss_carpet", "Infested Moss Carpet");
+        add("block.epca.infested_bush", "Infested Bush");
+        add("block.epca.infested_short_dry_grass", "Infested Short Dry Grass");
+        add("block.epca.infested_tall_dry_grass", "Infested Tall Dry Grass");
         add("block.epca.infested_short_grass", "Infested Short Grass");
         add("block.epca.infested_tall_grass", "Infested Tall Grass");
         add("block.epca.infested_tall_fern", "Infested Tall Fern");

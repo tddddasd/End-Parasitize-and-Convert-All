@@ -404,6 +404,11 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.infested_lily_pad", "虫染睡莲");
         add("block.epca.infested_carved_pumpkin", "虫染雕刻南瓜");
         add("block.epca.infested_pumpkin", "虫染南瓜");
+        add("block.epca.infested_moss_block", "虫染苔藓块");
+        add("block.epca.infested_moss_carpet", "虫染苔藓地毯");
+        add("block.epca.infested_bush", "虫染灌木丛");
+        add("block.epca.infested_short_dry_grass", "虫染矮枯草丛");
+        add("block.epca.infested_tall_dry_grass", "虫染高枯草丛");
         add("block.epca.infested_short_grass", "虫染矮草丛");
         add("block.epca.infested_tall_grass", "虫染高草丛");
         add("block.epca.infested_tall_fern", "虫染大型蕨");

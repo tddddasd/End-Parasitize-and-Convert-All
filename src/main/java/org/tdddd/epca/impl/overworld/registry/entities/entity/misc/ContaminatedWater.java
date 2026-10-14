@@ -24,6 +24,22 @@ import java.util.List;
 import java.util.UUID;
 
 public class ContaminatedWater extends Entity {
+
+    /**
+     * Natural end of life of this entity, in ticks: 200 ticks = 10 seconds.
+     *
+     * <p>This is the single, explicit removal rule of the entity. It replaces the old bare
+     * {@code lifeTicks >= 200} literal, so the number is named and can be quoted anywhere.</p>
+     */
+    public static final int MAX_LIFETIME_TICKS = 200;
+
+    /**
+     * NBT key of {@link #lifeTicks}. The counter is persisted like a vanilla item's {@code Age}, so a
+     * chunk unload or a world reload cannot restart the 10 second clock and keep the entity alive
+     * forever.
+     */
+    private static final String TAG_LIFE_TICKS = "LifeTicks";
+
     private int lifeTicks = 0; 
     private final UUID entityId;
 
@@ -51,10 +67,15 @@ public class ContaminatedWater extends Entity {
         lifeTicks++;
 
         
-        if (lifeTicks >= 200) {
-            if (!this.level().isClientSide) {
-                this.discard();
-            }
+        if (lifeTicks >= MAX_LIFETIME_TICKS) {
+            // Natural end of life. The discard is deliberately run on BOTH sides: the server copy is
+            // the authoritative one (it is the one that damages and that unloads with the world), but
+            // the client copy is the one that is actually rendered - and it is also the only copy
+            // that still ticks when the server-side chunk is loaded but not entity-ticking (render
+            // distance > simulation distance), where the server copy would freeze mid-life and the
+            // effect would stay on screen forever. Removing the client copy here is always safe: once
+            // the server does remove its own copy, the removal packet is a no-op on the client.
+            this.discard();
             return;
         }
 
@@ -104,12 +125,13 @@ public class ContaminatedWater extends Entity {
 
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
-
+        // Restore the remaining lifetime instead of restarting it at zero.
+        this.lifeTicks = Math.max(0, compoundTag.getInt(TAG_LIFE_TICKS));
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
-
+        compoundTag.putInt(TAG_LIFE_TICKS, this.lifeTicks);
     }
 
     

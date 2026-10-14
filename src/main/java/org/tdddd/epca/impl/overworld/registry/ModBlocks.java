@@ -611,4 +611,29 @@ public class ModBlocks {
             "infested_dead_bush",
             () -> new InfestedDeadBush(Block.Properties.copy(Blocks.DEAD_BUSH).ignitedByLava())
     );
+
+    public static final RegistryObject<Block> INFESTED_MOSS_BLOCK = BLOCKS.register(
+            "infested_moss_block",
+            () -> new InfestedMossBlock(BlockBehaviour.Properties.copy(Blocks.MOSS_BLOCK).randomTicks())
+    );
+
+    public static final RegistryObject<Block> INFESTED_MOSS_CARPET = BLOCKS.register(
+            "infested_moss_carpet",
+            () -> new InfestedMossCarpet(BlockBehaviour.Properties.copy(Blocks.MOSS_CARPET).randomTicks())
+    );
+
+    public static final RegistryObject<Block> INFESTED_BUSH = BLOCKS.register(
+            "infested_bush",
+            () -> new InfestedBush(Block.Properties.copy(Blocks.GRASS).ignitedByLava())
+    );
+
+    public static final RegistryObject<Block> INFESTED_SHORT_DRY_GRASS = BLOCKS.register(
+            "infested_short_dry_grass",
+            () -> new InfestedShortDryGrass(Block.Properties.copy(Blocks.GRASS).ignitedByLava())
+    );
+
+    public static final RegistryObject<Block> INFESTED_TALL_DRY_GRASS = BLOCKS.register(
+            "infested_tall_dry_grass",
+            () -> new InfestedTallDryGrass(Block.Properties.copy(Blocks.GRASS).ignitedByLava())
+    );
 }

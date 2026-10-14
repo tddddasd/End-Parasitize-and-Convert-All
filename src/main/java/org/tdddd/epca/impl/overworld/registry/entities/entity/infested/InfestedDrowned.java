@@ -23,6 +23,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.AmphibiousPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteAmphibiousNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGapJump;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Creeper;
@@ -67,7 +71,7 @@ import java.util.List;
 import java.util.UUID;
 import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
-public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
+public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy, GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     public int tryApplyCothEffect(Mob mob, int currentCooldown) {
         return 0;
@@ -176,7 +180,12 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
         this.moveControl = new InfestedMoveControl(this);
         this.setMaxUpStep(0.5F);
         
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteAmphibiousNavigation(this, level);
+    }
+
+    @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
     }
 
     @Override
@@ -188,6 +197,8 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
     static class InfestedMoveControl extends MoveControl {
         private final InfestedDrowned drowned;
         private float targetPitch; 
+
+        private final ParasiteGapJump gapJump = new ParasiteGapJump(ParasitePathing.MAX_GAP_JUMP_HUMANOID);
 
         public InfestedMoveControl(InfestedDrowned drowned) {
             super(drowned);
@@ -261,7 +272,12 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                 );
             } else {
                 
+                boolean epcaWantsToMove = this.operation == Operation.MOVE_TO;
                 super.tick();
+                // The leap is evaluated on every tick now regardless of the operation, so there is no
+                // always-move flag to pass; the drowned needs nothing special here.
+                this.gapJump.tick(this.drowned, epcaWantsToMove,
+                        this.wantedX, this.wantedY, this.wantedZ);
             }
         }
     }
@@ -397,7 +413,7 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
 
     @Override
     protected PathNavigation createNavigation(Level level) {
-        return new AmphibiousPathNavigation(this, level); 
+        return new ParasiteAmphibiousNavigation(this, level); 
     }
 
     public boolean isFakingDeath() {

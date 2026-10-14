@@ -195,7 +195,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                backgroundTexture.render(graphics, x, y);   
+                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
                 graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -227,7 +227,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                backgroundTexture.render(graphics, x, y);   
+                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
                 graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -259,7 +259,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                backgroundTexture.render(graphics, x, y);   
+                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
                 graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -291,7 +291,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                backgroundTexture.render(graphics, x, y);   
+                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
                 graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }

@@ -27,6 +27,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LeapSeekGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -34,6 +39,7 @@ import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +69,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.UUID;
 import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
-public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
+public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy, IHeadRotatable, GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
@@ -96,12 +102,22 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     private int attackCooldown = 0;                 
     private LivingEntity pendingAttackTarget;       
     private boolean isPouncing = false;
-    public double pounceStartY;
-    private double pounceDamageBonus;               
+    /** Highest y reached by the current pounce. The descent damage is measured from here. */
+    public double pounceTopY;
+    /** True once the current pounce has already delivered its hit, so it cannot hit twice. */
+    private boolean pounceHitDelivered;
+    /** Last tick's y, used to sweep the hit volume along the actual movement direction. */
+    private double pounceLastY;
 
     
     private static final int MAX_POUNCE_HEIGHT = 8; 
     private static final int POUNCE_CHECK_HEIGHT = 3; 
+
+    /** Base pounce damage, unchanged; the descent bonus is added on top of it. */
+    public static final float POUNCE_BASE_DAMAGE = 4.0F;
+
+    /** Vertical window in which an airborne pounce may land its hit. */
+    public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
     
     public enum IdleAnimType { IDLE, SIT, LAYING }
 
@@ -134,7 +150,13 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
 
         
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level, ParasitePathing.MAX_GAP_JUMP_FOX);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_FOX);
+    }
+
+    @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
     }
 
     public enum Variant {
@@ -181,6 +203,9 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
 
         
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
+        // Movement initiative for the gap jump (4-block group): the leap lives in the move control and
+        // needs the mob to be steered, which a refused wander sample point never provides.
+        this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_FOX));
     }
 
     @Override
@@ -932,7 +957,9 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         public void start() {
             fox.setPouncing(true);
             fox.setNoActionTime(0);
-            fox.pounceStartY = fox.getY();
+            fox.pounceTopY = fox.getY();
+            fox.pounceLastY = fox.getY();
+            fox.pounceHitDelivered = false;
 
             if (target != null) {
                 
@@ -970,27 +997,65 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
         public void stop() {
             fox.setPouncing(false);
             fox.setPounceTargetId(-1);
-            fox.pounceDamageBonus = 0;
+            fox.pounceHitDelivered = false;
             forceMaxHeight = false; 
         }
 
+        /**
+         * The pounce hit. Previously this only ran {@code if (fox.isPouncing() && fox.onGround())},
+         * which skipped the entire descending window: the fox fell past the target, and by the time
+         * {@code onGround()} was true it had often already overshot horizontally. It also demanded
+         * {@code distSq < 1.25^2} from the fox's <em>centre</em>, which a small fast fox crossing the
+         * target's box diagonally does not satisfy.
+         *
+         * <p>Two fixes, both here:</p>
+         * <ul>
+         *   <li>the window is now "still descending, or just landed, and vertically level with the
+         *       target" ({@link #AIRBORNE_ATTACK_WINDOW}), so the hit lands during the arc;</li>
+         *   <li>the volume is swept along the real movement direction - a box spanning the fox's
+         *       position a tick ago and now, inflated by the fox's own width plus a small margin - so a
+         *       diagonal crossing still intersects. This replaces the centre-distance test rather than
+         *       adding to it, and never raises the reach (the old centre radius was 1.25; this box is
+         *       ~1.0 blocks across for a vanilla-sized fox).</li>
+         * </ul>
+         */
         @Override
         public void tick() {
-            if (fox.isPouncing() && fox.onGround()) {
-                LivingEntity target = (LivingEntity) fox.level().getEntity(fox.getPounceTargetId());
-                if (target != null && target.isAlive()) {
-                    double distSq = fox.distanceToSqr(target.getX(), fox.getY(), target.getZ());
-                    if (distSq < 1.25 * 1.25) {
-                        double fallDistance = fox.pounceStartY - fox.getY();
-                        if (fallDistance < 0) fallDistance = 0;
-                        float damage = 4.0f + (float) fallDistance;
-                        fox.doPounceAttack(target, damage);
-                        fox.attackCooldownTimer = 10;
-                    }
-                }
+            if (!fox.isPouncing()) {
+                return;
+            }
+            // The descent, not the climb, is what earns the bonus damage.
+            if (fox.getY() > fox.pounceTopY) {
+                fox.pounceTopY = fox.getY();
+            }
+            LivingEntity target = (LivingEntity) fox.level().getEntity(fox.getPounceTargetId());
+            double lastY = fox.pounceLastY;
+            fox.pounceLastY = fox.getY();
+
+            if (target != null && target.isAlive() && !fox.pounceHitDelivered
+                    && this.canHitNow(target, lastY)) {
+                double descent = fox.pounceTopY - Math.max(fox.getY(), target.getY());
+                float bonus = (float) Math.max(0.0D, descent);
+                fox.doPounceAttack(target, POUNCE_BASE_DAMAGE + bonus);
+                fox.pounceHitDelivered = true;
+                fox.attackCooldownTimer = 10;
+            }
+
+            if (fox.onGround()) {
                 fox.setPouncing(false);
                 fox.setPounceTargetId(-1);
             }
+        }
+
+        /** True when the fox is at the target's level and its swept volume reaches the target's box. */
+        private boolean canHitNow(LivingEntity target, double lastY) {
+            if (!fox.onGround() && Math.abs(fox.getY() - target.getY()) > AIRBORNE_ATTACK_WINDOW) {
+                return false;
+            }
+            AABB sweep = fox.getBoundingBox()
+                    .expandTowards(0.0D, lastY - fox.getY(), 0.0D)
+                    .inflate(fox.getBbWidth() + 0.2D);
+            return sweep.intersects(target.getBoundingBox());
         }
     }
 

@@ -598,7 +598,10 @@ public class BlockConversionManager {
             ModBlocks.INFESTED_VINE.get(),
             ModBlocks.INFESTED_LEAVES.get(),
             ModBlocks.INFESTED_FLOWERING_LEAVES.get(),
-            ModBlocks.INFESTED_LILY_PAD.get());
+            ModBlocks.INFESTED_LILY_PAD.get(),
+            ModBlocks.INFESTED_BUSH.get(),
+            ModBlocks.INFESTED_SHORT_DRY_GRASS.get(),
+            ModBlocks.INFESTED_TALL_DRY_GRASS.get());
             PLANT_CONVERSION_TARGETS = targets;
         }
         return targets;

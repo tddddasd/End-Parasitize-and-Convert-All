@@ -1,0 +1,9 @@
+{
+  "fins_to": "epca:infested_spider",
+  "from": "minecraft:spider",
+  "meat_particles": false,
+  "mozzie_to": "epca:infested_spider",
+  "priority": 1,
+  "small_entity_priority": true,
+  "to": "epca:infested_spider"
+}

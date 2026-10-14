@@ -17,6 +17,9 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -91,7 +94,7 @@ public class InfestedSkeleton extends AbstractInfestedEntity implements RangedAt
                 this.setVariant(Variant.DEFAULT);
             }
         }
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level, ParasitePathing.MAX_GAP_JUMP_NONE);
     }
 
     

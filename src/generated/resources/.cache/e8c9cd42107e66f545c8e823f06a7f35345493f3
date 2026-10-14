@@ -1,7 +1,8 @@
-// 1.20.1	2026-09-25T01:45:52.1320883	EPCA Entity Conversions
+// 1.20.1	2026-10-14T17:47:31.6022529	EPCA Entity Conversions
 c73e353b9c65de9e3677e60189a1f5b73580ca2a data/epca/entity_conversions/allay.json
 0ae4778c9dbd7f62201a5dcf36ad769f43024ebe data/epca/entity_conversions/bat.json
 bc503a54acd9903d7f458d7c674655c9e6cdebaa data/epca/entity_conversions/blaze.json
+69594c0470092fd6879d1249b8ca9d6a011d38f8 data/epca/entity_conversions/cave_spider.json
 58bff3c81788c556d51b54ecdbf56f4f0f8ecd14 data/epca/entity_conversions/chicken.json
 6414a4d9dcdb50b39ea17b3e1dfc7df340b645b3 data/epca/entity_conversions/chicken_baby.json
 57974ad21d14f8f6f4f41b9c00d9a18419e82fa7 data/epca/entity_conversions/cow.json
@@ -30,6 +31,7 @@ e2ddfa611f39a4a02715f753ab704fd01873c1c9 data/epca/entity_conversions/sheep_baby
 906b82ca931e349edc3d1305be57a1024438532a data/epca/entity_conversions/slime_size0.json
 45dd968aea9ee38a90dd3da2a38d4231308fefe7 data/epca/entity_conversions/slime_size1.json
 64690fad20b68b94a3ec6bcf93ef140579b9f3af data/epca/entity_conversions/slime_size3.json
+ff2e601d87f8b8cd9b15d7a29cd9b315fe954674 data/epca/entity_conversions/spider.json
 15a5f55f3078956a6dca483b96ca851b92453bf0 data/epca/entity_conversions/vex.json
 9dc37689176e052023662ba9d76b9b9cd085c799 data/epca/entity_conversions/villager.json
 299eb323e70e1b4ae85278216dade3b96940f315 data/epca/entity_conversions/vindcator.json

@@ -230,6 +230,7 @@ task buildAllVersions {
 
 // This block of code expands all declared replace properties in the specified resource targets.
 tasks.named('processResources', ProcessResources).configure {
+    duplicatesStrategy = 'EXCLUDE'
     var replaceProperties = [
             minecraft_version: targetMcVersion.get(),
             minecraft_version_range: minecraft_version_range,
@@ -278,3 +279,10 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+
+// main/resources and generated/resources may contain the same file (runData output vs
+// hand-written resources). Keep the first occurrence for every Jar-family task, mirroring
+// the duplicates strategy used by the 26.1.2 tree for its resources.
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

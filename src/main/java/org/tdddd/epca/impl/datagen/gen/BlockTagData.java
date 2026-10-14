@@ -60,7 +60,10 @@ public class BlockTagData extends BlockTagsProvider {
                 tag(BlockTags.MINEABLE_WITH_SHOVEL).add(block);
             } else if (block instanceof LeavesBlock || block instanceof BushBlock
                     || block instanceof MultifaceBlock || name.contains("nethersea_brand_grown")
-                    || name.contains("residue")) {
+                    || name.contains("residue")
+                    // Moss block and moss carpet are hoe blocks in vanilla. The "mossy_*" stone
+                    // variants are excluded because they are picked, not hoed, despite the name.
+                    || (name.contains("moss") && !name.contains("mossy"))) {
                 tag(BlockTags.MINEABLE_WITH_HOE).add(block);
             } else if (!(block instanceof LiquidBlock)) {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block);

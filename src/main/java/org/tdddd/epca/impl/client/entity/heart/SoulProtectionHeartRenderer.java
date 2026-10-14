@@ -362,6 +362,29 @@ public final class SoulProtectionHeartRenderer {
     }
 
     /**
+     * Master switch of the soul-protection render effect in the 1.20.1 tree.
+     *
+     * <p>The effect was removed on request, so the public entry point below is a no-op. A
+     * compile-time flag is used instead of deleting the renderer so that the whole constant block
+     * (which mirrors the {@code HEART_*} constants of
+     * {@code assets/epca/shaders/core/gas_cloud.fsh}) stays in place and nothing that reads this class
+     * breaks. The buff's gameplay is untouched: only the drawing is gone.</p>
+     */
+    private static final boolean RENDER_EFFECT_ENABLED = false;
+
+    /**
+     * Entry point of the {@code epca:soul_protection} render effect, kept as the single call site so
+     * that re-enabling it is a one-line change. It draws nothing while
+     * {@link #RENDER_EFFECT_ENABLED} is {@code false}.
+     */
+    public static void submit(LivingEntity entity, PoseStack poseStack, MultiBufferSource bufferSource,
+                              float partialTick) {
+        if (RENDER_EFFECT_ENABLED) {
+            submitFlame(entity, poseStack, bufferSource, partialTick);
+        }
+    }
+
+    /**
      * Submits the flame column and the embers of one entity, or nothing when it does not carry the
      * effect, when the custom core shader is not ready, or when the current fade is not visible.
      *
@@ -370,7 +393,7 @@ public final class SoulProtectionHeartRenderer {
      * entity translation and the {@link MultiBufferSource} of the entity pass is still open - exactly
      * the state {@link GasCloudRenderer} expects.</p>
      */
-    public static void submit(LivingEntity entity, PoseStack poseStack, MultiBufferSource bufferSource,
+    private static void submitFlame(LivingEntity entity, PoseStack poseStack, MultiBufferSource bufferSource,
                               float partialTick) {
         MobEffect effectType = ModEffects.SOUL_PROTECTION.get();
         if (effectType == null) {

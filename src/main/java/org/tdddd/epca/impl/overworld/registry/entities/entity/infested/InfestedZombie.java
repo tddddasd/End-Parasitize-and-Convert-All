@@ -14,6 +14,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -39,7 +43,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotatable, IGlowRenderable {
+public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotatable, IGlowRenderable, GapJumper {
 
     @Override
     public ResourceLocation getGlowTexture() {
@@ -53,7 +57,13 @@ public class InfestedZombie extends AbstractInfestedEntity implements IHeadRotat
         this.xpReward = 8;
         this.baseSpeed = 0.27D;
         this.chaseSpeed = 0.38D;
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID);
+    }
+
+    @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
     }
 
     

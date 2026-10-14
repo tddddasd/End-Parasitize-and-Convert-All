@@ -22,6 +22,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -56,7 +60,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.UUID;
 import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
-public class InfestedHusk extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
+public class InfestedHusk extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy, IHeadRotatable, GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     public int tryApplyCothEffect(Mob mob, int currentCooldown) {
         return 0;
@@ -83,7 +87,13 @@ public class InfestedHusk extends PathfinderMob implements GeoEntity, IParasite,
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
         this.setMaxUpStep(0.5F);
         
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID);
+    }
+
+    @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
     }
 
     @Override

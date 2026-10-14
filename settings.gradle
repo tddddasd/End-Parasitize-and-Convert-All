@@ -1,5 +1,7 @@
 pluginManagement {
     repositories {
+        mavenLocal()
+        maven { url = "file:///G:/PCL/libraries" }
         gradlePluginPortal()
         maven {
             name = 'MinecraftForge'
@@ -8,8 +10,12 @@ pluginManagement {
     }
 }
 
-plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+dependencyResolutionManagement {
+    repositories {
+        mavenLocal()
+        maven { url = "file:///G:/PCL/libraries" }
+        mavenCentral()
+    }
 }
 
 rootProject.name = 'epca'

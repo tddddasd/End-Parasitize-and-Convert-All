@@ -1,9 +1,10 @@
-// 1.20.1	2026-09-19T15:15:50.2741903	Item Models: epca
+// 1.20.1	2026-10-14T17:47:31.6002544	Item Models: epca
 f4132b573a5fa261240b879009374168493ad16e assets/epca/models/item/acid_bucket.json
 a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/afterimage_module.json
 55e35e00b8b11144a722c026d152dc68e341a4be assets/epca/models/item/beckon_membrane.json
 a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/biomass_medium_spawn_egg.json
 a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/biomass_small_spawn_egg.json
+a163c9ce1e63e428f3fa804b66e491b455f18540 assets/epca/models/item/bio_tort_incarnation_spawn_egg.json
 8c9b6f83c7b74cba4db4c2ced4c7320a0b12fed9 assets/epca/models/item/cluster.json
 ad315c54fcaad6b33c2207a1c1e2aadd75135a2f assets/epca/models/item/copper_nugget.json
 30a079ec1a79ee10fbb8bec967a545cea6049e16 assets/epca/models/item/curbug_spawn_egg.json
@@ -17,6 +18,7 @@ aa6b64ba4fb1481655f38341e0a3953cfa42b7ab assets/epca/models/item/flying_carrier_
 3ee9336d93f6ca82f858e204f79dbc91e6936a23 assets/epca/models/item/gasbag_debris.json
 307fe96f6fa86e9f69ac9543da750cbe6f234f9b assets/epca/models/item/infested_bat_spawn_egg.json
 34dc6ada5cc24da7f3235ae3e5fc41e8ce4d1e03 assets/epca/models/item/infested_bone.json
+5015e85e5ea76b2372a60f546bf721c3eec0d79d assets/epca/models/item/infested_cave_spider_spawn_egg.json
 557c330a5c337d090704fde8c077becc0f07291d assets/epca/models/item/infested_cave_spider_web_projectile.json
 532b23dc6908c7d898aa6eca1a1ec742d65d0cf6 assets/epca/models/item/infested_chicken_spawn_egg.json
 a5af2ac4a29884a5404c817cae95c98fc6de3590 assets/epca/models/item/infested_coal.json
@@ -45,6 +47,7 @@ b59ead4f34fb8eceaadbc4976e123ba52df2bbc5 assets/epca/models/item/infested_silver
 0c0f0fcca802f1a19415a9e44503e891744bc347 assets/epca/models/item/infested_skeleton_spawn_egg.json
 da4fbe0d5ee7577fdc952d58e81ae81b0eb90364 assets/epca/models/item/infested_slime_ball.json
 6350933aceed8308174ce27ac4c009a1e629ee44 assets/epca/models/item/infested_slime_spawn_egg.json
+4a153d82f848d54cb9bcd842a77ee2d834a0527d assets/epca/models/item/infested_spider_spawn_egg.json
 f88c31a184335214ad1a8f5a4d5b4e3b8d0b7c11 assets/epca/models/item/infested_spider_web_blood_projectile.json
 29dbdf2ed89dfebde29985b33bea5ddfb135ed60 assets/epca/models/item/infested_spider_web_projectile.json
 d3e0b990991f269503a11799a462e59b584acd46 assets/epca/models/item/infested_stick.json
@@ -76,6 +79,7 @@ f98d03ede00e4d95905945cbee6817b843b5ffae assets/epca/models/item/stage_ii_beckon
 cbca8a0d17e90891994ac7a118a45e41dbfb7451 assets/epca/models/item/stage_i_beckon_spawn_egg.json
 d625096e4aee6b1a26dc9a68a66c525fe877b6e6 assets/epca/models/item/tight_tendons.json
 c7a84dcdd927dcdcb073da852ebc20022d55f912 assets/epca/models/item/twisted_bone.json
+afff64aeeeed59e053a2d4ae024e96261e9d5a65 assets/epca/models/item/walking_cave_spider_head_spawn_egg.json
 0a18504e3a98204019a8fff247afa366ce96887f assets/epca/models/item/walking_chicken_head_spawn_egg.json
 44e5e4765f732e0251e442a62dbf4e3fa8072bf8 assets/epca/models/item/walking_cow_head_spawn_egg.json
 63ed5ec0f1edf0a1897e44e8f4b6164b0e2e4dbc assets/epca/models/item/walking_drowned_head_spawn_egg.json
@@ -86,6 +90,7 @@ d5250e7ec3a4c00ab40f6ee204d520bfea9274d1 assets/epca/models/item/walking_pig_hea
 9220ce3847f9cc42a94e55e1144aeaa170e26124 assets/epca/models/item/walking_pillager_head_spawn_egg.json
 03b78bb07ee03a70f6594c7e93ed9ab5b59b24cf assets/epca/models/item/walking_sheep_head_spawn_egg.json
 04d203da35c6f468faf884b382516afbc48761dc assets/epca/models/item/walking_skeleton_head_spawn_egg.json
+746c23841b1b5ef35dcf8c105a21622769d95208 assets/epca/models/item/walking_spider_head_spawn_egg.json
 0d026e7dd18a5550c5d2c6fe5f40d839a528e648 assets/epca/models/item/walking_villager_head_spawn_egg.json
 051e448649bee9a3e8a7cbc5ce53432ef85b7843 assets/epca/models/item/walking_vindicator_head_spawn_egg.json
 383d51bd088644805f7bde9397037ae588cf59ef assets/epca/models/item/walking_wolf_head_spawn_egg.json

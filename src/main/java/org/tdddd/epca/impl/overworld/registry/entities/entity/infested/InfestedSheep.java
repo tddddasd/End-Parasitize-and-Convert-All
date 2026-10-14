@@ -22,6 +22,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LeapSeekGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -57,7 +62,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.UUID;
 import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
-public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
+public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy, IHeadRotatable, GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     public int tryApplyCothEffect(Mob mob, int currentCooldown) {
         return 0;
@@ -86,7 +91,13 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
         this.setMaxUpStep(0.5F);
         
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID);
+    }
+
+    @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
     }
 
     @Override
@@ -196,6 +207,15 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
 
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
+        // Movement initiative for the gap jump. The leap lives in the move control, so it only runs
+        // while this sheep is actually being steered (operation == MOVE_TO), and vanilla navigation
+        // only sets that state while a path exists. A passive mob's only movement source is the
+        // stroll goal above, so a sheep standing on a lip that the stroll will not path across never
+        // produces the state the leap needs. This goal walks it at a landing the leap's own bounded
+        // scan has already proven reachable, which is exactly the situation that produces the leap.
+        // Priority 2 also holds the stroll slot: both claim Flag.MOVE, so only one runs at a time and
+        // this one yields again as soon as it has no landing to walk to.
+        this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID));
     }
 
     @Override

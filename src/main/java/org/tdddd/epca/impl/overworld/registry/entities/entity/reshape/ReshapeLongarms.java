@@ -26,6 +26,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LeapSeekGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LongarmsGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -75,7 +80,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.*;
 import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
-public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasite, IReshape, Enemy {
+public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasite, IReshape, Enemy, GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(ReshapeLongarms.class, EntityDataSerializers.BOOLEAN);
@@ -134,7 +139,8 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         super(type, level);
         this.xpReward = 45;
         this.setMaxUpStep(1.6F);
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new LongarmsGroundNavigation(this, level);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_RESHAPE_LONGARMS);
 
         if (!level.isClientSide()) {
             
@@ -147,6 +153,11 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             this.backPart.init(this, 1.0F, 1.0F, true);
             level.addFreshEntity(backPart);
         }
+    }
+
+    @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
     }
 
     @Override
@@ -1033,6 +1044,15 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         this.targetSelector.addGoal(0, new PriorityTargetGoal(this, 32.0D));
         this.goalSelector.addGoal(5, new ReshapeLongarms.RandomSoundGoal(this));
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
+        // Movement initiative for the gap jump. The leap lives in the move control, so it can only
+        // fire while this mob is actually being steered (operation == MOVE_TO). Nothing else here
+        // creates that state for an idle long-arms: WaterAvoidingRandomStrollGoal above is refused
+        // whenever the sample point is unreachable (the "stuck at a pit and standing still" case),
+        // and vanilla navigation only sets MOVE_TO while a path exists. This goal walks the mob at a
+        // landing the leap's own bounded scan has already proven reachable, which is exactly the
+        // situation that produces the leap. Priority 2 puts it just after the combat-catch goal (1)
+        // and before the stroll, look and idle goals.
+        this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_RESHAPE_LONGARMS));
     }
 
     @Override

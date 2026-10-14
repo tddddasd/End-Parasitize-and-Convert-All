@@ -339,6 +339,11 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_HEAVY_TILES_WALL = blockItem("infested_heavy_tiles_wall", ModBlocks.INFESTED_HEAVY_TILES_WALL);
     public static final RegistryObject<Item> INFESTED_MUDDY_MANGROVE_ROOTS = blockItem("infested_muddy_mangrove_roots", ModBlocks.INFESTED_MUDDY_MANGROVE_ROOTS);
     public static final RegistryObject<Item> INFESTED_DEAD_BUSH = blockItem("infested_dead_bush", ModBlocks.INFESTED_DEAD_BUSH);
+    public static final RegistryObject<Item> INFESTED_MOSS_BLOCK = blockItem("infested_moss_block", ModBlocks.INFESTED_MOSS_BLOCK);
+    public static final RegistryObject<Item> INFESTED_MOSS_CARPET = blockItem("infested_moss_carpet", ModBlocks.INFESTED_MOSS_CARPET);
+    public static final RegistryObject<Item> INFESTED_BUSH = blockItem("infested_bush", ModBlocks.INFESTED_BUSH);
+    public static final RegistryObject<Item> INFESTED_SHORT_DRY_GRASS = blockItem("infested_short_dry_grass", ModBlocks.INFESTED_SHORT_DRY_GRASS);
+    public static final RegistryObject<Item> INFESTED_TALL_DRY_GRASS = blockItem("infested_tall_dry_grass", ModBlocks.INFESTED_TALL_DRY_GRASS);
 
     
     public static final RegistryObject<InfestedLog.InfestedLogItem> INFESTED_LOG =

@@ -343,7 +343,12 @@ public final class GasCloudManager {
         }
 
         clientTickCounter++;
-        pruneOrphanedClouds(level);
+        // One snapshot of the live client entities per tick, shared by both orphan sweeps below, so
+        // every per-owner effect resource is released in the very tick its owner disappears. Building
+        // it once also saves the second pass over entitiesForRendering() the cloud sweep used to do.
+        Set<Integer> presentIds = collectPresentEntityIds(level);
+        pruneOrphanedClouds(presentIds);
+        releaseOrphanedWaterVfx(presentIds);
         refreshPassiveOwners(level);
         Vec3 cameraPos = minecraft.gameRenderer.getMainCamera().getPosition();
 
@@ -364,18 +369,31 @@ public final class GasCloudManager {
     }
 
     /**
+     * Snapshot of the entity ids of the client level, taken once per tick.
+     *
+     * <p>Both orphan sweeps of {@link #clientTick()} work off this one set, so they always agree on
+     * what "still there" means and the level is only walked once.</p>
+     */
+    private static Set<Integer> collectPresentEntityIds(ClientLevel level) {
+        Set<Integer> presentIds = new HashSet<>();
+        for (Entity entity : level.entitiesForRendering()) {
+            presentIds.add(entity.getId());
+        }
+        return presentIds;
+    }
+
+    /**
      * Drops clouds whose owning entity is no longer present in the client level, and forgets
      * bookkeeping for owners that have not been seen for {@link #OWNER_STATE_TTL_TICKS} ticks.
      * Without this a despawned mob could leave a cloud behind for at most its lifetime, and its
      * edge-detection state would linger forever.
+     *
+     * @param presentIds the live client entity ids of this tick (see
+     *                   {@link #collectPresentEntityIds(ClientLevel)})
      */
-    private static void pruneOrphanedClouds(ClientLevel level) {
+    private static void pruneOrphanedClouds(Set<Integer> presentIds) {
         if (CLOUDS.isEmpty() && BY_OWNER.isEmpty()) {
             return;
-        }
-        Set<Integer> presentIds = new HashSet<>();
-        for (Entity entity : level.entitiesForRendering()) {
-            presentIds.add(entity.getId());
         }
         CLOUDS.removeIf(cloud -> !presentIds.contains(cloud.getOwnerEntityId()));
         BY_OWNER.entrySet().removeIf(entry -> {
@@ -385,6 +403,35 @@ public final class GasCloudManager {
             entry.getValue().clear();
             return true;
         });
+    }
+
+    /**
+     * Releases every client-side effect resource of a {@code epca:contaminated_water} entity that is
+     * no longer in the client level, in the same tick the entity disappears.
+     *
+     * <p>The entity is the only owner of its rendered effect: the water-touching clouds are the ones
+     * in {@link #CLOUDS} (already dropped by {@link #pruneOrphanedClouds(Set)}), and the dark-red
+     * specks and the cached water block positions live in the per-owner {@link #WATER_STATES} entry.
+     * Before this sweep those entries were only dropped by the {@link #OWNER_STATE_TTL_TICKS} tick
+     * timeout of {@link #pruneWaterBookkeeping()}, i.e. a removed entity kept its specks, its scanned
+     * water positions and its share of the global cloud cap alive for up to 200 ticks. Releasing them
+     * here means nothing of the effect can outlive the entity, and the effect of a re-spawned entity
+     * always starts from a clean state instead of inheriting the old one.</p>
+     *
+     * <p>Only ids that are absent from the level are touched: an entity that is merely out of range
+     * or rotated out of this tick's scan set is still present and keeps its state (it keeps aging,
+     * see {@link #ageClouds()}).</p>
+     *
+     * @param presentIds the live client entity ids of this tick (see
+     *                   {@link #collectPresentEntityIds(ClientLevel)})
+     */
+    private static void releaseOrphanedWaterVfx(Set<Integer> presentIds) {
+        if (WATER_STATES.isEmpty() && WATER_LAST_SEEN.isEmpty() && DEBUG_WATER_LOG.isEmpty()) {
+            return;
+        }
+        WATER_STATES.keySet().removeIf(ownerId -> !presentIds.contains(ownerId));
+        WATER_LAST_SEEN.keySet().removeIf(ownerId -> !presentIds.contains(ownerId));
+        DEBUG_WATER_LOG.keySet().removeIf(ownerId -> !presentIds.contains(ownerId));
     }
 
     private static void pruneOwnerBookkeeping() {

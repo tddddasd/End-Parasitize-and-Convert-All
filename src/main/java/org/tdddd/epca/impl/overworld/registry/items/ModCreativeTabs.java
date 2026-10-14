@@ -210,6 +210,11 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_TALL_FERN));
                 builder.add(i(ModItems.INFESTED_SWEET_BERRY_BUSH));
                 builder.add(i(ModItems.INFESTED_DEAD_BUSH));
+                builder.add(i(ModItems.INFESTED_MOSS_BLOCK));
+                builder.add(i(ModItems.INFESTED_MOSS_CARPET));
+                builder.add(i(ModItems.INFESTED_BUSH));
+                builder.add(i(ModItems.INFESTED_SHORT_DRY_GRASS));
+                builder.add(i(ModItems.INFESTED_TALL_DRY_GRASS));
                 builder.add(i(ModItems.INFESTED_PUMPKIN));
                 builder.add(i(ModItems.INFESTED_CARVED_PUMPKIN));
                 builder.add(i(ModItems.INFESTED_MANGROVE_ROOTS));

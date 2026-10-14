@@ -205,6 +205,11 @@ public class ItemEffectHandler {
         if (stack.is(ModItems.INFESTED_MANGROVE_ROOTS.get())) return true;
         if (stack.is(ModItems.INFESTED_MUDDY_MANGROVE_ROOTS.get())) return true;
         if (stack.is(ModItems.INFESTED_DEAD_BUSH.get())) return true;
+        if (stack.is(ModItems.INFESTED_MOSS_BLOCK.get())) return true;
+        if (stack.is(ModItems.INFESTED_MOSS_CARPET.get())) return true;
+        if (stack.is(ModItems.INFESTED_BUSH.get())) return true;
+        if (stack.is(ModItems.INFESTED_SHORT_DRY_GRASS.get())) return true;
+        if (stack.is(ModItems.INFESTED_TALL_DRY_GRASS.get())) return true;
         return false;
     }
 

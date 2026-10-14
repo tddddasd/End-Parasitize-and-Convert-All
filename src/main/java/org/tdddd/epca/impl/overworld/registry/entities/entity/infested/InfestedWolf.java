@@ -27,6 +27,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.GapJumper;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.LeapSeekGoal;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteGroundNavigation;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasiteMoveControl;
+import org.tdddd.epca.impl.overworld.registry.entities.ai.pathing.ParasitePathing;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -64,7 +69,7 @@ import java.util.List;
 import java.util.UUID;
 import org.tdddd.epca.impl.utils.EntityHealthUtils;
 
-public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
+public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, GeoEntity, IParasite, IInfested, Enemy, IHeadRotatable, GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     @Nullable
     private UUID ownerUUID;
@@ -120,10 +125,16 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         this.entityData.define(DATA_IDLE_ANIM_TYPE, IdleAnimType.IDLE.ordinal());
         this.setMaxUpStep(0.5F);
         
-        this.navigation = new GroundPathNavigation(this, level);
+        this.navigation = new ParasiteGroundNavigation(this, level);
+        this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID);
 
         
         this.howlCooldown = this.random.nextInt(HOWL_COOLDOWN_TICKS / 2, HOWL_COOLDOWN_TICKS);
+    }
+
+    @Override
+    public void epcaJumpFromGround() {
+        super.jumpFromGround();
     }
 
     @Override
@@ -348,6 +359,10 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
+        // Movement initiative for the gap jump: the leap lives in the move control, so it needs the mob
+        // to actually be steered (operation == MOVE_TO), and a passive-ish mob whose wander goal refuses
+        // an unreachable sample point would otherwise sit in WAIT forever. Same wiring as the sheep.
+        this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID));
     }
 
     @Override

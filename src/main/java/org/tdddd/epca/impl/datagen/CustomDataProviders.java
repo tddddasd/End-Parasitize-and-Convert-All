@@ -487,6 +487,28 @@ public class CustomDataProviders {
             put(general, "minecraft:tall_grass", "epca:infested_tall_grass");
             put(general, "minecraft:large_fern", "epca:infested_tall_fern");
             put(general, "minecraft:chiseled_deepslate", "epca:infested_chiseled_deepslate");
+
+            
+            // Moss. The moss BLOCK entry comes first so that the reverse purification lookup below
+            // (which only ever uses the FIRST source of a target) yields a block that exists in
+            // 1.20.1: minecraft:moss_block. pale_moss_block / pale_moss_carpet only exist from
+            // 1.21.4 on, so in 1.20.1 they are inert string ids: the conversion manager resolves
+            // every id through BuiltInRegistries and simply never matches a block that is not
+            // registered here, so declaring them costs nothing and mirrors the 26.1.2 table.
+            put(general, "minecraft:moss_block", "epca:infested_moss_block");
+            put(general, "minecraft:pale_moss_block", "epca:infested_moss_block");
+            put(general, "minecraft:moss_carpet", "epca:infested_moss_carpet");
+            put(general, "minecraft:pale_moss_carpet", "epca:infested_moss_carpet");
+
+            
+            // Bush and dry grass. minecraft:bush (1.21.5+), minecraft:firefly_bush (1.21.5+) and the
+            // two dry grasses (1.21.5+) do not exist in 1.20.1; they are declared as string ids for
+            // the same reason as the pale moss entries above, so the table stays identical to 26.1.2.
+            put(general, "minecraft:bush", "epca:infested_bush");
+            put(general, "minecraft:short_dry_grass", "epca:infested_short_dry_grass");
+            put(general, "minecraft:tall_dry_grass", "epca:infested_tall_dry_grass");
+            // Vanilla firefly bush becomes infested SHORT GRASS (not a bush) by explicit request.
+            put(general, "minecraft:firefly_bush", "epca:infested_short_grass");
             return general;
         }
 
@@ -554,6 +576,23 @@ public class CustomDataProviders {
          * purify into the listed block at the ordinary 30 %.
          */
         private static final Map<String, String> EXTRA_BLOCK_TARGETS = new LinkedHashMap<>();
+        /**
+         * Conversion sources that the shared (26.1.2-authoritative) block conversion table declares but
+         * that do not exist in 1.20.1. The conversion JSON keeps them - the conversion manager resolves
+         * every id through {@code BuiltInRegistries} and a missing block simply never matches - but a
+         * purification recipe may not name them, because its ingredient would be an unknown item and
+         * fail to load. None of these can be the first source of its target, and each target has at
+         * least one 1.20.1 source, so skipping them leaves every recipe valid.
+         */
+        private static final Set<String> MISSING_IN_1_20_1 = Set.of(
+                "minecraft:pale_moss_block",
+                "minecraft:pale_moss_carpet",
+                "minecraft:bush",
+                "minecraft:short_dry_grass",
+                "minecraft:tall_dry_grass",
+                "minecraft:firefly_bush"
+        );
+
         /**
          * Misspelled vanilla ids frozen inside the block conversion data. They are pinned to their
          * real ids here so that a purification recipe never references a non-existent item.
@@ -673,13 +712,21 @@ public class CustomDataProviders {
 
             for (Map.Entry<String, List<String>> block : reverse.entrySet()) {
                 if (reserved.contains(block.getKey())) continue;
+                // First entry only: one 30 % roll for one single output. The source is substituted when
+                // the block has no item form of its own (sweet berry bush -> sweet berries). Sources
+                // that do not exist in 1.20.1 are skipped, so a target whose only declared source is a
+                // newer-version block (the bush and both dry grasses) emits no recipe at all instead of
+                // an unloadable one.
+                String original = null;
+                for (String candidate : block.getValue()) {
+                    if (MISSING_IN_1_20_1.contains(candidate)) continue;
+                    original = SOURCE_SUBSTITUTIONS.getOrDefault(candidate, candidate);
+                    break;
+                }
+                if (original == null) continue;
                 JsonObject body = base(block.getKey());
                 body.addProperty("burn_chance", 0.70F);
                 JsonArray results = new JsonArray();
-                // First entry only: one 30 % roll for one single output. The source is substituted when
-                // the block has no item form of its own (sweet berry bush -> sweet berries).
-                String original = SOURCE_SUBSTITUTIONS.getOrDefault(block.getValue().get(0),
-                        block.getValue().get(0));
                 results.add(result(List.of(ID_FIXES.getOrDefault(original, original)),
                         1, 1, 0.30F, 1, false));
                 body.add("results", results);
@@ -788,7 +835,8 @@ public class CustomDataProviders {
                     e(ModEntities.INFESTED_CHICKEN, 5,2,2), e(ModEntities.INFESTED_BAT, 5,4,5),
                     e(ModEntities.RIPPER, 5,2,3), e(ModEntities.INFESTED_SKELETON, 5,1,1),
                     e(ModEntities.FLYING_CARRIER, 5,1,1), e(ModEntities.LIGHT_CARRIER, 2,1,1),
-                    e(ModEntities.INFESTED_ENDERMAN, 2,1,1), e(ModEntities.INFESTED_FOX, 5,1,2));
+                    e(ModEntities.INFESTED_ENDERMAN, 2,1,1), e(ModEntities.INFESTED_FOX, 5,1,2),
+                    e(ModEntities.INFESTED_SPIDER, 5,1,1));
 
             return CompletableFuture.allOf(
                     saveSpawns(cache, "biomass_small", small),
