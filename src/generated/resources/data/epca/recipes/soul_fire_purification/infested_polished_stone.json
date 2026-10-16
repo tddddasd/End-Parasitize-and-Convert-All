@@ -11,5 +11,11 @@
         "minecraft:smooth_stone"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

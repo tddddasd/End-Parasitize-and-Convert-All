@@ -11,5 +11,11 @@
         "minecraft:slime_ball"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

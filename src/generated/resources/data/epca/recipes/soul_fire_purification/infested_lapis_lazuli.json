@@ -13,5 +13,11 @@
         "minecraft:lapis_lazuli"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

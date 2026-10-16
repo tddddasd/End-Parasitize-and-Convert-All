@@ -11,5 +11,11 @@
         "minecraft:cracked_deepslate_tiles"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

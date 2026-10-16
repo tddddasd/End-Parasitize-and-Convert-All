@@ -11,5 +11,11 @@
         "minecraft:oak_fence"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

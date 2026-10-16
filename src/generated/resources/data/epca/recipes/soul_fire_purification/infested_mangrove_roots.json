@@ -11,5 +11,11 @@
         "minecraft:mangrove_roots"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

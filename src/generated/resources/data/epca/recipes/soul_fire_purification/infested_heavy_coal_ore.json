@@ -7,5 +7,11 @@
   },
   "ingredient": {
     "item": "epca:infested_heavy_coal_ore"
-  }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
+  ]
 }

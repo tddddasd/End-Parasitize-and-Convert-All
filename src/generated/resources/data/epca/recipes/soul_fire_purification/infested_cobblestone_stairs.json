@@ -11,5 +11,11 @@
         "minecraft:cobblestone_stairs"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

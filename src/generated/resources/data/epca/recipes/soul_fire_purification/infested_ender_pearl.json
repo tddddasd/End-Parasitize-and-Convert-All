@@ -11,5 +11,11 @@
         "minecraft:ender_pearl"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

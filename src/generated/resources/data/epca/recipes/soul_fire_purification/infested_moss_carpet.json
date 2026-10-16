@@ -11,5 +11,11 @@
         "minecraft:moss_carpet"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

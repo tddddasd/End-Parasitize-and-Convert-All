@@ -11,5 +11,11 @@
         "minecraft:sugar_cane"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

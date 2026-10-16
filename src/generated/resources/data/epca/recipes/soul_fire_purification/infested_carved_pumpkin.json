@@ -11,5 +11,11 @@
         "minecraft:carved_pumpkin"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

@@ -88,7 +88,9 @@ public class epca {
                 data -> new InfestedPumpkinBehaviour());
 
         
-        AltarInteractionRegistry.register(new EpcaAltarInteractionHandler());
+        if (org.tdddd.epca.impl.compat.EejCompat.loaded()) {
+            org.tdddd.epca.impl.compat.EejAltarCompat.registerInteraction();
+        }
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.register(ClientSetup.class);

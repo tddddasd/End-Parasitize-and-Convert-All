@@ -11,5 +11,11 @@
         "minecraft:polished_deepslate_slab"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

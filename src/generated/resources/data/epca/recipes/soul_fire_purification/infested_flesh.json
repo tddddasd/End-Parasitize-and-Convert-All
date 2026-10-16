@@ -3,5 +3,11 @@
   "destroyed": true,
   "ingredient": {
     "item": "epca:infested_flesh"
-  }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
+  ]
 }

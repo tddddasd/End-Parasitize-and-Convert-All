@@ -11,5 +11,11 @@
         "minecraft:pointed_dripstone"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

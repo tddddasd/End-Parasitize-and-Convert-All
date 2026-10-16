@@ -13,5 +13,11 @@
         "minecraft:gold_ingot"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

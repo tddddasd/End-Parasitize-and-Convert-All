@@ -11,5 +11,11 @@
         "minecraft:cut_sandstone"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

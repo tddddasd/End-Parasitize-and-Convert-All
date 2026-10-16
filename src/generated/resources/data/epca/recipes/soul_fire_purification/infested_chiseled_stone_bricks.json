@@ -11,5 +11,11 @@
         "minecraft:chiseled_stone_bricks"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

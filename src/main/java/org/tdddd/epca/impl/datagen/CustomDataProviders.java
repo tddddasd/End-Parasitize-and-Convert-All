@@ -757,6 +757,14 @@ public class CustomDataProviders {
         private static JsonObject base(String input) {
             JsonObject body = new JsonObject();
             body.addProperty("type", "eej:soul_fire_purification");
+            // eej is an optional dependency now: without it the recipe type is unknown and the
+            // recipe would fail to deserialise, so gate each one behind a mod_loaded condition.
+            JsonObject condition = new JsonObject();
+            condition.addProperty("type", "forge:mod_loaded");
+            condition.addProperty("modid", "eej");
+            JsonArray conditions = new JsonArray();
+            conditions.add(condition);
+            body.add("conditions", conditions);
             JsonObject ingredient = new JsonObject();
             ingredient.addProperty("item", input);
             body.add("ingredient", ingredient);

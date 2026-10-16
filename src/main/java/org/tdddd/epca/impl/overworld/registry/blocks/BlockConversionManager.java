@@ -124,7 +124,8 @@ public class BlockConversionManager {
             return false; 
         }
         float multiplier = 1.0f;
-        if (state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG)) {
+        if (org.tdddd.epca.impl.compat.EejCompat.loaded()
+                    && org.tdddd.epca.impl.compat.EejAltarCompat.isAltarBlock(state)) {
             multiplier = 2.0f;
         }
         return convertBlockUsingMap(level, pos, state, stageIConfig.conversions, multiplier);
@@ -145,7 +146,8 @@ public class BlockConversionManager {
     
     public boolean convertBlockUsingStageIIConfig(ServerLevel level, BlockPos pos, BlockState state) {
         float multiplier = 1.0f;
-        if (state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG)) {
+        if (org.tdddd.epca.impl.compat.EejCompat.loaded()
+                    && org.tdddd.epca.impl.compat.EejAltarCompat.isAltarBlock(state)) {
             multiplier = 2.0f;
         }
         return convertBlockUsingMap(level, pos, state, stageIIConfig.conversions, multiplier);
@@ -165,7 +167,8 @@ public class BlockConversionManager {
 
     public boolean convertBlockUsingGeneralConfig(ServerLevel level, BlockPos pos, BlockState state) {
         float multiplier = 1.0f;
-        if (state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG)) {
+        if (org.tdddd.epca.impl.compat.EejCompat.loaded()
+                    && org.tdddd.epca.impl.compat.EejAltarCompat.isAltarBlock(state)) {
             multiplier = 2.0f;
         }
         return convertBlockUsingMap(level, pos, state, generalConfig.conversions, multiplier);
@@ -213,7 +216,8 @@ public class BlockConversionManager {
                 return false;
             }
             ResourceLocation id = ForgeRegistries.BLOCKS.getKey(state.getBlock());
-            boolean isAltarBlock = state.is(AltarBlockTags.PEDESTAL_TAG) || state.is(AltarBlockTags.ALTAR_STONE_TAG);
+            boolean isAltarBlock = org.tdddd.epca.impl.compat.EejCompat.loaded()
+                    && org.tdddd.epca.impl.compat.EejAltarCompat.isAltarBlock(state);
             if (id.getNamespace().equals("minecraft")
                     || (id.getNamespace().equals("epca") || id.getNamespace().equals("eej")) && !isAltarBlock) {
                 return false;

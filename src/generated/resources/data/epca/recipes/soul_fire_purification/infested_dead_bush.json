@@ -11,5 +11,11 @@
         "minecraft:dead_bush"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }

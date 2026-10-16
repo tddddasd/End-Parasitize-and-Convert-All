@@ -11,5 +11,11 @@
         "minecraft:deepslate_copper_ore"
       ]
     }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "eej"
+    }
   ]
 }
