@@ -93,7 +93,9 @@ public class epca {
         WingChestManager.init();
 
         
-        AltarInteractionRegistry.register(new EpcaAltarInteractionHandler());
+        if (org.tdddd.epca.impl.compat.EejCompat.loaded()) {
+            org.tdddd.epca.impl.compat.EejAltarCompat.registerInteraction();
+        }
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
         

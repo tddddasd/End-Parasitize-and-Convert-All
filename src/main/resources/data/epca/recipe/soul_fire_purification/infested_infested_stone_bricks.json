@@ -14,5 +14,11 @@
       ]
     }
   ],
-  "burn_chance": 0.7
+  "burn_chance": 0.7,
+  "conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "eej"
+    }
+  ]
 }

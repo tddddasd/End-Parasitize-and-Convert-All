@@ -13,5 +13,11 @@
       "item": "caerula_arbor:sea_trail_mor"
     }
   ],
-  "burn_chance": 0.75
+  "burn_chance": 0.75,
+  "conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "eej"
+    }
+  ]
 }

@@ -8,5 +8,11 @@
     "damage": 28.0,
     "knockback": 0.5,
     "blindness_ticks": 100
-  }
+  },
+  "conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "eej"
+    }
+  ]
 }
