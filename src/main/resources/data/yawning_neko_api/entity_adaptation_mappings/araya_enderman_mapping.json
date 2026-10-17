@@ -1,6 +1,7 @@
 {
   "id": "yawning_neko_api:araya_enderman_mapping",
   "epca:infested_enderman": {
-    "config": "yawning_neko_api:araya_enderman"
+    "config": "yawning_neko_api:araya_enderman",
+    "mode": "add"
   }
 }

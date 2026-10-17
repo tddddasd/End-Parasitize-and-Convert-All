@@ -1,59 +1,227 @@
 {
   "id": "yawning_neko_api:the_end_entity_mapping",
-  "epca:curbug": "yawning_neko_api:the_end_onesent",
-  "epca:ripper": "yawning_neko_api:the_end_onesent",
-  "epca:fins": "yawning_neko_api:the_end_onesent",
-  "epca:mozzie": "yawning_neko_api:the_end_onesent",
-  "epca:flying_carrier": "yawning_neko_api:the_end_onesent",
-  "epca:light_carrier": "yawning_neko_api:the_end_onesent",
-  "epca:small_incomplete_form": "yawning_neko_api:the_end_poverty",
-  "epca:medium_incomplete_form": "yawning_neko_api:the_end_poverty",
-  "epca:large_incomplete_form": "yawning_neko_api:the_end_poverty",
-  "epca:living_flesh_size0": "yawning_neko_api:the_end_poverty",
-  "epca:living_flesh_size1": "yawning_neko_api:the_end_poverty",
-  "epca:living_flesh_size2": "yawning_neko_api:the_end_poverty",
-  "epca:living_flesh_size3": "yawning_neko_api:the_end_poverty",
-  "epca:living_flesh_size4": "yawning_neko_api:the_end_poverty",
-  "epca:biomass_small": "yawning_neko_api:the_end_poverty",
-  "epca:biomass_medium": "yawning_neko_api:the_end_poverty",
-  "epca:infested_zombie": "yawning_neko_api:the_end_infested",
-  "epca:walking_zombie_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_husk": "yawning_neko_api:the_end_infested",
-  "epca:walking_husk_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_drowned": "yawning_neko_api:the_end_infested",
-  "epca:walking_drowned_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_pillager": "yawning_neko_api:the_end_infested",
-  "epca:walking_pillager_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_vindicator": "yawning_neko_api:the_end_infested",
-  "epca:walking_vindicator_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_villager": "yawning_neko_api:the_end_infested",
-  "epca:walking_villager_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_zombie_villager": "yawning_neko_api:the_end_infested",
-  "epca:walking_zombie_villager_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_pig": "yawning_neko_api:the_end_infested",
-  "epca:walking_pig_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_sheep": "yawning_neko_api:the_end_infested",
-  "epca:walking_sheep_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_cow": "yawning_neko_api:the_end_infested",
-  "epca:walking_cow_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_wolf": "yawning_neko_api:the_end_infested",
-  "epca:walking_wolf_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_enderman": "yawning_neko_api:the_end_infested",
-  "epca:walking_enderman_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_endermite": "yawning_neko_api:the_end_infested",
-  "epca:infested_slime_size0": "yawning_neko_api:the_end_infested",
-  "epca:infested_slime_size1": "yawning_neko_api:the_end_infested",
-  "epca:infested_slime_size3": "yawning_neko_api:the_end_infested",
-  "epca:infested_silverfish": "yawning_neko_api:the_end_infested",
-  "epca:infested_skeleton": "yawning_neko_api:the_end_infested",
-  "epca:walking_skeleton_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_chicken": "yawning_neko_api:the_end_infested",
-  "epca:walking_chicken_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_fox": "yawning_neko_api:the_end_infested",
-  "epca:walking_fox_head": "yawning_neko_api:the_end_infested",
-  "epca:infested_bat": "yawning_neko_api:the_end_infested",
-  "epca:reshape_longarms": "yawning_neko_api:the_end_reshape",
-  "epca:reshape_yelloweye": "yawning_neko_api:the_end_reshape",
-  "epca:stage_i_beckon": "yawning_neko_api:the_end_connection_i",
-  "epca:stage_ii_beckon": "yawning_neko_api:the_end_connection_ii"
+  "epca:curbug": {
+    "config": "yawning_neko_api:the_end_onesent",
+    "mode": "add"
+  },
+  "epca:ripper": {
+    "config": "yawning_neko_api:the_end_onesent",
+    "mode": "add"
+  },
+  "epca:fins": {
+    "config": "yawning_neko_api:the_end_onesent",
+    "mode": "add"
+  },
+  "epca:mozzie": {
+    "config": "yawning_neko_api:the_end_onesent",
+    "mode": "add"
+  },
+  "epca:flying_carrier": {
+    "config": "yawning_neko_api:the_end_onesent",
+    "mode": "add"
+  },
+  "epca:light_carrier": {
+    "config": "yawning_neko_api:the_end_onesent",
+    "mode": "add"
+  },
+  "epca:small_incomplete_form": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:medium_incomplete_form": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:large_incomplete_form": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:living_flesh_size0": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:living_flesh_size1": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:living_flesh_size2": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:living_flesh_size3": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:living_flesh_size4": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:biomass_small": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:biomass_medium": {
+    "config": "yawning_neko_api:the_end_poverty",
+    "mode": "add"
+  },
+  "epca:infested_zombie": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_zombie_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_husk": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_husk_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_drowned": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_drowned_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_pillager": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_pillager_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_vindicator": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_vindicator_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_villager": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_villager_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_zombie_villager": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_zombie_villager_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_pig": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_pig_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_sheep": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_sheep_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_cow": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_cow_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_wolf": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_wolf_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_enderman": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_enderman_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_endermite": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_slime_size0": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_slime_size1": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_slime_size3": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_silverfish": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_skeleton": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_skeleton_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_chicken": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_chicken_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_fox": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:walking_fox_head": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:infested_bat": {
+    "config": "yawning_neko_api:the_end_infested",
+    "mode": "add"
+  },
+  "epca:reshape_longarms": {
+    "config": "yawning_neko_api:the_end_reshape",
+    "mode": "add"
+  },
+  "epca:reshape_yelloweye": {
+    "config": "yawning_neko_api:the_end_reshape",
+    "mode": "add"
+  },
+  "epca:stage_i_beckon": {
+    "config": "yawning_neko_api:the_end_connection_i",
+    "mode": "add"
+  },
+  "epca:stage_ii_beckon": {
+    "config": "yawning_neko_api:the_end_connection_ii",
+    "mode": "add"
+  }
 }
