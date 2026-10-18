@@ -1,0 +1,15 @@
+{
+  "id": "yawning_neko_api:adaptation_colors",
+  "_comment": "默认只给 epca 的生物上色。其它整合包可追加原版或 GeckoLib 生物；不需要声明模型类型，着色器颜色对两条渲染管线都生效。duration_ticks 固定 10。",
+  "partial": {
+    "color": "#33E6FF",
+    "duration_ticks": 10
+  },
+  "full": {
+    "color": "#E633E6",
+    "duration_ticks": 10
+  },
+  "entities": [
+    "epca:*"
+  ]
+}
