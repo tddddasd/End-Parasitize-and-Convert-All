@@ -43,12 +43,6 @@ public class ClientColorEffect {
     }
 
     public static EffectData getEffect(LivingEntity entity) {
-        // EPCA tint disabled: the adaptation colour display lives in yawning_neko_api
-        // (LivingEntityTintMixin redirects EntityModel#renderToBuffer and reads
-        //  AdaptationColorConfig). Sounds and particles are untouched.
-        if (true) {
-            return null;
-        }
         if (entity == null) return null;
         EffectData data = ACTIVE.get(entity.getId());
         if (data == null) return null;
