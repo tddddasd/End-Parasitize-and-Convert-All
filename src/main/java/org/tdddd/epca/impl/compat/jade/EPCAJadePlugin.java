@@ -200,8 +200,13 @@ public class EPCAJadePlugin implements IWailaPlugin {
 
             if (data.contains("MinKillCount")) {
                 int minKillCount = data.getInt("MinKillCount");
+                int maxMinKillCount = data.contains("MaxMinKillCount")
+                        ? data.getInt("MaxMinKillCount") : minKillCount;
                 if (minKillCount > 0) {
-                    tooltip.add(Component.literal("最小击杀数: " + minKillCount));
+                    // A respawn anchor icon followed by "current / upper bound".
+                    tooltip.add(tooltip.getElementHelper().smallItem(
+                            new ItemStack(net.minecraft.world.item.Items.RESPAWN_ANCHOR)));
+                    tooltip.append(Component.literal(" " + minKillCount + "/" + Math.max(maxMinKillCount, minKillCount)));
                 }
             }
 
@@ -268,6 +273,9 @@ public class EPCAJadePlugin implements IWailaPlugin {
             int minKillCount = config.getMinimumKillCount();
             if (minKillCount > 0) {
                 epcaData.putInt("MinKillCount", minKillCount);
+                epcaData.putInt("MaxMinKillCount",
+                        org.tdddd.yawning_neko_api.data.AdaptationConfigResolver
+                                .resolveMinimumKillCountUpperBound(livingEntity));
             }
 
             

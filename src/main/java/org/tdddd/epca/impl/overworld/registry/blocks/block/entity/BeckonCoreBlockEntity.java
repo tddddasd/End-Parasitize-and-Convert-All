@@ -33,6 +33,9 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     private int generationTimer = 0;
     private boolean isGenerating = false;
 
+    /** Upper bound on the biomass stored by the beckon core. */
+    public static final int MAX_KILL_COUNT = 128;
+
     private static final int REQUIRED_KILLS_STAGE_I = 30;
     private static final int REQUIRED_KILLS_STAGE_II = 55;
     private static final int GENERATION_DELAY_TICKS = 30 * 20; 
@@ -55,7 +58,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        this.killCount = tag.getInt(KILL_COUNT_KEY);
+        this.killCount = Math.min(tag.getInt(KILL_COUNT_KEY), MAX_KILL_COUNT);
         this.generationTimer = tag.getInt(GENERATION_TIMER_KEY);
         this.isGenerating = tag.getBoolean(IS_GENERATING_KEY);
     }
@@ -82,7 +85,9 @@ public class BeckonCoreBlockEntity extends BlockEntity {
                 int current = EntityKillCountManager.getCurrentKillCount(parasite);
                 if (current > 0) {
                     EntityKillCountManager.setKillCount(parasite, current - 1);
+                    if (this.killCount < MAX_KILL_COUNT) {
                     this.killCount++;
+                }
                     this.setChanged();
                 }
             }
@@ -229,7 +234,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     }
 
     public void addKillCount(int amount) {
-        this.killCount += amount;
+        this.killCount = Math.min(this.killCount + amount, MAX_KILL_COUNT);
         this.setChanged();
     }
 }
