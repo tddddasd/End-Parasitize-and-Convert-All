@@ -41,6 +41,18 @@ public class ClientColorEffect {
             ACTIVE.remove(entity.getId());
             return null;
         }
+        
+        // The colour comes from yawning_neko_api's adaptation_color_models json when it covers this
+        // entity; otherwise the built-in colours below are used.
+        int override = 0;
+        if (org.tdddd.yawning_neko_api.data.AdaptationColorConfig.applies(entity)) {
+            int eventType = org.tdddd.yawning_neko_api.data.DamageAdaptation.getActiveAdaptationEvent(entity);
+            int argb = org.tdddd.yawning_neko_api.data.AdaptationColorConfig.colorFor(eventType);
+            if (argb != -1) {
+                override = argb;
+            }
+        }
+        data.colorOverride = override;
         return data;
     }
 
@@ -54,6 +66,9 @@ public class ClientColorEffect {
     public static class EffectData {
         public final int type;   
         public int remainingTicks;
+
+        /** 0 = use the built-in colours; otherwise the ARGB decided by yawning_neko_api's json. */
+        public int colorOverride = 0;
         
         public final int totalTicks;
 
@@ -64,6 +79,9 @@ public class ClientColorEffect {
         }
 
         public int getColorARGB() {
+            if (this.colorOverride != 0) {
+                return this.colorOverride;
+            }
             float[] rgb = getColorRGB();
             int a = getAlphaChannel();
             // Ramp types also scale RGB with the same progress, so cutout (non-blended) vanilla

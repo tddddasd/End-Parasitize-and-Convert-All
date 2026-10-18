@@ -1,4 +1,5 @@
 {
+  "id": "yawning_neko_api:entity_mapping",
   "epca:yawning_nya": "yawning_neko_api:author",
   "epca:curbug": "yawning_neko_api:onesent",
   "epca:ripper": "yawning_neko_api:onesent",
