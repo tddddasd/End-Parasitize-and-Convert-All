@@ -48,6 +48,9 @@ public class DamageAdaptationEntityDataProvider implements IServerDataProvider<E
         int minKillCount = config.getMinimumKillCount();
         if (minKillCount > 0) {
             epcaData.putInt("MinKillCount", minKillCount);
+                epcaData.putInt("MaxMinKillCount",
+                        org.tdddd.yawning_neko_api.data.AdaptationConfigResolver
+                                .resolveMinimumKillCountUpperBound(livingEntity));
         }
         int currentAdaptLevel = 0;
         int maxAdaptLevel = config.getMaxAdaptations();
