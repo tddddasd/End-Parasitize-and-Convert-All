@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,7 +32,22 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     private static final String GENERATION_TIMER_KEY = "generationTimer";
     private static final String IS_GENERATING_KEY = "isGenerating";
 
+    /** Upper bound on the stored biomass. */
+    public static final int MAX_KILL_COUNT = 128;
+
+    private int seenKillCount = -1;
+
+    private int lastKillCountSeen() {
+        int previous = this.seenKillCount;
+        this.seenKillCount = this.killCount;
+        return previous;
+    }
+
+    /** 5 minutes without a biomass gain degrades the core into a hive node. */
+    private static final int IDLE_DEGRADE_TICKS = 5 * 60 * 20;
+
     private int killCount = 0;
+    private long lastGainTick = Long.MIN_VALUE;
     private int generationTimer = 0;
     private boolean isGenerating = false;
 
@@ -94,6 +110,26 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, BeckonCoreBlockEntity be) {
+        if (level instanceof net.minecraft.server.level.ServerLevel server) {
+            long now = server.getGameTime();
+            if (be.lastGainTick == Long.MIN_VALUE) {
+                be.lastGainTick = now;
+            } else if (be.lastKillCountSeen() != be.killCount) {
+                be.lastGainTick = now;
+            } else if (now - be.lastGainTick >= IDLE_DEGRADE_TICKS) {
+                net.minecraft.world.level.block.state.BlockState hive =
+                        org.tdddd.epca.impl.overworld.registry.ModBlocks.HIVE_NODE.get().defaultBlockState();
+                int carried = Math.min(be.killCount,
+                        org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_KILL_COUNT);
+                server.setBlock(pos, hive, 3);
+                if (server.getBlockEntity(pos) instanceof
+                        org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity node) {
+                    node.setKillCount(carried);
+                }
+                return;
+            }
+        }
+
         if (level.isClientSide()) return;
         ServerLevel serverLevel = (ServerLevel) level;
 
@@ -233,7 +269,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     }
 
     public void addKillCount(int amount) {
-        this.killCount += amount;
+        this.killCount = Math.min(this.killCount + amount, MAX_KILL_COUNT);
         this.setChanged();
     }
 }

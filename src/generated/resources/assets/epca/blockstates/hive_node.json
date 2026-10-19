@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "stage=0": {
+      "model": "epca:block/hive_node_0"
+    },
+    "stage=1": {
+      "model": "epca:block/hive_node_1"
+    },
+    "stage=2": {
+      "model": "epca:block/hive_node_2"
+    },
+    "stage=3": {
+      "model": "epca:block/hive_node_3"
+    },
+    "stage=4": {
+      "model": "epca:block/hive_node_4"
+    },
+    "stage=5": {
+      "model": "epca:block/hive_node_5"
+    }
+  }
+}

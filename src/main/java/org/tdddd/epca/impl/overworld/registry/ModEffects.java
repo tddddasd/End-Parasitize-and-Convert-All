@@ -19,6 +19,9 @@ public class ModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> BLEEDING =
             EFFECTS.register("bleeding", BleedingEffect::new);
 
+    public static final DeferredHolder<MobEffect, MobEffect> LINK =
+            EFFECTS.register("link", org.tdddd.epca.impl.overworld.registry.effects.buff.LinkEffect::new);
+
     public static final DeferredHolder<MobEffect, MobEffect> VIRAL =
             EFFECTS.register("viral", ViralEffect::new);
 

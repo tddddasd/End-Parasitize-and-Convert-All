@@ -19,6 +19,9 @@ public class EPCAJadePlugin implements IWailaPlugin {
 
         registration.registerEntityDataProvider(DamageAdaptationEntityDataProvider.INSTANCE, LivingEntity.class);
 
+        registration.registerBlockDataProvider(HiveNodeKillCountDataProvider.INSTANCE,
+                org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.class);
+
         registration.registerBlockDataProvider(KillCountBlockDataProvider.INSTANCE, BeckonCoreBlockEntity.class);
     }
 
@@ -27,6 +30,8 @@ public class EPCAJadePlugin implements IWailaPlugin {
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerEntityComponent(DamageAdaptationEntityComponentProvider.INSTANCE, LivingEntity.class);
         registration.registerEntityComponent(KillCountEntityComponentProvider.INSTANCE, LivingEntity.class);
+        registration.registerBlockComponent(HiveNodeKillCountProvider.INSTANCE,
+                org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode.class);
         registration.registerBlockComponent(KillCountBlockComponentProvider.INSTANCE, BeckonCore.class);
         // Config keys may already be registered by yawningapi
         try {

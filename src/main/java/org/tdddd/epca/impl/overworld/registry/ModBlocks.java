@@ -507,6 +507,13 @@ public class ModBlocks {
             () -> BlockBehaviour.Properties.of().strength(4.0F, 6.0F).sound(SoundType.MUDDY_MANGROVE_ROOTS).mapColor(DyeColor.GREEN)
     );
 
+public static final DeferredBlock<Block> HIVE_NODE = BLOCKS.registerBlock(
+            "hive_node",
+            HiveNode::new,
+            () -> BlockBehaviour.Properties.of().strength(15.0F, 25.0F).sound(SoundType.MUDDY_MANGROVE_ROOTS)
+                    .mapColor(DyeColor.GREEN).requiresCorrectToolForDrops()
+    );
+
     public static final DeferredBlock<Block> INFESTED_HEAVY_STONE = BLOCKS.registerBlock(
             "infested_heavy_stone",
             InfestedHeavyStone::new,

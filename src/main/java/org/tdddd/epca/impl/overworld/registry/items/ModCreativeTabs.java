@@ -252,6 +252,7 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_METALLIKE));
                 builder.add(i(ModItems.INFESTED_HARDLIKE));
                 builder.add(i(ModItems.BECKON_CORE));
+                builder.add(i(ModItems.HIVE_NODE));
                 builder.add(i(ModItems.ACID_SOLUTION_BUCKET));
 
                 return builder.build();

@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBlockEntity;
+import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.InfestedSweetBerryBushBlockEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
 import org.tdddd.epca.impl.epca;
@@ -24,6 +25,11 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("beckon_core",
                     () -> new BlockEntityType<>(BeckonCoreBlockEntity::new,
                             ModBlocks.BECKON_CORE.get()));
+
+public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HiveNodeBlockEntity>> HIVE_NODE =
+            BLOCK_ENTITIES.register("hive_node",
+                    () -> new BlockEntityType<>(HiveNodeBlockEntity::new,
+                            ModBlocks.HIVE_NODE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InfestedSweetBerryBushBlockEntity>> INFESTED_SWEET_BERRY_BUSH =
             BLOCK_ENTITIES.register("infested_sweet_berry_bush",
