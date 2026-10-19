@@ -44,6 +44,8 @@ public class EPCAJadePlugin implements IWailaPlugin {
         registration.registerEntityDataProvider(KillCountEntityProvider.INSTANCE, LivingEntity.class);
         
         registration.registerBlockDataProvider(KillCountBlockProvider.INSTANCE, BeckonCoreBlockEntity.class);
+        registration.registerBlockDataProvider(HiveNodeKillCountProvider.INSTANCE,
+                org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.class);
     }
 
     @Override
@@ -54,6 +56,8 @@ public class EPCAJadePlugin implements IWailaPlugin {
 
         
         registration.registerBlockComponent(KillCountBlockProvider.INSTANCE, BeckonCore.class);
+        registration.registerBlockComponent(HiveNodeKillCountProvider.INSTANCE,
+                org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode.class);
 
         // /Unknown
         registration.registerEntityComponent(UnknownHealthEntityProvider.INSTANCE, BioTortIncarnation.class);
@@ -75,6 +79,38 @@ public class EPCAJadePlugin implements IWailaPlugin {
     }
 
     
+
+    /** Shows the stored biomass of a hive node, with the same icon and format as the beckon core. */
+    public static class HiveNodeKillCountProvider
+            implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        public static final HiveNodeKillCountProvider INSTANCE = new HiveNodeKillCountProvider();
+
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            if (!config.get(KILL_COUNT_INFO)) return;
+            CompoundTag serverData = accessor.getServerData();
+            if (!serverData.contains("EPCA_KillCount")) return;
+            int count = serverData.getInt("EPCA_KillCount");
+            int max = serverData.getInt("EPCA_KillCountMax");
+            if (count <= 0) return;
+            IElementHelper helper = tooltip.getElementHelper();
+            tooltip.add(helper.smallItem(ICON_STACK));
+            tooltip.append(Component.literal(" " + count + "/" + max));
+        }
+
+        public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
+            if (accessor.getBlockEntity()
+                    instanceof org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity node) {
+                tag.putInt("EPCA_KillCount", node.getKillCount());
+                tag.putInt("EPCA_KillCountMax",
+                        org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_KILL_COUNT);
+            }
+        }
+
+        public ResourceLocation getUid() {
+            return KILL_COUNT_INFO;
+        }
+    }
+
     public static class KillCountEntityProvider implements IEntityComponentProvider, IServerDataProvider<EntityAccessor> {
         public static final KillCountEntityProvider INSTANCE = new KillCountEntityProvider();
 

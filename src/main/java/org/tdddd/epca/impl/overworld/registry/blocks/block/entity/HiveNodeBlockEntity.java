@@ -314,6 +314,12 @@ public class HiveNodeBlockEntity extends BlockEntity {
             if (living instanceof net.minecraft.world.entity.player.Player) {
                 continue;
             }
+            // Only what this node spawned, or nearby onesent parasites, are linked.
+            boolean nodeBorn = living.getPersistentData().contains(GROWTH_KEY);
+            boolean onesent = living instanceof org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
+            if (!nodeBorn && !onesent) {
+                continue;
+            }
             living.addEffect(new net.minecraft.world.effect.MobEffectInstance(
                     org.tdddd.epca.impl.overworld.registry.ModEffects.LINK.get(),
                     LINK_DURATION_TICKS, 0, true, false));
@@ -374,6 +380,10 @@ public class HiveNodeBlockEntity extends BlockEntity {
             if (state.isAir() || state.getDestroySpeed(level, target) < 0.0F) {
                 continue;
             }
+            // Only spread from block to block: one of the six neighbours must already be infested.
+            if (!hasInfestedNeighbour(level, target)) {
+                continue;
+            }
             boolean changed = stage >= 2
                     ? manager.convertBlockUsingStageIIConfig(level, target, state)
                     : manager.convertBlockUsingStageIConfig(level, target, state);
@@ -381,6 +391,17 @@ public class HiveNodeBlockEntity extends BlockEntity {
                 return;                                 // one block per pass
             }
         }
+    }
+
+    /** True when any of the six direct neighbours is an infested (parasite) block. */
+    private static boolean hasInfestedNeighbour(net.minecraft.server.level.ServerLevel level, BlockPos pos) {
+        for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
+            BlockState neighbour = level.getBlockState(pos.relative(direction));
+            if (neighbour.getBlock() instanceof org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** 2..3 biomass particles accompany a spawned curbub. */
