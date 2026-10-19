@@ -29,6 +29,7 @@ public class ModConfig {
     private static final Set<Identifier> DISABLED_ENTITIES = ConcurrentHashMap.newKeySet();
     public static final ModConfigSpec.ConfigValue<String> DEFAULT_EXTRA_DIFFICULTY;
     public static final ModConfigSpec.BooleanValue SAFETY_DAY_ENABLED;
+    public static final ModConfigSpec.BooleanValue BECKON_CORE_DEGRADE;
     public static final ModConfigSpec.IntValue SAFETY_DAY_DURATION_TICKS;
     static {
         BUILDER.push("End-Parasitize and Convert All Configuration");
@@ -91,6 +92,10 @@ public class ModConfig {
                         "Enable Safe Day, Default: false",
                         "是否启用安全日，默认值：false")
                 .define("safetyDayEnabled", false);
+
+        BECKON_CORE_DEGRADE = BUILDER
+                .comment("If true, a beckon core that gained no biomass for 5 minutes degrades into a hive node. Default: true")
+                .define("beckonCoreDegrade", true);
 
         SAFETY_DAY_DURATION_TICKS = BUILDER
                 .comment(" ",

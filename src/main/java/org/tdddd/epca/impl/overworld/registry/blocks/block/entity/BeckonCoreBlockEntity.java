@@ -116,7 +116,8 @@ public class BeckonCoreBlockEntity extends BlockEntity {
                 be.lastGainTick = now;
             } else if (be.lastKillCountSeen() != be.killCount) {
                 be.lastGainTick = now;
-            } else if (now - be.lastGainTick >= IDLE_DEGRADE_TICKS) {
+            } else if (org.tdddd.epca.impl.ModConfig.BECKON_CORE_DEGRADE.get()
+                    && now - be.lastGainTick >= IDLE_DEGRADE_TICKS) {
                 net.minecraft.world.level.block.state.BlockState hive =
                         org.tdddd.epca.impl.overworld.registry.ModBlocks.HIVE_NODE.get().defaultBlockState();
                 int carried = Math.min(be.killCount,
