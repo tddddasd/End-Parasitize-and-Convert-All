@@ -292,6 +292,7 @@ public class ModItems {
     public static final RegistryObject<Item> SWALLOW_CYST = blockItem("swallow_cyst", ModBlocks.SWALLOW_CYST);
     public static final RegistryObject<Item> INFESTED_POINTED_DRIPSTONE = blockItem("infested_pointed_dripstone", ModBlocks.INFESTED_POINTED_DRIPSTONE);
     public static final RegistryObject<Item> BECKON_CORE = blockItem("beckon_core", ModBlocks.BECKON_CORE);
+    public static final RegistryObject<Item> HIVE_NODE = blockItem("hive_node", ModBlocks.HIVE_NODE);
     public static final RegistryObject<Item> INFESTED_HEAVY_STONE = blockItem("infested_heavy_stone", ModBlocks.INFESTED_HEAVY_STONE);
     public static final RegistryObject<Item> INFESTED_INFESTED_HEAVY_STONE = blockItem("infested_infested_heavy_stone", ModBlocks.INFESTED_INFESTED_HEAVY_STONE);
     public static final RegistryObject<Item> INFESTED_HEAVY_COAL_ORE = blockItem("infested_heavy_coal_ore", ModBlocks.INFESTED_HEAVY_COAL_ORE);

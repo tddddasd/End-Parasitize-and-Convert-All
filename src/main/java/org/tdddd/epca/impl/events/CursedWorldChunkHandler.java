@@ -42,6 +42,11 @@ public final class CursedWorldChunkHandler {
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END && event.getServer() != null) {
+            for (net.minecraft.server.level.ServerLevel level : event.getServer().getAllLevels()) {
+                org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeSpawner.onServerTick(level);
+            }
+        }
         if (event.phase != TickEvent.Phase.END) return;
         for (ServerLevel level : event.getServer().getAllLevels()) {
             if (!CursedWorlds.isCursed(level)) continue;

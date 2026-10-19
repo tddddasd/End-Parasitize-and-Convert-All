@@ -276,6 +276,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         });
 
         this.goalSelector.addGoal(4, new RandomTargetSelectionGoal(this));
+        this.goalSelector.addGoal(6, new org.tdddd.epca.impl.overworld.registry.entities.ai.RipperGatherGoal(this));
     }
 
     static class ClimbTowardsTargetGoal extends Goal {

@@ -19,6 +19,9 @@ public class ModEffects {
     public static final RegistryObject<MobEffect> BLEEDING =
             EFFECTS.register("bleeding", BleedingEffect::new);
 
+    public static final RegistryObject<MobEffect> LINK =
+            EFFECTS.register("link", org.tdddd.epca.impl.overworld.registry.effects.buff.LinkEffect::new);
+
     public static final RegistryObject<MobEffect> VIRAL =
             EFFECTS.register("viral", ViralEffect::new);
 

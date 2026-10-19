@@ -29,40 +29,36 @@ public class ModConfig {
     private static final Set<ResourceLocation> DISABLED_ENTITIES = ConcurrentHashMap.newKeySet();
     public static final ForgeConfigSpec.ConfigValue<String> DEFAULT_EXTRA_DIFFICULTY;
     public static final ForgeConfigSpec.BooleanValue SAFETY_DAY_ENABLED;
+    public static final ForgeConfigSpec.BooleanValue BECKON_CORE_DEGRADE;
     public static final ForgeConfigSpec.IntValue SAFETY_DAY_DURATION_TICKS;
     static {
         BUILDER.push("End-Parasitize and Convert All Configuration");
 
         ALLOW_COTH_LEVEL_4 = BUILDER
-                .comment("If true, the effect of Call of The Hive can be upgraded to level IV. Default: false",
-                        "如果为true，寄巢之唤效果可以提升至IV级。默认值：false")
+                .comment("If true, the effect of Call of The Hive can be upgraded to level IV. Default: false")
                 .define("allowCothLevel4", false);
 
         PARASITE_PEACEFUL = BUILDER
                 .comment(" ",
-                        "If true, the parasite won't attack or convert any creatures (except those on the whitelist). Default: false",
-                        "如果为true，寄生体将不会攻击和转化任何生物（白名单中的生物除外）。默认值：false")
+                        "If true, the parasite won't attack or convert any creatures (except those on the whitelist). Default: false")
                 .define("parasitePeaceful", false);
 
         PARASITE_TARGET_WHITELIST = BUILDER
                 .comment(" ",
-                        "Parasite attack target whitelist (effective when parasitePeaceful is enabled), you need to enter the entity registration name",
-                        "寄生体攻击目标白名单（当parasitePeaceful启用时生效），需填入实体注册名")
+                        "Parasite attack target whitelist (effective when parasitePeaceful is enabled), you need to enter the entity registration name")
                 .defineList("parasiteTargetWhitelist", Collections.emptyList(),
                         entry -> entry instanceof String);
 
         PARASITE_IMMUNITY_WHITELIST = BUILDER
                 .comment(" ",
-                        "Parasites don’t attack the target whitelist (parasites will never attack these creatures, highest priority), you need to enter the entity registration name",
-                        "寄生体不攻击目标白名单（寄生体永远不会攻击这些生物，最高优先级），需填入实体注册名")
+                        "Parasites don’t attack the target whitelist (parasites will never attack these creatures, highest priority), you need to enter the entity registration name")
                 .defineList("parasiteImmunityWhitelist", Collections.emptyList(),
                         entry -> entry instanceof String);
 
 
         PARASITE_CONVERSION_MOD_IMMUNITY_WHITELIST = BUILDER
                 .comment(" ",
-                        "Mod creature immune parasite transformation whitelist (all creatures with the entered mod ID will not be transformed, highest priority)",
-                        "模组生物免疫寄生体转化白名单（填入的模组ID的所有生物不会被转化,最高优先级）")
+                        "Mod creature immune parasite transformation whitelist (all creatures with the entered mod ID will not be transformed, highest priority)")
                 .defineList("parasiteConversionModImmunityWhitelist", Collections.emptyList(),
                         entry -> entry instanceof String);
 
@@ -75,27 +71,28 @@ public class ModConfig {
 
         DISABLED_ENTITIES_WHITELIST = BUILDER
                 .comment(" ",
-                        "Disable the mob whitelist (after entering the mob's registered name in this whitelist, the mob in the currently loaded chunks will be removed)",
-                        "禁用生物白名单（在该白名单填入生物注册名后，会清除当前加载区块内的该生物）")
+                        "Disable the mob whitelist (after entering the mob's registered name in this whitelist, the mob in the currently loaded chunks will be removed)")
                 .defineList("disabledEntitiesWhitelist", Collections.emptyList(),
                         entry -> entry instanceof String);
 
         DEFAULT_EXTRA_DIFFICULTY = BUILDER
                 .comment(" ",
-                        "The default extra difficulty when creating a new world. Options: easy, normal, expert, master, legendary, custom",
-                        "新建世界时的默认额外难度。可选值: easy, normal, expert, master, legendary, custom")
+                        "The default extra difficulty when creating a new world. Options: easy, normal, expert, master, legendary, custom")
                 .define("defaultExtraDifficulty", "normal");
 
         SAFETY_DAY_ENABLED = BUILDER
                 .comment(" ",
-                        "Enable Safe Day, Default: false",
-                        "是否启用安全日，默认值：false")
+                        "Enable Safe Day, Default: false")
                 .define("safetyDayEnabled", false);
+
+        BECKON_CORE_DEGRADE = BUILDER
+                .comment("If true, a beckon core that gained no biomass for 5 minutes degrades into a hive node. Default: true",
+                        "\u5982\u679c\u4e3a true\uff0c\u53ec\u5524\u67f1\u6838\u5fc3\u5728 5 \u5206\u949f\u5185\u6ca1\u6709\u83b7\u5f97\u751f\u7269\u8d28\u65f6\u4f1a\u9000\u5316\u4e3a\u866b\u5de2\u8282\u70b9\u3002\u9ed8\u8ba4\uff1atrue")
+                .define("beckonCoreDegrade", true);
 
         SAFETY_DAY_DURATION_TICKS = BUILDER
                 .comment(" ",
-                        "Safe day duration (game tick)",
-                        "安全日持续时间（游戏刻）")
+                        "Safe day duration (game tick)")
                 .defineInRange("safetyDayDurationTicks", 60000, 1, Integer.MAX_VALUE);
 
         BUILDER.pop();

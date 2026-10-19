@@ -29,7 +29,11 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     private static final String GENERATION_TIMER_KEY = "generationTimer";
     private static final String IS_GENERATING_KEY = "isGenerating";
 
+    /** 5 minutes without a biomass gain degrades the core into a hive node. */
+    private static final int IDLE_DEGRADE_TICKS = 5 * 60 * 20;
+
     private int killCount = 0;
+    private long lastGainTick = Long.MIN_VALUE;
     private int generationTimer = 0;
     private boolean isGenerating = false;
 
@@ -87,6 +91,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
                     EntityKillCountManager.setKillCount(parasite, current - 1);
                     if (this.killCount < MAX_KILL_COUNT) {
                     this.killCount++;
+                    this.lastGainTick = this.level == null ? Long.MIN_VALUE : this.level.getGameTime();
                 }
                     this.setChanged();
                 }
@@ -95,6 +100,22 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, BeckonCoreBlockEntity be) {
+        if (level instanceof net.minecraft.server.level.ServerLevel server
+                && org.tdddd.epca.impl.ModConfig.BECKON_CORE_DEGRADE.get()) {
+            long now = server.getGameTime();
+            if (be.lastGainTick == Long.MIN_VALUE) {
+                be.lastGainTick = now;
+            } else if (now - be.lastGainTick >= IDLE_DEGRADE_TICKS) {
+                BlockState hiveState = org.tdddd.epca.impl.overworld.registry.ModBlocks.HIVE_NODE.get().defaultBlockState();
+                int carried = Math.min(be.killCount, org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_KILL_COUNT);
+                server.setBlock(pos, hiveState, 3);
+                if (server.getBlockEntity(pos) instanceof org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity node) {
+                    node.setKillCount(carried);
+                }
+                return;
+            }
+        }
+
         if (level.isClientSide) return;
         ServerLevel serverLevel = (ServerLevel) level;
 
@@ -234,6 +255,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     }
 
     public void addKillCount(int amount) {
+        this.lastGainTick = this.level == null ? Long.MIN_VALUE : this.level.getGameTime();
         this.killCount = Math.min(this.killCount + amount, MAX_KILL_COUNT);
         this.setChanged();
     }

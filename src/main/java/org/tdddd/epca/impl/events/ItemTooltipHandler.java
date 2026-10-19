@@ -205,6 +205,7 @@ public class ItemTooltipHandler {
 
         //link
         registerTooltip(ModItems.BECKON_CORE, "item.epca.category_link");
+        registerTooltip(ModItems.HIVE_NODE, "item.epca.category_link");
     }
 
     private static void registerTooltip(RegistryObject<? extends Item> ro, String translationKey) {
