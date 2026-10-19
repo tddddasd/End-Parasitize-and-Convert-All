@@ -150,6 +150,7 @@ public class LangDataCN extends LanguageProvider {
 
         
         add("effect.epca.bleeding", "流血");
+        add("effect.epca.link", "连结");
         add("effect.epca.viral", "病毒");
         add("effect.epca.fear", "恐慌");
         add("effect.epca.coth", "\u00a7c寄巢之唤");
@@ -294,6 +295,7 @@ public class LangDataCN extends LanguageProvider {
 
         
         add("block.epca.infested_dirt", "虫染泥土");
+        add("block.epca.hive_node", "虫巢节点");
         add("block.epca.infested_sand", "虫染沙子");
         add("block.epca.infested_leaves", "虫染树叶");
         add("block.epca.infested_flowering_leaves", "虫染盛开的树叶");

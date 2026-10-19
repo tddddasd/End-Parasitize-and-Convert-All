@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "epca:block/hive_node_2",
+    "top": "epca:block/hive_node_top_2",
+    "bottom": "epca:block/hive_node_top_2"
+  }
+}

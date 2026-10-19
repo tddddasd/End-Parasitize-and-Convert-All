@@ -265,7 +265,10 @@ public class HiveNodeBlockEntity extends BlockEntity {
                 if (growthLeft(mob) >= 0) {
                     continue;                       // node children are not feeders
                 }
-                if (this.hasRoom()) {
+                // Feeding transfers the feeder's own biomass: a parasite with no kill count gives nothing.
+                int own = org.tdddd.epca.impl.overworld.data.EntityKillCountManager.getCurrentKillCount(mob);
+                if (own > 0 && this.hasRoom()) {
+                    org.tdddd.epca.impl.overworld.data.EntityKillCountManager.setKillCount(mob, own - 1);
                     this.addKillCount(1);
                     spawnBiomassParticles(level);
                 }
