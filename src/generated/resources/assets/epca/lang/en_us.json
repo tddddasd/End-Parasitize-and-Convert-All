@@ -469,5 +469,7 @@
   "tooltip.epca.min_kill_count": "Min Kill Count: %d",
   "tooltip.epca.module_description": "Module Information:",
   "tooltip.epca.negative": "Negative: %s",
-  "tooltip.epca.player_attack_count": "Attack count: %d/%d"
+  "tooltip.epca.player_attack_count": "Attack count: %d/%d",
+  "block.epca.hive_node": "Hive Node",
+  "effect.epca.link": "Link"
 }

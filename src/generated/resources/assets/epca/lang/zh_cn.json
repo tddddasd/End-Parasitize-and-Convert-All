@@ -463,5 +463,7 @@
   "tooltip.epca.min_kill_count": "至少击杀数: %d",
   "tooltip.epca.module_description": "模块信息：",
   "tooltip.epca.negative": "负面：%s",
-  "tooltip.epca.player_attack_count": "攻击次数: %d/%d"
+  "tooltip.epca.player_attack_count": "攻击次数: %d/%d",
+  "block.epca.hive_node": "虫巢节点",
+  "effect.epca.link": "连结"
 }
