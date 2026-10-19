@@ -288,7 +288,10 @@ public class HiveNodeBlockEntity extends BlockEntity {
                 }
                 mob.getPersistentData().putLong(FED_KEY, level.getGameTime());
                 mob.getPersistentData().remove(GROWTH_KEY);        // a fed bug is no longer a node child
-                if (this.hasRoom()) {
+                // Feeding transfers the feeder's own biomass: a parasite with no kill count gives nothing.
+                int own = org.tdddd.epca.impl.overworld.data.EntityKillCountManager.getCurrentKillCount(mob);
+                if (own > 0 && this.hasRoom()) {
+                    org.tdddd.epca.impl.overworld.data.EntityKillCountManager.setKillCount(mob, own - 1);
                     this.addKillCount(1);
                     spawnBiomassParticles(level);
                 }

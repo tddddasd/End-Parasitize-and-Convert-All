@@ -155,6 +155,7 @@ public class LangDataEN extends LanguageProvider {
 
         // Effects
         add("effect.epca.bleeding", "Bleeding");
+        add("effect.epca.link", "Link");
         add("effect.epca.viral", "Viral");
         add("effect.epca.fear", "Fear");
         add("effect.epca.coth", "\u00a7cCOTH");
@@ -305,6 +306,7 @@ public class LangDataEN extends LanguageProvider {
 
         // Blocks
         add("block.epca.infested_dirt", "Infested Dirt");
+        add("block.epca.hive_node", "Hive Node");
         add("block.epca.infested_sand", "Infested Sand");
         add("block.epca.infested_leaves", "Infested Leaves");
         add("block.epca.infested_flowering_leaves", "Infested Flowering Leaves");

@@ -384,7 +384,7 @@ public class ModBlocks {
 
     public static final RegistryObject<Block> HIVE_NODE = BLOCKS.register(
             "hive_node",
-            () -> new HiveNode(Block.Properties.of().strength(15.0F, 25.0F).sound(SoundType.MUDDY_MANGROVE_ROOTS).mapColor(DyeColor.GREEN)));
+            () -> new HiveNode(Block.Properties.of().strength(15.0F, 25.0F).sound(SoundType.MUDDY_MANGROVE_ROOTS).mapColor(DyeColor.GREEN).requiresCorrectToolForDrops()));
 
     public static final RegistryObject<Block> BECKON_CORE = BLOCKS.register(
             "beckon_core",

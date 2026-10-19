@@ -25,8 +25,10 @@ public final class HiveNodeSpawner {
     private static final int CHECK_INTERVAL_TICKS = 100;
     /** Half of the 32-block square. */
     private static final double HALF_SQUARE = 16.0D;
-    /** Minimum combined curbub + ripper count inside that square. */
-    private static final int REQUIRED_KINDS = 16;
+    /** Effectively unlimited height for the count. */
+    private static final double VERTICAL_REACH = 256.0D;
+    /** Minimum combined curbub + ripper count inside that square (12 as specified). */
+    private static final int REQUIRED_KINDS = 12;
     /** Upper bound of conversions per pass, so a big colony converts gradually. */
     private static final int MAX_CONVERSIONS_PER_PASS = 1;
 
@@ -66,7 +68,8 @@ public final class HiveNodeSpawner {
 
     /** Converts one ripper into a hive node when its colony is large enough. */
     public static boolean tryConvert(ServerLevel level, Ripper ripper) {
-        AABB area = new AABB(ripper.blockPosition()).inflate(HALF_SQUARE);
+        // 2x2 chunk square, any height (the spec says height does not matter)
+        AABB area = new AABB(ripper.blockPosition()).inflate(HALF_SQUARE, VERTICAL_REACH, HALF_SQUARE);
         int curbugs = level.getEntitiesOfClass(Curbug.class, area).size();
         int rippers = level.getEntitiesOfClass(Ripper.class, area).size();
         if (curbugs + rippers < REQUIRED_KINDS) {
