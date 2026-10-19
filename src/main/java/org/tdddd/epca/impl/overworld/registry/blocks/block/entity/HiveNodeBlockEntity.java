@@ -260,15 +260,19 @@ public class HiveNodeBlockEntity extends BlockEntity {
             if (!mob.isAlive()) {
                 continue;
             }
+            // Only parasites that carry biomass of their own bother approaching a hive node.
+            int ownBiomass = org.tdddd.epca.impl.overworld.data.EntityKillCountManager.getCurrentKillCount(mob);
+            if (ownBiomass <= 0) {
+                continue;
+            }
             double distance = Math.sqrt(mob.blockPosition().distSqr(this.worldPosition));
             if (distance <= FEED_RADIUS) {
                 if (growthLeft(mob) >= 0) {
                     continue;                       // node children are not feeders
                 }
                 // Feeding transfers the feeder's own biomass: a parasite with no kill count gives nothing.
-                int own = org.tdddd.epca.impl.overworld.data.EntityKillCountManager.getCurrentKillCount(mob);
-                if (own > 0 && this.hasRoom()) {
-                    org.tdddd.epca.impl.overworld.data.EntityKillCountManager.setKillCount(mob, own - 1);
+                if (ownBiomass > 0 && this.hasRoom()) {
+                    org.tdddd.epca.impl.overworld.data.EntityKillCountManager.setKillCount(mob, ownBiomass - 1);
                     this.addKillCount(1);
                     spawnBiomassParticles(level);
                 }
