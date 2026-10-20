@@ -74,6 +74,8 @@ public class HiveNodeBlockEntity extends BlockEntity {
     private int structureTimer = 0;
     private boolean inStructure = false;
     private int knownStructureSize = 0;
+    /** True once this node has paid out the structure bonus, so it is only granted once. */
+    private boolean structureRewarded = false;
 
     public HiveNodeBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.HIVE_NODE.get(), pos, state);
@@ -121,6 +123,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
         this.infestTarget = input.getIntOr("infestTarget", 0);
         this.ripperTimer = input.getIntOr("ripperTimer", 0);
         this.inStructure = input.getBooleanOr("inStructure", false);
+        this.structureRewarded = input.getBooleanOr("structureRewarded", false);
         this.knownStructureSize = input.getIntOr("knownStructureSize", 0);
     }
 
@@ -133,6 +136,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
         output.putInt("infestTarget", this.infestTarget);
         output.putInt("ripperTimer", this.ripperTimer);
         output.putBoolean("inStructure", this.inStructure);
+        output.putBoolean("structureRewarded", this.structureRewarded);
         output.putInt("knownStructureSize", this.knownStructureSize);
     }
 
@@ -243,7 +247,10 @@ public class HiveNodeBlockEntity extends BlockEntity {
             var manager = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(level);
             if (manager != null) {
                 if (now) {
-                    manager.addPoints(STRUCTURE_ESTABLISH_POINTS);
+                    if (!this.structureRewarded) {
+                        this.structureRewarded = true;
+                        manager.addPoints(STRUCTURE_ESTABLISH_POINTS);
+                    }
                     this.knownStructureSize = reached.size();
                 } else {
                     this.knownStructureSize = 0;
