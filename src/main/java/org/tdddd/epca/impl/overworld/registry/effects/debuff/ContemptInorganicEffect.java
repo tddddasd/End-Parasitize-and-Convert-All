@@ -27,6 +27,8 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ContemptInorganicEffect extends MobEffect {
+    /** Erosion points granted when this effect converts a creature. */
+    private static final int CONTEMPT_CONVERSION_POINTS = 4;
 
     private static final int BASE_DURATION = 1200;
     private static final int COTH_LEVEL_III = 2;
@@ -156,6 +158,12 @@ public class ContemptInorganicEffect extends MobEffect {
 
                         
                         serverLevel.addFreshEntity(newEntity);
+
+                        var evolution = org.tdddd.epca.impl.overworld.data.EvolutionManager
+                                .forDimension(serverLevel);
+                        if (evolution != null) {
+                            evolution.addPoints(CONTEMPT_CONVERSION_POINTS);
+                        }
 
                         
                         entity.getPersistentData().putBoolean(TAG_CONVERTED_BY_CONTEMPT, true);

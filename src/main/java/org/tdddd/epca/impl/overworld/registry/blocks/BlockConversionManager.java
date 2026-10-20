@@ -54,6 +54,9 @@ import java.io.InputStreamReader;
 import java.util.*;
 
 public class BlockConversionManager {
+
+    /** Erosion points granted for every block that gets infested. */
+    private static final int INFEST_POINTS = 2;
     private static final BlockConversionManager INSTANCE = new BlockConversionManager();
     private final Gson gson = new Gson();
 
@@ -215,7 +218,9 @@ public class BlockConversionManager {
                 
                 sendInfestedPacketToClients(level, pos, true);
                 afterBlockConverted(level, pos, newState);
-                return true;
+                org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(level)
+                    .addPoints(INFEST_POINTS);
+            return true;
             }
         } else {
             if (!level.getGameRules().get(epca.DO_INFESTED_FALLBACK)) {

@@ -56,6 +56,8 @@ public class HiveNodeBlockEntity extends BlockEntity {
     private int infestTarget = 0;
     private static final int STRUCTURE_LINK_DISTANCE = 24;
     private static final int STRUCTURE_MIN_NODES = 3;
+    private static final int STRUCTURE_ESTABLISH_POINTS = 200;
+    private static final int STRUCTURE_EXTRA_NODE_POINTS = 40;
     private static final int STRUCTURE_CHECK_TICKS = 100;
 
     private static final int LINK_CHECK_TICKS = 100;
@@ -71,6 +73,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
     private int feedTimer = 0;
     private int structureTimer = 0;
     private boolean inStructure = false;
+    private int knownStructureSize = 0;
 
     public HiveNodeBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.HIVE_NODE.get(), pos, state);
@@ -118,6 +121,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
         this.infestTarget = input.getIntOr("infestTarget", 0);
         this.ripperTimer = input.getIntOr("ripperTimer", 0);
         this.inStructure = input.getBooleanOr("inStructure", false);
+        this.knownStructureSize = input.getIntOr("knownStructureSize", 0);
     }
 
     @Override
@@ -129,6 +133,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
         output.putInt("infestTarget", this.infestTarget);
         output.putInt("ripperTimer", this.ripperTimer);
         output.putBoolean("inStructure", this.inStructure);
+        output.putInt("knownStructureSize", this.knownStructureSize);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, HiveNodeBlockEntity be) {
@@ -235,6 +240,22 @@ public class HiveNodeBlockEntity extends BlockEntity {
         if (now != this.inStructure) {
             this.inStructure = now;
             this.setChanged();
+            var manager = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(level);
+            if (manager != null) {
+                if (now) {
+                    manager.addPoints(STRUCTURE_ESTABLISH_POINTS);
+                    this.knownStructureSize = reached.size();
+                } else {
+                    this.knownStructureSize = 0;
+                }
+            }
+        } else if (now && reached.size() > this.knownStructureSize) {
+            int grown = reached.size() - this.knownStructureSize;
+            this.knownStructureSize = reached.size();
+            var manager = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(level);
+            if (manager != null) {
+                manager.addPoints(STRUCTURE_EXTRA_NODE_POINTS * grown);
+            }
         }
     }
 
