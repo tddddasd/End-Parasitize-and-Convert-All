@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Turns a ripper into a hive node when a colony gathers.
  *
- * <p>Condition: inside a 2x2 chunk square (32 blocks wide, any height) there are at least 12
+ * <p>Condition: inside a 2x2 chunk square (32 blocks wide, any height) there are at least 16
  * {@link Curbug} and {@link Ripper} together, and the dimension's erosion stage is 0 or above. One
  * ripper of that group then becomes a hive node block.</p>
  */
@@ -26,7 +26,7 @@ public final class HiveNodeSpawner {
     /** Effectively unlimited height for the count. */
     private static final double VERTICAL_REACH = 256.0D;
     /** Minimum combined curbub + ripper count inside that square. */
-    private static final int REQUIRED_KINDS = 12;
+    private static final int REQUIRED_KINDS = 16;
     private static final int MAX_CONVERSIONS_PER_PASS = 1;
 
     private static int timer = 0;
@@ -48,16 +48,18 @@ public final class HiveNodeSpawner {
                 rippers.add(ripper);
             }
         }
-        int converted = 0;
-        for (Ripper ripper : rippers) {
-            if (converted >= MAX_CONVERSIONS_PER_PASS) {
-                return;
-            }
-            if (!ripper.isAlive()) {
+        if (rippers.isEmpty()) {
+            return;
+        }
+        // Pick one ripper at random rather than always the first: which member of the colony turns
+        // into the node is decided by chance.
+        for (int attempt = 0; attempt < rippers.size(); attempt++) {
+            Ripper pick = rippers.get(level.getRandom().nextInt(rippers.size()));
+            if (!pick.isAlive()) {
                 continue;
             }
-            if (tryConvert(level, ripper)) {
-                converted++;
+            if (tryConvert(level, pick)) {
+                return;
             }
         }
     }
