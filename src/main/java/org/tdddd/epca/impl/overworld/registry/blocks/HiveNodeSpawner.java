@@ -28,7 +28,7 @@ public final class HiveNodeSpawner {
     /** Effectively unlimited height for the count. */
     private static final double VERTICAL_REACH = 256.0D;
     /** Minimum combined curbub + ripper count inside that square (12 as specified). */
-    private static final int REQUIRED_KINDS = 12;
+    private static final int REQUIRED_KINDS = 16;
     /** Upper bound of conversions per pass, so a big colony converts gradually. */
     private static final int MAX_CONVERSIONS_PER_PASS = 1;
 
@@ -52,16 +52,18 @@ public final class HiveNodeSpawner {
                 rippers.add(ripper);
             }
         }
-        int converted = 0;
-        for (Ripper ripper : rippers) {
-            if (converted >= MAX_CONVERSIONS_PER_PASS) {
-                return;
-            }
-            if (!ripper.isAlive()) {
+        if (rippers.isEmpty()) {
+            return;
+        }
+        // Pick one ripper at random rather than always the first: which member of the colony turns
+        // into the node is decided by chance.
+        for (int attempt = 0; attempt < rippers.size(); attempt++) {
+            Ripper pick = rippers.get(level.getRandom().nextInt(rippers.size()));
+            if (!pick.isAlive()) {
                 continue;
             }
-            if (tryConvert(level, ripper)) {
-                converted++;
+            if (tryConvert(level, pick)) {
+                return;
             }
         }
     }
