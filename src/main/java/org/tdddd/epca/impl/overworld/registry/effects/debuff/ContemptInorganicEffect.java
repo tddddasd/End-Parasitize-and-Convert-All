@@ -35,6 +35,9 @@ public class ContemptInorganicEffect extends MobEffect {
 
     private static final String TAG_LAST_COTH_TIME = "LastCothTime";
     private static final String TAG_NEXT_SOUND_TIME = "NextSoundTime";
+    /** Erosion points granted when this effect converts a creature. */
+    private static final int CONTEMPT_CONVERSION_POINTS = 4;
+
     private static final String TAG_CONVERTED_BY_CONTEMPT = "ConvertedByContemptInorganic";
 
     public ContemptInorganicEffect() {
@@ -136,6 +139,13 @@ public class ContemptInorganicEffect extends MobEffect {
 
                         
                         serverLevel.addFreshEntity(newEntity);
+
+                        // A creature converted by Contempt of the Inorganic is worth 4 erosion points.
+                        var evolution = org.tdddd.epca.impl.overworld.data.EvolutionManager
+                                .forDimension(serverLevel);
+                        if (evolution != null) {
+                            evolution.addPoints(CONTEMPT_CONVERSION_POINTS);
+                        }
 
                         
                         if (newEntity instanceof LivingEntity livingNew) {

@@ -25,6 +25,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class EntityIntegrationManager implements ResourceManagerReloadListener {
+
+    /** Erosion points granted when an entity fusion completes. */
+    private static final int FUSION_EROSION_POINTS = 3;
     private static final Gson GSON = new GsonBuilder().create();
     private static final Map<String, List<EntityIntegrationRule>> INTEGRATION_RULES = new HashMap<>();
     
@@ -519,6 +522,11 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
         
         private void completeIntegration() {
+        // An entity fusion is worth 3 erosion points, once per completed integration.
+        var evolution = EvolutionManager.forDimension(this.level);
+        if (evolution != null) {
+            evolution.addPoints(FUSION_EROSION_POINTS);
+        }
             if (isFinished) return;
             
             spawnFixedResults();

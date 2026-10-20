@@ -40,9 +40,6 @@ import java.util.Map;
 public class ClientHandler {
     @SubscribeEvent
     public static void onRegisterRenderers(final EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(
-                org.tdddd.epca.impl.overworld.registry.ModEntities.BLACK_HOLE.get(),
-                org.tdddd.epca.impl.client.entity.renderer.BlackHoleRenderer::new);
 
         //  Auto-registered renderers (all entities via EpcaEntityManager.registerMobWithRender)
         // These use EpcaTypeGeoRenderer + EpcaTypeGeoModel  reads model/texture/animation
@@ -171,11 +168,6 @@ public class ClientHandler {
                 com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
         event.registerShader(shader, GasCloudRenderType::registerShader);
 
-        ShaderInstance lens = new ShaderInstance(
-                event.getResourceProvider(),
-                epca.MODID + ":blackhole_lens",
-                com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR_TEX);
-        event.registerShader(lens, org.tdddd.epca.impl.client.entity.renderer.BlackHoleLensRenderType::registerShader);
     }
 
 }

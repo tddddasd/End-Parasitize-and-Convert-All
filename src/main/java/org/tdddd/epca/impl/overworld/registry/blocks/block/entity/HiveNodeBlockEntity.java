@@ -43,6 +43,9 @@ public class HiveNodeBlockEntity extends BlockEntity {
     /** Nodes link to each other within this distance; three or more linked nodes form a structure. */
     private static final int STRUCTURE_LINK_DISTANCE = 24;
     private static final int STRUCTURE_MIN_NODES = 3;
+    /** Erosion points for establishing a hive structure, and for each extra linked node. */
+    private static final int STRUCTURE_ESTABLISH_POINTS = 200;
+    private static final int STRUCTURE_EXTRA_NODE_POINTS = 40;
     private static final int STRUCTURE_CHECK_TICKS = 100;
 
     /** Feeders are attracted from 32 blocks and feed from 4 blocks away. */
@@ -71,6 +74,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
     private int feedTimer = 0;
     private int structureTimer = 0;
     private boolean inStructure = false;
+    private int knownStructureSize = 0;
 
     public HiveNodeBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.HIVE_NODE.get(), pos, state);
@@ -121,6 +125,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
         this.linkTimer = tag.getInt("linkTimer");
         this.feedTimer = tag.getInt("feedTimer");
         this.inStructure = tag.getBoolean("inStructure");
+        this.knownStructureSize = tag.getInt("knownStructureSize");
         this.spawnTimer = tag.getInt("spawnTimer");
     }
 
@@ -135,6 +140,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
         tag.putInt("linkTimer", this.linkTimer);
         tag.putInt("feedTimer", this.feedTimer);
         tag.putBoolean("inStructure", this.inStructure);
+        tag.putInt("knownStructureSize", this.knownStructureSize);
         tag.putInt("spawnTimer", this.spawnTimer);
     }
 
@@ -262,6 +268,23 @@ public class HiveNodeBlockEntity extends BlockEntity {
         if (now != this.inStructure) {
             this.inStructure = now;
             this.setChanged();
+            // Erosion points: +200 for establishing a structure, +40 for every extra linked node.
+            var manager = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(level);
+            if (manager != null) {
+                if (now) {
+                    manager.addPoints(STRUCTURE_ESTABLISH_POINTS);
+                    this.knownStructureSize = reached.size();
+                } else {
+                    this.knownStructureSize = 0;
+                }
+            }
+        } else if (now && reached.size() > this.knownStructureSize) {
+            int grown = reached.size() - this.knownStructureSize;
+            this.knownStructureSize = reached.size();
+            var manager = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(level);
+            if (manager != null) {
+                manager.addPoints(STRUCTURE_EXTRA_NODE_POINTS * grown);
+            }
         }
     }
 

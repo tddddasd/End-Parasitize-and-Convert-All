@@ -159,16 +159,6 @@ public class ModEntities {
     // --- Onesent ---
     public static final RegistryObject<EntityType<Curbug>> CURBUG =
             registerMobWithRender("curbug", 0.5F, 0.4F, Curbug::new, MobCategory.MONSTER, 12, Curbug::setAttributes);
-
-    public static final RegistryObject<EntityType<org.tdddd.epca.impl.overworld.registry.entities.entity.BlackHole>> BLACK_HOLE =
-            ENTITIES.register("black_hole",
-                    () -> EntityType.Builder
-                            .of(org.tdddd.epca.impl.overworld.registry.entities.entity.BlackHole::new,
-                                    net.minecraft.world.entity.MobCategory.MISC)
-                            .sized(5.0F, 5.0F)
-                            .clientTrackingRange(32)
-                            .updateInterval(1)
-                            .build("black_hole"));
     public static final RegistryObject<EntityType<Ripper>> RIPPER =
             registerMobWithRender("ripper", 0.8F, 0.9F, Ripper::new, MobCategory.MONSTER, 12, Ripper::setAttributes);
     public static final RegistryObject<EntityType<Fins>> FINS =

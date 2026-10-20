@@ -56,7 +56,15 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     private static final double LARGE_ENTITY_THRESHOLD = 2.48;
     private static final int PARTICLE_SPAWN_INTERVAL = 10; 
     private static final int MIN_PARTICLES = 3; 
-    private static final int MAX_PARTICLES = 5; 
+    private static final int MAX_PARTICLES = 5;
+
+    /** Maximum effect level (amplifier 4 shows as level V). */
+    public static final int MAX_COTH_LEVEL = 5;
+
+    /** Erosion points granted when a creature is converted by this effect. */
+    private static final int CONVERSION_POINTS = 3;
+    /** Erosion points granted for each level the effect gains. */
+    private static final int COTH_LEVEL_POINTS = 3; 
     private static final double PARTICLE_AREA_SIZE = 5.0;
     private static final int LEVEL3_SPREAD_INTERVAL = 20;    
     private static final double LEVEL3_SPREAD_RADIUS = 2.5;  
@@ -78,14 +86,27 @@ public class CothEffect extends MobEffect implements RemovableEffect {
     
     public static boolean applyCothEffect(LivingEntity target, int duration, int amplifier) {
         if (!canApplyInLevel(target.level())) return false;
+        // Level is capped: amplifier is zero based, so level 5 is amplifier 4.
+        int cappedAmplifier = Math.min(amplifier, MAX_COTH_LEVEL - 1);
+        MobEffectInstance existing = target.getEffect(ModEffects.COTH.get());
+        int previousAmplifier = existing == null ? -1 : existing.getAmplifier();
         MobEffectInstance effect = new MobEffectInstance(
                 ModEffects.COTH.get(),
                 duration,
-                amplifier,
+                cappedAmplifier,
                 false, false, true
         );
 
-        return EffectApplicationInterceptor.applyEffectSafely(target, effect);
+        boolean applied = EffectApplicationInterceptor.applyEffectSafely(target, effect);
+        // Every level the effect gains is worth 3 erosion points, for a rise of at most one step.
+        if (applied && cappedAmplifier > previousAmplifier && previousAmplifier >= 0
+                && target.level() instanceof ServerLevel serverLevel) {
+            var evolution = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(serverLevel);
+            if (evolution != null) {
+                evolution.addPoints(COTH_LEVEL_POINTS * (cappedAmplifier - previousAmplifier));
+            }
+        }
+        return applied;
     }
 
     public static boolean canApplyEffect(LivingEntity target, int newAmplifier) {
@@ -500,6 +521,13 @@ public class CothEffect extends MobEffect implements RemovableEffect {
                     // LivingEntity#hurt  isDeadOrDying  ConvertedEntitySupport
                     if (newEntity instanceof LivingEntity convertedLiving) {
                         ConvertedEntitySupport.initializeConvertedEntity(convertedLiving);
+        // A converted creature is worth 3 erosion points.
+        if (entity.level() instanceof ServerLevel convertedLevel) {
+            var evolution = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(convertedLevel);
+            if (evolution != null) {
+                evolution.addPoints(CONVERSION_POINTS);
+            }
+        }
                     }
 
                     serverLevel.addFreshEntity(newEntity);

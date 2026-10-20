@@ -107,18 +107,6 @@ public class KillStick extends Item {
                 }
 
                 ServerLevel serverLevel = (ServerLevel) level;
-                // The black hole only opens when the stick has been renamed to "The In"; an
-                // unnamed stick keeps its original world-wide clear.
-                boolean namedTheIn = stack.hasCustomHoverName()
-                        && "The In".equals(stack.getHoverName().getString());
-                if (namedTheIn) {
-                    Vec3 look = player.getLookAngle();
-                    Vec3 spawn = player.getEyePosition().add(look.scale(8.0D));
-                    org.tdddd.epca.impl.events.BlackHoleManager.spawn(serverLevel, spawn);
-                    level.playSound(null, spawn.x, spawn.y, spawn.z,
-                            SoundEvents.WITHER_SPAWN, SoundSource.PLAYERS, 1.0F, 0.4F);
-                    return;
-                }
                 AABB area = AABB.ofSize(player.position(), CLEAR_RANGE * 2, CLEAR_RANGE * 2, CLEAR_RANGE * 2);
                 List<Entity> entities = serverLevel.getEntitiesOfClass(Entity.class, area,
                         e -> e != player && e.isAlive());

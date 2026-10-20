@@ -41,12 +41,16 @@ import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.*;
 import org.tdddd.epca.impl.epca;
+import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
 public class BlockConversionManager {
+
+    /** Erosion points granted for every block that gets infested. */
+    private static final int INFEST_POINTS = 2;
     private static final BlockConversionManager INSTANCE = new BlockConversionManager();
     private final Gson gson = new Gson();
 
@@ -201,7 +205,8 @@ public class BlockConversionManager {
                 
                 sendInfestedPacketToClients(level, pos, true);
                 afterBlockConverted(level, pos, newState);
-                return true;
+                EvolutionManager.forDimension(level).addPoints(INFEST_POINTS);   // an infested block is worth 2 erosion points
+            return true;
             }
         } else {
             if (!level.getGameRules().getBoolean(epca.DO_INFESTED_FALLBACK)) {
