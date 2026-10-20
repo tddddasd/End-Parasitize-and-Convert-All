@@ -1,0 +1,12 @@
+{
+  "blend": { "func": "add", "srcrgb": "srcalpha", "dstrgb": "oneminus_srcalpha" },
+  "vertex": "epca:blackhole_lens",
+  "fragment": "epca:blackhole_lens",
+  "attributes": [ "Position", "Color", "UV0" ],
+  "samplers": [ { "name": "Sampler0" } ],
+  "uniforms": [
+    { "name": "LensStrength", "type": "float", "count": 1, "values": [ 0.75 ] },
+    { "name": "LensWinding", "type": "float", "count": 1, "values": [ 3.0 ] },
+    { "name": "LensScale", "type": "float", "count": 1, "values": [ 1.15 ] }
+  ]
+}

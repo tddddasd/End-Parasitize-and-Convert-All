@@ -82,5 +82,48 @@ public class ClientEvents {
             EndermanAfterimageLayer.cleanupOrphaned();
         }
     }
-}
 
+    /** Ages the client side black holes so the shrink matches the server. */
+    @SubscribeEvent
+    public static void onBlackHoleClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            org.tdddd.epca.impl.events.BlackHoleManager.tickClient();
+        }
+    }
+
+    /** Renders every black hole as a pure effect; no entity is involved. */
+    @SubscribeEvent
+    public static void onRenderBlackHoles(net.minecraftforge.client.event.RenderLevelStageEvent event) {
+        if (event.getStage() != net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+            return;
+        }
+        java.util.List<org.tdddd.epca.impl.events.BlackHoleManager.Hole> holes =
+                org.tdddd.epca.impl.events.BlackHoleManager.clientHoles();
+        if (holes.isEmpty()) {
+            return;
+        }
+        net.minecraft.client.Camera camera = event.getCamera();
+        net.minecraft.world.phys.Vec3 camPos = camera.getPosition();
+        com.mojang.blaze3d.vertex.PoseStack poseStack = event.getPoseStack();
+        net.minecraft.client.renderer.MultiBufferSource.BufferSource buffers =
+                net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource();
+        for (org.tdddd.epca.impl.events.BlackHoleManager.Hole hole : holes) {
+            float scale = org.tdddd.epca.impl.events.BlackHoleManager.shrink(hole.age());
+            if (scale <= 0.0F) {
+                continue;
+            }
+            poseStack.pushPose();
+            poseStack.translate(hole.pos().x - camPos.x, hole.pos().y - camPos.y, hole.pos().z - camPos.z);
+            org.tdddd.epca.impl.client.entity.renderer.BlackHoleRenderer.renderHole(
+                    poseStack, buffers, 2.5F * scale, hole.age() * 0.0436F);
+            poseStack.popPose();
+        }
+        buffers.endBatch();
+    }
+
+    /** Client commands: /epca_render plays a render effect locally. */
+    @SubscribeEvent
+    public static void onRegisterClientCommands(net.minecraftforge.client.event.RegisterClientCommandsEvent event) {
+        org.tdddd.epca.impl.commands.EpcaRenderCommand.register(event.getDispatcher());
+    }
+}

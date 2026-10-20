@@ -27,7 +27,23 @@ public class ModNetwork {
 
     private static int id = 0;
 
+
+    /** Mirrors the black hole list to every player in {@code level}. */
+    public static void sendBlackHoles(net.minecraft.server.level.ServerLevel level,
+                                      java.util.List<org.tdddd.epca.impl.events.BlackHoleManager.Hole> holes) {
+        org.tdddd.epca.impl.network.packet.s2c.BlackHoleSyncPacket packet =
+                new org.tdddd.epca.impl.network.packet.s2c.BlackHoleSyncPacket(holes);
+        for (net.minecraft.server.level.ServerPlayer player : level.players()) {
+            INSTANCE.send(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> player), packet);
+        }
+    }
+
     public static void register() {
+        INSTANCE.registerMessage(id++,
+                org.tdddd.epca.impl.network.packet.s2c.BlackHoleSyncPacket.class,
+                org.tdddd.epca.impl.network.packet.s2c.BlackHoleSyncPacket::encode,
+                org.tdddd.epca.impl.network.packet.s2c.BlackHoleSyncPacket::new,
+                org.tdddd.epca.impl.network.packet.s2c.BlackHoleSyncPacket::handle);
         INSTANCE.registerMessage(id++, FlightStatePacket.class,
                 FlightStatePacket::toBytes,
                 FlightStatePacket::new,

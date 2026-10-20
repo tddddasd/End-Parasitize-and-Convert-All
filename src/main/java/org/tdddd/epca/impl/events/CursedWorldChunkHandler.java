@@ -45,6 +45,7 @@ public final class CursedWorldChunkHandler {
         if (event.phase == TickEvent.Phase.END && event.getServer() != null) {
             for (net.minecraft.server.level.ServerLevel level : event.getServer().getAllLevels()) {
                 org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeSpawner.onServerTick(level);
+            org.tdddd.epca.impl.events.BlackHoleManager.tick(level);
             }
         }
         if (event.phase != TickEvent.Phase.END) return;
