@@ -50,7 +50,7 @@ import java.util.*;
 public class BlockConversionManager {
 
     /** Erosion points granted for every block that gets infested. */
-    private static final int INFEST_POINTS = 2;
+    private static final int INFEST_POINTS = 1;
     private static final BlockConversionManager INSTANCE = new BlockConversionManager();
     private final Gson gson = new Gson();
 
@@ -205,7 +205,7 @@ public class BlockConversionManager {
                 
                 sendInfestedPacketToClients(level, pos, true);
                 afterBlockConverted(level, pos, newState);
-                EvolutionManager.forDimension(level).addPoints(INFEST_POINTS);   // an infested block is worth 2 erosion points
+                EvolutionManager.forDimension(level).addPoints(INFEST_POINTS);   // an infested block is worth 1 erosion point
             return true;
             }
         } else {
