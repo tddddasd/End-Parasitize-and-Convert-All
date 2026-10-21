@@ -512,7 +512,6 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
                     playConversionEffects(entity);
                     entity.remove(Entity.RemovalReason.KILLED);
-                    entity.teleportTo(1000000, -4000, 1000000);
 
                     // /
                     // create()  MAX_HEALTH  0
@@ -763,7 +762,6 @@ public class CothEffect extends MobEffect implements RemovableEffect {
 
             
             originalEntity.remove(Entity.RemovalReason.KILLED);
-            originalEntity.teleportTo(1000000, -4000, 1000000);
 
             
             serverLevel.addFreshEntity(newEntity);

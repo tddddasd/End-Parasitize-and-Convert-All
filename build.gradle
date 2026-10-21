@@ -147,7 +147,10 @@ dependencies {
     implementation fg.deobf("org.tdddd.eej:eej:1.0.0")
 
     // 鍓嶇疆妯＄粍 epca_physics锛氱墿鐞嗗寲鏂瑰潡/缁撴瀯鐨勫疄浣撳熀绫伙紙寮轰緷璧栵紝瑙?META-INF/mods.toml锛?
-    implementation fg.deobf("org.tdddd.epca_physics:epca_physics:1.0.0")
+    // Valkyrien Skies (soft dependency): the public API interfaces (ServerShip, PhysShip, ...) live in
+    // the nested api jar, the mod classes (ShipAssembler, VSGameUtilsKt) in the mod jar.
+    compileOnly files('libs/vs-api-1.1.0.jar')
+    compileOnly files('libs/valkyrienskies-120-2.4.11.jar')
 
     // Other external mods
     implementation fg.deobf("curse.maven:jade-324717:6855440")

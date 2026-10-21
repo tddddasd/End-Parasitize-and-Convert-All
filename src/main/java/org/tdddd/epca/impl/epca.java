@@ -31,9 +31,7 @@ import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatManager;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary;
 import org.tdddd.epca.impl.overworld.registry.blocks.EpcaAltarInteractionHandler;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
-import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedPumpkinBehaviour;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
-import org.tdddd.epca_physics.structure.SubLevelRegistry;
 import org.tdddd.epca.impl.overworld.registry.capability.ILifetimeCapability;
 import org.tdddd.epca.impl.client.ClientSetup;
 import org.tdddd.epca.impl.commands.*;
@@ -80,12 +78,6 @@ public class epca {
 
         ModConfig.register();
         WingChestManager.init();
-
-        // Phase 3 epca_physics  id
-        //  SubLevelRegistry.registerBehaviour
-        // /
-        SubLevelRegistry.registerBehaviour(InfestedPumpkinBehaviour.ID,
-                data -> new InfestedPumpkinBehaviour());
 
         
         if (org.tdddd.epca.impl.compat.EejCompat.loaded()) {

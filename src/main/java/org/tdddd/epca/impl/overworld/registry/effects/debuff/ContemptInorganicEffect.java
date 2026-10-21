@@ -135,7 +135,6 @@ public class ContemptInorganicEffect extends MobEffect {
 
                         
                         entity.remove(Entity.RemovalReason.KILLED);
-                        entity.teleportTo(1000000, -4000, 1000000);
 
                         
                         serverLevel.addFreshEntity(newEntity);

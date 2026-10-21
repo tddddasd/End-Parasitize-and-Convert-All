@@ -65,7 +65,6 @@ public class EntityConversionUtil {
         
         if (!(entity instanceof Player)) {
             entity.remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER);
-            entity.teleportTo(1000000, -4000, 1000000);
         }
     }
 }

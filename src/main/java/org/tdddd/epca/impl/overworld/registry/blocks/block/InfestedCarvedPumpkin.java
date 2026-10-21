@@ -73,10 +73,14 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
 
     @Override
     public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        // onRemove
-        if (PumpkinPhysicsBridge.isAvailable()
-                && PumpkinPhysicsBridge.hasSilkTouch(player)) {
-            PumpkinPhysicsBridge.markSilkTouchBreak(level, pos);
+        // Silk touch keeps the block intact, so it never becomes a physics pumpkin.
+        boolean silkTouch = net.minecraft.world.item.enchantment.EnchantmentHelper
+                .getItemEnchantmentLevel(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH,
+                        player.getMainHandItem()) > 0;
+        // Physics only when a player mines it without silk touch, and only on the server.
+        if (!silkTouch && !level.isClientSide
+                && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            org.tdddd.epca.impl.compat.vs.InfestedPumpkinShip.spawn(serverLevel, pos, state);
         }
         super.playerWillDestroy(level, pos, state, player);
     }
@@ -85,10 +89,8 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!level.isClientSide && !state.is(newState.getBlock())) {
             // /
-            if (PumpkinPhysicsBridge.isAvailable()
-                    && !PumpkinPhysicsBridge.wasSilkTouchBreak(level, pos)) {
-                PumpkinPhysicsBridge.spawnPhysicsPumpkin(level, pos, state);
-            }
+
+            // The carved pumpkin becomes a physics ship that rolls toward players.
 
             level.updateNeighborsAt(pos, Blocks.AIR);
             level.updateNeighbourForOutputSignal(pos, Blocks.AIR);

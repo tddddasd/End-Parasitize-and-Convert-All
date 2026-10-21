@@ -116,15 +116,6 @@ public class KillStick extends Item {
                     }
 
                     e.remove(Entity.RemovalReason.KILLED);
-                    double x = 1000000;
-                    double y = -4800;
-                    double z = 1000000;
-
-                    e.teleportTo(x, y, z);
-                    e.setNoGravity(true);
-                    Vec3 velocity = new Vec3(0, -100, 0);
-                    e.setDeltaMovement(velocity);
-                    e.setNoGravity(false);
 
                     if (e instanceof Mob) {
                         Mob mob = (Mob) e;
@@ -224,16 +215,6 @@ public class KillStick extends Item {
                 return false;
             }
             entity.remove(Entity.RemovalReason.KILLED);
-
-            double x = 1000000;
-            double y = -4800;
-            double z = 1000000;
-
-            entity.teleportTo(x, y, z);
-            entity.setNoGravity(true);
-            Vec3 velocity = new Vec3(0, -100, 0);
-            entity.setDeltaMovement(velocity);
-            entity.setNoGravity(false);
 
             if (entity instanceof Mob) {
                 Mob mob = (Mob) entity;

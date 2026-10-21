@@ -736,7 +736,6 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                 5, 0.5, 0.5, 0.5, 0.1);
 
         bat.remove(Entity.RemovalReason.KILLED);
-        bat.teleportTo(1000000, -4000, 1000000);
 
         serverLevel.addFreshEntity(newBat);
     }
