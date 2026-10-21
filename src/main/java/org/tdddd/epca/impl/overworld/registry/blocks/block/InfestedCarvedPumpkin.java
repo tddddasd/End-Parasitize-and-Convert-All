@@ -74,8 +74,9 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
     @Override
     public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         // onRemove
-        if (PumpkinPhysicsHelper.hasSilkTouch(player)) {
-            PumpkinPhysicsHelper.markSilkTouchBreak(level, pos);
+        if (PumpkinPhysicsBridge.isAvailable()
+                && PumpkinPhysicsBridge.hasSilkTouch(player)) {
+            PumpkinPhysicsBridge.markSilkTouchBreak(level, pos);
         }
         super.playerWillDestroy(level, pos, state, player);
     }
@@ -84,8 +85,9 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!level.isClientSide && !state.is(newState.getBlock())) {
             // /
-            if (!PumpkinPhysicsHelper.wasSilkTouchBreak(level, pos)) {
-                PumpkinPhysicsHelper.spawnPhysicsPumpkin(level, pos, state);
+            if (PumpkinPhysicsBridge.isAvailable()
+                    && !PumpkinPhysicsBridge.wasSilkTouchBreak(level, pos)) {
+                PumpkinPhysicsBridge.spawnPhysicsPumpkin(level, pos, state);
             }
 
             level.updateNeighborsAt(pos, Blocks.AIR);

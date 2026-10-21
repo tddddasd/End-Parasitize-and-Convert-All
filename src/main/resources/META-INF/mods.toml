@@ -39,9 +39,10 @@ versionRange = "[1.0.0,)"
 ordering = "AFTER"
 side = "BOTH"
 
+
 [[dependencies.epca]]
-modId = "epca_physics"
-mandatory = true
-versionRange = "[1.0.0,)"
-ordering = "AFTER"
-side = "BOTH"
+    modId = "valkyrienskies"
+    mandatory = false
+    versionRange = "[2.3.0,)"
+    ordering = "NONE"
+    side = "BOTH"

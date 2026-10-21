@@ -170,7 +170,6 @@ dependencies {
     // epca_physics (prerequisite mod, resolved from flatDir 'libs'): bundle it inside our own jar.
     // Maven-style coordinates are used so JarJar gets a real group/artifact id and a supported
     // version range; the same file is already on the compile classpath via the fg.deobf line above.
-    jarJar(group: 'org.tdddd.epca_physics', name: 'epca_physics', version: '[1.0.0,)')
 }
 
 minecraftVersions.each { mcVersion, forgeVersion ->
