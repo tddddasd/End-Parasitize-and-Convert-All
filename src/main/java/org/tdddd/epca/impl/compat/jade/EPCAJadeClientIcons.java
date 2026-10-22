@@ -6,16 +6,16 @@ import org.tdddd.epca.impl.overworld.registry.ModItems;
 
 public final class EPCAJadeClientIcons {
 
-    private static ItemStack killCountIcon;
+    private static ItemStack biomassCountIcon;
 
     private EPCAJadeClientIcons() {
     }
 
     
-    public static ItemStack killCountIcon() {
-        if (killCountIcon == null) {
-            killCountIcon = new ItemStack(ModItems.BIOMASS_COUNT_ICON.get());
+    public static ItemStack biomassCountIcon() {
+        if (biomassCountIcon == null) {
+            biomassCountIcon = new ItemStack(ModItems.BIOMASS_COUNT_ICON.get());
         }
-        return killCountIcon;
+        return biomassCountIcon;
     }
 }

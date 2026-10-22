@@ -15,7 +15,7 @@ import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.blocks.BlockConversionManager;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
-import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
+import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
@@ -27,26 +27,27 @@ import java.util.List;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class BeckonCoreBlockEntity extends BlockEntity {
-    private static final String KILL_COUNT_KEY = "killCount";
+public class BeckonCoreBlockEntity extends BlockEntity 
+        implements org.tdddd.epca.impl.overworld.data.BiomassStorage {
+    private static final String BIOMASS_COUNT_KEY = "biomassCount";
     private static final String GENERATION_TIMER_KEY = "generationTimer";
     private static final String IS_GENERATING_KEY = "isGenerating";
 
     /** Upper bound on the stored biomass. */
-    public static final int MAX_KILL_COUNT = 128;
+    public static final int MAX_BIOMASS_COUNT = 128;
 
-    private int seenKillCount = -1;
+    private int seenBiomassCount = -1;
 
-    private int lastKillCountSeen() {
-        int previous = this.seenKillCount;
-        this.seenKillCount = this.killCount;
+    private int lastBiomassCountSeen() {
+        int previous = this.seenBiomassCount;
+        this.seenBiomassCount = this.biomassCount;
         return previous;
     }
 
     /** 5 minutes without a biomass gain degrades the core into a hive node. */
     private static final int IDLE_DEGRADE_TICKS = 5 * 60 * 20;
 
-    private int killCount = 0;
+    private int biomassCount = 0;
     private long lastGainTick = Long.MIN_VALUE;
     private int generationTimer = 0;
     private boolean isGenerating = false;
@@ -66,15 +67,26 @@ public class BeckonCoreBlockEntity extends BlockEntity {
         return isGenerating;
     }
 
-    public int getKillCount() {
-        return killCount;
+    @Override
+    public int getMaxBiomassCount() {
+        return MAX_BIOMASS_COUNT;
+    }
+
+    @Override
+    public void setBiomassCount(int count) {
+        this.biomassCount = net.minecraft.util.Mth.clamp(count, 0, MAX_BIOMASS_COUNT);
+        this.setChanged();
+    }
+
+    public int getBiomassCount() {
+        return biomassCount;
     }
 
     /** 26.1.2: {@code BlockEntity#load(CompoundTag)} became {@code loadAdditional(ValueInput)}. */
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.killCount = input.getIntOr(KILL_COUNT_KEY, 0);
+        this.biomassCount = input.getIntOr(BIOMASS_COUNT_KEY, 0);
         this.generationTimer = input.getIntOr(GENERATION_TIMER_KEY, 0);
         this.isGenerating = input.getBooleanOr(IS_GENERATING_KEY, false);
     }
@@ -83,7 +95,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt(KILL_COUNT_KEY, this.killCount);
+        output.putInt(BIOMASS_COUNT_KEY, this.biomassCount);
         output.putInt(GENERATION_TIMER_KEY, this.generationTimer);
         output.putBoolean(IS_GENERATING_KEY, this.isGenerating);
     }
@@ -93,16 +105,16 @@ public class BeckonCoreBlockEntity extends BlockEntity {
         AABB area = new AABB(this.worldPosition).inflate(ATTRACT_RADIUS);
         List<LivingEntity> parasites = level.getEntitiesOfClass(LivingEntity.class, area,
                 e -> IParasite.isParasiteByTagOrInterface(e) &&
-                        EntityKillCountManager.getCurrentKillCount(e) > 0 &&
+                        EntityBiomassCountManager.getCurrentBiomassCount(e) > 0 &&
                         e.isAlive());
 
         for (LivingEntity parasite : parasites) {
             double dist = parasite.distanceToSqr(Vec3.atCenterOf(this.worldPosition));
             if (dist <= ABSORB_RADIUS * ABSORB_RADIUS) {
-                int current = EntityKillCountManager.getCurrentKillCount(parasite);
+                int current = EntityBiomassCountManager.getCurrentBiomassCount(parasite);
                 if (current > 0) {
-                    EntityKillCountManager.setKillCount(parasite, current - 1);
-                    this.killCount++;
+                    EntityBiomassCountManager.setBiomassCount(parasite, current - 1);
+                    this.biomassCount++;
                     this.setChanged();
                 }
             }
@@ -114,18 +126,18 @@ public class BeckonCoreBlockEntity extends BlockEntity {
             long now = server.getGameTime();
             if (be.lastGainTick == Long.MIN_VALUE) {
                 be.lastGainTick = now;
-            } else if (be.lastKillCountSeen() != be.killCount) {
+            } else if (be.lastBiomassCountSeen() != be.biomassCount) {
                 be.lastGainTick = now;
             } else if (org.tdddd.epca.impl.ModConfig.BECKON_CORE_DEGRADE.get()
                     && now - be.lastGainTick >= IDLE_DEGRADE_TICKS) {
                 net.minecraft.world.level.block.state.BlockState hive =
                         org.tdddd.epca.impl.overworld.registry.ModBlocks.HIVE_NODE.get().defaultBlockState();
-                int carried = Math.min(be.killCount,
-                        org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_KILL_COUNT);
+                int carried = Math.min(be.biomassCount,
+                        org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_BIOMASS_COUNT);
                 server.setBlock(pos, hive, 3);
                 if (server.getBlockEntity(pos) instanceof
                         org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity node) {
-                    node.setKillCount(carried);
+                    node.setBiomassCount(carried);
                 }
                 return;
             }
@@ -138,7 +150,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
         be.absorbKills(serverLevel);
 
         
-        if (!be.isGenerating && be.killCount >= REQUIRED_KILLS_STAGE_I) {
+        if (!be.isGenerating && be.biomassCount >= REQUIRED_KILLS_STAGE_I) {
             be.isGenerating = true;
             be.generationTimer = GENERATION_DELAY_TICKS;
             be.setChanged();
@@ -169,7 +181,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
         BlockPos above = this.worldPosition.above();
         if (!level.getBlockState(above).isAir()) return;
 
-        int currentKills = this.killCount;
+        int currentKills = this.biomassCount;
         boolean isStageII = currentKills > REQUIRED_KILLS_STAGE_II;
         int threshold = isStageII ? REQUIRED_KILLS_STAGE_II : REQUIRED_KILLS_STAGE_I;
         int remainingKills = Math.max(0, currentKills - threshold);
@@ -207,7 +219,7 @@ public class BeckonCoreBlockEntity extends BlockEntity {
 
         
         if (beckon != null) {
-            EntityKillCountManager.setKillCount(beckon, remainingKills);
+            EntityBiomassCountManager.setBiomassCount(beckon, remainingKills);
         }
 
         
@@ -269,8 +281,8 @@ public class BeckonCoreBlockEntity extends BlockEntity {
         level.setBlock(this.worldPosition, ModBlocks.INFESTED_DIRT.get().defaultBlockState(), 3);
     }
 
-    public void addKillCount(int amount) {
-        this.killCount = Math.min(this.killCount + amount, MAX_KILL_COUNT);
+    public void addBiomassCount(int amount) {
+        this.biomassCount = Math.min(this.biomassCount + amount, MAX_BIOMASS_COUNT);
         this.setChanged();
     }
 }

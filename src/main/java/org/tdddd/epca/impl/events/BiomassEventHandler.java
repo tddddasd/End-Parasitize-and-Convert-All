@@ -17,7 +17,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.BiomassSyncPacket;
 import org.tdddd.epca.impl.overworld.data.BiomassManager;
-import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
+import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.entities.*;
@@ -89,25 +89,25 @@ public class BiomassEventHandler {
      * {@link #onLivingAttack}
      * {@code NestLeaderDecomposeParasiteHandler}</p>
      *
-     * <p>{@code EntityKillCountManager}
+     * <p>{@code EntityBiomassCountManager}
      * {@code epca_kill_count}
      * <b></b></p>
      */
     public static int computeParasiteBiomass(LivingEntity target) {
         int basePoints = 1;
-        int killCount = EntityKillCountManager.getCurrentKillCount(target);
+        int biomassCount = EntityBiomassCountManager.getCurrentBiomassCount(target);
         Random rand = new Random();
 
         if (target instanceof IInfested) {
-            basePoints = 2 + rand.nextInt(3) + killCount;
+            basePoints = 2 + rand.nextInt(3) + biomassCount;
         } else if (target instanceof IOnesent) {
-            basePoints = 1 + rand.nextInt(2) + killCount;
+            basePoints = 1 + rand.nextInt(2) + biomassCount;
         } else if (target instanceof IPoverty) {
-            basePoints = 2 + rand.nextInt(2) + killCount;
+            basePoints = 2 + rand.nextInt(2) + biomassCount;
         } else if (target instanceof IReshape) {
-            basePoints = 12 + 4 + rand.nextInt(3) + killCount;
+            basePoints = 12 + 4 + rand.nextInt(3) + biomassCount;
         } else if (target instanceof ILink) {
-            basePoints = 4 + killCount;
+            basePoints = 4 + biomassCount;
         }
         return basePoints;
     }

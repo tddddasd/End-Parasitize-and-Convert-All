@@ -39,16 +39,16 @@ public class DamageAdaptationEntityComponentProvider implements IEntityComponent
                     .append(Component.literal(formattedMultiplier)));
         }
 
-        if (data.getInt("MinKillCount").isPresent()) {
-            int minKillCount = data.getIntOr("MinKillCount", 0);
-            if (minKillCount > 0) {
-                int maxMinKillCount = data.getIntOr("MaxMinKillCount", minKillCount);
+        if (data.getInt("MinBiomassCount").isPresent()) {
+            int minBiomassCount = data.getIntOr("MinBiomassCount", 0);
+            if (minBiomassCount > 0) {
+                int maxMinBiomassCount = data.getIntOr("MaxMinBiomassCount", minBiomassCount);
                     // Jade 26 has no IElementHelper; its ItemStackElement is the equivalent icon.
                     tooltip.add(snownee.jade.impl.ui.ItemStackElement.of(
                             new net.minecraft.world.item.ItemStack(
                                     net.minecraft.world.item.Items.RESPAWN_ANCHOR), 0.5F));
-                    tooltip.append(Component.literal(" " + minKillCount + "/"
-                            + Math.max(maxMinKillCount, minKillCount)));
+                    tooltip.append(Component.literal(" " + minBiomassCount + "/"
+                            + Math.max(maxMinBiomassCount, minBiomassCount)));
             }
         }
 

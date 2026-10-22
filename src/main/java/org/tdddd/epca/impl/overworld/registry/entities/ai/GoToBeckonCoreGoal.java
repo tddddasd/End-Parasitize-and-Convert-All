@@ -7,7 +7,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBlockEntity;
-import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
+import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.EnumSet;
@@ -26,7 +26,7 @@ public class GoToBeckonCoreGoal extends Goal {
     public boolean canUse() {
         if (!(entity instanceof IParasite)) return false;
         
-        if (EntityKillCountManager.getCurrentKillCount(entity) <= 0) return false;
+        if (EntityBiomassCountManager.getCurrentBiomassCount(entity) <= 0) return false;
 
         if (--searchCooldown > 0) return false;
         searchCooldown = 10; 
@@ -47,7 +47,7 @@ public class GoToBeckonCoreGoal extends Goal {
                         if (dist < nearestDistSq) {
                             
                             if (level.getBlockEntity(checkPos) instanceof BeckonCoreBlockEntity be) {
-                                if (!be.isGenerating() && be.getKillCount() < 128) { 
+                                if (!be.isGenerating() && be.getBiomassCount() < 128) { 
                                     nearestDistSq = dist;
                                     nearestCore = checkPos;
                                 }
@@ -87,10 +87,10 @@ public class GoToBeckonCoreGoal extends Goal {
     public boolean canContinueToUse() {
         if (corePos == null) return false;
         
-        if (EntityKillCountManager.getCurrentKillCount(entity) <= 0) return false;
+        if (EntityBiomassCountManager.getCurrentBiomassCount(entity) <= 0) return false;
         Level level = entity.level();
         if (!(level.getBlockEntity(corePos) instanceof BeckonCoreBlockEntity be)) return false;
-        if (be.isGenerating() || be.getKillCount() >= 64) return false; 
+        if (be.isGenerating() || be.getBiomassCount() >= 64) return false; 
         
         if (entity.distanceToSqr(Vec3.atCenterOf(corePos)) > 48*48) return false;
         return true;

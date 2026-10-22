@@ -78,7 +78,7 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
     public static class EntityRequirement {
         public String entity;
-        public Integer requiredKillCount;
+        public Integer requiredBiomassCount;
         public Integer minCount;
         public Integer maxCount;
         public Double chance = 1.0;
@@ -89,7 +89,7 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
             if (o == null || getClass() != o.getClass()) return false;
             EntityRequirement that = (EntityRequirement) o;
             return Objects.equals(entity, that.entity) &&
-                    Objects.equals(requiredKillCount, that.requiredKillCount) &&
+                    Objects.equals(requiredBiomassCount, that.requiredBiomassCount) &&
                     Objects.equals(minCount, that.minCount) &&
                     Objects.equals(maxCount, that.maxCount) &&
                     Double.compare(that.chance, chance) == 0;
@@ -97,7 +97,7 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
         @Override
         public int hashCode() {
-            return Objects.hash(entity, requiredKillCount, minCount, maxCount, chance);
+            return Objects.hash(entity, requiredBiomassCount, minCount, maxCount, chance);
         }
     }
 
@@ -313,9 +313,9 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         }
         if (!typeMatches) return false;
 
-        if (requirement.requiredKillCount != null) {
-            int currentKillCount = EntityKillCountManager.getCurrentKillCount(entity);
-            if (currentKillCount < requirement.requiredKillCount) {
+        if (requirement.requiredBiomassCount != null) {
+            int currentBiomassCount = EntityBiomassCountManager.getCurrentBiomassCount(entity);
+            if (currentBiomassCount < requirement.requiredBiomassCount) {
                 return false;
             }
         }

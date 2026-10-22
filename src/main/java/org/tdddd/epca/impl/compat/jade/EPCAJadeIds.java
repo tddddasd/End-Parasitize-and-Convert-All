@@ -11,11 +11,12 @@ public final class EPCAJadeIds {
             Identifier.fromNamespaceAndPath(epca.MODID, "damage_adaptation_info");
 
     
-    public static final Identifier KILL_COUNT_INFO =
+    public static final Identifier BIOMASS_COUNT_INFO =
             Identifier.fromNamespaceAndPath(epca.MODID, "kill_count_info");
 
     
-    public static final String NBT_KILL_COUNT = "EPCA_KillCount";
+    public static final String NBT_BIOMASS_COUNT_MAX = "EPCA_BiomassCountMax";
+    public static final String NBT_BIOMASS_COUNT = "EPCA_BiomassCount";
 
     
     public static final String NBT_DAMAGE_ADAPTATION = "EPCA_DamageAdaptation";

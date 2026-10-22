@@ -15,27 +15,27 @@ public class EPCAJadePlugin implements IWailaPlugin {
     
     @Override
     public void register(IWailaCommonRegistration registration) {
-        registration.registerEntityDataProvider(KillCountEntityDataProvider.INSTANCE, LivingEntity.class);
+        registration.registerEntityDataProvider(BiomassCountEntityDataProvider.INSTANCE, LivingEntity.class);
 
         registration.registerEntityDataProvider(DamageAdaptationEntityDataProvider.INSTANCE, LivingEntity.class);
 
-        registration.registerBlockDataProvider(HiveNodeKillCountDataProvider.INSTANCE,
+        registration.registerBlockDataProvider(HiveNodeBiomassCountDataProvider.INSTANCE,
                 org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.class);
 
-        registration.registerBlockDataProvider(KillCountBlockDataProvider.INSTANCE, BeckonCoreBlockEntity.class);
+        registration.registerBlockDataProvider(BiomassCountBlockDataProvider.INSTANCE, BeckonCoreBlockEntity.class);
     }
 
     
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerEntityComponent(DamageAdaptationEntityComponentProvider.INSTANCE, LivingEntity.class);
-        registration.registerEntityComponent(KillCountEntityComponentProvider.INSTANCE, LivingEntity.class);
-        registration.registerBlockComponent(HiveNodeKillCountProvider.INSTANCE,
+        registration.registerEntityComponent(BiomassCountEntityComponentProvider.INSTANCE, LivingEntity.class);
+        registration.registerBlockComponent(HiveNodeBiomassCountProvider.INSTANCE,
                 org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode.class);
-        registration.registerBlockComponent(KillCountBlockComponentProvider.INSTANCE, BeckonCore.class);
+        registration.registerBlockComponent(BiomassCountBlockComponentProvider.INSTANCE, BeckonCore.class);
         // Config keys may already be registered by yawningapi
         try {
-            registration.addConfig(EPCAJadeIds.KILL_COUNT_INFO, true);
+            registration.addConfig(EPCAJadeIds.BIOMASS_COUNT_INFO, true);
         } catch (IllegalArgumentException ignored) {
         }
         try {

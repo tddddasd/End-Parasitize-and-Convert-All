@@ -128,6 +128,7 @@ public class epca {
     
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
+        org.tdddd.epca.impl.commands.BiomassCountCommand.register(event.getDispatcher());
         EvolutionCommand.register(event.getDispatcher());
         NegativeDamageCommand.register(event.getDispatcher());
         event.getDispatcher().register(ParasiteSummonCommand.register());
@@ -178,7 +179,7 @@ public class epca {
         
         event.addListener(asResource("entity_conversion"), new EntityConversionManager());
         event.addListener(asResource("entity_integration"), new EntityIntegrationManager());
-        event.addListener(asResource("entity_kill_count"), new EntityKillCountManager());
+        event.addListener(asResource("entity_kill_count"), new EntityBiomassCountManager());
         event.addListener(asResource("carry_config"), CarryConfigManager.INSTANCE);
         event.addListener(asResource("biomass_spawn"), new BiomassSpawnManager());
         // SPEC D6 json
