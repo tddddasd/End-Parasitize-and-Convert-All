@@ -240,13 +240,15 @@ public class EPCAJadePlugin implements IWailaPlugin {
                 int minBiomassCount = data.getInt("MinBiomassCount");
                 int maxMinBiomassCount = data.contains("MaxMinBiomassCount")
                         ? data.getInt("MaxMinBiomassCount") : minBiomassCount;
-                if (minBiomassCount > 1) {
-                    // The JSON value counts from 1, the displayed ratio counts from 0: 2 maps to 1 and
-                    // so on. Values of 0 or 1 carry no requirement, so nothing is shown for them.
-                    int shown = Math.max(minBiomassCount - 1, 0);
+                if (minBiomassCount > 0) {
+                    // A JSON value of n > 0 means the creature needs 1 + n kills, so it survives n
+                    // fake deaths. The tooltip shows how many are still left.
+                    int shown = minBiomassCount;
+                    int deaths = data.contains("BiomassDeaths") ? data.getInt("BiomassDeaths") : 0;
+                    int remaining = Math.max(shown - deaths, 0);
                     tooltip.add(tooltip.getElementHelper().smallItem(
                             new ItemStack(net.minecraft.world.item.Items.RESPAWN_ANCHOR)));
-                    tooltip.append(Component.literal(" " + shown + "/" + shown));
+                    tooltip.append(Component.literal(" " + remaining + "/" + shown));
                 }
             }
 
@@ -313,6 +315,7 @@ public class EPCAJadePlugin implements IWailaPlugin {
             int minBiomassCount = config.getMinimumBiomassCount();
             if (minBiomassCount > 0) {
                 epcaData.putInt("MinBiomassCount", minBiomassCount);
+                epcaData.putInt("BiomassDeaths", DamageAdaptation.getDeathCount(livingEntity));
                 epcaData.putInt("MaxMinBiomassCount",
                         org.tdddd.yawning_neko_api.data.AdaptationConfigResolver
                                 .resolveMinimumBiomassCountUpperBound(livingEntity));
