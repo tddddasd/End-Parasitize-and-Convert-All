@@ -225,7 +225,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         // Damage adaptation check
         DamageAdaptationConfig config = DamageAdaptation.getEntityConfig(this);
         if (config != null) {
-            int minKills = config.getMinimumBiomassCount();
+            int minKills = config.getMinimumKillCount();
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
                 if (currentDeaths < minKills) {

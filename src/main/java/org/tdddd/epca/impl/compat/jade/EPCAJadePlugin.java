@@ -312,13 +312,13 @@ public class EPCAJadePlugin implements IWailaPlugin {
             }
 
             
-            int minBiomassCount = config.getMinimumBiomassCount();
+            int minBiomassCount = config.getMinimumKillCount();
             if (minBiomassCount > 0) {
                 epcaData.putInt("MinBiomassCount", minBiomassCount);
                 epcaData.putInt("BiomassDeaths", DamageAdaptation.getDeathCount(livingEntity));
                 epcaData.putInt("MaxMinBiomassCount",
                         org.tdddd.yawning_neko_api.data.AdaptationConfigResolver
-                                .resolveMinimumBiomassCountUpperBound(livingEntity));
+                                .resolveMinimumKillCountUpperBound(livingEntity));
             }
 
             
