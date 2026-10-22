@@ -498,10 +498,10 @@ public class InfestedZombieVillager extends PathfinderMob implements IOverlayRen
         }
         DamageAdaptationConfig config = DamageAdaptation.getEntityConfig(this);
         if (config != null) {
-            int minKills = config.getMinimumBiomassCount();
+            int minKills = config.getMinimumKillCount();
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
-                if (currentDeaths < minKills) {
+                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
                     
                     DamageAdaptation.recordDeath(this);
                     

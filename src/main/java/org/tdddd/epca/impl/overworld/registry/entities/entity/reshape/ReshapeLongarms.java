@@ -1241,10 +1241,10 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         if (!isInventoryEmpty()) tryPlaceCystAndTransfer();
         DamageAdaptationConfig config = DamageAdaptation.getEntityConfig(this);
         if (config != null) {
-            int minKills = config.getMinimumBiomassCount();
+            int minKills = config.getMinimumKillCount();
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
-                if (currentDeaths < minKills) {
+                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
                     DamageAdaptation.recordDeath(this);
                     this.setHealth(this.getMaxHealth());
                     if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {

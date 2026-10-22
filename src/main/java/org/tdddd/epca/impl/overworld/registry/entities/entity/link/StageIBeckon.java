@@ -499,6 +499,20 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
 
     @Override
     public void die(DamageSource damageSource) {
+        var config = org.tdddd.yawning_neko_api.data.DamageAdaptation.getEntityConfig(this);
+        if (config != null) {
+            int minKills = config.getMinimumKillCount();
+            if (minKills > 0) {
+                int deaths = org.tdddd.yawning_neko_api.data.DamageAdaptation.getDeathCount(this);
+                if (deaths < minKills) {
+                    org.tdddd.yawning_neko_api.data.DamageAdaptation.recordDeath(this);
+                    this.deathTime = 0;
+                    this.setHealth(this.getMaxHealth());
+                    this.clearFire();
+                    return;
+                }
+            }
+        }
         
         if (!this.level().isClientSide()) {
             BlockPos groundPos = BlockPos.containing(this.getX(), this.getY() - 1, this.getZ());
