@@ -117,6 +117,7 @@ public class epca {
     
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
+        org.tdddd.epca.impl.commands.BiomassCountCommand.register(event.getDispatcher());
         EvolutionCommand.register(event.getDispatcher());
         NegativeDamageCommand.register(event.getDispatcher());
         event.getDispatcher().register(ParasiteSummonCommand.register());
