@@ -584,7 +584,7 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
                             + " configId=" + (__data == null ? "-" : __data.getCurrentConfigId()));
             if (minKills > 0) {
                 int deaths = org.tdddd.yawning_neko_api.data.DamageAdaptation.getDeathCount(this);
-                if (deaths < minKills) {
+                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
                     org.tdddd.yawning_neko_api.data.DamageAdaptation.recordDeath(this);
                     this.deathTime = 0;
                     this.setHealth(this.getMaxHealth());

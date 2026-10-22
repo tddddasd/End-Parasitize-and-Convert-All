@@ -919,7 +919,7 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             int minKills = config.getMinimumKillCount();
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
-                if (currentDeaths < minKills) {
+                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
                     
                     DamageAdaptation.recordDeath(this);
                     

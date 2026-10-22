@@ -1315,7 +1315,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
             int minKills = config.getMinimumKillCount();
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
-                if (currentDeaths < minKills) {
+                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
                     DamageAdaptation.recordDeath(this);
                     // Full revive: reset the dying state as well, otherwise the entity keeps dying.
                     this.deathTime = 0;

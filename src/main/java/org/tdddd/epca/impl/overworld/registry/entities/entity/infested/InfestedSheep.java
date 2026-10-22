@@ -607,7 +607,7 @@ public class InfestedSheep extends PathfinderMob implements GeoEntity, IParasite
             int minKills = config.getMinimumKillCount();
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
-                if (currentDeaths < minKills) {
+                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
                     
                     DamageAdaptation.recordDeath(this);
                     
