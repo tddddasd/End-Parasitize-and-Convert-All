@@ -667,6 +667,14 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         var config = org.tdddd.yawning_neko_api.data.DamageAdaptation.getEntityConfig(this);
         if (config != null) {
             int minKills = config.getMinimumKillCount();
+            var __data = this.getCapability(
+                    org.tdddd.yawning_neko_api.data.IAdaptationData.CAPABILITY).orElse(null);
+            org.apache.logging.log4j.LogManager.getLogger("epca").info(
+                    "[beckon] " + this.getClass().getSimpleName()
+                            + " die: minKills=" + minKills
+                            + " deaths=" + org.tdddd.yawning_neko_api.data.DamageAdaptation.getDeathCount(this)
+                            + " capabilityPresent=" + (__data != null)
+                            + " configId=" + (__data == null ? "-" : __data.getCurrentConfigId()));
             if (minKills > 0) {
                 int deaths = org.tdddd.yawning_neko_api.data.DamageAdaptation.getDeathCount(this);
                 if (deaths < minKills) {
