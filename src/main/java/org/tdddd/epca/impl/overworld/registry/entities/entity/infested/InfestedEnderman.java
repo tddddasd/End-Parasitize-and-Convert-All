@@ -1575,7 +1575,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
                 if (currentDeaths < minKills) {
                     DamageAdaptation.recordDeath(this);
+                    // Full revive: reset the dying state as well, otherwise the entity keeps dying.
+                    this.deathTime = 0;
                     this.setHealth(this.getMaxHealth());
+                    this.clearFire();
                     return;
                 }
             }
