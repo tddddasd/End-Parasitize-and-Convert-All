@@ -548,7 +548,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             int minKills = config.getMinimumBiomassCount();
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
-                if (currentDeaths < minKills) {
+                if (currentDeaths < Math.max(minKills - 1, 0)) {
                     DamageAdaptation.recordDeath(this);
                     this.setHealth(this.getMaxHealth());
                     return;

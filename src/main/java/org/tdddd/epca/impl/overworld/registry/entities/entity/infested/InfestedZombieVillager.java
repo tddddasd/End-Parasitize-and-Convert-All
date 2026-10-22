@@ -592,7 +592,7 @@ public class InfestedZombieVillager extends PathfinderMob implements IOverlayRen
             int minKills = config.getMinimumBiomassCount();
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
-                if (currentDeaths < minKills) {
+                if (currentDeaths < Math.max(minKills - 1, 0)) {
                     
                     DamageAdaptation.recordDeath(this);
                     
