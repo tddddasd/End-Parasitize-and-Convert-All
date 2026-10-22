@@ -10,14 +10,15 @@ import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode;
 
 /** Stores the hive node's biomass and keeps the block state's texture band in sync. */
-public class HiveNodeBlockEntity extends BlockEntity {
+public class HiveNodeBlockEntity extends BlockEntity
+        implements org.tdddd.epca.impl.overworld.data.BiomassStorage {
 
     /** Hard cap on stored biomass. */
-    public static final int MAX_KILL_COUNT = 64;
+    public static final int MAX_BIOMASS_COUNT = 64;
 
-    private static final String KILL_COUNT_KEY = "killCount";
+    private static final String BIOMASS_COUNT_KEY = "biomassCount";
 
-    private int killCount = 0;
+    private int biomassCount = 0;
 
     /** One biomass every 45 s. */
     private static final int BIOMASS_INTERVAL_TICKS = 45 * 20;
@@ -34,7 +35,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
     /** Infestation sphere radius around the node. */
     private static final int INFEST_RADIUS = 8;
     /** Infestation speed: one random block every 20..30 seconds. */
-    /** A ripper may take this much biomass (killCount) to grow into a new hive node. */
+    /** A ripper may take this much biomass (biomassCount) to grow into a new hive node. */
     private static final int RIPPER_GROWTH_COST = 32;
     /** How often a ripper is looked for, and how far away it may be. */
     private static final int RIPPER_CHECK_TICKS = 20;
@@ -82,27 +83,34 @@ public class HiveNodeBlockEntity extends BlockEntity {
         super(ModBlockEntities.HIVE_NODE.get(), pos, state);
     }
 
-    public int getKillCount() {
-        return killCount;
+    @Override
+    public int getMaxBiomassCount() {
+        return MAX_BIOMASS_COUNT;
     }
 
-    public void setKillCount(int value) {
-        int clamped = Mth.clamp(value, 0, MAX_KILL_COUNT);
-        if (clamped == this.killCount) {
+    @Override
+    public int getBiomassCount() {
+        return biomassCount;
+    }
+
+    @Override
+    public void setBiomassCount(int value) {
+        int clamped = Mth.clamp(value, 0, MAX_BIOMASS_COUNT);
+        if (clamped == this.biomassCount) {
             return;
         }
-        this.killCount = clamped;
+        this.biomassCount = clamped;
         this.setChanged();
         updateStage();
     }
 
-    public void addKillCount(int amount) {
-        setKillCount(this.killCount + amount);
+    public void addBiomassCount(int amount) {
+        setBiomassCount(this.biomassCount + amount);
     }
 
     /** True when the node can still take biomass. */
     public boolean hasRoom() {
-        return this.killCount < MAX_KILL_COUNT;
+        return this.biomassCount < MAX_BIOMASS_COUNT;
     }
 
     private void updateStage() {
@@ -110,7 +118,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
             return;
         }
         BlockState state = this.getBlockState();
-        int stage = HiveNode.stageFor(this.killCount);
+        int stage = HiveNode.stageFor(this.biomassCount);
         if (state.hasProperty(HiveNode.STAGE) && state.getValue(HiveNode.STAGE) != stage) {
             this.level.setBlock(this.worldPosition, state.setValue(HiveNode.STAGE, stage), 3);
         }
@@ -119,7 +127,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        this.killCount = Mth.clamp(tag.getInt(KILL_COUNT_KEY), 0, MAX_KILL_COUNT);
+        this.biomassCount = Mth.clamp(tag.getInt(BIOMASS_COUNT_KEY), 0, MAX_BIOMASS_COUNT);
         this.biomassTimer = tag.getInt("biomassTimer");
         this.infestTimer = tag.getInt("infestTimer");
         this.infestTarget = tag.getInt("infestTarget");
@@ -135,7 +143,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.putInt(KILL_COUNT_KEY, this.killCount);
+        tag.putInt(BIOMASS_COUNT_KEY, this.biomassCount);
         tag.putInt("biomassTimer", this.biomassTimer);
         tag.putInt("infestTimer", this.infestTimer);
         tag.putInt("infestTarget", this.infestTarget);
@@ -152,19 +160,19 @@ public class HiveNodeBlockEntity extends BlockEntity {
         if (level.isClientSide) {
             return;
         }
-        // 1) biomass: +1 every 45 s, capped at MAX_KILL_COUNT
+        // 1) biomass: +1 every 45 s, capped at MAX_BIOMASS_COUNT
         if (++be.biomassTimer >= BIOMASS_INTERVAL_TICKS) {
             be.biomassTimer = 0;
             if (be.hasRoom()) {
-                be.addKillCount(1);
+                be.addBiomassCount(1);
             }
         }
         // 2) one curbub every 60 s for 1 biomass
         if (++be.spawnTimer >= CURBUG_INTERVAL_TICKS) {
             be.spawnTimer = 0;
-            if (be.killCount >= 1 && level instanceof net.minecraft.server.level.ServerLevel server) {
+            if (be.biomassCount >= 1 && level instanceof net.minecraft.server.level.ServerLevel server) {
                 if (be.spawnCurbug(server)) {
-                    be.setKillCount(be.killCount - 1);
+                    be.setBiomassCount(be.biomassCount - 1);
                 }
             }
         }
@@ -311,7 +319,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
                 continue;                       // players are not Mob, so this only sees creatures
             }
             // Only parasites that carry biomass of their own bother approaching a hive node.
-            int ownBiomass = org.tdddd.epca.impl.overworld.data.EntityKillCountManager.getCurrentKillCount(mob);
+            int ownBiomass = org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager.getCurrentBiomassCount(mob);
             if (ownBiomass <= 0) {
                 continue;
             }
@@ -325,8 +333,8 @@ public class HiveNodeBlockEntity extends BlockEntity {
                 mob.getPersistentData().remove(GROWTH_KEY);        // a fed bug is no longer a node child
                 // Feeding transfers the feeder's own biomass: a parasite with no kill count gives nothing.
                 if (ownBiomass > 0 && this.hasRoom()) {
-                    org.tdddd.epca.impl.overworld.data.EntityKillCountManager.setKillCount(mob, ownBiomass - 1);
-                    this.addKillCount(1);
+                    org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager.setBiomassCount(mob, ownBiomass - 1);
+                    this.addBiomassCount(1);
                     spawnBiomassParticles(level);
                 }
                 // leave the colony: walk to a point ~20 blocks away
@@ -370,7 +378,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
      * it, and the ripper is replaced by a fresh node that starts empty.</p>
      */
     private void absorbRipper(net.minecraft.server.level.ServerLevel level) {
-        if (this.killCount < RIPPER_GROWTH_COST) {
+        if (this.biomassCount < RIPPER_GROWTH_COST) {
             return;
         }
         net.minecraft.world.phys.AABB area =
@@ -380,7 +388,7 @@ public class HiveNodeBlockEntity extends BlockEntity {
             if (!ripper.isAlive()) {
                 continue;
             }
-            this.setKillCount(this.killCount - RIPPER_GROWTH_COST);
+            this.setBiomassCount(this.biomassCount - RIPPER_GROWTH_COST);
             BlockPos target = ripper.blockPosition();
             ripper.discard();
             level.setBlock(target, org.tdddd.epca.impl.overworld.registry.ModBlocks.HIVE_NODE.get().defaultBlockState(), 3);

@@ -180,7 +180,7 @@ public class epca {
     public void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(new EntityConversionManager());
         event.addListener(new EntityIntegrationManager());
-        event.addListener(new EntityKillCountManager());
+        event.addListener(new EntityBiomassCountManager());
         event.addListener(CarryConfigManager.INSTANCE);
         event.addListener(new BiomassSpawnManager());
         // SPEC D6 json

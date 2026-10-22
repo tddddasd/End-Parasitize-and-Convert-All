@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.BeckonCore;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBlockEntity;
-import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
+import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BioTortIncarnation;
@@ -28,7 +28,7 @@ public class EPCAJadePlugin implements IWailaPlugin {
 
     public static final ResourceLocation DAMAGE_ADAPTATION_INFO =
             new ResourceLocation(epca.MODID, "damage_adaptation_info");
-    public static final ResourceLocation KILL_COUNT_INFO =
+    public static final ResourceLocation BIOMASS_COUNT_INFO =
             new ResourceLocation(epca.MODID, "kill_count_info");
     public static final ResourceLocation UNKNOWN_HEALTH_INFO =
             new ResourceLocation(epca.MODID, "unknown_health");
@@ -41,10 +41,10 @@ public class EPCAJadePlugin implements IWailaPlugin {
         
         registration.registerEntityDataProvider(DamageAdaptationEntityProvider.INSTANCE, LivingEntity.class);
         
-        registration.registerEntityDataProvider(KillCountEntityProvider.INSTANCE, LivingEntity.class);
+        registration.registerEntityDataProvider(BiomassCountEntityProvider.INSTANCE, LivingEntity.class);
         
-        registration.registerBlockDataProvider(KillCountBlockProvider.INSTANCE, BeckonCoreBlockEntity.class);
-        registration.registerBlockDataProvider(HiveNodeKillCountProvider.INSTANCE,
+        registration.registerBlockDataProvider(BiomassCountBlockProvider.INSTANCE, BeckonCoreBlockEntity.class);
+        registration.registerBlockDataProvider(HiveNodeBiomassCountProvider.INSTANCE,
                 org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.class);
     }
 
@@ -52,11 +52,11 @@ public class EPCAJadePlugin implements IWailaPlugin {
     public void registerClient(IWailaClientRegistration registration) {
         
         registration.registerEntityComponent(DamageAdaptationEntityProvider.INSTANCE, LivingEntity.class);
-        registration.registerEntityComponent(KillCountEntityProvider.INSTANCE, LivingEntity.class);
+        registration.registerEntityComponent(BiomassCountEntityProvider.INSTANCE, LivingEntity.class);
 
         
-        registration.registerBlockComponent(KillCountBlockProvider.INSTANCE, BeckonCore.class);
-        registration.registerBlockComponent(HiveNodeKillCountProvider.INSTANCE,
+        registration.registerBlockComponent(BiomassCountBlockProvider.INSTANCE, BeckonCore.class);
+        registration.registerBlockComponent(HiveNodeBiomassCountProvider.INSTANCE,
                 org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode.class);
 
         // /Unknown
@@ -65,7 +65,7 @@ public class EPCAJadePlugin implements IWailaPlugin {
         
         // Config keys may already be registered by yawningapi
         try {
-            registration.addConfig(KILL_COUNT_INFO, true);
+            registration.addConfig(BIOMASS_COUNT_INFO, true);
         } catch (IllegalArgumentException ignored) {
         }
         try {
@@ -81,16 +81,16 @@ public class EPCAJadePlugin implements IWailaPlugin {
     
 
     /** Shows the stored biomass of a hive node, with the same icon and format as the beckon core. */
-    public static class HiveNodeKillCountProvider
+    public static class HiveNodeBiomassCountProvider
             implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
-        public static final HiveNodeKillCountProvider INSTANCE = new HiveNodeKillCountProvider();
+        public static final HiveNodeBiomassCountProvider INSTANCE = new HiveNodeBiomassCountProvider();
 
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-            if (!config.get(KILL_COUNT_INFO)) return;
+            if (!config.get(BIOMASS_COUNT_INFO)) return;
             CompoundTag serverData = accessor.getServerData();
-            if (!serverData.contains("EPCA_KillCount")) return;
-            int count = serverData.getInt("EPCA_KillCount");
-            int max = serverData.getInt("EPCA_KillCountMax");
+            if (!serverData.contains("EPCA_BiomassCount")) return;
+            int count = serverData.getInt("EPCA_BiomassCount");
+            int max = serverData.getInt("EPCA_BiomassCountMax");
             if (count <= 0) return;
             IElementHelper helper = tooltip.getElementHelper();
             tooltip.add(helper.smallItem(ICON_STACK));
@@ -100,26 +100,26 @@ public class EPCAJadePlugin implements IWailaPlugin {
         public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
             if (accessor.getBlockEntity()
                     instanceof org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity node) {
-                tag.putInt("EPCA_KillCount", node.getKillCount());
-                tag.putInt("EPCA_KillCountMax",
-                        org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_KILL_COUNT);
+                tag.putInt("EPCA_BiomassCount", node.getBiomassCount());
+                tag.putInt("EPCA_BiomassCountMax",
+                        org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_BIOMASS_COUNT);
             }
         }
 
         public ResourceLocation getUid() {
-            return KILL_COUNT_INFO;
+            return BIOMASS_COUNT_INFO;
         }
     }
 
-    public static class KillCountEntityProvider implements IEntityComponentProvider, IServerDataProvider<EntityAccessor> {
-        public static final KillCountEntityProvider INSTANCE = new KillCountEntityProvider();
+    public static class BiomassCountEntityProvider implements IEntityComponentProvider, IServerDataProvider<EntityAccessor> {
+        public static final BiomassCountEntityProvider INSTANCE = new BiomassCountEntityProvider();
 
         @Override
         public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
-            if (!config.get(KILL_COUNT_INFO)) return;
+            if (!config.get(BIOMASS_COUNT_INFO)) return;
             CompoundTag serverData = accessor.getServerData();
-            if (!serverData.contains("EPCA_KillCount")) return;
-            int count = serverData.getInt("EPCA_KillCount");
+            if (!serverData.contains("EPCA_BiomassCount")) return;
+            int count = serverData.getInt("EPCA_BiomassCount");
             if (count <= 0) return;
 
             IElementHelper helper = tooltip.getElementHelper();
@@ -132,49 +132,51 @@ public class EPCAJadePlugin implements IWailaPlugin {
         public void appendServerData(CompoundTag tag, EntityAccessor accessor) {
             Entity entity = accessor.getEntity();
             if (!(entity instanceof LivingEntity living)) return;
-            int count = EntityKillCountManager.getCurrentKillCount(living);
+            int count = EntityBiomassCountManager.getCurrentBiomassCount(living);
             if (count > 0) {
-                tag.putInt("EPCA_KillCount", count);
+                tag.putInt("EPCA_BiomassCount", count);
             }
         }
 
         @Override
         public ResourceLocation getUid() {
-            return KILL_COUNT_INFO;
+            return BIOMASS_COUNT_INFO;
         }
     }
 
     
-    public static class KillCountBlockProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
-        public static final KillCountBlockProvider INSTANCE = new KillCountBlockProvider();
+    public static class BiomassCountBlockProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        public static final BiomassCountBlockProvider INSTANCE = new BiomassCountBlockProvider();
 
         @Override
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-            if (!config.get(KILL_COUNT_INFO)) return;
+            if (!config.get(BIOMASS_COUNT_INFO)) return;
             CompoundTag serverData = accessor.getServerData();
-            if (!serverData.contains("EPCA_KillCount")) return;
-            int count = serverData.getInt("EPCA_KillCount");
+            if (!serverData.contains("EPCA_BiomassCount")) return;
+            int count = serverData.getInt("EPCA_BiomassCount");
+            int max = serverData.getInt("EPCA_BiomassCountMax");
             if (count <= 0) return;
 
             IElementHelper helper = tooltip.getElementHelper();
             tooltip.add(helper.smallItem(ICON_STACK));
-            tooltip.append(Component.literal(" " + count));
+            tooltip.append(Component.literal(" " + count + "/" + max));
         }
 
         @Override
         public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
             BlockEntity be = accessor.getBlockEntity();
             if (be instanceof BeckonCoreBlockEntity core) {
-                int count = core.getKillCount();
+                int count = core.getBiomassCount();
                 if (count > 0) {
-                    tag.putInt("EPCA_KillCount", count);
+                    tag.putInt("EPCA_BiomassCount", count);
+                    tag.putInt("EPCA_BiomassCountMax", BeckonCoreBlockEntity.MAX_BIOMASS_COUNT);
                 }
             }
         }
 
         @Override
         public ResourceLocation getUid() {
-            return KILL_COUNT_INFO;
+            return BIOMASS_COUNT_INFO;
         }
     }
 
@@ -234,15 +236,16 @@ public class EPCAJadePlugin implements IWailaPlugin {
                         .append(Component.literal(formattedMultiplier)));
             }
 
-            if (data.contains("MinKillCount")) {
-                int minKillCount = data.getInt("MinKillCount");
-                int maxMinKillCount = data.contains("MaxMinKillCount")
-                        ? data.getInt("MaxMinKillCount") : minKillCount;
-                if (minKillCount > 0) {
-                    // A respawn anchor icon followed by "current / upper bound".
+            if (data.contains("MinBiomassCount")) {
+                int minBiomassCount = data.getInt("MinBiomassCount");
+                int maxMinBiomassCount = data.contains("MaxMinBiomassCount")
+                        ? data.getInt("MaxMinBiomassCount") : minBiomassCount;
+                if (minBiomassCount > 0) {
+                    // The JSON value is the minimum required; the reachable upper bound is one lower.
+                    int upper = Math.max(minBiomassCount - 1, 0);
                     tooltip.add(tooltip.getElementHelper().smallItem(
                             new ItemStack(net.minecraft.world.item.Items.RESPAWN_ANCHOR)));
-                    tooltip.append(Component.literal(" " + minKillCount + "/" + Math.max(maxMinKillCount, minKillCount)));
+                    tooltip.append(Component.literal(" " + minBiomassCount + "/" + upper));
                 }
             }
 
@@ -306,10 +309,10 @@ public class EPCAJadePlugin implements IWailaPlugin {
             }
 
             
-            int minKillCount = config.getMinimumKillCount();
-            if (minKillCount > 0) {
-                epcaData.putInt("MinKillCount", minKillCount);
-                epcaData.putInt("MaxMinKillCount",
+            int minBiomassCount = config.getMinimumKillCount();
+            if (minBiomassCount > 0) {
+                epcaData.putInt("MinBiomassCount", minBiomassCount);
+                epcaData.putInt("MaxMinBiomassCount",
                         org.tdddd.yawning_neko_api.data.AdaptationConfigResolver
                                 .resolveMinimumKillCountUpperBound(livingEntity));
             }

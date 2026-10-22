@@ -32,7 +32,7 @@ import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.blocks.BlockConversionManager;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
-import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
+import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.entities.ILink;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -360,7 +360,7 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
                     attackCount++;
                 } else {
                     attackCount = 0;
-                    int currentKills = EntityKillCountManager.getCurrentKillCount(this);
+                    int currentKills = EntityBiomassCountManager.getCurrentBiomassCount(this);
                     boolean isFull = currentKills >= MAX_KILLS_STAGE_I;
                     if (isFull && fastAttackCounter < 10) {
                         attackCooldown = 60;   
@@ -383,15 +383,15 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
 
         if (--autoGrowthTimer <= 0) {
             autoGrowthTimer = GROWTH_INTERVAL;
-            int current = EntityKillCountManager.getCurrentKillCount(this);
+            int current = EntityBiomassCountManager.getCurrentBiomassCount(this);
             if (current < MAX_KILLS_STAGE_I) {
                 int newKills = Math.min(current + GROWTH_AMOUNT, MAX_KILLS_STAGE_I);
-                EntityKillCountManager.setKillCount(this, newKills);
+                EntityBiomassCountManager.setBiomassCount(this, newKills);
             }
         }
 
 
-        if (EntityKillCountManager.getCurrentKillCount(this) >= PLACE_CORE_COST) {
+        if (EntityBiomassCountManager.getCurrentBiomassCount(this) >= PLACE_CORE_COST) {
             
             if (placeCoreCooldown > 0) {
                 placeCoreCooldown--;
@@ -399,8 +399,8 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
                 placeCoreCooldown = 20;
                 if (tryPlaceCore()) {
                     
-                    EntityKillCountManager.setKillCount(this,
-                            EntityKillCountManager.getCurrentKillCount(this) - PLACE_CORE_COST);
+                    EntityBiomassCountManager.setBiomassCount(this,
+                            EntityBiomassCountManager.getCurrentBiomassCount(this) - PLACE_CORE_COST);
                 }
             }
         }
@@ -732,8 +732,8 @@ public class StageIBeckon extends PathfinderMob implements GeoEntity, IParasite,
 
             if (biomass != null) {
                 
-                int current = EntityKillCountManager.getCurrentKillCount(this);
-                EntityKillCountManager.setKillCount(this, Math.max(0, current - BIOMASS_COST));
+                int current = EntityBiomassCountManager.getCurrentBiomassCount(this);
+                EntityBiomassCountManager.setBiomassCount(this, Math.max(0, current - BIOMASS_COST));
                 biomass.setPos(x, y, z);
                 //  spawnBiomass
                 //  Beckon

@@ -78,7 +78,7 @@ public class BeckonPlacementHandler {
             }
 
             if (level.getBlockEntity(pos) instanceof BeckonCoreBlockEntity be) {
-                be.addKillCount(1);
+                be.addBiomassCount(1);
                 BiomassManager.addBiomassPoints(player, -ADD_KILL_COST);
                 ModNetwork.sendToPlayer((ServerPlayer) player,
                         new BiomassSyncPacket(true, BiomassManager.getBiomassPoints(player)));

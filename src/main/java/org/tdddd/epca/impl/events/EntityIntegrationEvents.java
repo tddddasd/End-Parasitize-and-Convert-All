@@ -14,7 +14,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.overworld.data.EntityIntegrationManager;
 import org.tdddd.epca.impl.overworld.data.EntityIntegrationManager.EntityIntegrationRule;
 import org.tdddd.epca.impl.overworld.data.EntityIntegrationManager.EntityRequirement;
-import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
+import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 
 import java.io.File;
 import java.io.FileReader;
@@ -193,8 +193,8 @@ public class EntityIntegrationEvents {
         if (event.getEntity() instanceof Mob killed &&
                 killed.level() instanceof ServerLevel serverLevel) {
             if (event.getSource().getEntity() instanceof Mob killer) {
-                EntityKillCountManager.incrementKillCount(killer);
-                if (EntityKillCountManager.isKillCountMaxed(killer)) {
+                EntityBiomassCountManager.incrementBiomassCount(killer);
+                if (EntityBiomassCountManager.isBiomassCountMaxed(killer)) {
                     checkEntityForAllIntegrationRules(serverLevel, killer);
                 }
             }

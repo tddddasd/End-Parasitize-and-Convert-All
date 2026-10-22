@@ -8,7 +8,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
-import org.tdddd.epca.impl.overworld.data.EntityKillCountManager;
+import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIIBeckon;
@@ -34,7 +34,7 @@ public class PlaceBeckonCoreGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!(entity instanceof IParasite)) return false;
-        int kills = EntityKillCountManager.getCurrentKillCount(entity);
+        int kills = EntityBiomassCountManager.getCurrentBiomassCount(entity);
         if (kills < KILLS_REQUIRED) return false;
 
         if (checkCooldown > 0) {
@@ -157,8 +157,8 @@ public class PlaceBeckonCoreGoal extends Goal {
             BlockState state = level.getBlockState(targetPos);
             if (isValidBlock(level, targetPos, state)) {
                 level.setBlock(targetPos, ModBlocks.BECKON_CORE.get().defaultBlockState(), 3);
-                EntityKillCountManager.setKillCount(entity,
-                        EntityKillCountManager.getCurrentKillCount(entity) - 15);
+                EntityBiomassCountManager.setBiomassCount(entity,
+                        EntityBiomassCountManager.getCurrentBiomassCount(entity) - 15);
             }
             targetPos = null;
             isNearby = false;

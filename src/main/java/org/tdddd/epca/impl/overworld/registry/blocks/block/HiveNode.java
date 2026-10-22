@@ -15,7 +15,7 @@ import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity;
 
 /**
- * A hive node: stores up to 64 biomass (killCount) and shows one of six textures for the stored amount.
+ * A hive node: stores up to 64 biomass (biomassCount) and shows one of six textures for the stored amount.
  *
  * <p>Texture bands: 0 -> 0, 1 -> 1..15, 2 -> 16..31, 3 -> 32..47, 4 -> 48..63, 5 -> 64. The top and
  * bottom faces use the matching {@code hive_node_top_N} texture.</p>
@@ -35,20 +35,20 @@ public class HiveNode extends Block implements EntityBlock {
     }
 
     /** Maps a stored biomass value onto its texture band. */
-    public static int stageFor(int killCount) {
-        if (killCount <= 0) {
+    public static int stageFor(int biomassCount) {
+        if (biomassCount <= 0) {
             return 0;
         }
-        if (killCount <= 15) {
+        if (biomassCount <= 15) {
             return 1;
         }
-        if (killCount <= 31) {
+        if (biomassCount <= 31) {
             return 2;
         }
-        if (killCount <= 47) {
+        if (biomassCount <= 47) {
             return 3;
         }
-        if (killCount <= 63) {
+        if (biomassCount <= 63) {
             return 4;
         }
         return 5;
