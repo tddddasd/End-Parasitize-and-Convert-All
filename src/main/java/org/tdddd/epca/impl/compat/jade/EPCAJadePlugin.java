@@ -240,12 +240,13 @@ public class EPCAJadePlugin implements IWailaPlugin {
                 int minBiomassCount = data.getInt("MinBiomassCount");
                 int maxMinBiomassCount = data.contains("MaxMinBiomassCount")
                         ? data.getInt("MaxMinBiomassCount") : minBiomassCount;
-                if (minBiomassCount > 0) {
-                    // The JSON value is the minimum required; the reachable upper bound is one lower.
-                    int upper = Math.max(minBiomassCount - 1, 0);
+                if (minBiomassCount > 1) {
+                    // The JSON value counts from 1, the displayed ratio counts from 0: 2 maps to 1 and
+                    // so on. Values of 0 or 1 carry no requirement, so nothing is shown for them.
+                    int shown = Math.max(minBiomassCount - 1, 0);
                     tooltip.add(tooltip.getElementHelper().smallItem(
                             new ItemStack(net.minecraft.world.item.Items.RESPAWN_ANCHOR)));
-                    tooltip.append(Component.literal(" " + minBiomassCount + "/" + upper));
+                    tooltip.append(Component.literal(" " + shown + "/" + shown));
                 }
             }
 
@@ -309,12 +310,12 @@ public class EPCAJadePlugin implements IWailaPlugin {
             }
 
             
-            int minBiomassCount = config.getMinimumKillCount();
+            int minBiomassCount = config.getMinimumBiomassCount();
             if (minBiomassCount > 0) {
                 epcaData.putInt("MinBiomassCount", minBiomassCount);
                 epcaData.putInt("MaxMinBiomassCount",
                         org.tdddd.yawning_neko_api.data.AdaptationConfigResolver
-                                .resolveMinimumKillCountUpperBound(livingEntity));
+                                .resolveMinimumBiomassCountUpperBound(livingEntity));
             }
 
             
