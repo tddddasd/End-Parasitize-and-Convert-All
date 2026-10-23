@@ -85,7 +85,6 @@ public class HiveNode extends Block
                              net.minecraft.world.entity.Entity entity,
                              net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
-        org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockContact
-                .onContact(state, level, pos, entity);
+
     }
 }
