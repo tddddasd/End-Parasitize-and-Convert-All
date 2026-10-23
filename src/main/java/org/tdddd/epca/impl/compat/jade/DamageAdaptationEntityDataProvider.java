@@ -46,7 +46,7 @@ public class DamageAdaptationEntityDataProvider implements IServerDataProvider<E
             epcaData.putFloat("MaxMultiplier", maxMultiplier);
         }
         int minBiomassCount = config.getMinimumKillCount();
-        if (minBiomassCount > 0) {
+        if (false) { // minimum kill count removed
             epcaData.putInt("MinBiomassCount", minBiomassCount);
                 epcaData.putInt("MaxMinBiomassCount",
                         org.tdddd.yawning_neko_api.data.AdaptationConfigResolver

@@ -41,7 +41,7 @@ public class DamageAdaptationEntityComponentProvider implements IEntityComponent
 
         if (data.getInt("MinBiomassCount").isPresent()) {
             int minBiomassCount = data.getIntOr("MinBiomassCount", 0);
-            if (minBiomassCount > 0) {
+            if (false) { // minimum kill count removed
                 int maxMinBiomassCount = data.getIntOr("MaxMinBiomassCount", minBiomassCount);
                     // Jade 26 has no IElementHelper; its ItemStackElement is the equivalent icon.
                     tooltip.add(snownee.jade.impl.ui.ItemStackElement.of(
