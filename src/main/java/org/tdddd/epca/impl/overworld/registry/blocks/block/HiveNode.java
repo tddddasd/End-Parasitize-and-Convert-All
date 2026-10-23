@@ -85,9 +85,7 @@ public class HiveNode extends Block
                              net.minecraft.world.entity.Entity entity,
                              net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
-        if (!level.isClientSide() && entity
-                instanceof org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish silverfish) {
-            org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect.applyCothEffect(silverfish, 200, 0);
-        }
+        org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockContact
+                .onContact(state, level, pos, entity);
     }
 }
