@@ -666,7 +666,7 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
         // minimum_kill_count: a value of n > 0 means the creature survives n fake deaths.
         var config = org.tdddd.yawning_neko_api.data.DamageAdaptation.getEntityConfig(this);
         if (config != null) {
-            int minKills = config.getMinimumKillCount();
+            int minKills = 0;
             var __data = this.getCapability(
                     org.tdddd.yawning_neko_api.data.IAdaptationData.CAPABILITY).orElse(null);
             org.apache.logging.log4j.LogManager.getLogger("epca").info(
