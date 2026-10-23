@@ -430,7 +430,7 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
         }
         DamageAdaptationConfig config = DamageAdaptation.getEntityConfig(this);
         if (config != null) {
-            int minKills = config.getMinimumKillCount();
+            int minKills = 0;
             if (minKills > 0) {
                 int currentDeaths = DamageAdaptation.getDeathCount(this);
                 if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount

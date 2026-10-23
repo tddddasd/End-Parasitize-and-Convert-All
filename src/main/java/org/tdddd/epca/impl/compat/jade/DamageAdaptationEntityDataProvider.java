@@ -45,13 +45,10 @@ public class DamageAdaptationEntityDataProvider implements IServerDataProvider<E
             epcaData.putString("MaxDamageType", formatDamageTypeToString(maxDamageType));
             epcaData.putFloat("MaxMultiplier", maxMultiplier);
         }
-        int minBiomassCount = config.getMinimumKillCount();
+        int minBiomassCount = 0;
         if (false) { // minimum kill count removed
             epcaData.putInt("MinBiomassCount", minBiomassCount);
-                epcaData.putInt("MaxMinBiomassCount",
-                        org.tdddd.yawning_neko_api.data.AdaptationConfigResolver
-                                .resolveMinimumKillCountUpperBound(livingEntity));
-        }
+                                        }
         int currentAdaptLevel = 0;
         int maxAdaptLevel = config.getMaxAdaptations();
         IAdaptationData adaptationData = livingEntity.getExistingDataOrNull(CapabilityEventHandler.ADAPTATION_DATA);
