@@ -311,9 +311,9 @@ public abstract class AbstractReshapeEntity extends AbstractEpcaEntity implement
         if (config != null) {
             int minKills = 0;
             if (minKills > 0) {
-                int currentDeaths = DamageAdaptation.getDeathCount(this);
+                int currentDeaths = 0;
                 if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
-                    DamageAdaptation.recordDeath(this);
+                    ;
                     this.setHealth(this.getMaxHealth());
                     return;
                 }
