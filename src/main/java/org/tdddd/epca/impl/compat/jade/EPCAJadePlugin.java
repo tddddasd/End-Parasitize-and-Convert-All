@@ -315,7 +315,7 @@ public class EPCAJadePlugin implements IWailaPlugin {
             int minBiomassCount = 0;
             if (false) { // minimum kill count removed
                 epcaData.putInt("MinBiomassCount", minBiomassCount);
-                epcaData.putInt("BiomassDeaths", DamageAdaptation.getDeathCount(livingEntity));
+                epcaData.putInt("BiomassDeaths", 0);
                                             }
 
             

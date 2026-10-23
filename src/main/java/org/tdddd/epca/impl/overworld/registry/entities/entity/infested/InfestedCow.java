@@ -547,9 +547,9 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
         if (config != null) {
             int minKills = 0;
             if (minKills > 0) {
-                int currentDeaths = DamageAdaptation.getDeathCount(this);
+                int currentDeaths = 0;
                 if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
-                    DamageAdaptation.recordDeath(this);
+                    ;
                     // Full revive: reset the dying state as well, otherwise the entity keeps dying.
                     this.deathTime = 0;
                     this.setHealth(this.getMaxHealth());
