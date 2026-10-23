@@ -20,7 +20,8 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockE
  * <p>Texture bands: 0 -> 0, 1 -> 1..15, 2 -> 16..31, 3 -> 32..47, 4 -> 48..63, 5 -> 64. The top and
  * bottom faces use the matching {@code hive_node_top_N} texture.</p>
  */
-public class HiveNode extends Block implements EntityBlock {
+public class HiveNode extends Block
+        implements EntityBlock, org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface {
 
     public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 5);
 
@@ -65,5 +66,28 @@ public class HiveNode extends Block implements EntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new HiveNodeBlockEntity(pos, state);
+    }
+
+    @Override
+    public net.minecraft.world.phys.shapes.VoxelShape getCollisionShape(
+            BlockState state, net.minecraft.world.level.BlockGetter level,
+            BlockPos pos, net.minecraft.world.phys.shapes.CollisionContext context) {
+        if (context instanceof net.minecraft.world.phys.shapes.EntityCollisionContext entityCtx
+                && entityCtx.getEntity()
+                instanceof org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish) {
+            return net.minecraft.world.phys.shapes.Shapes.empty();
+        }
+        return super.getCollisionShape(state, level, pos, context);
+    }
+
+    @Override
+    public void entityInside(BlockState state, Level level, BlockPos pos,
+                             net.minecraft.world.entity.Entity entity,
+                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+        super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
+        if (!level.isClientSide() && entity
+                instanceof org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish silverfish) {
+            org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect.applyCothEffect(silverfish, 200, 0);
+        }
     }
 }
