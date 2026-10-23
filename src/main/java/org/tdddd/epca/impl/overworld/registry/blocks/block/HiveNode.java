@@ -84,7 +84,6 @@ public class HiveNode extends Block
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.Entity entity) {
         super.entityInside(state, level, pos, entity);
-        org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockContact
-                .onContact(state, level, pos, entity);
+
     }
 }

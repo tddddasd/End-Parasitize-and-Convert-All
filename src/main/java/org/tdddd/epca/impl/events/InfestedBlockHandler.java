@@ -20,7 +20,10 @@ public class InfestedBlockHandler {
         LivingEntity entity = event.getEntity();
         if (entity == null || !entity.isAlive()) return;
 
-        if (IParasite.isParasiteByTagOrInterface(entity)) return;
+        // The infested silverfish is a parasite, but an infested block still feeds it Call of the Hive.
+        boolean silverfish = entity
+                instanceof org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
+        if (!silverfish && IParasite.isParasiteByTagOrInterface(entity)) return;
 
         BlockPos pos = entity.getOnPos();
         BlockState state = entity.level().getBlockState(pos);
