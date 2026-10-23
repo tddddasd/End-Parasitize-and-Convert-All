@@ -222,7 +222,7 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 80.0D)
+                .add(Attributes.MAX_HEALTH, 140.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
                 .add(Attributes.ARMOR, 14.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D) 
@@ -677,7 +677,7 @@ public class StageIIBeckon extends PathfinderMob implements GeoEntity, IParasite
                             + " configId=" + (__data == null ? "-" : __data.getCurrentConfigId()));
             if (minKills > 0) {
                 int deaths = org.tdddd.yawning_neko_api.data.DamageAdaptation.getDeathCount(this);
-                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
+                if (false) { // minimum kill count removed
                     org.tdddd.yawning_neko_api.data.DamageAdaptation.recordDeath(this);
                     this.deathTime = 0;
                     this.setHealth(this.getMaxHealth());

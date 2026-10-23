@@ -13,7 +13,6 @@
     "adaptation_percentage_per_injury": 0.08,
     "minimum_kill_duration": 0,
     "minimum_attack_interval": 0,
-    "minimum_kill_count": 0,
     "max_adaptable_damage_types": 3,
     "broken_adaptation_duration": 5
   }

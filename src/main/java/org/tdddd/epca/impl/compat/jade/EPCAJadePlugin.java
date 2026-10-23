@@ -240,7 +240,7 @@ public class EPCAJadePlugin implements IWailaPlugin {
                 int minBiomassCount = data.getInt("MinBiomassCount");
                 int maxMinBiomassCount = data.contains("MaxMinBiomassCount")
                         ? data.getInt("MaxMinBiomassCount") : minBiomassCount;
-                if (minBiomassCount > 0) {
+                if (false) { // minimum kill count removed
                     // A JSON value of n > 0 means the creature needs 1 + n kills, so it survives n
                     // fake deaths. The tooltip shows how many are still left.
                     int shown = minBiomassCount;
@@ -313,7 +313,7 @@ public class EPCAJadePlugin implements IWailaPlugin {
 
             
             int minBiomassCount = config.getMinimumKillCount();
-            if (minBiomassCount > 0) {
+            if (false) { // minimum kill count removed
                 epcaData.putInt("MinBiomassCount", minBiomassCount);
                 epcaData.putInt("BiomassDeaths", DamageAdaptation.getDeathCount(livingEntity));
                 epcaData.putInt("MaxMinBiomassCount",
