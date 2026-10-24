@@ -31,90 +31,22 @@ public class WaterColorEffectsManager {
     private static final Map<BlockPos, Integer> acidSources = new ConcurrentHashMap<>();
 
     
-    private static final Map<ChunkPos, Set<BlockPos>> INFESTED_BY_CHUNK = new ConcurrentHashMap<>();
-    //private static final int INFESTED_PURPLE = 0xFF8066AA;
-
-    
-
-    
+    // Infested blocks no longer tint water, so nothing is bookkept here and no chunk area is refreshed
+    // on their behalf. The four entry points stay so the existing packet handlers keep compiling; they
+    // are deliberately empty.
     public static void addInfestedSource(BlockPos pos) {
-        ChunkPos cp = new ChunkPos(pos);
-        INFESTED_BY_CHUNK.computeIfAbsent(cp, k -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
-        refreshArea(pos, 8); 
     }
 
     
     public static void removeInfestedSource(BlockPos pos) {
-        ChunkPos cp = new ChunkPos(pos);
-        Set<BlockPos> set = INFESTED_BY_CHUNK.get(cp);
-        if (set != null) {
-            set.remove(pos.immutable());
-            if (set.isEmpty()) INFESTED_BY_CHUNK.remove(cp);
-        }
-        refreshArea(pos, 8);
     }
 
     
     public static void addInfestedSourcesBatch(Collection<BlockPos> positions) {
-        if (positions.isEmpty()) return;
-        BlockPos first = null;
-        for (BlockPos pos : positions) {
-            ChunkPos cp = new ChunkPos(pos);
-            INFESTED_BY_CHUNK.computeIfAbsent(cp, k -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
-            if (first == null) first = pos;
-        }
-        if (first != null) {
-            refreshArea(first, 16);
-        }
     }
 
     
     public static void clearInfestedCache() {
-        INFESTED_BY_CHUNK.clear();
-    }
-
-    
-    /**
-     * Distance to the nearest infested block, or {@code -1} when none is within seven blocks.
-     *
-     * <p>Only the 3x3 chunk neighbourhood is searched, and the search stops as soon as a block within
-     * two blocks is found: with thousands of infested blocks a full scan of those nine chunks ran for
-     * every water block every frame, which is what made large infested regions laggy. Anything closer
-     * than two blocks already produces the strongest tint, so stopping early changes nothing visible.</p>
-     */
-    private static float getNearestInfestedDistance(BlockPos pos) {
-        int cx = pos.getX() >> 4;
-        int cz = pos.getZ() >> 4;
-        float minDistSq = Float.MAX_VALUE;
-        double px = pos.getX() + 0.5;
-        double py = pos.getY() + 0.5;
-        double pz = pos.getZ() + 0.5;
-
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                ChunkPos cp = new ChunkPos(cx + dx, cz + dz);
-                Set<BlockPos> set = INFESTED_BY_CHUNK.get(cp);
-                if (set == null) continue;
-                for (BlockPos inf : set) {
-                    double dx2 = px - (inf.getX() + 0.5);
-                    double dy2 = py - (inf.getY() + 0.5);
-                    double dz2 = pz - (inf.getZ() + 0.5);
-                    double d2 = dx2 * dx2 + dy2 * dy2 + dz2 * dz2;
-                    if (d2 < minDistSq) {
-                        minDistSq = (float) d2;
-                        if (minDistSq <= 4.0f) {
-                            // close enough for the strongest tint: no need to look any further
-                            return (float) Math.sqrt(minDistSq);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (minDistSq <= 49.0f) {
-            return (float) Math.sqrt(minDistSq);
-        }
-        return -1f;
     }
 
     
@@ -125,13 +57,7 @@ public class WaterColorEffectsManager {
         if (acidColor != -1) {
             mixed = mixColors(mixed, acidColor, 0.5f);
         }
-/*
-        float dist = getNearestInfestedDistance(pos);
-        if (dist >= 0) {
-            float intensity = 1.0f - (dist / 7.0f);
-            mixed = mixColors(mixed, INFESTED_PURPLE, intensity);
-        }
- */
+
         return mixed;
     }
 
@@ -204,7 +130,6 @@ public class WaterColorEffectsManager {
 
     public static void clearAll() {
         acidSources.clear();
-        INFESTED_BY_CHUNK.clear();
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null && mc.levelRenderer != null) {
             mc.levelRenderer.allChanged();
