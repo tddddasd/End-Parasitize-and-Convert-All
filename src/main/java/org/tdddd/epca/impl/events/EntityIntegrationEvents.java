@@ -94,10 +94,16 @@ public class EntityIntegrationEvents {
         // 26.1.2: the world-border collision box is far too large for the entity section index
         // (section keys overflowed and EntitySectionStorage threw "Start element ... is larger than
         // end element ..."). Iterating the level's loaded entities avoids the AABB math entirely.
+        // Only epca's own mobs can appear in an integration rule, so everything else is skipped here
+        // instead of being fed to every rule (each matching rule then does its own area query).
         List<Mob> allEntities = new java.util.ArrayList<>();
         for (Entity scanned : level.getAllEntities()) {
             if (scanned instanceof Mob mob && mob.isAlive()) {
-                allEntities.add(mob);
+                net.minecraft.resources.Identifier key =
+                        net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
+                if (key != null && org.tdddd.epca.impl.epca.MODID.equals(key.getNamespace())) {
+                    allEntities.add(mob);
+                }
             }
         }
         for (Mob entity : allEntities) {
