@@ -112,4 +112,68 @@ public class InfestedSourcePacket {
             });
         }
     }
+
+    /**
+     * Many adds and removes in one payload.
+     *
+     * <p>Mass infestation used to send one {@code add_infested_source} per block to every player, which is
+     * what made large infested regions laggy. Batching turns thousands of payloads into one per tick.</p>
+     */
+    public static class BatchInfestedSourcePacket implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<BatchInfestedSourcePacket> TYPE =
+                new CustomPacketPayload.Type<>(ModNetwork.id("batch_infested_source"));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, BatchInfestedSourcePacket> STREAM_CODEC =
+                CustomPacketPayload.codec(BatchInfestedSourcePacket::encode,
+                        BatchInfestedSourcePacket::decode);
+
+        private final java.util.List<BlockPos> added;
+        private final java.util.List<BlockPos> removed;
+
+        public BatchInfestedSourcePacket(java.util.List<BlockPos> added, java.util.List<BlockPos> removed) {
+            this.added = added;
+            this.removed = removed;
+        }
+
+        public void encode(RegistryFriendlyByteBuf buf) {
+            buf.writeVarInt(this.added.size());
+            for (BlockPos pos : this.added) {
+                buf.writeBlockPos(pos);
+            }
+            buf.writeVarInt(this.removed.size());
+            for (BlockPos pos : this.removed) {
+                buf.writeBlockPos(pos);
+            }
+        }
+
+        public static BatchInfestedSourcePacket decode(RegistryFriendlyByteBuf buf) {
+            int addCount = buf.readVarInt();
+            java.util.List<BlockPos> added = new java.util.ArrayList<>(addCount);
+            for (int i = 0; i < addCount; i++) {
+                added.add(buf.readBlockPos());
+            }
+            int removeCount = buf.readVarInt();
+            java.util.List<BlockPos> removed = new java.util.ArrayList<>(removeCount);
+            for (int i = 0; i < removeCount; i++) {
+                removed.add(buf.readBlockPos());
+            }
+            return new BatchInfestedSourcePacket(added, removed);
+        }
+
+        @Override
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        public static void handle(BatchInfestedSourcePacket packet, IPayloadContext ctx) {
+            ctx.enqueueWork(() -> {
+                for (BlockPos pos : packet.removed) {
+                    WaterColorEffectsManager.removeInfestedSource(pos);
+                }
+                for (BlockPos pos : packet.added) {
+                    WaterColorEffectsManager.addInfestedSource(pos);
+                }
+            });
+        }
+    }
 }

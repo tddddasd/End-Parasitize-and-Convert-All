@@ -72,6 +72,11 @@ public class ModNetwork {
         registrar.playToClient(InfestedSourcePacket.AddInfestedSourcePacket.TYPE,
                 InfestedSourcePacket.AddInfestedSourcePacket.STREAM_CODEC,
                 InfestedSourcePacket.AddInfestedSourcePacket::handle);
+
+        registrar.playToClient(
+                InfestedSourcePacket.BatchInfestedSourcePacket.TYPE,
+                InfestedSourcePacket.BatchInfestedSourcePacket.STREAM_CODEC,
+                InfestedSourcePacket.BatchInfestedSourcePacket::handle);
         registrar.playToClient(InfestedSourcePacket.RemoveInfestedSourcePacket.TYPE,
                 InfestedSourcePacket.RemoveInfestedSourcePacket.STREAM_CODEC,
                 InfestedSourcePacket.RemoveInfestedSourcePacket::handle);
@@ -132,5 +137,10 @@ public class ModNetwork {
     public static void sendToAllTracking(Entity entity, CustomPacketPayload payload) {
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, payload);
     }
-}
 
+    /** Sends a payload to every player in {@code level}. */
+    public static void sendToDimension(net.minecraft.server.level.ServerLevel level,
+                                       CustomPacketPayload payload) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayersInDimension(level, payload);
+    }
+}
