@@ -19,40 +19,18 @@ public class WaterColorEffectsManager {
 
     
     public static void addInfestedSource(BlockPos pos) {
-        // 26.1.2: ChunkPos is a record (x, z) and lost its BlockPos constructor; use ChunkPos#containing.
-        ChunkPos cp = ChunkPos.containing(pos);
-        INFESTED_BY_CHUNK.computeIfAbsent(cp, k -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
-        refreshArea(pos, 8); 
     }
 
     
     public static void removeInfestedSource(BlockPos pos) {
-        ChunkPos cp = ChunkPos.containing(pos);
-        Set<BlockPos> set = INFESTED_BY_CHUNK.get(cp);
-        if (set != null) {
-            set.remove(pos.immutable());
-            if (set.isEmpty()) INFESTED_BY_CHUNK.remove(cp);
-        }
-        refreshArea(pos, 8);
     }
 
     
     public static void addInfestedSourcesBatch(Collection<BlockPos> positions) {
-        if (positions.isEmpty()) return;
-        BlockPos first = null;
-        for (BlockPos pos : positions) {
-            ChunkPos cp = ChunkPos.containing(pos);
-            INFESTED_BY_CHUNK.computeIfAbsent(cp, k -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
-            if (first == null) first = pos;
-        }
-        if (first != null) {
-            refreshArea(first, 16);
-        }
     }
 
     
     public static void clearInfestedCache() {
-        INFESTED_BY_CHUNK.clear();
     }
 
     
@@ -99,13 +77,6 @@ public class WaterColorEffectsManager {
         if (acidColor != -1) {
             mixed = mixColors(mixed, acidColor, 0.5f);
         }
-/*
-        float dist = getNearestInfestedDistance(pos);
-        if (dist >= 0) {
-            float intensity = 1.0f - (dist / 7.0f);
-            mixed = mixColors(mixed, INFESTED_PURPLE, intensity);
-        }
- */
         return mixed;
     }
 
@@ -180,8 +151,7 @@ public class WaterColorEffectsManager {
 
     public static void clearAll() {
         acidSources.clear();
-        INFESTED_BY_CHUNK.clear();
-        Minecraft mc = Minecraft.getInstance();
+                Minecraft mc = Minecraft.getInstance();
         if (mc.level != null && mc.levelRenderer != null) {
             mc.levelRenderer.allChanged();
         }
