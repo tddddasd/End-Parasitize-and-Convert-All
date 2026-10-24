@@ -917,10 +917,13 @@ public class BlockConversionManager {
 
     private void sendInfestedPacketToClients(ServerLevel level, BlockPos pos, boolean add) {
         if (!level.isClientSide()) {
+            // The client no longer tints water from infested blocks, so nothing needs broadcasting.
+            // Mass conversions used to send one packet per block to every player here, which is what
+            // made large infested regions laggy.
             if (add) {
-                ModNetwork.INSTANCE.send(PacketDistributor.ALL.noArg(), new InfestedSourcePacket.AddInfestedSourcePacket(pos));
+                org.tdddd.epca.impl.overworld.data.InfestedBlockManager.addInfestedBlock(level, pos);
             } else {
-                ModNetwork.INSTANCE.send(PacketDistributor.ALL.noArg(), new InfestedSourcePacket.RemoveInfestedSourcePacket(pos));
+                org.tdddd.epca.impl.overworld.data.InfestedBlockManager.removeInfestedBlock(level, pos);
             }
         }
     }

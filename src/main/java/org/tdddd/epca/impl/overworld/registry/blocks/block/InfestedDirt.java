@@ -77,6 +77,12 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
 
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        // Random ticks are extremely common once a large area is infested, and each one used to try
+        // several plants with dozens of candidate positions. Skipping the body most of the time keeps
+        // growth working while cutting the per tick block operations by an order of magnitude.
+        if (random.nextFloat() > 0.08F) {
+            return;
+        }
         if (!state.getValue(NATURAL_SPAWN)) return;
 
         if (random.nextFloat() < 0.01f) {
