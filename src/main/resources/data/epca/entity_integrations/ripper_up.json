@@ -3,7 +3,7 @@
     "entities": [
       {
         "entity": "epca:ripper",
-        "requiredKillCount": 15
+        "requiredBiomassCount": 15
       }
     ],
     "range": 1.0,

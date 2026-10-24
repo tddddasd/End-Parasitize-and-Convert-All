@@ -3,7 +3,7 @@
     "entities": [
       {
         "entity": "epca:large_incomplete_form",
-        "requiredKillCount": 20
+        "requiredBiomassCount": 20
       }
     ],
     "range": 1.0,
