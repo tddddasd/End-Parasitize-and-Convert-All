@@ -73,6 +73,13 @@ public class HiveNodeBlockEntity extends BlockEntity
     private int linkTimer = 0;
     private int feedTimer = 0;
     private int structureTimer = 0;
+    /**
+     * The structure scan walks a 49x49x49 cube (117,649 block lookups), so it only runs every
+     * {@link #STRUCTURE_SCAN_EVERY}th structure check. The flag it recomputes changes over minutes, so
+     * the coarser cadence is not observable in game but removes about 90% of the scan cost.
+     */
+    private int structureScanTimer = 0;
+    private static final int STRUCTURE_SCAN_EVERY = 10;
     private boolean inStructure = false;
     private int knownStructureSize = 0;
     /** True once this node has paid out the structure bonus, so it is only granted once. */
@@ -179,8 +186,11 @@ public class HiveNodeBlockEntity extends BlockEntity
         }
         if (++be.structureTimer >= STRUCTURE_CHECK_TICKS) {
             be.structureTimer = 0;
-            if (level instanceof ServerLevel server) {
-                be.updateStructure(server);
+            if (++be.structureScanTimer >= STRUCTURE_SCAN_EVERY) {
+                be.structureScanTimer = 0;
+                if (level instanceof ServerLevel server) {
+                    be.updateStructure(server);
+                }
             }
         }
         if (++be.linkTimer >= LINK_CHECK_TICKS) {
