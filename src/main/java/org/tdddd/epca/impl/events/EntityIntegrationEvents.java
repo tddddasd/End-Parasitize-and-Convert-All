@@ -90,15 +90,33 @@ public class EntityIntegrationEvents {
         }
     }
 
+    /**
+     * Only epca's own mobs can take part in an integration rule, so the world wide scan is filtered to
+     * them before any rule work happens.
+     *
+     * <p>It used to collect <b>every</b> mob inside the world border every five ticks and then run every
+     * rule against each of them, and each rule that matched did its own {@code getEntitiesOfClass} area
+     * query. On a world with a few hundred mobs that is thousands of entity queries per five ticks, which
+     * showed up as server lag.</p>
+     */
     private static void checkWorldForIntegrations(ServerLevel level) {
         List<Mob> allEntities = level.getEntitiesOfClass(
                 Mob.class,
                 level.getWorldBorder().getCollisionShape().bounds(),
-                entity -> entity != null && entity.isAlive()
+                EntityIntegrationEvents::isEpcaMob
         );
         for (Mob entity : allEntities) {
             checkEntityForAllIntegrationRules(level, entity);
         }
+    }
+
+    /** True for mobs registered by epca, i.e. the only ones an integration rule can mention. */
+    private static boolean isEpcaMob(Mob entity) {
+        if (entity == null || !entity.isAlive()) {
+            return false;
+        }
+        var key = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+        return key != null && org.tdddd.epca.impl.epca.MODID.equals(key.getNamespace());
     }
 
     private static void checkEntityForAllIntegrationRules(ServerLevel level, Mob centerEntity) {
