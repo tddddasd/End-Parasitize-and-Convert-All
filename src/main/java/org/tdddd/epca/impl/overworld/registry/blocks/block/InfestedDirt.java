@@ -85,7 +85,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
         // Random ticks are extremely common once a large area is infested, and each one used to try
         // several plants with dozens of candidate positions. Skipping the body most of the time keeps
         // growth working while cutting the per tick block operations by an order of magnitude.
-        if (random.nextFloat() > 0.08F) {
+        if (random.nextFloat() > 0.01F) {
             return;
         }
         if (!state.getValue(NATURAL_SPAWN)) return;
@@ -170,7 +170,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
     private void spawnPumpkins(ServerLevel level, BlockPos pos, RandomSource random) {
         
         Set<BlockPos> existingPumpkins = new HashSet<>();
-        BlockPos.betweenClosedStream(pos.offset(-64, -64, -64), pos.offset(64, 64, 64))
+        BlockPos.betweenClosedStream(pos.offset(-16, -16, -16), pos.offset(16, 16, 16))
                 .forEach(p -> {
                     if (level.getBlockState(p).getBlock() == ModBlocks.INFESTED_PUMPKIN.get()) {
                         existingPumpkins.add(p.immutable());
@@ -214,10 +214,10 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
     }
 
     private void spawnBushes(ServerLevel level, BlockPos pos, RandomSource random) {
-        // Same shape as spawnPumpkins: same 64 block presence check, same +-5 / +-3 spawn range and the
+        // Same shape as spawnPumpkins: same presence check, same +-5 / +-3 spawn range and the
         // same 64 block minimum distance between two plants.
         Set<BlockPos> existingBushes = new HashSet<>();
-        BlockPos.betweenClosedStream(pos.offset(-64, -64, -64), pos.offset(64, 64, 64))
+        BlockPos.betweenClosedStream(pos.offset(-16, -16, -16), pos.offset(16, 16, 16))
                 .forEach(p -> {
                     if (level.getBlockState(p).getBlock() == ModBlocks.INFESTED_BUSH.get()) {
                         existingBushes.add(p.immutable());
