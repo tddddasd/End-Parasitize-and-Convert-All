@@ -77,4 +77,58 @@ public class InfestedSourcePacket {
             ctx.get().setPacketHandled(true);
         }
     }
+
+    /**
+     * Many adds and removes in one packet.
+     *
+     * <p>Mass infestation (a beckon converting a whole area, or a hive node spreading) used to send one
+     * {@link AddInfestedSourcePacket} per block to every player on the server. Batching turns thousands of
+     * packets into one per tick.</p>
+     */
+    public static class BatchInfestedSourcePacket {
+        private final java.util.List<BlockPos> added;
+        private final java.util.List<BlockPos> removed;
+
+        public BatchInfestedSourcePacket(java.util.List<BlockPos> added, java.util.List<BlockPos> removed) {
+            this.added = added;
+            this.removed = removed;
+        }
+
+        public void encode(FriendlyByteBuf buf) {
+            buf.writeVarInt(this.added.size());
+            for (BlockPos pos : this.added) {
+                buf.writeBlockPos(pos);
+            }
+            buf.writeVarInt(this.removed.size());
+            for (BlockPos pos : this.removed) {
+                buf.writeBlockPos(pos);
+            }
+        }
+
+        public static BatchInfestedSourcePacket decode(FriendlyByteBuf buf) {
+            int addCount = buf.readVarInt();
+            java.util.List<BlockPos> added = new java.util.ArrayList<>(addCount);
+            for (int i = 0; i < addCount; i++) {
+                added.add(buf.readBlockPos());
+            }
+            int removeCount = buf.readVarInt();
+            java.util.List<BlockPos> removed = new java.util.ArrayList<>(removeCount);
+            for (int i = 0; i < removeCount; i++) {
+                removed.add(buf.readBlockPos());
+            }
+            return new BatchInfestedSourcePacket(added, removed);
+        }
+
+        public void handle(Supplier<NetworkEvent.Context> ctx) {
+            ctx.get().enqueueWork(() -> {
+                for (BlockPos pos : this.removed) {
+                    WaterColorEffectsManager.removeInfestedSource(pos);
+                }
+                for (BlockPos pos : this.added) {
+                    WaterColorEffectsManager.addInfestedSource(pos);
+                }
+            });
+            ctx.get().setPacketHandled(true);
+        }
+    }
 }

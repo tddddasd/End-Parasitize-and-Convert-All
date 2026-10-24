@@ -92,6 +92,10 @@ public class ModNetwork {
                 InfestedSourcePacket.AddInfestedSourcePacket::encode,
                 InfestedSourcePacket.AddInfestedSourcePacket::decode,
                 InfestedSourcePacket.AddInfestedSourcePacket::handle);
+        INSTANCE.registerMessage(id++, InfestedSourcePacket.BatchInfestedSourcePacket.class,
+                InfestedSourcePacket.BatchInfestedSourcePacket::encode,
+                InfestedSourcePacket.BatchInfestedSourcePacket::decode,
+                InfestedSourcePacket.BatchInfestedSourcePacket::handle);
         INSTANCE.registerMessage(id++, InfestedSourcePacket.RemoveInfestedSourcePacket.class,
                 InfestedSourcePacket.RemoveInfestedSourcePacket::encode,
                 InfestedSourcePacket.RemoveInfestedSourcePacket::decode,
