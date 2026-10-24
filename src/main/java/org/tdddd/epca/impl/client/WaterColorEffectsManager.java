@@ -74,6 +74,14 @@ public class WaterColorEffectsManager {
     }
 
     
+    /**
+     * Distance to the nearest infested block, or {@code -1} when none is within seven blocks.
+     *
+     * <p>Only the 3x3 chunk neighbourhood is searched, and the search stops as soon as a block within
+     * two blocks is found: with thousands of infested blocks a full scan of those nine chunks ran for
+     * every water block every frame, which is what made large infested regions laggy. Anything closer
+     * than two blocks already produces the strongest tint, so stopping early changes nothing visible.</p>
+     */
     private static float getNearestInfestedDistance(BlockPos pos) {
         int cx = pos.getX() >> 4;
         int cz = pos.getZ() >> 4;
@@ -92,7 +100,13 @@ public class WaterColorEffectsManager {
                     double dy2 = py - (inf.getY() + 0.5);
                     double dz2 = pz - (inf.getZ() + 0.5);
                     double d2 = dx2 * dx2 + dy2 * dy2 + dz2 * dz2;
-                    if (d2 < minDistSq) minDistSq = (float) d2;
+                    if (d2 < minDistSq) {
+                        minDistSq = (float) d2;
+                        if (minDistSq <= 4.0f) {
+                            // close enough for the strongest tint: no need to look any further
+                            return (float) Math.sqrt(minDistSq);
+                        }
+                    }
                 }
             }
         }
