@@ -74,7 +74,13 @@ public class WaterColorEffectsManager {
                     double dy2 = py - (inf.getY() + 0.5);
                     double dz2 = pz - (inf.getZ() + 0.5);
                     double d2 = dx2 * dx2 + dy2 * dy2 + dz2 * dz2;
-                    if (d2 < minDistSq) minDistSq = (float) d2;
+                    if (d2 < minDistSq) {
+                        minDistSq = (float) d2;
+                        if (minDistSq <= 4.0f) {
+                            // close enough for the strongest tint: no need to look any further
+                            return (float) Math.sqrt(minDistSq);
+                        }
+                    }
                 }
             }
         }
