@@ -54,13 +54,6 @@ public class ParasiteGroundNavigation extends GroundPathNavigation {
         return new ParasiteNodeEvaluator(this.maxGapJumpWidth());
     }
 
-    /**
-     * Vanilla A* visits up to a few hundred nodes per path request. Hundreds of parasites replanning at
-     * once is what showed up as {@code WalkNodeEvaluator} in the profiler, so the search budget is capped
-     * here: paths are slightly less optimal, the cost per request drops by roughly two thirds.
-     */
-    private static final int MAX_VISITED_NODES = 96;
-
     @Override
     protected PathFinder createPathFinder(int maxVisitedNodes) {
         // Build the vanilla navigation first: that configures the default node evaluator and tells
@@ -75,7 +68,7 @@ public class ParasiteGroundNavigation extends GroundPathNavigation {
         evaluator.setCanWalkOverFences(defaults.canWalkOverFences());
 
         this.nodeEvaluator = evaluator;
-        return new PathFinder(this.nodeEvaluator, Math.min(maxVisitedNodes, MAX_VISITED_NODES));
+        return new PathFinder(this.nodeEvaluator, maxVisitedNodes);
     }
 
     @Override
