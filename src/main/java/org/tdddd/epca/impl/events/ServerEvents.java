@@ -47,14 +47,13 @@ public class ServerEvents {
 
     
     private static void sendAddPacket(Level level, BlockPos pos) {
-        if (level.isClientSide()) return;
-        ModNetwork.sendToAll(new InfestedSourcePacket.AddInfestedSourcePacket(pos));
-        
+        if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) return;
+        org.tdddd.epca.impl.overworld.data.InfestedBlockManager.addInfestedBlock(serverLevel, pos);
     }
 
     
     private static void sendRemovePacket(Level level, BlockPos pos) {
-        if (level.isClientSide()) return;
-        ModNetwork.sendToAll(new InfestedSourcePacket.RemoveInfestedSourcePacket(pos));
+        if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) return;
+        org.tdddd.epca.impl.overworld.data.InfestedBlockManager.removeInfestedBlock(serverLevel, pos);
     }
 }

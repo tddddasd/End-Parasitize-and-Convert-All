@@ -888,9 +888,9 @@ public class BlockConversionManager {
     private void sendInfestedPacketToClients(ServerLevel level, BlockPos pos, boolean add) {
         if (!level.isClientSide()) {
             if (add) {
-                ModNetwork.sendToAll(new InfestedSourcePacket.AddInfestedSourcePacket(pos));
+                org.tdddd.epca.impl.overworld.data.InfestedBlockManager.addInfestedBlock((net.minecraft.server.level.ServerLevel) level, pos);
             } else {
-                ModNetwork.sendToAll(new InfestedSourcePacket.RemoveInfestedSourcePacket(pos));
+                org.tdddd.epca.impl.overworld.data.InfestedBlockManager.removeInfestedBlock((net.minecraft.server.level.ServerLevel) level, pos);
             }
         }
     }
