@@ -17,7 +17,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
-import org.tdddd.epca.impl.client.organ.NestLeaderOrganKeys;
+import org.tdddd.epca.impl.client.organ.HiveLeaderOrganKeys;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystScreen;
 import org.tdddd.epca.impl.overworld.registry.particles.AdaptationParticleProvider;
@@ -95,16 +95,16 @@ public class ClientSetup {
      *  SPEC " H"</p>
      *
      * <p>26.1.2{@code KeyMapping}
-     * {@code KeyMapping.Category} {@link NestLeaderOrganKeys#CATEGORY}
+     * {@code KeyMapping.Category} {@link HiveLeaderOrganKeys#CATEGORY}
      *  lang  {@code key.category.epca.keys}
      *  /  /
      *  - </p>
      */
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
-        event.register(NestLeaderOrganKeys.OPEN_ORGANS);
-        event.register(NestLeaderOrganKeys.TELEPORT);
-        event.register(NestLeaderOrganKeys.DECOMPOSE_PARASITE);
+        event.register(HiveLeaderOrganKeys.OPEN_ORGANS);
+        event.register(HiveLeaderOrganKeys.TELEPORT);
+        event.register(HiveLeaderOrganKeys.DECOMPOSE_PARASITE);
     }
 
     @SubscribeEvent

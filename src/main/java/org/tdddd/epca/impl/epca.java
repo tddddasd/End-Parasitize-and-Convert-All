@@ -23,7 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tdddd.eej.api.AltarInteractionRegistry;
 import org.tdddd.epca.impl.overworld.data.*;
-import org.tdddd.epca.impl.overworld.data.organ.NestLeaderOrganEffects;
+import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganEffects;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatManager;
 import org.tdddd.epca.impl.overworld.registry.blocks.EpcaAltarInteractionHandler;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
@@ -133,7 +133,7 @@ public class epca {
         NegativeDamageCommand.register(event.getDispatcher());
         event.getDispatcher().register(ParasiteSummonCommand.register());
         event.getDispatcher().register(ParasiteSummonCommand.registerSetParasite());
-        NestLeaderCommand.register(event);
+        HiveLeaderCommand.register(event);
     }
 
     @SubscribeEvent
@@ -149,12 +149,12 @@ public class epca {
      *  tick + STAGE 3
      *
      * <p> SPEC  2  3
-     * {@code NestLeaderManager#isNestLeader}
+     * {@code HiveLeaderManager#isHiveLeader}
      * {@link org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary#compute}
-     *  {@link NestLeaderOrganEffects#tick}
+     *  {@link HiveLeaderOrganEffects#tick}
      * +  {@code entity_gravity} +
      *  tick
-     *  {@link NestLeaderOrganEffects#notLeader} tick
+     *  {@link HiveLeaderOrganEffects#notLeader} tick
      * SPEC  1  2 </p>
      *
      * <p>26.1.21.20.1  {@code TickEvent.PlayerTickEvent} {@code phase}
@@ -164,12 +164,12 @@ public class epca {
     public void onPlayerTick(PlayerTickEvent.Post event) {
         LivingArmorBox.applyBiomassEffects(event.getEntity());
 
-        // STAGE 3 NestLeaderOrganEffects
+        // STAGE 3 HiveLeaderOrganEffects
         if (!event.getEntity().level().isClientSide()) {
-            if (NestLeaderManager.isNestLeader(event.getEntity().getUUID())) {
-                NestLeaderOrganEffects.tick(event.getEntity());
+            if (HiveLeaderManager.isHiveLeader(event.getEntity().getUUID())) {
+                HiveLeaderOrganEffects.tick(event.getEntity());
             } else {
-                NestLeaderOrganEffects.notLeader(event.getEntity());
+                HiveLeaderOrganEffects.notLeader(event.getEntity());
             }
         }
     }

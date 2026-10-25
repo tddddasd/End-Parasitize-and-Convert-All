@@ -474,9 +474,9 @@ public class LangDataCN extends LanguageProvider {
         // 1.20.1  key.categories.epca  26.1.2
         add("key.category.epca.keys", "终末-归寄万物");
         add("key.epca.open_organs", "打开领巢者器官界面");
-        // STAGE B NestLeaderOrganKeys#TELEPORT
+        // STAGE B HiveLeaderOrganKeys#TELEPORT
         add("key.epca.organ_teleport", "器官瞬移（末影珍珠）");
-        //  NestLeaderOrganKeys#DECOMPOSE_PARASITE
+        //  HiveLeaderOrganKeys#DECOMPOSE_PARASITE
         add("key.epca.decompose_parasite", "分解寄生体（准星指向寄生体）");
         add("tag.epca.organ_part", "器官部位");
 

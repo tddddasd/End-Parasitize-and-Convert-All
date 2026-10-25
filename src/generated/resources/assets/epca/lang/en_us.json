@@ -441,7 +441,7 @@
   "key.epca.follow_cancel": "Cancel Follow Parasite",
   "key.epca.open_organs": "Open Nest Leader Organ GUI",
   "key.epca.organ_teleport": "Organ Teleport (Pearls)",
-  "key.epca.switch_state": "Switch NestLeader State",
+  "key.epca.switch_state": "Switch HiveLeader State",
   "ritual.epca.already_running": "A ritual is already running on this altar",
   "ritual.epca.cancelled": "The ritual was cancelled (the initiator left)",
   "ritual.epca.completed": "The ritual is complete",

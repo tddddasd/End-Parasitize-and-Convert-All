@@ -12,7 +12,7 @@ import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.BiomassClientData;
 import net.minecraft.world.item.ItemStack;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.data.NestLeaderClientCache;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderClientCache;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class BiomassHUD {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
 
-        if (!BiomassClientData.isNestLeader()) return;
+        if (!BiomassClientData.isHiveLeader()) return;
 
         int points = BiomassClientData.getPoints();
         GuiGraphicsExtractor gui = event.getGuiGraphics();
@@ -93,7 +93,7 @@ public class BiomassHUD {
 
         List<Player> others = mc.level.players().stream()
                 .filter(p -> p != player)
-                .filter(p -> !NestLeaderClientCache.isNestLeader(p.getUUID()))
+                .filter(p -> !HiveLeaderClientCache.isHiveLeader(p.getUUID()))
                 .collect(Collectors.toList());
         if (others.isEmpty()) return;
 

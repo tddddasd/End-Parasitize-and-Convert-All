@@ -52,7 +52,7 @@ import java.util.Map;
  * </p>
  *
  * <p> Minecraft API 1.20.1
- * {@code NestLeaderOrganEffects} </p>
+ * {@code HiveLeaderOrganEffects} </p>
  */
 public record OrganStatProfile(
         double health,

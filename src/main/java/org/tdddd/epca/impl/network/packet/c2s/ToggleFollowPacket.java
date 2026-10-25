@@ -9,7 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.network.ModNetwork;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class ToggleFollowPacket implements CustomPacketPayload {
     public static void handle(ToggleFollowPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
-            if (!NestLeaderManager.isNestLeader(player.getUUID())) return;
+            if (!HiveLeaderManager.isHiveLeader(player.getUUID())) return;
 
             ServerLevel level = player.level();
             AABB box = player.getBoundingBox().inflate(16);

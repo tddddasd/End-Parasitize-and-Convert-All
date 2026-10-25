@@ -15,7 +15,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.NeoForgeMod;
-import org.tdddd.epca.impl.overworld.data.organ.NestLeaderOrganData;
+import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganData;
 import org.tdddd.epca.impl.overworld.data.organ.OrganSlotGroup;
 
 import javax.annotation.Nullable;
@@ -33,7 +33,7 @@ import java.util.TreeSet;
  * SPEC  1  C8C9
  *
  * <h2></h2>
- * <p>{@link #compute}  {@link NestLeaderOrganData}  {@link OrganStatManager}  JSON
+ * <p>{@link #compute}  {@link HiveLeaderOrganData}  {@link OrganStatManager}  JSON
  *  {@code OrganStatSummary}
  * </p>
  *
@@ -83,8 +83,8 @@ import java.util.TreeSet;
  * </ul>
  *
  * <h2></h2>
- * <p> {@code NestLeaderOrganEffects#tick(Player)}  tick
- *  {@code NestLeaderOrganDamageHandler} + {@code NestLeaderOrganAdaptation}
+ * <p> {@code HiveLeaderOrganEffects#tick(Player)}  tick
+ *  {@code HiveLeaderOrganDamageHandler} + {@code HiveLeaderOrganAdaptation}
  * {@link #minimumDamage()} / {@link #minimumDamageIntervalTicks()} / {@link #adaptationReduction()} /
  * {@link #adaptationRequiredHits()} / {@link #adaptationChance()} /
  * {@link #nonAdaptableDamageTypes()} / {@link #damageTakenMultipliers()}+
@@ -201,7 +201,7 @@ public record OrganStatSummary(
     private static final OrganSlotGroup OUTER_PROBE_GROUP = OrganSlotGroup.HEAD;
 
     /**  null */
-    public static OrganStatSummary compute(@Nullable NestLeaderOrganData data) {
+    public static OrganStatSummary compute(@Nullable HiveLeaderOrganData data) {
         if (data == null) return empty();
 
         OrganStatDefaults defaults = OrganStatManager.defaults();

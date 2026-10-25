@@ -471,7 +471,7 @@ public class LangDataEN extends LanguageProvider {
         add("epca.difficulty.legendary", "§5Legendary");
 
         add("key.category.epca", "E-PCA");
-        add("key.epca.switch_state", "Switch NestLeader State");
+        add("key.epca.switch_state", "Switch HiveLeader State");
         add("key.epca.follow", "Follow Parasites");
         add("key.epca.follow_cancel", "Cancel Follow Parasite");
 
@@ -483,10 +483,10 @@ public class LangDataEN extends LanguageProvider {
         //  above only as history).
         add("key.category.epca.keys", "E-PCA");
         add("key.epca.open_organs", "Open Nest Leader Organ GUI");
-        // STAGE B: the infested ender pearl teleport key (default unbound, see NestLeaderOrganKeys#TELEPORT).
+        // STAGE B: the infested ender pearl teleport key (default unbound, see HiveLeaderOrganKeys#TELEPORT).
         add("key.epca.organ_teleport", "Organ Teleport (Pearls)");
         // Nest Leader skill "Decompose Parasite" key (default unbound,
-        // see NestLeaderOrganKeys#DECOMPOSE_PARASITE).
+        // see HiveLeaderOrganKeys#DECOMPOSE_PARASITE).
         add("key.epca.decompose_parasite", "Decompose Parasite (aim at a parasite)");
         add("tag.epca.organ_part", "Organ Part");
 

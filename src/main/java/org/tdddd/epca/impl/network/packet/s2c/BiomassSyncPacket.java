@@ -16,21 +16,21 @@ public class BiomassSyncPacket implements CustomPacketPayload {
     public static final StreamCodec<RegistryFriendlyByteBuf, BiomassSyncPacket> STREAM_CODEC =
             CustomPacketPayload.codec(BiomassSyncPacket::encode, BiomassSyncPacket::new);
 
-    private final boolean isNestLeader;
+    private final boolean isHiveLeader;
     private final int points;
 
-    public BiomassSyncPacket(boolean isNestLeader, int points) {
-        this.isNestLeader = isNestLeader;
+    public BiomassSyncPacket(boolean isHiveLeader, int points) {
+        this.isHiveLeader = isHiveLeader;
         this.points = points;
     }
 
     public BiomassSyncPacket(RegistryFriendlyByteBuf buf) {
-        this.isNestLeader = buf.readBoolean();
+        this.isHiveLeader = buf.readBoolean();
         this.points = buf.readInt();
     }
 
     public void encode(RegistryFriendlyByteBuf buf) {
-        buf.writeBoolean(isNestLeader);
+        buf.writeBoolean(isHiveLeader);
         buf.writeInt(points);
     }
 
@@ -40,6 +40,6 @@ public class BiomassSyncPacket implements CustomPacketPayload {
     }
 
     public static void handle(BiomassSyncPacket packet, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> BiomassClientData.update(packet.isNestLeader, packet.points));
+        ctx.enqueueWork(() -> BiomassClientData.update(packet.isHiveLeader, packet.points));
     }
 }

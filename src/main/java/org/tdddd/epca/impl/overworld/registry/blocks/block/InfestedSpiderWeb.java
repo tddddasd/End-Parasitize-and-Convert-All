@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -195,7 +195,7 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
      * <p><b> 1.20.1 </b>
      *  {@link IParasite#isParasiteByTagOrInterface}
      * {@code entity instanceof IParasite} /
-     * {@code "Parasite"} {@code NestLeaderManager.isNestLeader}
+     * {@code "Parasite"} {@code HiveLeaderManager.isHiveLeader}
      *  {@code IParasite.java:69-92}
      * {@code InfestedBlockHandler.java:24}{@code InfestedVine.java:82}
      * {@code InfestedCactus.java:85}{@code InfestedSnow.java:91}

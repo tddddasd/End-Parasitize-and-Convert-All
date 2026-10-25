@@ -72,7 +72,7 @@ public class InfestedCaveSpiderWebProjectile extends ThrowableItemProjectile {
      *
      * <p>Classification uses the mod's OWN predicate,
      * IParasite#isParasiteByTagOrInterface, which already covers BOTH halves of the requirement: for a
-     * Player it delegates to NestLeaderManager#isNestLeader(uuid), and for every other entity it
+     * Player it delegates to HiveLeaderManager#isHiveLeader(uuid), and for every other entity it
      * checks the IParasite interface or the "Parasite" persistent-data flag. So "not a parasite and
      * not a nest leader" is exactly the negation of that one call.</p>
      *

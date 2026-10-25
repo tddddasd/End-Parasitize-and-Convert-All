@@ -43,18 +43,18 @@ public class ModNetwork {
                 InfestedSourcePacket.RequestAllInfestedSourcesPacket::handle);
         //  GUISPEC  2
         //  /  /
-        registrar.playToServer(RequestOpenNestLeaderOrgansPacket.TYPE,
-                RequestOpenNestLeaderOrgansPacket.STREAM_CODEC,
-                RequestOpenNestLeaderOrgansPacket::handle);
-        registrar.playToServer(NestLeaderOrganActionPacket.TYPE,
-                NestLeaderOrganActionPacket.STREAM_CODEC,
-                NestLeaderOrganActionPacket::handle);
-        registrar.playToServer(NestLeaderOrganTeleportPacket.TYPE,
-                NestLeaderOrganTeleportPacket.STREAM_CODEC,
-                NestLeaderOrganTeleportPacket::handle);
-        registrar.playToServer(NestLeaderDecomposeParasitePacket.TYPE,
-                NestLeaderDecomposeParasitePacket.STREAM_CODEC,
-                NestLeaderDecomposeParasitePacket::handle);
+        registrar.playToServer(RequestOpenHiveLeaderOrgansPacket.TYPE,
+                RequestOpenHiveLeaderOrgansPacket.STREAM_CODEC,
+                RequestOpenHiveLeaderOrgansPacket::handle);
+        registrar.playToServer(HiveLeaderOrganActionPacket.TYPE,
+                HiveLeaderOrganActionPacket.STREAM_CODEC,
+                HiveLeaderOrganActionPacket::handle);
+        registrar.playToServer(HiveLeaderOrganTeleportPacket.TYPE,
+                HiveLeaderOrganTeleportPacket.STREAM_CODEC,
+                HiveLeaderOrganTeleportPacket::handle);
+        registrar.playToServer(HiveLeaderDecomposeParasitePacket.TYPE,
+                HiveLeaderDecomposeParasitePacket.STREAM_CODEC,
+                HiveLeaderDecomposeParasitePacket::handle);
 
         
         registrar.playToClient(AcidWaterColorPacket.TYPE, AcidWaterColorPacket.STREAM_CODEC,
@@ -84,8 +84,8 @@ public class ModNetwork {
                 SyncAllInfestedSourcesPacket::handle);
         registrar.playToClient(BiomassSyncPacket.TYPE, BiomassSyncPacket.STREAM_CODEC,
                 BiomassSyncPacket::handle);
-        registrar.playToClient(SyncNestLeadersPacket.TYPE, SyncNestLeadersPacket.STREAM_CODEC,
-                SyncNestLeadersPacket::handle);
+        registrar.playToClient(SyncHiveLeadersPacket.TYPE, SyncHiveLeadersPacket.STREAM_CODEC,
+                SyncHiveLeadersPacket::handle);
         // Vanilla never syncs a mob's active effects to other clients, so the visible
         // epca:soul_protection aura needs its own batch sync; see SoulProtectionSyncHandler.
         registrar.playToClient(SyncSoulProtectionPacket.TYPE, SyncSoulProtectionPacket.STREAM_CODEC,
@@ -107,8 +107,8 @@ public class ModNetwork {
         registrar.playToClient(SpawnArayaSlashPacket.TYPE, SpawnArayaSlashPacket.STREAM_CODEC,
                 SpawnArayaSlashPacket::handle);
         //  GUI 52  +  +  +
-        registrar.playToClient(SyncNestLeaderOrgansPacket.TYPE, SyncNestLeaderOrgansPacket.STREAM_CODEC,
-                SyncNestLeaderOrgansPacket::handle);
+        registrar.playToClient(SyncHiveLeaderOrgansPacket.TYPE, SyncHiveLeaderOrgansPacket.STREAM_CODEC,
+                SyncHiveLeaderOrgansPacket::handle);
     }
 
     

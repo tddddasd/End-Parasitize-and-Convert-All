@@ -15,7 +15,7 @@ import org.tdddd.epca.impl.client.effect.SoulProtectionClientCache;
 import org.tdddd.epca.impl.client.entity.gas.GasCloudManager;
 import org.tdddd.epca.impl.client.entity.heart.SoulProtectionHeartRenderer;
 import org.tdddd.epca.impl.client.entity.layer.EndermanAfterimageLayer;
-import org.tdddd.epca.impl.client.organ.NestLeaderOrganClientInput;
+import org.tdddd.epca.impl.client.organ.HiveLeaderOrganClientInput;
 import org.tdddd.epca.impl.client.render.araya.ArayaSceneCopy;
 import org.tdddd.epca.impl.epca;
 
@@ -69,6 +69,6 @@ public class ClientEvents {
         //  GUI H  /  /
         //  ClientTickEvent + KeyMapping#consumeClick()
         //  -
-        NestLeaderOrganClientInput.tick();
+        HiveLeaderOrganClientInput.tick();
     }
 }

@@ -41,7 +41,7 @@ import org.tdddd.eej.api.AltarBlockTags;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.InfestedSourcePacket;
 import org.tdddd.epca.impl.network.packet.s2c.SyncRitualAuraPacket;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.data.SacrificeSavedData;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
@@ -1412,7 +1412,7 @@ public class BlockConversionManager {
 
         Player player = level.getPlayerByUUID(task.playerId);
         if (player != null) {
-            NestLeaderManager.addNestLeader(player.getUUID());
+            HiveLeaderManager.addHiveLeader(player.getUUID());
         }
 
         
