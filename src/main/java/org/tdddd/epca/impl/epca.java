@@ -26,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixins;
 import org.tdddd.eej.api.AltarInteractionRegistry;
 import org.tdddd.epca.impl.overworld.data.*;
-import org.tdddd.epca.impl.overworld.data.organ.NestLeaderOrganEffects;
+import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganEffects;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatManager;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary;
 import org.tdddd.epca.impl.overworld.registry.blocks.EpcaAltarInteractionHandler;
@@ -122,7 +122,7 @@ public class epca {
         NegativeDamageCommand.register(event.getDispatcher());
         event.getDispatcher().register(ParasiteSummonCommand.register());
         event.getDispatcher().register(ParasiteSummonCommand.registerSetParasite());
-        NestLeaderCommand.register(event);
+        HiveLeaderCommand.register(event);
     }
 
     @SubscribeEvent
@@ -153,12 +153,12 @@ public class epca {
      *  tick  + STAGE 3
      *
      * <p> SPEC  2  3
-     * {@code NestLeaderManager#isNestLeader}
+     * {@code HiveLeaderManager#isHiveLeader}
      * {@link OrganStatSummary#compute}
-     * {@link NestLeaderOrganEffects#tick} STAGE A  7  9
+     * {@link HiveLeaderOrganEffects#tick} STAGE A  7  9
      * +  {@code entity_gravity} +
      *  tick
-     *  {@link NestLeaderOrganEffects#notLeader} tick
+     *  {@link HiveLeaderOrganEffects#notLeader} tick
      * SPEC  1  2 </p>
      */
     @SubscribeEvent
@@ -166,12 +166,12 @@ public class epca {
         if (event.phase == TickEvent.Phase.END) {
             LivingArmorBox.applyBiomassEffects(event.player);
 
-            // STAGE 3 NestLeaderOrganEffects
+            // STAGE 3 HiveLeaderOrganEffects
             if (!event.player.level().isClientSide()) {
-                if (NestLeaderManager.isNestLeader(event.player.getUUID())) {
-                    NestLeaderOrganEffects.tick(event.player);
+                if (HiveLeaderManager.isHiveLeader(event.player.getUUID())) {
+                    HiveLeaderOrganEffects.tick(event.player);
                 } else {
-                    NestLeaderOrganEffects.notLeader(event.player);
+                    HiveLeaderOrganEffects.notLeader(event.player);
                 }
             }
         }

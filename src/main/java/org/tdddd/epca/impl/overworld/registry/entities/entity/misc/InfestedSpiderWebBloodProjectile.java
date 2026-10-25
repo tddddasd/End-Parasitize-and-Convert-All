@@ -77,7 +77,7 @@ public class InfestedSpiderWebBloodProjectile extends ThrowableItemProjectile {
      * <p>Classification uses the mod's OWN predicate,
      * {@link IParasite#isParasiteByTagOrInterface(net.minecraft.world.entity.LivingEntity)}, which
      * already covers both halves of the requirement: for a {@code Player} it delegates to
-     * {@code NestLeaderManager.isNestLeader(uuid)}, and otherwise it checks the {@code IParasite}
+     * {@code HiveLeaderManager.isHiveLeader(uuid)}, and otherwise it checks the {@code IParasite}
      * interface or the {@code "Parasite"} persistent-data flag.</p>
      *
      * <p>Feet block first, block below as fallback; an entity already standing in a web resolves to

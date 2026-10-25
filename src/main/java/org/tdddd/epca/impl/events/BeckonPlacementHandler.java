@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.BiomassSyncPacket;
 import org.tdddd.epca.impl.overworld.data.BiomassManager;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.BeckonCore;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBlockEntity;
@@ -31,7 +31,7 @@ public class BeckonPlacementHandler {
         Level level = player.level();
         if (level.isClientSide) return;
 
-        if (!NestLeaderManager.isNestLeader(player.getUUID())) return;
+        if (!HiveLeaderManager.isHiveLeader(player.getUUID())) return;
 
         if (!player.getMainHandItem().isEmpty()) return;
 

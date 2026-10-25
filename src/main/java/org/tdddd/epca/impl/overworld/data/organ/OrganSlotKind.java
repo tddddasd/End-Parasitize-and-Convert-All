@@ -28,7 +28,7 @@ public enum OrganSlotKind {
      *
      * <p>SPEC D4 777 <b></b>
      *  05  7  1
-     * {@link NestLeaderOrganData#DEFAULT_HEAD_INNER_FLESH_LOCALS}</p>
+     * {@link HiveLeaderOrganData#DEFAULT_HEAD_INNER_FLESH_LOCALS}</p>
      */
     RED_HEAD_INNER(false, true);
 
@@ -45,7 +45,7 @@ public enum OrganSlotKind {
         return needsUnlock;
     }
 
-    /**  {@link NestLeaderOrganData#createDefault()}  */
+    /**  {@link HiveLeaderOrganData#createDefault()}  */
     public boolean defaultUnlocked() {
         return defaultUnlocked;
     }

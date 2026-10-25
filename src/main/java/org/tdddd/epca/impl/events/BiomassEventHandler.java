@@ -18,7 +18,7 @@ import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.BiomassSyncPacket;
 import org.tdddd.epca.impl.overworld.data.BiomassManager;
 import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.entities.*;
 import org.tdddd.epca.impl.epca;
@@ -32,7 +32,7 @@ public class BiomassEventHandler {
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         DamageSource source = event.getSource();
-        if (source.getEntity() instanceof Player player && NestLeaderManager.isNestLeader(player.getUUID())) {
+        if (source.getEntity() instanceof Player player && HiveLeaderManager.isHiveLeader(player.getUUID())) {
             LivingEntity killed = event.getEntity();
             if (!(killed instanceof IParasite)) {
                 addPointsAndSync(player, 1);
@@ -43,7 +43,7 @@ public class BiomassEventHandler {
     @SubscribeEvent
     public static void onLivingAttack(LivingAttackEvent event) {
         if (!(event.getSource().getEntity() instanceof Player player)) return;
-        if (!NestLeaderManager.isNestLeader(player.getUUID())) return;
+        if (!HiveLeaderManager.isHiveLeader(player.getUUID())) return;
         if (!player.getMainHandItem().isEmpty()) return;
         if (!player.isShiftKeyDown()) return;
 
@@ -131,7 +131,7 @@ public class BiomassEventHandler {
 
     public static void syncBiomass(Player player) {
         if (player instanceof ServerPlayer sp) {
-            boolean isLeader = NestLeaderManager.isNestLeader(player.getUUID());
+            boolean isLeader = HiveLeaderManager.isHiveLeader(player.getUUID());
             int points = isLeader ? BiomassManager.getBiomassPoints(player) : 0;
             ModNetwork.sendToPlayer(sp, new BiomassSyncPacket(isLeader, points));
         }

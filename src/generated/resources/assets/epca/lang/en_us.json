@@ -440,7 +440,7 @@
   "key.epca.follow_cancel": "Cancel Follow Parasite",
   "key.epca.open_organs": "Open Nest Leader Organ GUI",
   "key.epca.organ_teleport": "Organ Teleport (Pearls)",
-  "key.epca.switch_state": "Switch NestLeader State",
+  "key.epca.switch_state": "Switch HiveLeader State",
   "tag.epca.organ_part": "Organ Part",
   "tooltip.epca.adaptation_level": "Adaptation Level: %d/%d",
   "tooltip.epca.attack": "Attack: %s",

@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -82,7 +82,7 @@ public class LightningRodBlockMixin {
         int baseLevel = rand.nextInt(1, 4);
         int finalLevel = Math.min(baseLevel + bonusLevel, 3);
 
-        if (entities instanceof Player player && NestLeaderManager.isNestLeader(player.getUUID())) {
+        if (entities instanceof Player player && HiveLeaderManager.isHiveLeader(player.getUUID())) {
             for (LivingEntity entity : entities) {
                 entity.addEffect(new MobEffectInstance(ModEffects.RAGE.get(), 600, finalLevel - 1, false, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, 600, finalLevel - 1, false, true));

@@ -42,7 +42,7 @@ public final class OrganSlotUnlock {
     }
 
     /**  */
-    public static int unlockCost(NestLeaderOrganData data, int index) {
+    public static int unlockCost(HiveLeaderOrganData data, int index) {
         return unlockCost(data.groupOf(index));
     }
 
@@ -55,7 +55,7 @@ public final class OrganSlotUnlock {
      * @return {@link Result#success()}  false  {@code reason}
      *
      */
-    public static Result tryUnlock(Player player, NestLeaderOrganData data, int index) {
+    public static Result tryUnlock(Player player, HiveLeaderOrganData data, int index) {
         if (player == null || data == null) {
             return Result.failure("数据不可用");
         }

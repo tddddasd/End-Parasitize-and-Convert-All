@@ -4,7 +4,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
-import org.tdddd.epca.impl.overworld.data.organ.NestLeaderOrganData;
+import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganData;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public final class OrganStatReadout {
      *
      * <p> {@code Component.translatable}
      *  {@code impl.overworld.data.organ.stats} +
-     * {@code NestLeaderOrganScreen}
+     * {@code HiveLeaderOrganScreen}
      *  {@link Component} </p>
      *
      * <p> {@link Component}  {@code String} +  +
@@ -299,12 +299,12 @@ public final class OrganStatReadout {
     }
 
     /**  */
-    public static List<String> statsLines(@Nullable LivingEntity entity, @Nullable NestLeaderOrganData data) {
+    public static List<String> statsLines(@Nullable LivingEntity entity, @Nullable HiveLeaderOrganData data) {
         return statsLines(entity, OrganStatSummary.compute(data));
     }
 
     /**  */
-    public static List<String> damageLines(@Nullable NestLeaderOrganData data,
+    public static List<String> damageLines(@Nullable HiveLeaderOrganData data,
                                            @Nullable Registry<DamageType> registry) {
         return damageLines(OrganStatSummary.compute(data), registry);
     }

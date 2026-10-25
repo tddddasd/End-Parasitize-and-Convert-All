@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.items.item.InfestedDiamond;
@@ -128,7 +128,7 @@ public abstract class BeaconBlockEntityMixin implements IBeaconMixin {
         AABB aabb = new AABB(pos).inflate(range).expandTowards(0, level.getHeight(), 0);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, aabb);
 
-        if (entities instanceof Player player && NestLeaderManager.isNestLeader(player.getUUID())) {
+        if (entities instanceof Player player && HiveLeaderManager.isHiveLeader(player.getUUID())) {
             long now = level.getGameTime();
             long last = mixin.getLastParasiteEffectTime();
             if (last == -1 || now - last >= 600) {

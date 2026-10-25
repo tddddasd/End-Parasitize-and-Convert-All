@@ -81,7 +81,7 @@ public class InfestedSpiderWebProjectile extends ThrowableItemProjectile {
      * <p>Classification is done with the mod's OWN predicate,
      * {@link IParasite#isParasiteByTagOrInterface(net.minecraft.world.entity.LivingEntity)} - nothing
      * new is invented here. Note that this single predicate already covers BOTH halves of the
-     * requirement: for a {@code Player} it delegates to {@code NestLeaderManager.isNestLeader(uuid)},
+     * requirement: for a {@code Player} it delegates to {@code HiveLeaderManager.isHiveLeader(uuid)},
      * and for every other entity it checks the {@code IParasite} interface or the {@code "Parasite"}
      * persistent-data flag. So "is not a parasite and not a nest leader" is exactly
      * {@code !isParasiteByTagOrInterface(...)}.</p>

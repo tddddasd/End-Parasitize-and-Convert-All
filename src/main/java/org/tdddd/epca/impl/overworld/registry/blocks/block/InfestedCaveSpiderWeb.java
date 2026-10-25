@@ -163,7 +163,7 @@ public class InfestedCaveSpiderWeb extends WebBlock implements InfestedBlockInte
      * <p><b></b>
      *  {@link IParasite#isParasiteByTagOrInterface}
      * {@code instanceof IParasite} /  {@code "Parasite"}
-     *  {@code NestLeaderManager.isNestLeader} {@code IParasite.java:77-91}
+     *  {@code HiveLeaderManager.isHiveLeader} {@code IParasite.java:77-91}
      * {@code InfestedBlockHandler.java:23}{@code InfestedVine.java:65-68}
      * {@code InfestedCactus.java:78}{@code InfestedSnow.java:90}{@code InfestedPumpkinBehaviour.java:472}
      *  {@code living instanceof IParasite && living instanceof Player}

@@ -14,7 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.events.ParasiteFollowEvent;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
@@ -77,7 +77,7 @@ public interface IParasite {
     static boolean isParasiteByTagOrInterface(LivingEntity entity) {
         if (entity == null) return false;
         if (entity instanceof Player) {
-            return NestLeaderManager.isNestLeader(entity.getUUID());
+            return HiveLeaderManager.isHiveLeader(entity.getUUID());
         }
         return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite");
     }
@@ -85,7 +85,7 @@ public interface IParasite {
     static boolean isParasiteNoLivingByTagOrInterface(Entity entity) {
         if (entity == null) return false;
         if (entity instanceof Player) {
-            return NestLeaderManager.isNestLeader(entity.getUUID());
+            return HiveLeaderManager.isHiveLeader(entity.getUUID());
         }
         return (entity instanceof IParasite) || entity.getPersistentData().getBoolean("Parasite");
     }
@@ -215,7 +215,7 @@ public interface IParasite {
 
     default boolean shouldIgnoreDamageFrom(LivingEntity attacker) {
         if (attacker instanceof Player) {
-            if (NestLeaderManager.isNestLeader(attacker.getUUID())) {
+            if (HiveLeaderManager.isHiveLeader(attacker.getUUID())) {
                 return false;
             }
         }

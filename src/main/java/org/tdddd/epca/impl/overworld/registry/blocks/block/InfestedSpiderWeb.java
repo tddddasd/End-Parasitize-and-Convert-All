@@ -180,7 +180,7 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
      * <p><b></b>
      *  {@link IParasite#isParasiteByTagOrInterface}
      * {@code entity instanceof IParasite} /
-     * {@code "Parasite"} {@code NestLeaderManager.isNestLeader}
+     * {@code "Parasite"} {@code HiveLeaderManager.isHiveLeader}
      *  {@code IParasite.java:77-91}
      * {@code InfestedBlockHandler.java:23} PARA_CURSE
      * {@code InfestedVine.java:65-68} entityInside  PARA_CURSE+

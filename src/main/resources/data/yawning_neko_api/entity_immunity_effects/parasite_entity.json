@@ -157,5 +157,8 @@
   },
   "epca:infested_bat": {
     "immunities": ["epca:para_curse", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+  },
+  "epca:infested_spider": {
+    "immunities": ["epca:para_curse", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
   }
 }

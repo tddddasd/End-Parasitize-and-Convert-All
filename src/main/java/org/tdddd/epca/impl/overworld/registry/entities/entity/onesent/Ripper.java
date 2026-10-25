@@ -39,7 +39,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
 import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
@@ -732,7 +732,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         if (!EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(player)) {
             return false;
         }
-        return !NestLeaderManager.isNestLeader(player.getUUID());
+        return !HiveLeaderManager.isHiveLeader(player.getUUID());
     }
 
     
@@ -889,7 +889,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
     /**
      * Active only while fewer than 3 Rippers are nearby: the Ripper runs away from any player who
-     * is not a Nest Leader ({@code NestLeaderManager.isNestLeader(UUID)}). Nest Leaders are never
+     * is not a Nest Leader ({@code HiveLeaderManager.isHiveLeader(UUID)}). Nest Leaders are never
      * avoided, and once the local pack reaches 3 Rippers the goal stops on its own and every other
      * goal behaves exactly as before.
      *

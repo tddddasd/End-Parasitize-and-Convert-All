@@ -24,7 +24,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
@@ -161,7 +161,7 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
             return;
         }
 
-        if (entity instanceof Player player && NestLeaderManager.isNestLeader(player.getUUID())) {
+        if (entity instanceof Player player && HiveLeaderManager.isHiveLeader(player.getUUID())) {
             return;
         }
 

@@ -36,7 +36,7 @@ import java.util.UUID;
  *
  * <h2> LivingHurtEvent</h2>
  * <p>"" {@link LivingHurtEvent}
- *  {@code NestLeaderHandler}
+ *  {@code HiveLeaderHandler}
  * {@code source.getEntity()} </p>
  */
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)

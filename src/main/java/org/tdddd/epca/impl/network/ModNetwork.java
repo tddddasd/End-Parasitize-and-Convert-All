@@ -122,10 +122,10 @@ public class ModNetwork {
                 ToggleFollowPacket::encode,
                 ToggleFollowPacket::new,
                 ToggleFollowPacket::handle);
-        INSTANCE.registerMessage(id++, SyncNestLeadersPacket.class,
-                SyncNestLeadersPacket::encode,
-                SyncNestLeadersPacket::new,
-                SyncNestLeadersPacket::handle);
+        INSTANCE.registerMessage(id++, SyncHiveLeadersPacket.class,
+                SyncHiveLeadersPacket::encode,
+                SyncHiveLeadersPacket::new,
+                SyncHiveLeadersPacket::handle);
 
         // Batch sync of the entities carrying epca:soul_protection, so the flame shows on creatures
         // and not only on the local player (vanilla only sends the mob-effect packet to that player).
@@ -180,39 +180,39 @@ public class ModNetwork {
         //  C2S "" getSender()
         //  S2C 52  ItemStack + 52
         //       handle  lambda
-        INSTANCE.registerMessage(id++, RequestOpenNestLeaderOrgansPacket.class,
-                RequestOpenNestLeaderOrgansPacket::encode,
-                RequestOpenNestLeaderOrgansPacket::decode,
-                RequestOpenNestLeaderOrgansPacket::handle);
-        INSTANCE.registerMessage(id++, SyncNestLeaderOrgansPacket.class,
-                SyncNestLeaderOrgansPacket::encode,
-                SyncNestLeaderOrgansPacket::decode,
-                SyncNestLeaderOrgansPacket::handle);
+        INSTANCE.registerMessage(id++, RequestOpenHiveLeaderOrgansPacket.class,
+                RequestOpenHiveLeaderOrgansPacket::encode,
+                RequestOpenHiveLeaderOrgansPacket::decode,
+                RequestOpenHiveLeaderOrgansPacket::handle);
+        INSTANCE.registerMessage(id++, SyncHiveLeaderOrgansPacket.class,
+                SyncHiveLeaderOrgansPacket::encode,
+                SyncHiveLeaderOrgansPacket::decode,
+                SyncHiveLeaderOrgansPacket::handle);
 
         //  GUISTAGE 2
         //   +  +
         //   /  /  /  /
         //   S2C
-        INSTANCE.registerMessage(id++, NestLeaderOrganActionPacket.class,
-                NestLeaderOrganActionPacket::encode,
-                NestLeaderOrganActionPacket::decode,
-                NestLeaderOrganActionPacket::handle);
+        INSTANCE.registerMessage(id++, HiveLeaderOrganActionPacket.class,
+                HiveLeaderOrganActionPacket::encode,
+                HiveLeaderOrganActionPacket::decode,
+                HiveLeaderOrganActionPacket::handle);
 
         //  GUISTAGE B
         //  ""
         //   >= 2  20
         //  id  id
-        INSTANCE.registerMessage(id++, NestLeaderOrganTeleportPacket.class,
-                NestLeaderOrganTeleportPacket::encode,
-                NestLeaderOrganTeleportPacket::decode,
-                NestLeaderOrganTeleportPacket::handle);
+        INSTANCE.registerMessage(id++, HiveLeaderOrganTeleportPacket.class,
+                HiveLeaderOrganTeleportPacket::encode,
+                HiveLeaderOrganTeleportPacket::decode,
+                HiveLeaderOrganTeleportPacket::handle);
 
         //  ""
         //  id  id
-        INSTANCE.registerMessage(id++, NestLeaderDecomposeParasitePacket.class,
-                NestLeaderDecomposeParasitePacket::encode,
-                NestLeaderDecomposeParasitePacket::decode,
-                NestLeaderDecomposeParasitePacket::handle);
+        INSTANCE.registerMessage(id++, HiveLeaderDecomposeParasitePacket.class,
+                HiveLeaderDecomposeParasitePacket::encode,
+                HiveLeaderDecomposeParasitePacket::decode,
+                HiveLeaderDecomposeParasitePacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {

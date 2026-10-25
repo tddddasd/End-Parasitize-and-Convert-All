@@ -470,20 +470,20 @@ public class LangDataEN extends LanguageProvider {
         add("epca.difficulty.legendary", "§5Legendary");
 
         add("key.category.epca", "E-PCA");
-        add("key.epca.switch_state", "Switch NestLeader State");
+        add("key.epca.switch_state", "Switch HiveLeader State");
         add("key.epca.follow", "Follow Parasites");
         add("key.epca.follow_cancel", "Cancel Follow Parasite");
         add("key.categories.epca", "E-PCA");
         add("key.epca.open_organs", "Open Nest Leader Organ GUI");
         // STAGE B
-        //  NestLeaderOrganKeys#TELEPORT
+        //  HiveLeaderOrganKeys#TELEPORT
         add("key.epca.organ_teleport", "Organ Teleport (Pearls)");
         // Nest Leader skill "Decompose Parasite" key (default unbound,
-        // see NestLeaderOrganKeys#DECOMPOSE_PARASITE).
+        // see HiveLeaderOrganKeys#DECOMPOSE_PARASITE).
         add("key.epca.decompose_parasite", "Decompose Parasite (aim at a parasite)");
         add("tag.epca.organ_part", "Organ Part");
 
-        //  Nest Leader organ GUI (NestLeaderOrganScreen)
+        //  Nest Leader organ GUI (HiveLeaderOrganScreen)
         // Every user-visible string in the screen comes from one of these keys; the
         // zh_cn and en_us key sets must stay identical.
         add("epca.organ_gui.title", "Nest Leader Organs");

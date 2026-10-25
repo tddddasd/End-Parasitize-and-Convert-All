@@ -7,26 +7,26 @@ import org.tdddd.epca.impl.overworld.data.BiomassClientData;
 import java.util.function.Supplier;
 
 public class BiomassSyncPacket {
-    private final boolean isNestLeader;
+    private final boolean isHiveLeader;
     private final int points;
 
-    public BiomassSyncPacket(boolean isNestLeader, int points) {
-        this.isNestLeader = isNestLeader;
+    public BiomassSyncPacket(boolean isHiveLeader, int points) {
+        this.isHiveLeader = isHiveLeader;
         this.points = points;
     }
 
     public BiomassSyncPacket(FriendlyByteBuf buf) {
-        this.isNestLeader = buf.readBoolean();
+        this.isHiveLeader = buf.readBoolean();
         this.points = buf.readInt();
     }
 
     public void encode(FriendlyByteBuf buf) {
-        buf.writeBoolean(isNestLeader);
+        buf.writeBoolean(isHiveLeader);
         buf.writeInt(points);
     }
 
     public static void handle(BiomassSyncPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> BiomassClientData.update(packet.isNestLeader, packet.points));
+        ctx.get().enqueueWork(() -> BiomassClientData.update(packet.isHiveLeader, packet.points));
         ctx.get().setPacketHandled(true);
     }
 }

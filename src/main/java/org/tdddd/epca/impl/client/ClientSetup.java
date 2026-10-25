@@ -13,7 +13,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
-import org.tdddd.epca.impl.client.organ.NestLeaderOrganKeys;
+import org.tdddd.epca.impl.client.organ.HiveLeaderOrganKeys;
 import org.tdddd.epca.impl.client.render.EpcaRenderClient;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystScreen;
@@ -54,16 +54,16 @@ public class ClientSetup {
      * <p> {@code key.categories.epca}lang
      *  {@code LangDataCN}/{@code LangDataEN}</p>
      *
-     * <p>STAGE B  {@link NestLeaderOrganKeys#TELEPORT}
+     * <p>STAGE B  {@link HiveLeaderOrganKeys#TELEPORT}
      * SPEC  2 <b></b>
      *  H  - </p>
      */
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
-        event.register(NestLeaderOrganKeys.OPEN_ORGANS);
-        event.register(NestLeaderOrganKeys.TELEPORT);
-        //  NestLeaderOrganKeys#DECOMPOSE_PARASITE
-        event.register(NestLeaderOrganKeys.DECOMPOSE_PARASITE);
+        event.register(HiveLeaderOrganKeys.OPEN_ORGANS);
+        event.register(HiveLeaderOrganKeys.TELEPORT);
+        //  HiveLeaderOrganKeys#DECOMPOSE_PARASITE
+        event.register(HiveLeaderOrganKeys.DECOMPOSE_PARASITE);
     }
 
     @SubscribeEvent

@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.network.NetworkEvent;
-import org.tdddd.epca.impl.overworld.data.NestLeaderManager;
+import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class ToggleFollowPacket {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
-            if (!NestLeaderManager.isNestLeader(player.getUUID())) return;
+            if (!HiveLeaderManager.isHiveLeader(player.getUUID())) return;
 
             ServerLevel level = (ServerLevel) player.level();
             AABB box = player.getBoundingBox().inflate(16);

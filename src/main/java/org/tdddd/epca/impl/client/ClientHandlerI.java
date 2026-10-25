@@ -7,7 +7,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 import org.tdddd.epca.impl.epca;
-import org.tdddd.epca.impl.client.organ.NestLeaderOrganClientInput;
+import org.tdddd.epca.impl.client.organ.HiveLeaderOrganClientInput;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.c2s.KeyPacket;
 import net.minecraft.client.Minecraft;
@@ -47,7 +47,7 @@ public class ClientHandlerI {
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
-        NestLeaderOrganClientInput.tick();
+        HiveLeaderOrganClientInput.tick();
     }
 }
 

@@ -8,7 +8,7 @@ import java.util.List;
  *  GUI
  *
  * <p>SPEC  1  C2C7  {@link #ALL}
- * {@link NestLeaderOrganData} <b></b>
+ * {@link HiveLeaderOrganData} <b></b>
  *  +
  * </p>
  *
@@ -74,7 +74,7 @@ public final class OrganSlotGroup {
                     27, TORSO_INNER_ROWS, TORSO_INNER_COLUMNS, TORSO_INNER_FIRST);
 
     /** SPEC C7 3  3
-     *  {@link NestLeaderOrganData#DEFAULT_HEAD_INNER_FLESH_LOCALS} */
+     *  {@link HiveLeaderOrganData#DEFAULT_HEAD_INNER_FLESH_LOCALS} */
     public static final OrganSlotGroup HEAD_INNER =
             new OrganSlotGroup("head_inner", "头部内部", OrganSlotKind.RED_HEAD_INNER,
                     9, HEAD_INNER_ROWS, HEAD_INNER_COLUMNS, HEAD_INNER_FIRST);
