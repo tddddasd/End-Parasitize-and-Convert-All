@@ -1370,7 +1370,7 @@ public class BlockConversionManager {
             double y = task.center.getY() + 1.0;
             double z = task.center.getZ() + 0.5;
             level.sendParticles(ParticleTypes.SOUL, x, y, z, 3, 0.6, 0.8, 0.6, 0.01);
-            level.sendParticles(ModParticles.COTH.get(), x, y, z, 1, 0.5, 0.5, 0.5, 0.0);
+            level.sendParticles(ModParticles.PARA_CURSE.get(), x, y, z, 1, 0.5, 0.5, 0.5, 0.0);
         }
 
         
@@ -1403,11 +1403,11 @@ public class BlockConversionManager {
         lightning.setPos(center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5);
         level.addFreshEntity(lightning);
 
-        MobEffectInstance cothEffect = new MobEffectInstance(ModEffects.COTH, 1200, 4);
+        MobEffectInstance para_curseEffect = new MobEffectInstance(ModEffects.PARA_CURSE, 1200, 4);
         AABB effectBox = new AABB(center).inflate(72);
         List<LivingEntity> livingEntities = level.getEntitiesOfClass(LivingEntity.class, effectBox);
         for (LivingEntity living : livingEntities) {
-            living.addEffect(cothEffect);
+            living.addEffect(para_curseEffect);
         }
 
         Player player = level.getPlayerByUUID(task.playerId);

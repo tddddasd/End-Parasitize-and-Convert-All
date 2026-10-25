@@ -195,7 +195,7 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
                     this.getX(), this.getY() + 0.5, this.getZ(),
                     1, 0.0, 0.0, 0.0, 0.0);
 
-            serverLevel.sendParticles(ModParticles.COTH.get(),
+            serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                     this.getX(), this.getY() + 0.5, this.getZ(),
                     15, 0.5, 0.5, 0.5, 0.0);
 

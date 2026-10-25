@@ -106,8 +106,8 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
                              net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         if (!level.isClientSide() && entity instanceof LivingEntity living) {
-            if (!living.hasEffect(ModEffects.COTH)) {
-                living.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 0, false, true, true));
+            if (!living.hasEffect(ModEffects.PARA_CURSE)) {
+                living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 1200, 0, false, true, true));
             }
         }
         super.entityInside(state, level, pos, entity, effectApplier, isPrecise);

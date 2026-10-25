@@ -120,7 +120,7 @@ public class AcidSolutionBlock extends LiquidBlock {
         if (level.getGameTime() % 5 == 0) {
             
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH,
+                    ModEffects.PARA_CURSE,
                     1200, 
                     1,    
                     false,

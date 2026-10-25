@@ -94,7 +94,7 @@ public class DifficultyEffects {
         return true;
     }
 
-    public static boolean isCothEffectEnabled(Level level) {
+    public static boolean isParaCurseEffectEnabled(Level level) {
         return getEffectiveDifficulty(level) == DifficultyLevel.LEGENDARY;
     }
 

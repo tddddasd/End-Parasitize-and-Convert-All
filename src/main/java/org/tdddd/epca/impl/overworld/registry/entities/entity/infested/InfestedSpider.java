@@ -714,7 +714,7 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
     /**
      * README: a naturally spawned spider has a 5 % chance to receive Speed I and Strength I, and a
      * converted spider inherits the buffs the original carried. The conversion path is handled in
-     * {@code CothEffect} plus {@link #applyInheritedEffects}; this method only rolls the
+     * {@code ParaCurseEffect} plus {@link #applyInheritedEffects}; this method only rolls the
      * natural-spawn bonus.
      *
      * <p>26.1.2 dropped the trailing {@code CompoundTag} parameter of {@code finalizeSpawn}.</p>
@@ -1117,7 +1117,7 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
      * <p>The mod gates its infested mobs on the evolution stage and, unlike the zombie family, the
      * spiders do not use a light level requirement (the README mentions none), so the rule only
      * checks the stage. Cave spiders share the same rule; the variant itself is assigned by
-     * {@code CothEffect} during conversion.</p>
+     * {@code ParaCurseEffect} during conversion.</p>
      */
     public static boolean checkInfestedSpiderSpawnRules(EntityType<InfestedSpider> entityType,
                                                         ServerLevelAccessor levelAccessor,

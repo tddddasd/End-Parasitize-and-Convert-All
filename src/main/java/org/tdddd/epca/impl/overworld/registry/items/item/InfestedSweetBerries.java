@@ -24,7 +24,7 @@ public class InfestedSweetBerries extends Item {
     private static Consumable createConsumable() {
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.COTH,
+                        ModEffects.PARA_CURSE,
                         10 * 20,
                         0
                 ), 1.0F))

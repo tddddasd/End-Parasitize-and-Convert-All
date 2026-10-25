@@ -28,8 +28,8 @@ public class ModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> FEAR =
             EFFECTS.register("fear", FearEffect::new);
 
-    public static final DeferredHolder<MobEffect, MobEffect> COTH =
-            EFFECTS.register("coth", CothEffect::new);
+    public static final DeferredHolder<MobEffect, MobEffect> PARA_CURSE =
+            EFFECTS.register("para_curse", ParaCurseEffect::new);
 
     public static final DeferredHolder<MobEffect, MobEffect> CONTEMPT_INORGANIC =
             EFFECTS.register("contempt_inorganic", ContemptInorganicEffect::new);

@@ -105,7 +105,7 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
             if (!level.isClientSide() && state.getValue(AGE) >= 3) {
                 if (living.xOld != living.getX() || living.zOld != living.getZ()) {
                     living.hurt(level.damageSources().sweetBerryBush(), 1.0F);
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH, 600, 0)); 
+                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 0)); 
                 }
             }
         }

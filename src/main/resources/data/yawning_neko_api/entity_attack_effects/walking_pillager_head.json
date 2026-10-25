@@ -2,7 +2,7 @@
   "epca:walking_pillager_head": {
     "base_effects": [
       {
-        "effect": "epca:coth",
+        "effect": "epca:para_curse",
         "duration": 2400,
         "amplifier": 0,
         "ambient": false,
@@ -32,13 +32,13 @@
     "upgrades": [
       {
         "level": 1,
-        "effect_filter": "epca:coth",
+        "effect_filter": "epca:para_curse",
         "level_adjust": 1,
         "max_level": 2
       },
       {
         "level": 2,
-        "effect_filter": "epca:coth",
+        "effect_filter": "epca:para_curse",
         "level_adjust": 1,
         "max_level": 2
       },

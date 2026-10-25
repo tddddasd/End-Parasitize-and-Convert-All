@@ -66,7 +66,7 @@ import java.util.UUID;
 
 public class InfestedZombieVillager extends PathfinderMob implements IOverlayRenderable, GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable , GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-    public int tryApplyCothEffect(Mob mob, int currentCooldown) {
+    public int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         return 0;
     }
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedZombieVillager.class, EntityDataSerializers.BOOLEAN);
@@ -215,7 +215,7 @@ public class InfestedZombieVillager extends PathfinderMob implements IOverlayRen
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     if (this.level() instanceof ServerLevel serverLevel) {
                         
-                        serverLevel.sendParticles(ModParticles.COTH.get(), 
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), 
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 10, 
                                 0.3, 0.45, 0.3, 
@@ -245,7 +245,7 @@ public class InfestedZombieVillager extends PathfinderMob implements IOverlayRen
                         cloud.setRadiusPerTick(0); 
                         cloud.setWaitTime(0); 
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH,
+                                ModEffects.PARA_CURSE,
                                 1200, 
                                 1,    
                                 false, true

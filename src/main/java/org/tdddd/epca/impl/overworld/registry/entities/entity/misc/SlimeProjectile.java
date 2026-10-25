@@ -139,8 +139,8 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
                         false, 
                         true   
                 );
-                MobEffectInstance cothEffect = new MobEffectInstance(
-                        ModEffects.COTH,
+                MobEffectInstance para_curseEffect = new MobEffectInstance(
+                        ModEffects.PARA_CURSE,
                         600, 
                         0,  
                         false, 
@@ -148,7 +148,7 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
                 );
                 livingEntity.addEffect(solidifyEffect);
                 livingEntity.addEffect(slownessEffect);
-                livingEntity.addEffect(cothEffect);
+                livingEntity.addEffect(para_curseEffect);
             } else if (realOwner == null) {
                 
                 MobEffectInstance solidifyEffect = new MobEffectInstance(
@@ -158,15 +158,15 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
                         false, 
                         true   
                 );
-                MobEffectInstance cothEffect = new MobEffectInstance(
-                        ModEffects.COTH,
+                MobEffectInstance para_curseEffect = new MobEffectInstance(
+                        ModEffects.PARA_CURSE,
                         600, 
                         0,  
                         false, 
                         true   
                 );
                 livingEntity.addEffect(solidifyEffect);
-                livingEntity.addEffect(cothEffect);
+                livingEntity.addEffect(para_curseEffect);
             }
         }
 

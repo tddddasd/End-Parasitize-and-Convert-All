@@ -115,7 +115,7 @@ public class AcidDamageSystem {
 
         if (distance <= 4) {
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH,
+                    ModEffects.PARA_CURSE,
                     600, 
                     1,   
                     false,
@@ -123,7 +123,7 @@ public class AcidDamageSystem {
             ));
         } else {
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH,
+                    ModEffects.PARA_CURSE,
                     600, 
                     0,  
                     false,

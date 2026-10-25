@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ModConfig {
     public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
     public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.BooleanValue ALLOW_COTH_LEVEL_4;
+    public static final ModConfigSpec.BooleanValue ALLOW_PARA_CURSE_LEVEL_4;
     public static final ModConfigSpec.BooleanValue PARASITE_PEACEFUL;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> PARASITE_TARGET_WHITELIST;
     private static final Set<Identifier> TARGET_WHITELIST = ConcurrentHashMap.newKeySet();
@@ -34,10 +34,10 @@ public class ModConfig {
     static {
         BUILDER.push("End-Parasitize and Convert All Configuration");
 
-        ALLOW_COTH_LEVEL_4 = BUILDER
+        ALLOW_PARA_CURSE_LEVEL_4 = BUILDER
                 .comment("If true, the effect of Call of The Hive can be upgraded to level IV. Default: false",
                         "如果为true，寄巢之唤效果可以提升至IV级。默认值：false")
-                .define("allowCothLevel4", false);
+                .define("allowParaCurseLevel4", false);
 
         PARASITE_PEACEFUL = BUILDER
                 .comment(" ",
@@ -126,8 +126,8 @@ public class ModConfig {
         );
     }
 
-    public static boolean isCothLevel4Allowed() {
-        return ALLOW_COTH_LEVEL_4.get();
+    public static boolean isParaCurseLevel4Allowed() {
+        return ALLOW_PARA_CURSE_LEVEL_4.get();
     }
 
     public static boolean isParasitePeaceful() {

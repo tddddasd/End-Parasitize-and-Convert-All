@@ -23,7 +23,7 @@ public class ParasiteViscera extends Item {
     private static Consumable createConsumable() {
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.COTH,  
+                        ModEffects.PARA_CURSE,  
                         30 * 20,  
                         0  
                 ), 0.95F))  

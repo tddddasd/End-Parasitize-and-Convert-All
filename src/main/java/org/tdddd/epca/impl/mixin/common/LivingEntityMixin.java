@@ -25,7 +25,7 @@ import org.tdddd.epca.impl.utils.ShieldProtectionHelper;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
-    private static final ThreadLocal<Boolean> applyingCustomCoth = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean> applyingCustomParaCurse = ThreadLocal.withInitial(() -> false);
 
     
     
@@ -41,12 +41,12 @@ public abstract class LivingEntityMixin {
             cancellable = true)
     private void onAddEffect(MobEffectInstance effectInstance, Entity source, CallbackInfoReturnable<Boolean> cir) {
         
-        if (applyingCustomCoth.get()) {
+        if (applyingCustomParaCurse.get()) {
             return;
         }
 
         
-        if (effectInstance == null || !effectInstance.getEffect().is(ModEffects.COTH)) {
+        if (effectInstance == null || !effectInstance.getEffect().is(ModEffects.PARA_CURSE)) {
             return;
         }
 
@@ -57,7 +57,7 @@ public abstract class LivingEntityMixin {
         if (level.isClientSide()) return;
         if (self instanceof Player) return;
         if (self instanceof IParasite) return;
-        if (!DifficultyEffects.isCothEffectEnabled(level)) return;
+        if (!DifficultyEffects.isParaCurseEffectEnabled(level)) return;
 
         
         
@@ -65,26 +65,26 @@ public abstract class LivingEntityMixin {
         cir.cancel();
 
         
-        MobEffectInstance existing = self.getEffect(ModEffects.COTH);
+        MobEffectInstance existing = self.getEffect(ModEffects.PARA_CURSE);
         if (existing != null) {
-            self.removeEffect(ModEffects.COTH);
+            self.removeEffect(ModEffects.PARA_CURSE);
         }
 
         
-        applyingCustomCoth.set(true);
+        applyingCustomParaCurse.set(true);
         try {
             
-            MobEffectInstance customCoth = new MobEffectInstance(
-                    ModEffects.COTH,
+            MobEffectInstance customParaCurse = new MobEffectInstance(
+                    ModEffects.PARA_CURSE,
                     1200,      
                     4,         
                     false, false, true
             );
-            self.addEffect(customCoth);
+            self.addEffect(customParaCurse);
             
-            self.getPersistentData().putBoolean("COTH", true);
+            self.getPersistentData().putBoolean("PARA_CURSE", true);
         } finally {
-            applyingCustomCoth.set(false);
+            applyingCustomParaCurse.set(false);
         }
     }
 

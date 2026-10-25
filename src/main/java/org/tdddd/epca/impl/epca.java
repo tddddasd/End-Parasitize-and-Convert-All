@@ -144,7 +144,7 @@ public class epca {
 
     // SPEC A1: the old "attract parasites" server-tick hook and its forgeBus listener
     // registration were removed here. Nothing else drove ParasiteAttractionManager; the
-    // pending-conversion queue is ticked by CothEffectTickHandler.
+    // pending-conversion queue is ticked by ParaCurseEffectTickHandler.
     /**
      *  tick + STAGE 3
      *

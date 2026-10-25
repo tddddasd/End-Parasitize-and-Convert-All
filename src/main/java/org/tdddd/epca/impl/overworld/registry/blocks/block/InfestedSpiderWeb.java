@@ -190,7 +190,7 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
     }
 
     /**
-     *  COTH+
+     *  PARA_CURSE+
      *
      * <p><b> 1.20.1 </b>
      *  {@link IParasite#isParasiteByTagOrInterface}
@@ -223,17 +223,17 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
             if (IParasite.isParasiteByTagOrInterface(living)) {
                 continue;
             }
-            applyCothAndDamage(living, level);
+            applyParaCurseAndDamage(living, level);
         }
     }
 
-    private void applyCothAndDamage(LivingEntity living, ServerLevel level) {
+    private void applyParaCurseAndDamage(LivingEntity living, ServerLevel level) {
         var data = living.getPersistentData();
         long now = level.getGameTime();
 
         long lastEffect = data.getLong("InfestedWebLastEffect").orElse(0L);
         if (now - lastEffect >= 20) {
-            living.addEffect(new MobEffectInstance(ModEffects.COTH, 20 * 20, 0));
+            living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 20 * 20, 0));
             data.putLong("InfestedWebLastEffect", now);
         }
 

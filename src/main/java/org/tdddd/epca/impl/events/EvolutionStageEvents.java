@@ -35,8 +35,8 @@ public class EvolutionStageEvents {
     }
 
     
-    public static void applyCothEffect(LivingEntity entity) {
-        entity.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, 0)); 
+    public static void applyParaCurseEffect(LivingEntity entity) {
+        entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 1200, 0)); 
     }
 
     
@@ -46,7 +46,7 @@ public class EvolutionStageEvents {
         Level level = entity.level();
         int stage = EvolutionManager.getStageForDimension(level);
 
-        if (stage >= 3 && entity.hasEffect(ModEffects.COTH)) {
+        if (stage >= 3 && entity.hasEffect(ModEffects.PARA_CURSE)) {
             event.setCanceled(true); 
         }
     }
@@ -118,12 +118,12 @@ public class EvolutionStageEvents {
         if (event.getEntity() instanceof LivingEntity entity) {
 
             if (stage >= 11 && stage <= 13 && !isParasite(entity)) {
-                applyCothByStage(entity, stage);
+                applyParaCurseByStage(entity, stage);
                 return; 
             }
 
             if (stage == 10 && !isParasite(entity)) {
-                applyCothEffect(entity); 
+                applyParaCurseEffect(entity); 
                 return;
             }
 
@@ -135,14 +135,14 @@ public class EvolutionStageEvents {
                 else if (stage == 8) chance = 0.60;
                 else if (stage == 9) chance = 0.90;
                 if (RANDOM.nextDouble() < chance) {
-                    applyCothEffect(entity);
+                    applyParaCurseEffect(entity);
                 }
             }
         }
     }
 
     
-    private static void applyCothByStage(LivingEntity entity, int stage) {
+    private static void applyParaCurseByStage(LivingEntity entity, int stage) {
         int effectLevel = 0; 
         if (stage == 11) {
             if (RANDOM.nextDouble() < 0.5) {
@@ -159,7 +159,7 @@ public class EvolutionStageEvents {
         } else if (stage == 13) {
             effectLevel = 3; 
         }
-        entity.addEffect(new MobEffectInstance(ModEffects.COTH, 1200, effectLevel));
+        entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 1200, effectLevel));
     }
 
     

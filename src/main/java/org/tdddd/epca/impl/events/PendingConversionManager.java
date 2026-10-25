@@ -7,7 +7,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -26,14 +26,14 @@ public final class PendingConversionManager {
 
     private static final class Pending {
         final LivingEntity entity;
-        final CothEffect.ConversionPlan plan;
+        final ParaCurseEffect.ConversionPlan plan;
         int remainingTicks;
         final int totalTicks;
         
         final boolean wasInvulnerable;
         final boolean wasNoAi;
 
-        Pending(LivingEntity entity, CothEffect.ConversionPlan plan, int totalTicks,
+        Pending(LivingEntity entity, ParaCurseEffect.ConversionPlan plan, int totalTicks,
                 boolean wasInvulnerable, boolean wasNoAi) {
             this.entity = entity;
             this.plan = plan;
@@ -45,13 +45,13 @@ public final class PendingConversionManager {
     }
 
     
-    public static void schedule(LivingEntity entity, CothEffect.ConversionPlan plan, int delayTicks) {
+    public static void schedule(LivingEntity entity, ParaCurseEffect.ConversionPlan plan, int delayTicks) {
         if (entity == null || entity.level().isClientSide()) {
             return;
         }
         if (plan == null || delayTicks <= 0) {
             if (plan != null) {
-                CothEffect.executePlan(entity, plan);
+                ParaCurseEffect.executePlan(entity, plan);
             }
             return;
         }
@@ -67,7 +67,7 @@ public final class PendingConversionManager {
         holdAlive(entity, pending.wasInvulnerable);
 
         ModNetwork.sendToAllTracking(entity,
-                new ColorEffectPacket(entity, CothEffect.COLOR_TYPE_CONVERSION, delayTicks));
+                new ColorEffectPacket(entity, ParaCurseEffect.COLOR_TYPE_CONVERSION, delayTicks));
 
         PENDING.add(pending);
     }
@@ -150,10 +150,10 @@ public final class PendingConversionManager {
 
             if (--p.remainingTicks <= 0) {
                 it.remove();
-                if (CothEffect.planIsEmpty(p.plan)) {
+                if (ParaCurseEffect.planIsEmpty(p.plan)) {
                     releaseAfterPending(e, p.wasInvulnerable, p.wasNoAi);
                 } else {
-                    CothEffect.executePlan(e, p.plan);
+                    ParaCurseEffect.executePlan(e, p.plan);
                 }
             }
         }

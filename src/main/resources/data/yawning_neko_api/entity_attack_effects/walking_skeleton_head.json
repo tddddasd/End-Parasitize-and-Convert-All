@@ -2,7 +2,7 @@
   "epca:walking_skeleton_head": {
     "base_effects": [
       {
-        "effect": "epca:coth",
+        "effect": "epca:para_curse",
         "duration": 2400,
         "amplifier": 0,
         "ambient": false,

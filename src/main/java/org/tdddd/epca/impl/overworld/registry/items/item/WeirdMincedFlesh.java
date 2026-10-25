@@ -24,7 +24,7 @@ public class WeirdMincedFlesh extends Item {
     private static Consumable createConsumable() {
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.COTH,  
+                        ModEffects.PARA_CURSE,  
                         15 * 20,  
                         0  
                 ), 0.3F))  

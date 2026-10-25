@@ -214,17 +214,17 @@ public class Curbug extends AbstractOnesentEntity {
                 int touchTime = touchingEntities.getOrDefault(entityId, 0) + 1;
                 touchingEntities.put(entityId, touchTime);
                 if (touchTime >= TOUCH_THRESHOLD) {
-                    applyCothEffect(living);
+                    applyParaCurseEffect(living);
                     touchingEntities.remove(entityId);
                 }
             }
         }
     }
 
-    private void applyCothEffect(LivingEntity target) {
-        MobEffectInstance current = target.getEffect(ModEffects.COTH);
+    private void applyParaCurseEffect(LivingEntity target) {
+        MobEffectInstance current = target.getEffect(ModEffects.PARA_CURSE);
         int newAmplifier = current != null ? Math.min(current.getAmplifier() + 1, 2) : 0;
-        target.addEffect(new MobEffectInstance(ModEffects.COTH, 400, newAmplifier, false, true, true));
+        target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 400, newAmplifier, false, true, true));
     }
 
     private void growIntoFins() {

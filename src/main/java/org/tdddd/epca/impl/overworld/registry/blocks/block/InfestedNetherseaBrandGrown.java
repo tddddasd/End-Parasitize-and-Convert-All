@@ -176,7 +176,7 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
                 }
 
                 
-                living.addEffect(new MobEffectInstance(ModEffects.COTH, 600, 0));
+                living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 0));
             }
         }
     }

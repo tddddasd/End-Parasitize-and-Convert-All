@@ -97,7 +97,7 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
                 );
                 for (LivingEntity entity : entities) {
                     entity.addEffect(new MobEffectInstance(
-                            ModEffects.COTH,
+                            ModEffects.PARA_CURSE,
                             3600,  
                             1
                     ));

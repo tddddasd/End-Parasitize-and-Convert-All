@@ -9,7 +9,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 import java.util.Random;
 
@@ -55,7 +55,7 @@ public class EntityConversionUtil {
 
             entity.level().addFreshEntity(newEntity);
 
-            CothEffect.notifyConvertedEntity(newEntity);
+            ParaCurseEffect.notifyConvertedEntity(newEntity);
         }
 
         if (!(entity instanceof Player)) {

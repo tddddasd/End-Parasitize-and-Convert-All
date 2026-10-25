@@ -18,8 +18,8 @@ public class ModParticles {
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SPLASHI =
             REGISTRY.register("splashi", () -> new SimpleParticleType(false));
 
-    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> COTH =
-            REGISTRY.register("coth", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> PARA_CURSE =
+            REGISTRY.register("para_curse", () -> new SimpleParticleType(false));
 
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> BLEEDING =
             REGISTRY.register("bleeding", () -> new SimpleParticleType(false));

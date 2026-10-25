@@ -102,7 +102,7 @@ public class DifficultyEvents {
         Player player = event.getEntity();
         Level level = player.level();
         if (level.isClientSide()) return;
-        if (!DifficultyEffects.isCothEffectEnabled(level)) return;
+        if (!DifficultyEffects.isParaCurseEffectEnabled(level)) return;
 
         UUID uuid = player.getUUID();
         long currentTick = level.getGameTime();

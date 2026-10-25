@@ -13,7 +13,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 @EventBusSubscriber(modid = epca.MODID)
@@ -30,7 +30,7 @@ public class HardLegendaryParasiteEvents {
         if (!(event.getEntity() instanceof LivingEntity target)) return;
         if (target instanceof Player || target instanceof IParasite) return;
 
-        target.getPersistentData().putBoolean("COTH", true);
+        target.getPersistentData().putBoolean("PARA_CURSE", true);
     }
 
     @SubscribeEvent
@@ -42,9 +42,9 @@ public class HardLegendaryParasiteEvents {
         if (entity instanceof Player || entity instanceof IParasite) return;
 
         CompoundTag data = entity.getPersistentData();
-        if (data.getBoolean("COTH").orElse(false)) {
-            data.remove("COTH");
-            CothEffect.tryConvertEntity(entity, 0, true);
+        if (data.getBoolean("PARA_CURSE").orElse(false)) {
+            data.remove("PARA_CURSE");
+            ParaCurseEffect.tryConvertEntity(entity, 0, true);
         }
     }
 }

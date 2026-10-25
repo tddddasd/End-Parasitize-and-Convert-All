@@ -87,7 +87,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
             }
             living.hurt(entity.damageSources().cactus(), 1.5F);
             living.addEffect(new MobEffectInstance(
-                    ModEffects.COTH,
+                    ModEffects.PARA_CURSE,
                     600,
                     0,
                     false,
@@ -104,7 +104,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
                 if (level.getRandom().nextFloat() < 0.75F) {
                     player.hurt(player.damageSources().cactus(), 1.5F);
                     player.addEffect(new MobEffectInstance(
-                            ModEffects.COTH,
+                            ModEffects.PARA_CURSE,
                             600,
                             0,
                             false,

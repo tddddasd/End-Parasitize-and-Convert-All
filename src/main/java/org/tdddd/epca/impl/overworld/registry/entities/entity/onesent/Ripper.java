@@ -124,8 +124,8 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int attackTime = 0;
     private double normalSpeed = 0.30D;
-    private int cothCloudCooldown = 0;
-    private static final int COTH_CLOUD_COOLDOWN = 20;
+    private int para_curseCloudCooldown = 0;
+    private static final int PARA_CURSE_CLOUD_COOLDOWN = 20;
     private int leapDirectionTicks = 0;
     private float leapTargetYaw = 0;
     private int stepSoundDelay = 0;
@@ -410,8 +410,8 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
             int stage = this.getEvolutionStage();
             if (stage >= -2 && stage <= 1) {
-                if (cothCloudCooldown > 0) {
-                    cothCloudCooldown--;
+                if (para_curseCloudCooldown > 0) {
+                    para_curseCloudCooldown--;
                 }
                 checkPassiveEntityContact();
             }
@@ -586,17 +586,17 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                     !IParasite.isParasiteByTagOrInterface(living) &&
                     isPassiveOrNeutral(living) &&
                     !isAggressiveUtilityMob(living) &&
-                    cothCloudCooldown <= 0) {
-                MobEffectInstance cothEffect = living.getEffect(ModEffects.COTH);
-                if (cothEffect == null || cothEffect.getAmplifier() < 2) {
-                    spawnCothCloud();
-                    cothCloudCooldown = COTH_CLOUD_COOLDOWN;
+                    para_curseCloudCooldown <= 0) {
+                MobEffectInstance para_curseEffect = living.getEffect(ModEffects.PARA_CURSE);
+                if (para_curseEffect == null || para_curseEffect.getAmplifier() < 2) {
+                    spawnParaCurseCloud();
+                    para_curseCloudCooldown = PARA_CURSE_CLOUD_COOLDOWN;
                 }
             }
         }
     }
 
-    private void spawnCothCloud() {
+    private void spawnParaCurseCloud() {
         if (this.level() instanceof ServerLevel serverLevel) {
             AreaEffectCloud cloud = new AreaEffectCloud(
                     serverLevel,
@@ -613,7 +613,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                     1.0F
             ));
             cloud.addEffect(new MobEffectInstance(
-                    ModEffects.COTH,
+                    ModEffects.PARA_CURSE,
                     40,
                     1,
                     false, false, true
@@ -817,8 +817,8 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                     rupter.isAggressiveUtilityMob(entity)) {
                 return false;
             }
-            MobEffectInstance cothEffect = entity.getEffect(ModEffects.COTH);
-            if (cothEffect != null && cothEffect.getAmplifier() >= 2) {
+            MobEffectInstance para_curseEffect = entity.getEffect(ModEffects.PARA_CURSE);
+            if (para_curseEffect != null && para_curseEffect.getAmplifier() >= 2) {
                 return false;
             }
             return rupter.isPassiveOrNeutral(entity);

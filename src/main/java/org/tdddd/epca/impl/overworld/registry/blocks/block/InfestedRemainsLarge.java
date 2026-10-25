@@ -61,10 +61,10 @@ public class InfestedRemainsLarge extends Block {
                              net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
             
-            if (!livingEntity.hasEffect(ModEffects.COTH)) {
+            if (!livingEntity.hasEffect(ModEffects.PARA_CURSE)) {
                 
                 livingEntity.addEffect(new MobEffectInstance(
-                        ModEffects.COTH,
+                        ModEffects.PARA_CURSE,
                         900,   
                         1,     
                         false, 

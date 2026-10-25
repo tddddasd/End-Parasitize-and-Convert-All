@@ -26,7 +26,7 @@ public class InfestedFlesh extends Item {
         // to the CONSUMABLE data component, applied on consume with the same probability.
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.COTH,  
+                        ModEffects.PARA_CURSE,  
                         15 * 20,  
                         0  
                 ), 0.7F))  

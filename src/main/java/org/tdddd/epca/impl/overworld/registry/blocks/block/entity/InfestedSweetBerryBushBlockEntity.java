@@ -56,7 +56,7 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
                 serverLevel.setBlock(pos, state.setValue(InfestedSweetBerryBush.AGE, 0), 3);
                 serverLevel.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (target instanceof LivingEntity living) {
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH, 200, 0)); 
+                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 200, 0)); 
                 }
                 entity.targetUUID = null;
                 return;

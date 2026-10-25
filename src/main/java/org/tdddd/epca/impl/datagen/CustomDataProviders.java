@@ -78,7 +78,7 @@ public class CustomDataProviders {
             conv(cache, tasks, "endermite",EntityType.ENDERMITE, ModEntities.INFESTED_ENDERMITE,      true,  1);
             conv(cache, tasks, "silverfish",EntityType.SILVERFISH,ModEntities.INFESTED_SILVERFISH,    true,  1);
             // Spiders: both vanilla spiders convert into the single infested_spider type. The variant
-            // (DEFAULT vs CAVE) is assigned by CothEffect#convertUsingDataPackRule, because a
+            // (DEFAULT vs CAVE) is assigned by ParaCurseEffect#convertUsingDataPackRule, because a
             // data-driven rule can only name the target entity type, not a variant of it.
             conv(cache, tasks, "spider",      EntityType.SPIDER,      ModEntities.INFESTED_SPIDER, true, 1);
             conv(cache, tasks, "cave_spider", EntityType.CAVE_SPIDER, ModEntities.INFESTED_SPIDER, true, 1);

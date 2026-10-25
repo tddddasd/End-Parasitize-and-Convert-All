@@ -111,12 +111,12 @@ InfestedLeaves
                              net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         
         if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
-            applyCothEffects(livingEntity, true);
+            applyParaCurseEffects(livingEntity, true);
         }
     }
 
     
-    private void applyCothEffects(LivingEntity entity, boolean apply) {
+    private void applyParaCurseEffects(LivingEntity entity, boolean apply) {
         
         if (IParasite.isParasiteByTagOrInterface(entity)) {
             return;
@@ -125,8 +125,8 @@ InfestedLeaves
         if (apply) {
             
             
-            MobEffectInstance cothEffect = new MobEffectInstance(
-                    ModEffects.COTH, 
+            MobEffectInstance para_curseEffect = new MobEffectInstance(
+                    ModEffects.PARA_CURSE, 
                     600, 
                     0, 
                     false, 
@@ -146,7 +146,7 @@ InfestedLeaves
             
             if (!entity.hasEffect(MobEffects.SLOWNESS) ||
                     entity.getEffect(MobEffects.SLOWNESS).getAmplifier() == 0) {
-                entity.addEffect(cothEffect);
+                entity.addEffect(para_curseEffect);
                 entity.addEffect(slownessEffect);
             }
         }

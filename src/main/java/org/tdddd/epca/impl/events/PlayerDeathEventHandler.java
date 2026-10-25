@@ -21,7 +21,7 @@ public class PlayerDeathEventHandler {
         if (player.level().isClientSide()) return;
 
         
-        MobEffectInstance effect = player.getEffect(ModEffects.COTH);
+        MobEffectInstance effect = player.getEffect(ModEffects.PARA_CURSE);
         if (effect == null || effect.getAmplifier() == 0) return;
 
         ServerLevel level = (ServerLevel) player.level();
@@ -36,6 +36,6 @@ public class PlayerDeathEventHandler {
 
         level.addFreshEntity(infested);
 
-        player.removeEffect(ModEffects.COTH);
+        player.removeEffect(ModEffects.PARA_CURSE);
     }
 }

@@ -295,7 +295,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     if (this.level() instanceof ServerLevel serverLevel) {
-                        serverLevel.sendParticles(ModParticles.COTH.get(),
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 10, 0.3, 0.45, 0.3, 0.0);
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(),
@@ -309,7 +309,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                         cloud.setRadiusPerTick(0);
                         cloud.setWaitTime(0);
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH,
+                                ModEffects.PARA_CURSE,
                                 1200, 0, false, true
                         ));
                         serverLevel.addFreshEntity(cloud);
@@ -647,9 +647,9 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                     return;
                 }
                 target.hurtOrSimulate(target.damageSources().cactus(), 2.0f);
-                MobEffectInstance current = target.getEffect(ModEffects.COTH);
+                MobEffectInstance current = target.getEffect(ModEffects.PARA_CURSE);
                 int amp = (current == null) ? 0 : Math.min(current.getAmplifier() + 1, 2);
-                target.addEffect(new MobEffectInstance(ModEffects.COTH, 600, amp, false, true));
+                target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, amp, false, true));
                 target.addEffect(new MobEffectInstance(ModEffects.FEAR, 200, 0, false, true));
             }
 
