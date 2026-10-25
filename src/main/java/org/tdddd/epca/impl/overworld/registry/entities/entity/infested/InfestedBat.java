@@ -299,7 +299,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     if (this.level() instanceof ServerLevel serverLevel) {
-                        serverLevel.sendParticles(ModParticles.COTH.get(),
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 10, 0.3, 0.45, 0.3, 0.0);
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(),
@@ -313,7 +313,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                         cloud.setRadiusPerTick(0);
                         cloud.setWaitTime(0);
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH.get(),
+                                ModEffects.PARA_CURSE.get(),
                                 1200, 0, false, true
                         ));
                         serverLevel.addFreshEntity(cloud);
@@ -651,9 +651,9 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                     return;
                 }
                 target.hurt(target.damageSources().cactus(), 2.0f);
-                MobEffectInstance current = target.getEffect(ModEffects.COTH.get());
+                MobEffectInstance current = target.getEffect(ModEffects.PARA_CURSE.get());
                 int amp = (current == null) ? 0 : Math.min(current.getAmplifier() + 1, 2);
-                target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, amp, false, true));
+                target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, amp, false, true));
                 target.addEffect(new MobEffectInstance(ModEffects.FEAR.get(), 200, 0, false, true));
             }
 

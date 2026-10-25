@@ -17,7 +17,7 @@ public class ReshapeFlesh extends Item {
                 .nutrition(7)  
                 .saturationMod(0.2F)  
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.COTH.get(),  
+                        ModEffects.PARA_CURSE.get(),  
                         15 * 20,  
                         0  
                 ), 0.6F)  

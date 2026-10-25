@@ -68,7 +68,7 @@ import org.tdddd.epca.impl.utils.EntityHealthUtils;
 public class InfestedVillager extends PathfinderMob implements IOverlayRenderable, GeoEntity, IParasite, IInfested, Enemy, IHeadRotatable, GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
 
-    public int tryApplyCothEffect(Mob mob, int currentCooldown) {
+    public int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         return 0;
     }
 
@@ -259,7 +259,7 @@ public class InfestedVillager extends PathfinderMob implements IOverlayRenderabl
                     
                     if (this.level() instanceof ServerLevel serverLevel) {
                         
-                        serverLevel.sendParticles(ModParticles.COTH.get(), 
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), 
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 10, 
                                 0.3, 0.45, 0.3, 
@@ -297,7 +297,7 @@ public class InfestedVillager extends PathfinderMob implements IOverlayRenderabl
 
                         
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH.get(),
+                                ModEffects.PARA_CURSE.get(),
                                 1200, 
                                 1,    
                                 false, true

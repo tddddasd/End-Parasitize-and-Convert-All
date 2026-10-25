@@ -114,7 +114,7 @@ public class BiomassSmall extends PathfinderMob implements GeoEntity, IParasite,
                 
                 for (LivingEntity entity : entities) {
                     entity.addEffect(new MobEffectInstance(
-                            ModEffects.COTH.get(),
+                            ModEffects.PARA_CURSE.get(),
                             3600,  
                             1       
                     ));

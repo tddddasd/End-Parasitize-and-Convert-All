@@ -208,7 +208,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.BIG_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
-            serverLevel.sendParticles(ModParticles.COTH.get(), this.getX(), this.getY() + 0.5, this.getZ(),
+            serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), this.getX(), this.getY() + 0.5, this.getZ(),
                     10, 0.3, 0.45, 0.3, 0.0);
             serverLevel.sendParticles(ModParticles.SPLASHI.get(), this.getX(), this.getY() + 0.5, this.getZ(),
                     7, 0.4, 0.3, 0.4, 0.2);
@@ -224,7 +224,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             cloud.setDuration(60);
             cloud.setRadiusPerTick(0);
             cloud.setWaitTime(0);
-            cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+            cloud.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 1200, 1, false, true));
             cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
             serverLevel.addFreshEntity(cloud);
 
@@ -589,7 +589,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             if (IParasite.isParasiteByTagOrInterface(e)) {
                 e.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 400, 0)); 
             } else if (e != this) {
-                e.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 2));     
+                e.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, 2));     
                 e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 400, 0));       
             }
         }

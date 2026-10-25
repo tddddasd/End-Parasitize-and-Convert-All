@@ -36,7 +36,7 @@ import java.util.function.Consumer;
  * <p>Provides common infested logic extracted from InfestedZombie, InfestedSkeleton,
  * InfestedSlimeSize*, Walking*Head, and other infested entities:</p>
  * <ul>
- *   <li>Fake death burst: explosion sound + COTH/SPLASHI particles + AreaEffectCloud + delayed remains blocks</li>
+ *   <li>Fake death burst: explosion sound + PARA_CURSE/SPLASHI particles + AreaEffectCloud + delayed remains blocks</li>
  *   <li>Movement speed management with wander speed reduction modifier</li>
  *   <li>Step sounds pattern</li>
  *   <li>Common hurt() / die() / onKillEntity() overrides</li>
@@ -101,8 +101,8 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
-        // COTH particles
-        serverLevel.sendParticles(ModParticles.COTH.get(),
+        // PARA_CURSE particles
+        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                 this.getX(), this.getY() + 0.5, this.getZ(),
                 10, 0.3, 0.45, 0.3, 0.0);
 
@@ -120,14 +120,14 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
                 () -> spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed))
         ));
 
-        // AreaEffectCloud with COTH + Poison
+        // AreaEffectCloud with PARA_CURSE + Poison
         AreaEffectCloud cloud = new AreaEffectCloud(serverLevel,
                 deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
         cloud.setRadius(1.5F);
         cloud.setDuration(60);
         cloud.setRadiusPerTick(0);
         cloud.setWaitTime(0);
-        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 0, false, true));
+        cloud.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 1200, 0, false, true));
         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
         serverLevel.addFreshEntity(cloud);
     }

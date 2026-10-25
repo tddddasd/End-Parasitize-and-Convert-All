@@ -20,7 +20,7 @@ public class InfestedNetherseaBrandMor extends Item {
         return new FoodProperties.Builder()
                 .nutrition(1)  
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.COTH.get(),  
+                        ModEffects.PARA_CURSE.get(),  
                         30 * 20,  
                         0  
                 ), 0.7F)  

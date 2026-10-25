@@ -82,7 +82,7 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
 
         
         if (damageApplied && target instanceof LivingEntity livingTarget) {
-            applyCothEffect(livingTarget);
+            applyParaCurseEffect(livingTarget);
 
             if (target instanceof LivingEntity living && this.getPersistentData().getBoolean("InfestedFireArrow")) {
                 living.setRemainingFireTicks(160);  
@@ -94,8 +94,8 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
     }
 
     
-    private void applyCothEffect(LivingEntity target) {
-        var existingEffect = target.getEffect(ModEffects.COTH.get());
+    private void applyParaCurseEffect(LivingEntity target) {
+        var existingEffect = target.getEffect(ModEffects.PARA_CURSE.get());
 
         if (existingEffect != null) {
             
@@ -106,10 +106,10 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
                 newAmplifier = Math.min(currentAmplifier + 1, 2);
             }
             
-            target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 15 * 20, newAmplifier));
+            target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 15 * 20, newAmplifier));
         } else {
             
-            target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 15 * 20, 0));
+            target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 15 * 20, 0));
         }
     }
 

@@ -69,7 +69,7 @@ public class BoneFragment extends ThrowableProjectile {
             
             boolean damageApplied = target.hurt(this.damageSources().generic(), 1.0F);
             if (damageApplied && target instanceof LivingEntity livingTarget) {
-                applyCothEffect(livingTarget);
+                applyParaCurseEffect(livingTarget);
 
                 
                 if (this.random.nextFloat() < 0.1f) {
@@ -86,12 +86,12 @@ public class BoneFragment extends ThrowableProjectile {
     }
 
     
-    private void applyCothEffect(LivingEntity target) {
-        var existingEffect = target.getEffect(ModEffects.COTH.get());
+    private void applyParaCurseEffect(LivingEntity target) {
+        var existingEffect = target.getEffect(ModEffects.PARA_CURSE.get());
 
         if (existingEffect != null) {
             
-            target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 30 * 20, 0));
+            target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 30 * 20, 0));
         }
     }
 

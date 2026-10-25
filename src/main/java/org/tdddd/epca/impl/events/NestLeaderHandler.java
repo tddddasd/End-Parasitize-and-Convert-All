@@ -40,9 +40,9 @@ public class NestLeaderHandler {
     private static final ResourceLocation BECKON_MEMBRANE_ID =
             new ResourceLocation("epca", "beckon_membrane");
     /** SPEC <b>30 </b> = 600 tick */
-    private static final int COTH_DURATION_TICKS = 600;
+    private static final int PARA_CURSE_DURATION_TICKS = 600;
     /** SPEC<b>II </b>amplifier 1 = II  600 /  */
-    private static final int COTH_AMPLIFIER = 1;
+    private static final int PARA_CURSE_AMPLIFIER = 1;
 
     @SubscribeEvent
     public static void onNameFormat(PlayerEvent.NameFormat event) {
@@ -81,7 +81,7 @@ public class NestLeaderHandler {
      *       amp + 1 </li>
      *   <li><b></b> {@code epca:beckon_membrane}<b></b>
      *       16  <b>30 600 tick II</b>
-     *       {@code ModEffects.COTH} = {@code epca:coth}amplifier 1</li>
+     *       {@code ModEffects.PARA_CURSE} = {@code epca:para_curse}amplifier 1</li>
      * </ol>
      * <p>/1  3  70%
      * 1  16  30  II
@@ -91,7 +91,7 @@ public class NestLeaderHandler {
      *
      * <p><b>STAGE C </b>70%  2
      * + 5  ISPEC
-     * FEAR COTH  {@code if}
+     * FEAR PARA_CURSE  {@code if}
      *  70%
      * </p>
      *
@@ -140,7 +140,7 @@ public class NestLeaderHandler {
     private static void applyBeckonMembraneProc(Player player, LivingEntity target, OrganStatSummary summary) {
         if (countInOuter(summary, BECKON_MEMBRANE_ID) <= 0) return;
         target.addEffect(new MobEffectInstance(
-                ModEffects.COTH.get(), COTH_DURATION_TICKS, COTH_AMPLIFIER));
+                ModEffects.PARA_CURSE.get(), PARA_CURSE_DURATION_TICKS, PARA_CURSE_AMPLIFIER));
     }
 
     /**  6 16  */
@@ -167,7 +167,7 @@ public class NestLeaderHandler {
         if (!NestLeaderManager.isNestLeader(player.getUUID())) return;
         MobEffect effect = event.getEffectInstance().getEffect();
         if (effect == MobEffects.POISON || effect == MobEffects.HUNGER || effect == MobEffects.CONFUSION ||
-                effect == ModEffects.COTH.get() || effect == ModEffects.VIRAL.get() || effect == ModEffects.FEAR.get() ||
+                effect == ModEffects.PARA_CURSE.get() || effect == ModEffects.VIRAL.get() || effect == ModEffects.FEAR.get() ||
                 effect == ModEffects.SOLIDIFY.get() || effect == ModEffects.CORROSIVE.get() || effect == ModEffects.CONTEMPT_INORGANIC.get() ||
                 effect == ModEffects.NEEDLER.get()) {
             event.setResult(Event.Result.DENY);
@@ -192,17 +192,17 @@ public class NestLeaderHandler {
     //
     //     if (player.level().random.nextFloat() < 0.7f) {
     //         LivingEntity target = event.getEntity();
-    //         int currentAmp = target.getEffect(ModEffects.COTH.get()) != null ?
-    //                 target.getEffect(ModEffects.COTH.get()).getAmplifier() : -1;
+    //         int currentAmp = target.getEffect(ModEffects.PARA_CURSE.get()) != null ?
+    //                 target.getEffect(ModEffects.PARA_CURSE.get()).getAmplifier() : -1;
     //         int newAmp = Math.min(currentAmp + 1, 2);
-    //         target.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, newAmp));
+    //         target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, newAmp));
     //         target.addEffect(new MobEffectInstance(ModEffects.FEAR.get(), 300, 1));
     //     }
     //
     // <b> STAGE B  proc </b> 70% / 3  II
     //  30  IISPEC
-    //  FEAR COTH  FEAR <b> 70% </b>
-    //   *  COTH  FEAR  FEAR 70%
+    //  FEAR PARA_CURSE  FEAR <b> 70% </b>
+    //   *  PARA_CURSE  FEAR  FEAR 70%
     //     100%  if ""
     //   *  FEAR70% / 300 tick / amplifier 1
     //      SPEC  FEAR
@@ -210,7 +210,7 @@ public class NestLeaderHandler {
     // SPEC MobEffect  FEAR
     // onEffectApplicable
     //
-    // ModEffects  import onEffectApplicable  COTH/FEAR
+    // ModEffects  import onEffectApplicable  PARA_CURSE/FEAR
     // MobEffects  import POISON/HUNGER/CONFUSIONMobEffectInstance
     //  LivingEntity  STAGE B  proc
 }

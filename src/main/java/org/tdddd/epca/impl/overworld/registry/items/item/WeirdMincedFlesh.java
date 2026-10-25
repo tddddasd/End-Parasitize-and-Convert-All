@@ -17,7 +17,7 @@ public class WeirdMincedFlesh extends Item {
                 .nutrition(6)  
                 .saturationMod(0.4F)  
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.COTH.get(),  
+                        ModEffects.PARA_CURSE.get(),  
                         15 * 20,  
                         0  
                 ), 0.3F)  

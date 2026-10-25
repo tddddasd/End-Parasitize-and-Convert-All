@@ -187,7 +187,7 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
 
         
         if (damaged && entity instanceof LivingEntity living) {
-            living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 30 * 20, 0));
+            living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 30 * 20, 0));
         }
     }
 

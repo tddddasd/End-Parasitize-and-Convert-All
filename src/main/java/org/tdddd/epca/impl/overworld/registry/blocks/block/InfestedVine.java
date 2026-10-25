@@ -56,11 +56,11 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         
         if (!level.isClientSide && entity instanceof LivingEntity livingEntity) {
-            applyCothEffects(livingEntity, true);
+            applyParaCurseEffects(livingEntity, true);
         }
     }
 
-    private void applyCothEffects(LivingEntity entity, boolean apply) {
+    private void applyParaCurseEffects(LivingEntity entity, boolean apply) {
         
         if (IParasite.isParasiteByTagOrInterface(entity)) {
             
@@ -70,8 +70,8 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
         if (apply) {
             
             
-            MobEffectInstance cothEffect = new MobEffectInstance(
-                    ModEffects.COTH.get(), 
+            MobEffectInstance para_curseEffect = new MobEffectInstance(
+                    ModEffects.PARA_CURSE.get(), 
                     600, 
                     0, 
                     false, 
@@ -91,7 +91,7 @@ public class InfestedVine extends MultifaceBlock implements SimpleWaterloggedBlo
             
             if (!entity.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) ||
                     entity.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getAmplifier() == 0) {
-                entity.addEffect(cothEffect);
+                entity.addEffect(para_curseEffect);
                 entity.addEffect(slownessEffect);
             }
         }

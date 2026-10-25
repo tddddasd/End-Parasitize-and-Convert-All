@@ -338,7 +338,7 @@ public class LightCarrier extends PathfinderMob implements GeoEntity, IParasite,
                 cloud.setDuration(120);          
                 
                 cloud.addEffect(new MobEffectInstance(ModEffects.VIRAL.get(), 300, 1)); 
-                cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0));   
+                cloud.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, 0));   
                 this.level().addFreshEntity(cloud);
             }
         }

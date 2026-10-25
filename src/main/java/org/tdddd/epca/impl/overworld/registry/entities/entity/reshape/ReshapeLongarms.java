@@ -413,7 +413,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                 entity.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 300, 0, false, true, true));
             } else {
                 
-                entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 1, false, true, true));
+                entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, 1, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 300, 0, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 300, 0, false, true, true));
             }
@@ -592,7 +592,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
         for (LivingEntity entity : entities) {
             UUID entityId = entity.getUUID();
             if (!affectedEntities.contains(entityId)) {
-                entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 200, 2, false, true, true));
+                entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 200, 2, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 300, 1, false, true, true));
                 entity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 300, 1, false, true, true));
                 affectedEntities.add(entityId);
@@ -1074,7 +1074,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                             ModSoundEvents.BIG_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
                     if (this.level() instanceof ServerLevel serverLevel) {
-                        serverLevel.sendParticles(ModParticles.COTH.get(), this.getX(), this.getY() + 0.5, this.getZ(), 10, 0.3, 0.45, 0.3, 0.0);
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), this.getX(), this.getY() + 0.5, this.getZ(), 10, 0.3, 0.45, 0.3, 0.0);
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(), this.getX(), this.getY() + 0.5, this.getZ(), 7, 0.4, 0.3, 0.4, 0.2);
                         BlockPos deathPos = this.deathPosition;
                         long seed = this.random.nextLong();
@@ -1082,7 +1082,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                         serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount() + delay, () -> spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed))));
                         AreaEffectCloud cloud = new AreaEffectCloud(serverLevel, deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
                         cloud.setRadius(1.5F); cloud.setDuration(60); cloud.setRadiusPerTick(0); cloud.setWaitTime(0);
-                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+                        cloud.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 1200, 1, false, true));
                         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
                         serverLevel.addFreshEntity(cloud);
                     }

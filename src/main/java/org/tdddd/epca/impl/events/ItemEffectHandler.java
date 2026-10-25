@@ -59,7 +59,7 @@ public class ItemEffectHandler {
         }
 
         if (hasInfested) {
-            applyCOTHEffect(entity);
+            applyPARA_CURSEEffect(entity);
         }
     }
 
@@ -213,11 +213,11 @@ public class ItemEffectHandler {
         return false;
     }
 
-    private static void applyCOTHEffect(LivingEntity entity) {
-        MobEffectInstance current = entity.getEffect(ModEffects.COTH.get());
+    private static void applyPARA_CURSEEffect(LivingEntity entity) {
+        MobEffectInstance current = entity.getEffect(ModEffects.PARA_CURSE.get());
         if (current == null) {
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.PARA_CURSE.get(),
                     EFFECT_DURATION,
                     0,
                     false,

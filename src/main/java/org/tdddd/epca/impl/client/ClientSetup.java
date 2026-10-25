@@ -78,12 +78,12 @@ public class ClientSetup {
                 });
 
         event.registerSpriteSet(
-                ModParticles.COTH.get(),
+                ModParticles.PARA_CURSE.get(),
                 spriteSet -> {
                     if (spriteSet == null) {
                         return null;
                     }
-                    return new CothParticle.CothParticleProvider(spriteSet);
+                    return new ParaCurseParticle.ParaCurseParticleProvider(spriteSet);
                 });
 
         event.registerSpriteSet(

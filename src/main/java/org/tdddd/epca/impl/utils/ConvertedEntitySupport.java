@@ -15,8 +15,8 @@ import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
  * </b></p>
  * <ul>
  *   <li>{@link EntityConversionUtil#convertTo(LivingEntity, net.minecraft.world.entity.EntityType)}
- *        {@code CothEffect}  generic //</li>
- *   <li>{@code CothEffect#convertUsingDataPackRule}   {@code entity_conversions}
+ *        {@code ParaCurseEffect}  generic //</li>
+ *   <li>{@code ParaCurseEffect#convertUsingDataPackRule}   {@code entity_conversions}
  *        {@code epca:infested_slime_size1}</li>
  * </ul>
  *

@@ -100,7 +100,7 @@ public class DifficultyEffects {
         return diff != DifficultyLevel.EASY;
     }
 
-    public static boolean isCothEffectEnabled(Level level) {
+    public static boolean isParaCurseEffectEnabled(Level level) {
         return getEffectiveDifficulty(level) == DifficultyLevel.LEGENDARY;
     }
 

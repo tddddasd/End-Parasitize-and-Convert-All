@@ -8,7 +8,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -109,7 +109,7 @@ public interface IInfested {
     }
 
     
-    default int tryApplyCothEffect(Mob mob, int currentCooldown) {
+    default int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         if (currentCooldown > 0) {
             return currentCooldown - 1;
         }
@@ -134,7 +134,7 @@ public interface IInfested {
 
         
         for (LivingEntity entity : nearbyEntities) {
-            CothEffect.applyCothEffect(entity, 3600, 0);
+            ParaCurseEffect.applyParaCurseEffect(entity, 3600, 0);
         }
 
         return 100; 

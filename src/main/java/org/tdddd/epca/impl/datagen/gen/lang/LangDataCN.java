@@ -158,7 +158,7 @@ public class LangDataCN extends LanguageProvider {
         add("effect.epca.link", "连结");
         add("effect.epca.viral", "病毒");
         add("effect.epca.fear", "恐慌");
-        add("effect.epca.coth", "\u00a7c寄巢之唤");
+        add("effect.epca.para_curse", "\u00a7c虫咒缚身");
         add("effect.epca.corrosive", "腐蚀");
         add("effect.epca.rage", "狂怒");
         add("effect.epca.needler", "穿刺");

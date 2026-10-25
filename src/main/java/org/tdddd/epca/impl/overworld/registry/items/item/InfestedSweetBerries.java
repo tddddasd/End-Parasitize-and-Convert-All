@@ -17,7 +17,7 @@ public class InfestedSweetBerries extends Item {
                 .nutrition(2)
                 .saturationMod(0.4F)
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.COTH.get(),
+                        ModEffects.PARA_CURSE.get(),
                         10 * 20,
                         0
                 ), 1.0F)

@@ -16,7 +16,7 @@ public class ParasiteViscera extends Item {
                 .nutrition(1)  
                 .saturationMod(0.0F)  
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.COTH.get(),  
+                        ModEffects.PARA_CURSE.get(),  
                         30 * 20,  
                         0  
                 ), 0.95F)  

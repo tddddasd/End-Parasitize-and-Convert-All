@@ -712,7 +712,7 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
     /**
      * README: a naturally spawned spider has a 5 % chance to receive Speed I and Strength I, and a
      * converted spider inherits the buffs the original carried. The conversion path is handled in
-     * {@code CothEffect} plus {@link #applyInheritedEffects}; this method only rolls the
+     * {@code ParaCurseEffect} plus {@link #applyInheritedEffects}; this method only rolls the
      * natural-spawn bonus.
      */
     @Override

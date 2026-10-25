@@ -179,7 +179,7 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
             if (entity instanceof LivingEntity living && !IParasite.isParasiteByTagOrInterface(living)) {
                 if (level.random.nextFloat() < 0.05f) { 
                     living.hurt(living.damageSources().generic(), 1.0f);
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 300, 0));
+                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 300, 0));
                     level.playSound(null, pos, SoundEvents.PLAYER_HURT, SoundSource.HOSTILE, 0.5f, 1.0f);
                 }
             }
@@ -209,7 +209,7 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
         
         if (level.random.nextFloat() < 0.1f) {
             player.hurt(player.damageSources().generic(), 1.0f);
-            player.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 300, 0));
+            player.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 300, 0));
             level.playSound(null, worldPosition, SoundEvents.PLAYER_HURT, SoundSource.PLAYERS, 0.5f, 1.0f);
         }
     }

@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 public class EntityConversionUtil {
     public static void convertTo(LivingEntity entity, EntityType<? extends LivingEntity> targetType) {
@@ -59,7 +59,7 @@ public class EntityConversionUtil {
 
             
             ModNetwork.sendToAllTracking(
-                    new ColorEffectPacket(newEntity, CothEffect.TYPE_CONVERSION_FADE, 6), newEntity);
+                    new ColorEffectPacket(newEntity, ParaCurseEffect.TYPE_CONVERSION_FADE, 6), newEntity);
         }
 
         

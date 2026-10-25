@@ -175,15 +175,15 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
     }
 
     /**
-     *  COTH+
+     *  PARA_CURSE+
      *
      * <p><b></b>
      *  {@link IParasite#isParasiteByTagOrInterface}
      * {@code entity instanceof IParasite} /
      * {@code "Parasite"} {@code NestLeaderManager.isNestLeader}
      *  {@code IParasite.java:77-91}
-     * {@code InfestedBlockHandler.java:23} COTH
-     * {@code InfestedVine.java:65-68} entityInside  COTH+
+     * {@code InfestedBlockHandler.java:23} PARA_CURSE
+     * {@code InfestedVine.java:65-68} entityInside  PARA_CURSE+
      * {@code InfestedCactus.java:78}{@code InfestedSnow.java:90}
      * {@code InfestedPumpkinBehaviour.java:472}
      *
@@ -209,17 +209,17 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
             if (IParasite.isParasiteByTagOrInterface(living)) {
                 continue;
             }
-            applyCothAndDamage(living, level);
+            applyParaCurseAndDamage(living, level);
         }
     }
 
-    private void applyCothAndDamage(LivingEntity living, ServerLevel level) {
+    private void applyParaCurseAndDamage(LivingEntity living, ServerLevel level) {
         var data = living.getPersistentData();
         long now = level.getGameTime();
 
         long lastEffect = data.getLong("InfestedWebLastEffect");
         if (now - lastEffect >= 20) {
-            living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 20 * 20, 0));
+            living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 20 * 20, 0));
             data.putLong("InfestedWebLastEffect", now);
         }
 

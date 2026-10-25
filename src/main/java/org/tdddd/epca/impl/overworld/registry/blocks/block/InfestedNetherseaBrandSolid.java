@@ -120,7 +120,7 @@ public class InfestedNetherseaBrandSolid extends Block implements InfestedBlockI
                 }
 
                 
-                living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0,false, false, true));
+                living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, 0,false, false, true));
             }
         }
     }

@@ -20,7 +20,7 @@ public class ParticleData extends ParticleDescriptionProvider {
     protected void addDescriptions() {
         
         addParticle(ModParticles.SPLASHI, "splashi");
-        addParticle(ModParticles.COTH, "coth");
+        addParticle(ModParticles.PARA_CURSE, "para_curse");
         addParticle(ModParticles.BLEEDING, "bleeding");
         addParticle(ModParticles.LIVING_FLESH, "living_flesh");
         addParticle(ModParticles.WAVE, "wave");

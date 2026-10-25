@@ -57,7 +57,7 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
 
     @Override
     public boolean canBeAffected(MobEffectInstance effectInstance) {
-        if (effectInstance.getEffect() == ModEffects.COTH.get()) {
+        if (effectInstance.getEffect() == ModEffects.PARA_CURSE.get()) {
             return false;
         }
         return super.canBeAffected(effectInstance);

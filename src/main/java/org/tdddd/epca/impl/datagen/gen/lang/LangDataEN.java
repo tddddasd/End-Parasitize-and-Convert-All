@@ -158,7 +158,7 @@ public class LangDataEN extends LanguageProvider {
         add("effect.epca.link", "Link");
         add("effect.epca.viral", "Viral");
         add("effect.epca.fear", "Fear");
-        add("effect.epca.coth", "\u00a7cCOTH");
+        add("effect.epca.para_curse", "\u00a7cHive Curse");
         add("effect.epca.corrosive", "Corrosive");
         add("effect.epca.rage", "Rage");
         add("effect.epca.needler", "Needler");

@@ -120,7 +120,7 @@ public class InfestedSlimeSize3 extends PathfinderMob implements GeoEntity, IPar
         return SIZE_3_ATTRIBUTES;
     }
 
-    public int tryApplyCothEffect(Mob mob, int currentCooldown) {
+    public int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         return 0;
     }
 

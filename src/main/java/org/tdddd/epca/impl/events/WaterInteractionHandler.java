@@ -160,7 +160,7 @@ public class WaterInteractionHandler {
 
             
             entity.addEffect(new MobEffectInstance(
-                    ModEffects.COTH.get(),
+                    ModEffects.PARA_CURSE.get(),
                     600, 
                     0,    
                     false,

@@ -28,8 +28,8 @@ public class ModEffects {
     public static final RegistryObject<MobEffect> FEAR =
             EFFECTS.register("fear", FearEffect::new);
 
-    public static final RegistryObject<MobEffect> COTH =
-            EFFECTS.register("coth", CothEffect::new);
+    public static final RegistryObject<MobEffect> PARA_CURSE =
+            EFFECTS.register("para_curse", ParaCurseEffect::new);
 
     public static final RegistryObject<MobEffect> CONTEMPT_INORGANIC =
             EFFECTS.register("contempt_inorganic", ContemptInorganicEffect::new);

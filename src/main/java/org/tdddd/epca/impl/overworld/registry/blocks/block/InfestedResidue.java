@@ -86,8 +86,8 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (!level.isClientSide && entity instanceof LivingEntity living) {
-            if (!living.hasEffect(ModEffects.COTH.get())) {
-                living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 0, false, true, true));
+            if (!living.hasEffect(ModEffects.PARA_CURSE.get())) {
+                living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 1200, 0, false, true, true));
             }
         }
         super.entityInside(state, level, pos, entity);

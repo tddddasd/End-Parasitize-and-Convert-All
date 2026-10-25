@@ -181,7 +181,7 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
             if (Math.abs(currentY - lastY) > 0.001) {
                 living.hurt(living.damageSources().cactus(), 1.0F);
                 if (level.random.nextFloat() < 0.7F) {
-                    living.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 900, 0));
+                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 900, 0));
                 }
             }
             LAST_DAMAGE_TIME.put(entity, currentTick);

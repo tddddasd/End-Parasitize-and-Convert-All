@@ -23,7 +23,7 @@ public class AbstractVillagerMixin {
             MerchantOfferMixinAccess access = (MerchantOfferMixinAccess) offer;
             if (access.epca$hasUsedInfestedEmerald()) {
                 
-                var effectType = ModEffects.COTH.get();
+                var effectType = ModEffects.PARA_CURSE.get();
                 if (effectType != null) {
                     MobEffectInstance effect = new MobEffectInstance(effectType, 1200, 2); 
                     ((AbstractVillager) (Object) this).addEffect(effect);

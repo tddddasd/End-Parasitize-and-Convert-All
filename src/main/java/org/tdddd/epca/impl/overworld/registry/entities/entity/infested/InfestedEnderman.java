@@ -432,7 +432,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
                     if (this.level() instanceof ServerLevel serverLevel) {
-                        serverLevel.sendParticles(ModParticles.COTH.get(),
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 10, 0.3, 0.45, 0.3, 0.0);
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(),
@@ -456,7 +456,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                         cloud.setDuration(60);
                         cloud.setRadiusPerTick(0);
                         cloud.setWaitTime(0);
-                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+                        cloud.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 1200, 1, false, true));
                         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
                         cloud.addEffect(new MobEffectInstance(ModEffects.ENDER_EROSION.get(), 20, 0, false, true));
                         serverLevel.addFreshEntity(cloud);
@@ -606,7 +606,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 e -> e != this && e.isAlive() && !IParasite.isParasiteByTagOrInterface(e));
         for (LivingEntity entity : entities) {
             entity.addEffect(new MobEffectInstance(ModEffects.ENDER_EROSION.get(), 60, 5, false, false));
-            entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 600, 0, false, false));
+            entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, 0, false, false));
 
             if (!chargedTargets.contains(entity.getUUID())) {
                 Level level = entity.level();

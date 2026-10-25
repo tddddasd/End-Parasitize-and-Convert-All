@@ -5,7 +5,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,14 +23,14 @@ public final class PendingConversionManager {
 
     private static final class Pending {
         final LivingEntity entity;
-        final CothEffect.ConversionPlan plan;
+        final ParaCurseEffect.ConversionPlan plan;
         int remainingTicks;
         final int totalTicks;
         
         final boolean wasInvulnerable;
         final boolean wasNoAi;
 
-        Pending(LivingEntity entity, CothEffect.ConversionPlan plan, int totalTicks,
+        Pending(LivingEntity entity, ParaCurseEffect.ConversionPlan plan, int totalTicks,
                 boolean wasInvulnerable, boolean wasNoAi) {
             this.entity = entity;
             this.plan = plan;
@@ -42,10 +42,10 @@ public final class PendingConversionManager {
     }
 
     
-    public static void schedule(LivingEntity entity, CothEffect.ConversionPlan plan, int delayTicks) {
+    public static void schedule(LivingEntity entity, ParaCurseEffect.ConversionPlan plan, int delayTicks) {
         if (entity == null || plan == null || delayTicks <= 0) {
             if (entity != null && plan != null) {
-                CothEffect.executePlan(entity, plan);
+                ParaCurseEffect.executePlan(entity, plan);
             }
             return;
         }
@@ -61,7 +61,7 @@ public final class PendingConversionManager {
         // !isAlive()
         //  1  hold
         if (!entity.isAlive() || entity.isRemoved()) {
-            CothEffect.executePlan(entity, plan);
+            ParaCurseEffect.executePlan(entity, plan);
             return;
         }
 
@@ -70,7 +70,7 @@ public final class PendingConversionManager {
         holdAlive(entity, pending.wasInvulnerable);
 
         ModNetwork.sendToAllTracking(
-                new ColorEffectPacket(entity, CothEffect.TYPE_CONVERSION, delayTicks), entity);
+                new ColorEffectPacket(entity, ParaCurseEffect.TYPE_CONVERSION, delayTicks), entity);
 
         PENDING.add(pending);
     }
@@ -155,10 +155,10 @@ public final class PendingConversionManager {
                 //  invulnerable/
                 //  continue +
                 //  1.20.1  20 tick
-                if (CothEffect.planIsEmpty(p.plan)) {
+                if (ParaCurseEffect.planIsEmpty(p.plan)) {
                     releaseAfterPending(e, p.wasInvulnerable, p.wasNoAi);
                 } else {
-                    CothEffect.executePlan(e, p.plan);
+                    ParaCurseEffect.executePlan(e, p.plan);
                 }
                 continue;
             }
@@ -174,10 +174,10 @@ public final class PendingConversionManager {
 
             if (--p.remainingTicks <= 0) {
                 it.remove();
-                if (CothEffect.planIsEmpty(p.plan)) {
+                if (ParaCurseEffect.planIsEmpty(p.plan)) {
                     releaseAfterPending(e, p.wasInvulnerable, p.wasNoAi);
                 } else {
-                    CothEffect.executePlan(e, p.plan);
+                    ParaCurseEffect.executePlan(e, p.plan);
                 }
             }
         }

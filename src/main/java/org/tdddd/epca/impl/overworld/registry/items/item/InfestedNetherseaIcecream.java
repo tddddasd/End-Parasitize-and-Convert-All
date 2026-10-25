@@ -17,7 +17,7 @@ public class InfestedNetherseaIcecream extends Item {
                 .nutrition(5)
                 .saturationMod(0.8F)
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.COTH.get(),
+                        ModEffects.PARA_CURSE.get(),
                         15 * 20,
                         0
                 ), 1.0F)

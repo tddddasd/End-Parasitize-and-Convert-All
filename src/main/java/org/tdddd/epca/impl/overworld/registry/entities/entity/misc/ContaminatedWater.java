@@ -106,15 +106,15 @@ public class ContaminatedWater extends Entity {
         Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
         DamageSource minimumSource = new DamageSource(holder);
         target.hurt(minimumSource, 0.1F);
-        addCothEffect(target);
+        addParaCurseEffect(target);
         
     }
 
 
     
-    private void addCothEffect(LivingEntity entity) {
+    private void addParaCurseEffect(LivingEntity entity) {
         entity.addEffect(new MobEffectInstance(
-                ModEffects.COTH.get(),
+                ModEffects.PARA_CURSE.get(),
                 400,  
                 0,    
                 false,

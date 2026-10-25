@@ -279,7 +279,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
                     
                     if (this.level() instanceof ServerLevel serverLevel) {
                         
-                        serverLevel.sendParticles(ModParticles.COTH.get(), 
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), 
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 10, 
                                 0.3, 0.45, 0.3, 
@@ -317,7 +317,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
 
                         
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH.get(),
+                                ModEffects.PARA_CURSE.get(),
                                 1200, 
                                 0,    
                                 false, true

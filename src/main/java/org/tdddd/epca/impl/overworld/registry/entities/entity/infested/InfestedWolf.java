@@ -73,7 +73,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     @Nullable
     private UUID ownerUUID;
-    public int tryApplyCothEffect(Mob mob, int currentCooldown) {
+    public int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         return 0;
     }
 
@@ -433,7 +433,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
                     
                     if (this.level() instanceof ServerLevel serverLevel) {
                         
-                        serverLevel.sendParticles(ModParticles.COTH.get(), 
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), 
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 10, 
                                 0.3, 0.45, 0.3, 
@@ -471,7 +471,7 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
 
                         
                         cloud.addEffect(new MobEffectInstance(
-                                ModEffects.COTH.get(),
+                                ModEffects.PARA_CURSE.get(),
                                 1200, 
                                 1,    
                                 false, true

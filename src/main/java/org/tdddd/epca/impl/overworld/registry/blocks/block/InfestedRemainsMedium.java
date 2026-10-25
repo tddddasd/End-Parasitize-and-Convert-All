@@ -43,10 +43,10 @@ public class InfestedRemainsMedium extends Block {
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (!level.isClientSide && entity instanceof LivingEntity livingEntity) {
             
-            if (!livingEntity.hasEffect(ModEffects.COTH.get())) {
+            if (!livingEntity.hasEffect(ModEffects.PARA_CURSE.get())) {
                 
                 livingEntity.addEffect(new MobEffectInstance(
-                        ModEffects.COTH.get(),
+                        ModEffects.PARA_CURSE.get(),
                         900,   
                         1,     
                         false, 

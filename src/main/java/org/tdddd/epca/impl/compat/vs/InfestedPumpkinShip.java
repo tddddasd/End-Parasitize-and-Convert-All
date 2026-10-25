@@ -275,7 +275,7 @@ public final class InfestedPumpkinShip {
     private static void hurt(ServerLevel level, LivingEntity target) {
         target.hurt(level.damageSources().magic(), CONTACT_DAMAGE);
         target.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-                ModEffects.COTH.get(), 30 * 20, 0, false, false, true));
+                ModEffects.PARA_CURSE.get(), 30 * 20, 0, false, false, true));
         target.addEffect(new net.minecraft.world.effect.MobEffectInstance(
                 ModEffects.FEAR.get(), 15 * 20, 0, false, false, true));
     }

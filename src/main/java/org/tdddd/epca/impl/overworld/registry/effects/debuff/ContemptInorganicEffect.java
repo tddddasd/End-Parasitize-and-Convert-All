@@ -27,13 +27,13 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ContemptInorganicEffect extends MobEffect {
 
     private static final int BASE_DURATION = 1200;
-    private static final int COTH_LEVEL_III = 2;
-    private static final int COTH_DURATION = 1200;
-    private static final int COTH_INTERVAL = 100;
+    private static final int PARA_CURSE_LEVEL_III = 2;
+    private static final int PARA_CURSE_DURATION = 1200;
+    private static final int PARA_CURSE_INTERVAL = 100;
     private static final int MIN_SOUND_INTERVAL = 100;
     private static final int MAX_SOUND_INTERVAL = 140;
 
-    private static final String TAG_LAST_COTH_TIME = "LastCothTime";
+    private static final String TAG_LAST_PARA_CURSE_TIME = "LastParaCurseTime";
     private static final String TAG_NEXT_SOUND_TIME = "NextSoundTime";
     /** Erosion points granted when this effect converts a creature. */
     private static final int CONTEMPT_CONVERSION_POINTS = 4;
@@ -66,14 +66,14 @@ public class ContemptInorganicEffect extends MobEffect {
         }
 
         
-        long lastCothTime = entity.getPersistentData().getLong(TAG_LAST_COTH_TIME);
-        if (lastCothTime == 0) {
-            lastCothTime = gameTime - COTH_INTERVAL;
-            entity.getPersistentData().putLong(TAG_LAST_COTH_TIME, lastCothTime);
+        long lastParaCurseTime = entity.getPersistentData().getLong(TAG_LAST_PARA_CURSE_TIME);
+        if (lastParaCurseTime == 0) {
+            lastParaCurseTime = gameTime - PARA_CURSE_INTERVAL;
+            entity.getPersistentData().putLong(TAG_LAST_PARA_CURSE_TIME, lastParaCurseTime);
         }
-        if (gameTime - lastCothTime >= COTH_INTERVAL) {
-            entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), COTH_DURATION, COTH_LEVEL_III, false, false, true));
-            entity.getPersistentData().putLong(TAG_LAST_COTH_TIME, gameTime);
+        if (gameTime - lastParaCurseTime >= PARA_CURSE_INTERVAL) {
+            entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), PARA_CURSE_DURATION, PARA_CURSE_LEVEL_III, false, false, true));
+            entity.getPersistentData().putLong(TAG_LAST_PARA_CURSE_TIME, gameTime);
         }
 
         
@@ -94,8 +94,8 @@ public class ContemptInorganicEffect extends MobEffect {
 
         
         if (!entity.getPersistentData().getBoolean(TAG_CONVERTED_BY_CONTEMPT)) {
-            MobEffectInstance coth = entity.getEffect(ModEffects.COTH.get());
-            if (coth != null && entity.getHealth() <= entity.getMaxHealth() * 0.5f) {
+            MobEffectInstance para_curse = entity.getEffect(ModEffects.PARA_CURSE.get());
+            if (para_curse != null && entity.getHealth() <= entity.getMaxHealth() * 0.5f) {
                 
                 tryPerformConversion(entity);
             }
@@ -149,7 +149,7 @@ public class ContemptInorganicEffect extends MobEffect {
                         
                         if (newEntity instanceof LivingEntity livingNew) {
                             ModNetwork.sendToAllTracking(
-                                    new ColorEffectPacket(livingNew, CothEffect.TYPE_CONVERSION_FADE, 6),
+                                    new ColorEffectPacket(livingNew, ParaCurseEffect.TYPE_CONVERSION_FADE, 6),
                                     livingNew);
                         }
 

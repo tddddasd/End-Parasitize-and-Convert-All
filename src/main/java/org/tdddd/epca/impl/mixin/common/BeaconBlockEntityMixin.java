@@ -147,7 +147,7 @@ public abstract class BeaconBlockEntityMixin implements IBeaconMixin {
 
         for (LivingEntity entity : entities) {
             if (!(entity instanceof IParasite)) {
-                entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 2400, 0, false, true));
+                entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 2400, 0, false, true));
             }
         }
 

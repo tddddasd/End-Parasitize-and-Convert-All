@@ -27,7 +27,7 @@ public class InfestedBlockHandler {
         Block block = state.getBlock();
         if (!(block instanceof InfestedBlockInterface)) return;
 
-        if (entity.hasEffect(ModEffects.COTH.get())) return;
-        entity.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 0));
+        if (entity.hasEffect(ModEffects.PARA_CURSE.get())) return;
+        entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 1200, 0));
     }
 }

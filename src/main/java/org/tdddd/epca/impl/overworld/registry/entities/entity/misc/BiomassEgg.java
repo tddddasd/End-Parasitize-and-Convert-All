@@ -85,7 +85,7 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
             if (!IParasite.isParasiteByTagOrInterface(target)) {
                 target.hurt(target.damageSources().indirectMagic(this, this.getOwner()), 0.5f);
                 target.addEffect(new MobEffectInstance(
-                        ModEffects.COTH.get(),
+                        ModEffects.PARA_CURSE.get(),
                         300,
                         0,
                         false,

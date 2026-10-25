@@ -3,19 +3,19 @@ package org.tdddd.epca.impl.utils;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.CothEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 public class EffectApplicationInterceptor {
 
     
     public static boolean canApplyEffect(LivingEntity target, MobEffectInstance effect) {
         
-        if (effect.getEffect() != ModEffects.COTH.get()) {
+        if (effect.getEffect() != ModEffects.PARA_CURSE.get()) {
             return true;
         }
 
         int newAmplifier = effect.getAmplifier();
-        return CothEffect.canApplyEffect(target, newAmplifier);
+        return ParaCurseEffect.canApplyEffect(target, newAmplifier);
     }
 
     

@@ -90,7 +90,7 @@ public class InfestedSnow extends SnowLayerBlock implements InfestedBlockInterfa
             if (!(IParasite.isParasiteByTagOrInterface(living))) {
                 
                 living.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-                        ModEffects.COTH.get(),           
+                        ModEffects.PARA_CURSE.get(),           
                         1200,                         
                         0                                 
                 ));

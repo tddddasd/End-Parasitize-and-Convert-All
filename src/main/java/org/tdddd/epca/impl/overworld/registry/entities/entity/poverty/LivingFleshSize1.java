@@ -166,7 +166,7 @@ public class LivingFleshSize1 extends PathfinderMob implements GeoEntity, IParas
             areaEffectCloud.setRadiusPerTick(0.0F);
 
             
-            areaEffectCloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1)); 
+            areaEffectCloud.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 1200, 1)); 
             areaEffectCloud.addEffect(new MobEffectInstance(MobEffects.POISON, 100, 1)); 
             areaEffectCloud.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 1)); 
 

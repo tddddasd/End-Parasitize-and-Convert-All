@@ -27,7 +27,7 @@ import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
  *       {@code OrganStatSummary#minimumDamage()}  YawningNekoAPI
  *        +  mixin
  *       {@code minimumDamageIntervalTicks()} 40 tick = 2
- *        COTH / FEAR</li>
+ *        PARA_CURSE / FEAR</li>
  *   <li><b></b>{@link #onNestLeaderHurt} {@code LivingHurtEvent}
  *        {@link NestLeaderOrganAdaptation#resolve}</li>
  * </ul>

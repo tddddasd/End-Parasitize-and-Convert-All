@@ -17,7 +17,7 @@ public class InfestedFlesh extends Item {
                 .nutrition(5)  
                 .saturationMod(0.1F)  
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.COTH.get(),  
+                        ModEffects.PARA_CURSE.get(),  
                         15 * 20,  
                         0  
                 ), 0.7F)  

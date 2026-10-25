@@ -17,8 +17,8 @@ public class ModParticles {
     public static final RegistryObject<SimpleParticleType> SPLASHI =
             REGISTRY.register("splashi", () -> new SimpleParticleType(false));
 
-    public static final RegistryObject<SimpleParticleType> COTH =
-            REGISTRY.register("coth", () -> new SimpleParticleType(false));
+    public static final RegistryObject<SimpleParticleType> PARA_CURSE =
+            REGISTRY.register("para_curse", () -> new SimpleParticleType(false));
 
     public static final RegistryObject<SimpleParticleType> BLEEDING =
             REGISTRY.register("bleeding", () -> new SimpleParticleType(false));

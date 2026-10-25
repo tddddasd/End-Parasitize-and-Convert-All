@@ -63,7 +63,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
     private int stepSoundDelay = 0;
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
 
-    public int tryApplyCothEffect(Mob mob, int currentCooldown) {
+    public int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         return 0;
     }
 
@@ -208,7 +208,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
                     if (this.level() instanceof ServerLevel serverLevel) {
-                        serverLevel.sendParticles(ModParticles.COTH.get(),
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
                                 10, 0.3, 0.45, 0.3, 0.0);
 
@@ -234,7 +234,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                         cloud.setDuration(60);
                         cloud.setRadiusPerTick(0);
                         cloud.setWaitTime(0);
-                        cloud.addEffect(new MobEffectInstance(ModEffects.COTH.get(), 1200, 1, false, true));
+                        cloud.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 1200, 1, false, true));
                         cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
                         serverLevel.addFreshEntity(cloud);
                     }
