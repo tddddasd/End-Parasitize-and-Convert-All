@@ -22,8 +22,9 @@ import java.util.Optional;
  *
  * <p>Fog is handled here: it is a per frame camera colour, so it can be replaced without touching any
  * block or chunk data, which is exactly what "layer a biome on top" means. Water and grass colours go
- * through the biome colour hooks, and the sky colour still needs a {@code DimensionSpecialEffects}
- * hook because 1.20.1 has no viewport event for it.</p>
+ * through the biome colour hooks. The sky colour is not applied yet: 1.20.1 exposes no per-frame sky
+ * colour hook that can be mixed in safely, so that part is intentionally left out instead of risking a
+ * startup crash.</p>
  *
  * <p>Nothing happens when the layer has {@code overrideColors} off or when the biome id no longer exists
  * in the client registry.</p>

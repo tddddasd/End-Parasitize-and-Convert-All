@@ -29,8 +29,7 @@
     "client.ItemRendererShaderLayerMixin",
     "client.ItemRendererTwitchMixin",
     "client.LightningBoltRendererMixin",
-    "client.LivingEntityRendererTintMixin",
-    "client.ClientLevelSkyMixin"
+    "client.LivingEntityRendererTintMixin"
   ],
   "injectors": {
     "defaultRequire": 1
