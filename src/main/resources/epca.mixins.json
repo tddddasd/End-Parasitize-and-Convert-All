@@ -13,7 +13,9 @@
     "common.MobMixin",
     
     "common.PointedDripstoneBlockMixin",
-    "common.SugarCaneBlockMixin"
+    "common.SugarCaneBlockMixin",
+    "common.LevelRainLikeBiomeMixin",
+    "common.NaturalSpawnerLikeBiomeMixin"
   ],
   "client": [
     "client.CreateWorldScreenMixin",
@@ -25,7 +27,8 @@
     "client.LightningBoltRendererMixin",
     "client.LightningBoltRenderStateMixin",
     "client.LivingEntityRendererHeartMixin",
-    "client.LivingEntityRendererTintMixin"
+    "client.LivingEntityRendererTintMixin",
+    "client.BiomeColorsLikeBiomeMixin"
   ],
   "injectors": {
     "defaultRequire": 1
