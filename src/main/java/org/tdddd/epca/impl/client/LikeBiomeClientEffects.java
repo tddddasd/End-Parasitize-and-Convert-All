@@ -74,4 +74,22 @@ public final class LikeBiomeClientEffects {
         event.setBlue((color & 0xFF) / 255.0F);
     }
 
+
+    /** Water colour of the like biome at {@code pos}, or {@code null} when it should not be applied. */
+    public static Integer waterColor(BlockPos pos) {
+        Biome biome = activeBiome(pos);
+        return biome == null ? null : biome.getWaterColor();
+    }
+
+    /** Grass colour of the like biome at {@code pos}, or {@code null}. */
+    public static Integer grassColor(BlockPos pos) {
+        Biome biome = activeBiome(pos);
+        return biome == null ? null : biome.getGrassColor(0.5D, 64.0D);
+    }
+
+    /** Foliage colour of the like biome at {@code pos}, or {@code null}. */
+    public static Integer foliageColor(BlockPos pos) {
+        Biome biome = activeBiome(pos);
+        return biome == null ? null : biome.getFoliageColor();
+    }
 }
