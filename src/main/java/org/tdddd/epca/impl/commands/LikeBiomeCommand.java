@@ -17,7 +17,7 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeSavedData;
 
 /**
- * {@code /epca_like_biome} - stack a biome on top of the real one for the 4x4x4 section the command runs
+ * {@code /epca_biome_like} - stack a biome on top of the real one for the 4x4x4 section the command runs
  * in. The like biome never replaces the real one.
  */
 public final class LikeBiomeCommand {
@@ -26,7 +26,7 @@ public final class LikeBiomeCommand {
     }
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("epca_like_biome")
+        dispatcher.register(Commands.literal("epca_biome_like")
                 .requires(Commands.hasPermission(new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER)))
                 .then(Commands.literal("set")
                         .then(Commands.argument("biome", StringArgumentType.string())
