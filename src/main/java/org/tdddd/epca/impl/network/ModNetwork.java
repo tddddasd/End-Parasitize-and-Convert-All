@@ -69,6 +69,10 @@ public class ModNetwork {
                 SyncNoteTabsPacket::handle);
         registrar.playToClient(ColorEffectPacket.TYPE, ColorEffectPacket.STREAM_CODEC,
                 ColorEffectPacket::handle);
+        registrar.playToClient(
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket.TYPE,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket.STREAM_CODEC,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::handle);
         registrar.playToClient(InfestedSourcePacket.AddInfestedSourcePacket.TYPE,
                 InfestedSourcePacket.AddInfestedSourcePacket.STREAM_CODEC,
                 InfestedSourcePacket.AddInfestedSourcePacket::handle);
