@@ -81,4 +81,21 @@ public final class LikeBiomeClientEffects {
                 (color & 0xFF) / 255.0F,
                 1.0F);
     }
+
+    /**
+     * Sky colour of the like biome, or {@code null}.
+     *
+     * <p>Same shape as {@link #fogColor}: 26.1.2 keeps the sky colour in the biome's
+     * {@code EnvironmentAttributeMap} as {@code EnvironmentAttributes.SKY_COLOR}.</p>
+     */
+    @Nullable
+    public static Integer skyColor(net.minecraft.core.BlockPos pos) {
+        Biome biome = activeBiome(pos);
+        if (biome == null) {
+            return null;
+        }
+        return biome.getAttributes().applyModifier(
+                net.minecraft.world.attribute.EnvironmentAttributes.SKY_COLOR,
+                net.minecraft.world.attribute.EnvironmentAttributes.SKY_COLOR.defaultValue());
+    }
 }

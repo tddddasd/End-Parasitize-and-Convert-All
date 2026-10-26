@@ -29,7 +29,8 @@
     "client.LivingEntityRendererHeartMixin",
     "client.LivingEntityRendererTintMixin",
     "client.BiomeColorsLikeBiomeMixin",
-    "client.FogRendererLikeBiomeMixin"
+    "client.FogRendererLikeBiomeMixin",
+    "client.SkyRendererLikeBiomeMixin"
   ],
   "injectors": {
     "defaultRequire": 1
