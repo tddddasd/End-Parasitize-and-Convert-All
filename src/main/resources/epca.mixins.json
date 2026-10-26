@@ -16,9 +16,7 @@
     "common.MobMixin",
     
     "common.PointedDripstoneBlockMixin",
-    "common.SugarCaneBlockMixin",
-    "common.LevelRainMixin",
-    "common.NaturalSpawnerLikeBiomeMixin"
+    "common.SugarCaneBlockMixin"
   ],
   "client": [
     "client.BiomeColorsMixin",
