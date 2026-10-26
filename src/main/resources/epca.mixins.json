@@ -16,7 +16,8 @@
     "common.MobMixin",
     
     "common.PointedDripstoneBlockMixin",
-    "common.SugarCaneBlockMixin"
+    "common.SugarCaneBlockMixin",
+    "common.LevelRainMixin"
   ],
   "client": [
     "client.BiomeColorsMixin",
@@ -27,7 +28,8 @@
     "client.ItemRendererShaderLayerMixin",
     "client.ItemRendererTwitchMixin",
     "client.LightningBoltRendererMixin",
-    "client.LivingEntityRendererTintMixin"
+    "client.LivingEntityRendererTintMixin",
+    "client.ClientLevelSkyMixin"
   ],
   "injectors": {
     "defaultRequire": 1

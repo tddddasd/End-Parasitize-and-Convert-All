@@ -92,4 +92,10 @@ public final class LikeBiomeClientEffects {
         Biome biome = activeBiome(pos);
         return biome == null ? null : biome.getFoliageColor();
     }
+
+    /** Sky colour of the like biome at {@code pos}, or {@code null}. */
+    public static Integer skyColor(BlockPos pos) {
+        Biome biome = activeBiome(pos);
+        return biome == null ? null : biome.getSkyColor();
+    }
 }
