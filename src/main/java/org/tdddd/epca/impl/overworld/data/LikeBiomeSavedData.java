@@ -3,7 +3,7 @@ package org.tdddd.epca.impl.overworld.data;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
@@ -13,8 +13,8 @@ import java.util.Map;
 /**
  * Stores which chunk units carry which like biome, per dimension.
  *
- * <p>The unit is one chunk column: that keeps the data small and makes "remove this chunk" a single key
- * lookup, while still matching how the client resolves biome colours per block position.</p>
+ * <p>The unit is one 4x4x4 section ({@link SectionPos}): a like biome can be stacked on a single small
+ * volume instead of a whole chunk column, which is what makes it useful for shaping a region.</p>
  */
 public class LikeBiomeSavedData extends SavedData {
 
@@ -30,23 +30,23 @@ public class LikeBiomeSavedData extends SavedData {
         return storage.computeIfAbsent(LikeBiomeSavedData::load, LikeBiomeSavedData::new, DATA_NAME);
     }
 
-    /** The like biome of the chunk containing {@code pos}, or {@code null}. */
+    /** The like biome of the 4x4x4 section containing {@code pos}, or {@code null}. */
     public LikeBiome at(BlockPos pos) {
-        return this.byChunk.get(ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4));
+        return this.byChunk.get(SectionPos.asLong(pos));
     }
 
-    public LikeBiome at(ChunkPos pos) {
-        return this.byChunk.get(pos.toLong());
+    public LikeBiome at(long sectionKey) {
+        return this.byChunk.get(sectionKey);
     }
 
-    public void set(ChunkPos pos, LikeBiome likeBiome) {
-        this.byChunk.put(pos.toLong(), likeBiome);
+    public void set(long sectionKey, LikeBiome likeBiome) {
+        this.byChunk.put(sectionKey, likeBiome);
         this.setDirty();
     }
 
     /** @return true when a like biome was actually removed */
-    public boolean remove(ChunkPos pos) {
-        if (this.byChunk.remove(pos.toLong()) != null) {
+    public boolean remove(long sectionKey) {
+        if (this.byChunk.remove(sectionKey) != null) {
             this.setDirty();
             return true;
         }

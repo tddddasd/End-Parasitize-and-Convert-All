@@ -5,7 +5,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.biome.Biome;
 
 import javax.annotation.Nullable;
@@ -46,17 +46,23 @@ public final class LikeBiomeManager {
         return stored;
     }
 
-    /** Stores one like biome for the chunk containing {@code pos}. */
+    /** Stores one like biome for the 4x4x4 section containing {@code pos}. */
     public static void set(ServerLevel level, BlockPos pos, LikeBiome likeBiome) {
-        LikeBiomeSavedData.get(level).set(new ChunkPos(pos), likeBiome);
+        long key = SectionPos.asLong(pos);
+        LikeBiomeSavedData.get(level).set(key, likeBiome);
+        org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket.sendAll(level, LikeBiomeSavedData.get(level));
     }
 
     public static boolean remove(ServerLevel level, BlockPos pos) {
-        return LikeBiomeSavedData.get(level).remove(new ChunkPos(pos));
+        boolean removed = LikeBiomeSavedData.get(level).remove(SectionPos.asLong(pos));
+        org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket.sendAll(level, LikeBiomeSavedData.get(level));
+        return removed;
     }
 
     public static int removeAll(ServerLevel level) {
-        return LikeBiomeSavedData.get(level).removeAll();
+        int count = LikeBiomeSavedData.get(level).removeAll();
+        org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket.sendAll(level, LikeBiomeSavedData.get(level));
+        return count;
     }
 
     /** True when {@code pos} sits in a chunk whose like biome overrides colours. */

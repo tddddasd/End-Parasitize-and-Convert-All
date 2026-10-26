@@ -105,6 +105,10 @@ public class ModNetwork {
                 InfestedSourcePacket.RequestAllInfestedSourcesPacket::encode,
                 InfestedSourcePacket.RequestAllInfestedSourcesPacket::decode,
                 InfestedSourcePacket.RequestAllInfestedSourcesPacket::handle);
+        INSTANCE.registerMessage(id++, org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket.class,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::encode,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::decode,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::handle);
         INSTANCE.registerMessage(id++,
                 SyncAllInfestedSourcesPacket.class,
                 SyncAllInfestedSourcesPacket::encode,
