@@ -19,7 +19,7 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 @Mixin(Level.class)
 public abstract class LevelRainMixin {
 
-    @Inject(method = "isRainingAt", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isRainingAt", at = @At("HEAD"), cancellable = true, require = 0)
     private void epca$likeBiomeRain(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
         Level self = (Level) (Object) this;
         if (!(self instanceof ServerLevel serverLevel)) {

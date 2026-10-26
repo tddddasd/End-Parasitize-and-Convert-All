@@ -27,7 +27,7 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 @Mixin(net.minecraft.world.level.NaturalSpawner.class)
 public abstract class NaturalSpawnerLikeBiomeMixin {
 
-    @Inject(method = "getRandomSpawnMobAt", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getRandomSpawnMobAt", at = @At("HEAD"), cancellable = true, require = 0)
     private static void epca$likeBiomeSpawn(ServerLevel level, ChunkGenerator generator, MobCategory category,
                                             RandomSource random, BlockPos pos,
                                             CallbackInfoReturnable<MobSpawnSettings.SpawnerData> cir) {
