@@ -89,7 +89,7 @@ public final class LikeBiomeCommand {
 
         LikeBiomeManager.set(level, pos, new LikeBiome(id, colors, rain, spawn));
         source.sendSuccess(() -> Component.literal(
-                "已将类群系 " + id + " 叠加到区块 (" + (pos.getX() >> 4) + ", " + (pos.getZ() >> 4) + ")"
+                "已将群系类群 " + id + " 叠加到区块 (" + (pos.getX() >> 4) + ", " + (pos.getZ() >> 4) + ")"
                         + "｜颜色=" + (colors ? "覆盖" : "不覆盖")
                         + "｜降雨=" + (rain ? "覆盖" : "不覆盖")
                         + "｜生物生成=" + LikeBiome.spawnModeName(spawn)), true);
@@ -101,15 +101,15 @@ public final class LikeBiomeCommand {
         BlockPos pos = BlockPos.containing(source.getPosition());
         boolean removed = LikeBiomeManager.remove(source.getLevel(), pos);
         source.sendSuccess(() -> Component.literal(removed
-                ? "已移除区块 (" + (pos.getX() >> 4) + ", " + (pos.getZ() >> 4) + ") 的类群系"
-                : "该区块没有类群系"), false);
+                ? "已移除区块 (" + (pos.getX() >> 4) + ", " + (pos.getZ() >> 4) + ") 的群系类群"
+                : "该区块没有群系类群"), false);
         return removed ? 1 : 0;
     }
 
     private static int removeAll(CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack source = ctx.getSource();
         int count = LikeBiomeManager.removeAll(source.getLevel());
-        source.sendSuccess(() -> Component.literal("已移除该维度全部类群系，共 " + count + " 个区块"), true);
+        source.sendSuccess(() -> Component.literal("已移除该维度全部群系类群，共 " + count + " 个区块"), true);
         return count;
     }
 
@@ -122,8 +122,8 @@ public final class LikeBiomeCommand {
         String realBiome = level.getBiome(pos).unwrapKey()
                 .map(key -> key.location().toString()).orElse("?");
         source.sendSuccess(() -> Component.literal(
-                "原群系: " + realBiome + "｜类群系: " + (like == null ? "无" : like.biomeId().toString())
-                        + "｜该维度类群系区块数: " + data.size()), false);
+                "原群系: " + realBiome + "｜群系类群: " + (like == null ? "无" : like.biomeId().toString())
+                        + "｜该维度群系类群区块数: " + data.size()), false);
         return like == null ? 0 : 1;
     }
 }
