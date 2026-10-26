@@ -28,7 +28,8 @@
     "client.LightningBoltRenderStateMixin",
     "client.LivingEntityRendererHeartMixin",
     "client.LivingEntityRendererTintMixin",
-    "client.BiomeColorsLikeBiomeMixin"
+    "client.BiomeColorsLikeBiomeMixin",
+    "client.FogRendererLikeBiomeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

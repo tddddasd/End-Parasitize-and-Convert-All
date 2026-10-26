@@ -58,4 +58,27 @@ public final class LikeBiomeClientEffects {
         return biome == null ? null : biome.getFoliageColor();
     }
 
+
+    /**
+     * Fog colour of the like biome, or {@code null}.
+     *
+     * <p>26.1.2 no longer exposes {@code Biome#getFogColor}: the colour lives in the biome's
+     * {@code EnvironmentAttributeMap} as {@code EnvironmentAttributes.FOG_COLOR}, so it is read with
+     * {@code applyModifier} against the attribute's default.</p>
+     */
+    @Nullable
+    public static org.joml.Vector4f fogColor(BlockPos pos) {
+        Biome biome = activeBiome(pos);
+        if (biome == null) {
+            return null;
+        }
+        int color = biome.getAttributes().applyModifier(
+                net.minecraft.world.attribute.EnvironmentAttributes.FOG_COLOR,
+                net.minecraft.world.attribute.EnvironmentAttributes.FOG_COLOR.defaultValue());
+        return new org.joml.Vector4f(
+                ((color >> 16) & 0xFF) / 255.0F,
+                ((color >> 8) & 0xFF) / 255.0F,
+                (color & 0xFF) / 255.0F,
+                1.0F);
+    }
 }
