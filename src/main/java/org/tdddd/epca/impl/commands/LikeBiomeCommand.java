@@ -18,7 +18,7 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeSavedData;
 
 /**
  * {@code /epca_biome_like} - stack a biome on top of the real one for the 4x4x4 section the command runs
- * in. The like biome never replaces the real one.
+ * in. The biome like never replaces the real one.
  */
 public final class LikeBiomeCommand {
 
@@ -76,7 +76,7 @@ public final class LikeBiomeCommand {
         }
         LikeBiomeManager.set(level, pos, new LikeBiome(id, colors, rain, spawn));
         source.sendSuccess(() -> Component.literal(
-                "like biome " + id + " stacked on section (" + (pos.getX() >> 2) + ", " + (pos.getY() >> 2)
+                "biome like " + id + " stacked on section (" + (pos.getX() >> 2) + ", " + (pos.getY() >> 2)
                         + ", " + (pos.getZ() >> 2) + ")"
                         + " | colors=" + colors
                         + " | rain=" + rain
@@ -89,15 +89,15 @@ public final class LikeBiomeCommand {
         BlockPos pos = BlockPos.containing(source.getPosition());
         boolean removed = LikeBiomeManager.remove(source.getLevel(), pos);
         source.sendSuccess(() -> Component.literal(removed
-                ? "removed the like biome of this section"
-                : "this section has no like biome"), false);
+                ? "removed the biome like of this section"
+                : "this section has no biome like"), false);
         return removed ? 1 : 0;
     }
 
     private static int removeAll(CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack source = ctx.getSource();
         int count = LikeBiomeManager.removeAll(source.getLevel());
-        source.sendSuccess(() -> Component.literal("removed " + count + " like biome sections in this dimension"), true);
+        source.sendSuccess(() -> Component.literal("removed " + count + " biome like sections in this dimension"), true);
         return count;
     }
 
@@ -110,8 +110,8 @@ public final class LikeBiomeCommand {
                 .map(key -> key.identifier().toString()).orElse("?");
         int total = LikeBiomeSavedData.get(level).size();
         source.sendSuccess(() -> Component.literal(
-                "real biome: " + real + " | like biome: " + (like == null ? "none" : like.biomeId().toString())
-                        + " | like biome sections here: " + total), false);
+                "real biome: " + real + " | biome like: " + (like == null ? "none" : like.biomeId().toString())
+                        + " | biome like sections here: " + total), false);
         return like == null ? 0 : 1;
     }
 }
