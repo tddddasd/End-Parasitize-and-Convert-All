@@ -16,13 +16,13 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeSavedData;
 
 /**
- * {@code /epca_like_biome} - stack a biome on top of the real one for the chunk the command runs in.
+ * {@code /epca_biome_like} - stack a biome on top of the real one for the chunk the command runs in.
  *
  * <pre>
- * /epca_like_biome set &lt;biome&gt; [colors] [rain] [spawn]
- * /epca_like_biome remove
- * /epca_like_biome removeall
- * /epca_like_biome info
+ * /epca_biome_like set &lt;biome&gt; [colors] [rain] [spawn]
+ * /epca_biome_like remove
+ * /epca_biome_like removeall
+ * /epca_biome_like info
  * </pre>
  *
  * <p>{@code colors}, {@code rain} are booleans; {@code spawn} is {@code override}, {@code coexist} or
@@ -34,7 +34,7 @@ public final class LikeBiomeCommand {
     }
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("epca_like_biome")
+        dispatcher.register(Commands.literal("epca_biome_like")
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("set")
                         .then(Commands.argument("biome", StringArgumentType.string())

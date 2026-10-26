@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 /**
  * Sends the whole like biome table of one dimension to its clients.
  *
- * <p>The table only changes when an operator runs {@code /epca_like_biome}, so sending it as a whole is
+ * <p>The table only changes when an operator runs {@code /epca_biome_like}, so sending it as a whole is
  * cheaper than tracking per section deltas.</p>
  */
 public class SyncLikeBiomesPacket {
