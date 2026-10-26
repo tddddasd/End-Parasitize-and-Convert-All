@@ -1,12 +1,14 @@
 package org.tdddd.epca.impl.mixin.common;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.util.random.WeightedRandomList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,26 +19,25 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 /**
  * Applies the like biome spawn mode.
  *
- * <ul>
- *   <li>{@code override} - the like biome's spawn table replaces the real biome's.</li>
- *   <li>{@code coexist}  - half the attempts use the like biome's table, the rest keep the real one, so
- *       both biome's mobs appear.</li>
- *   <li>{@code none}     - the like biome contributes nothing, i.e. the real biome spawns untouched.</li>
- * </ul>
+ * <p>Verified signature (javap on the 1.20.1 mapped jar):
+ * {@code private static WeightedRandomList<MobSpawnSettings.SpawnerData> mobsAt(ServerLevel,
+ * StructureManager, ChunkGenerator, MobCategory, BlockPos, Holder<Biome>)}. Overriding its result is the
+ * narrowest way to swap the spawn table, because the real biome is handed in as the last argument.</p>
  */
 @Mixin(net.minecraft.world.level.NaturalSpawner.class)
 public abstract class NaturalSpawnerLikeBiomeMixin {
 
-    @Inject(method = "getRandomSpawnMobAt", at = @At("HEAD"), cancellable = true, require = 0)
-    private static void epca$likeBiomeSpawn(ServerLevel level, ChunkGenerator generator, MobCategory category,
-                                            RandomSource random, BlockPos pos,
-                                            CallbackInfoReturnable<MobSpawnSettings.SpawnerData> cir) {
+    @Inject(method = "mobsAt", at = @At("RETURN"), cancellable = true, require = 0)
+    private static void epca$likeBiomeMobs(ServerLevel level, StructureManager structureManager,
+                                           ChunkGenerator generator, MobCategory category, BlockPos pos,
+                                           Holder<Biome> realBiome,
+                                           CallbackInfoReturnable<WeightedRandomList<MobSpawnSettings.SpawnerData>> cir) {
         LikeBiome like = LikeBiomeManager.activeAt(level, pos);
         if (like == null || like.spawnMode() == LikeBiome.SPAWN_NONE) {
             return;
         }
         // coexist keeps the real table half of the time
-        if (like.spawnMode() == LikeBiome.SPAWN_COEXIST && random.nextBoolean()) {
+        if (like.spawnMode() == LikeBiome.SPAWN_COEXIST && level.getRandom().nextBoolean()) {
             return;
         }
         var key = LikeBiomeManager.resolve(level, like.biomeId());
@@ -48,9 +49,6 @@ public abstract class NaturalSpawnerLikeBiomeMixin {
         if (biome == null) {
             return;
         }
-        // 1.20.1 returns an Optional here; an empty one means "nothing of this category spawns"
-        java.util.Optional<MobSpawnSettings.SpawnerData> picked =
-                biome.getMobSettings().getMobs(category).getRandom(random);
-        cir.setReturnValue(picked.orElse(null));
+        cir.setReturnValue(biome.getMobSettings().getMobs(category));
     }
 }

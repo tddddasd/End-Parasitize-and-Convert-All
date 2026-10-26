@@ -13,8 +13,8 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 /**
  * Lets a like biome override rain at a position.
  *
- * <p>Only the server can answer this, because the like biome table is server saved data; the client keeps
- * rendering whatever the server told it, which is the usual precipitation sync.</p>
+ * <p>Verified signature (javap on the 1.20.1 mapped jar):
+ * {@code public boolean isRainingAt(BlockPos)}.</p>
  */
 @Mixin(Level.class)
 public abstract class LevelRainMixin {
@@ -29,17 +29,15 @@ public abstract class LevelRainMixin {
         if (like == null || !like.overrideRain()) {
             return;
         }
+        var key = LikeBiomeManager.resolve(serverLevel, like.biomeId());
+        if (key == null) {
+            return;
+        }
         var biome = serverLevel.registryAccess()
-                .registryOrThrow(net.minecraft.core.registries.Registries.BIOME)
-                .get(LikeBiomeManager.resolve(serverLevel, like.biomeId()));
+                .registryOrThrow(net.minecraft.core.registries.Registries.BIOME).get(key);
         if (biome == null) {
             return;
         }
-        // rain in the like biome requires that biome to have precipitation and no sky obstruction
-        if (!biome.hasPrecipitation()) {
-            cir.setReturnValue(false);
-            return;
-        }
-        cir.setReturnValue(serverLevel.canSeeSky(pos) && serverLevel.getBiome(pos).value().hasPrecipitation());
+        cir.setReturnValue(biome.hasPrecipitation() && serverLevel.canSeeSky(pos));
     }
 }
