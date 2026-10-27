@@ -13,9 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.data.SafetyDaySavedData;
 import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
-import org.tdddd.epca.impl.events.NaturalSpawnProtection;
 
 @Mixin(Mob.class)
 public abstract class MobMixin {

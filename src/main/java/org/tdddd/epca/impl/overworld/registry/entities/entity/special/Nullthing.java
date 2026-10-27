@@ -245,13 +245,6 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
 
     
     @Override
-    public void checkDespawn() {
-        
-        this.noActionTime = 0;
-    }
-
-    
-    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
     }
