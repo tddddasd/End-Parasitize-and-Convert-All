@@ -11,6 +11,7 @@
     "common.LightningRodBlockMixin",
     "common.LivingEntityMixin",
     "common.MobMixin",
+    "common.ParasiteAiThrottleMixin",
     
     "common.PointedDripstoneBlockMixin",
     "common.SugarCaneBlockMixin",
@@ -28,6 +29,7 @@
     "client.LightningBoltRenderStateMixin",
     "client.LivingEntityRendererHeartMixin",
     "client.LivingEntityRendererTintMixin",
+    "client.ParasiteOcclusionMixin",
     "client.BiomeColorsLikeBiomeMixin",
     "client.FogRendererLikeBiomeMixin",
     "client.SkyRendererLikeBiomeMixin"
