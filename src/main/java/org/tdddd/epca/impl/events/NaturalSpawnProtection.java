@@ -158,45 +158,6 @@ public class NaturalSpawnProtection {
     }
 
     
-    public static boolean canBeNaturallyDespawned(Mob mob) {
-        if (!(mob.level() instanceof ServerLevel serverLevel)) {
-            return true;
-        }
-
-        Class<?> category = getMobCategory(mob);
-        if (category == null) {
-            return true;
-        }
-
-        
-        List<ServerPlayer> players = serverLevel.getServer().getPlayerList().getPlayers();
-
-        
-        ServerPlayer nearestPlayer = findNearestPlayerInDimension(mob, players, serverLevel);
-        if (nearestPlayer == null) {
-            return true;
-        }
-
-        
-        double distanceSq = mob.distanceToSqr(nearestPlayer);
-        if (distanceSq > CHECK_RADIUS * CHECK_RADIUS) {
-            return true;
-        }
-
-        
-        int threshold = calculateAdjustedThreshold(serverLevel, category);
-        if (threshold <= 0) {
-            return true;
-        }
-
-        
-        int countInRadius = countMobsInRadius(serverLevel, nearestPlayer, category, CHECK_RADIUS);
-
-        
-        return countInRadius > threshold;
-    }
-
-    
     private static ServerPlayer findNearestPlayerInDimension(Mob mob, List<ServerPlayer> players, ServerLevel level) {
         ServerPlayer nearest = null;
         double minDistance = Double.MAX_VALUE;

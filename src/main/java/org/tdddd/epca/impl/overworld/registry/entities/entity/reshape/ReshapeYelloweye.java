@@ -606,14 +606,6 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
 
         // 26.1.2: Mob#shouldDespawnInPeaceful() was removed. Peaceful-mode removal is expressed by
     // handling it in checkDespawn(), which is where vanilla consults the difficulty.
-    @Override
-    public void checkDespawn() {
-        if (this.level().getLevelData().getDifficulty() == net.minecraft.world.Difficulty.PEACEFUL) {
-            this.discard();
-            return;
-        }
-        super.checkDespawn();
-    }
 
     @Override
     public void onKillEntity(LivingEntity killedEntity) {
