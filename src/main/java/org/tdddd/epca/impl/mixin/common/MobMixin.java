@@ -20,35 +20,6 @@ import org.tdddd.epca.impl.events.NaturalSpawnProtection;
 @Mixin(Mob.class)
 public abstract class MobMixin {
 
-    @Inject(method = "checkDespawn", at = @At("HEAD"), cancellable = true)
-    private void onCheckDespawn(CallbackInfo ci) {
-        Mob mob = (Mob) (Object) this;
-        
-        if (!(mob.level() instanceof ServerLevel level)) return;
-
-        
-        if (mob instanceof IParasite) {
-            
-            SafetyDaySavedData data = SafetyDaySavedData.get(level);
-            long currentTick = level.getGameTime();
-            if (data.isSafetyDayActive(currentTick)) {
-                
-                if (NaturalSpawnProtection.isNaturallySpawned(mob)) {
-                    mob.discard();
-                    ci.cancel();
-                    return;
-                }
-            }
-        }
-
-        
-        boolean canDespawn = NaturalSpawnProtection.canBeNaturallyDespawned(mob);
-        if (!canDespawn) {
-            mob.setNoActionTime(0);
-            ci.cancel();
-        }
-    }
-
     @Inject(
             method = "finalizeSpawn",
             at = @At("HEAD"),

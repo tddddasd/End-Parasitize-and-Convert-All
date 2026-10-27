@@ -14,6 +14,7 @@
     "common.LivingEntityMixin",
     "common.MerchantOfferMixin",
     "common.MobMixin",
+    "common.ParasiteAiThrottleMixin",
     
     "common.PointedDripstoneBlockMixin",
     "common.SugarCaneBlockMixin",
@@ -30,6 +31,7 @@
     "client.ItemRendererTwitchMixin",
     "client.LightningBoltRendererMixin",
     "client.LivingEntityRendererTintMixin",
+    "client.ParasiteOcclusionMixin",
     "client.ClientLevelSkyMixin"
   ],
   "injectors": {
