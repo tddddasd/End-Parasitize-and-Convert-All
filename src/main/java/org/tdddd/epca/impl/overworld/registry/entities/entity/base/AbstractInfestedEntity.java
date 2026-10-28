@@ -247,7 +247,7 @@ public abstract class AbstractInfestedEntity extends AbstractEpcaEntity implemen
         }
 
         // Try fake death, else normal death
-        if (!this.level().isClientSide && this.getHealth() <= 0.0F && this.random.nextFloat() < fakeDeathBurstChance) {
+        if (!this.level().isClientSide && this.fakeDeathEnabled && this.getHealth() <= 0.0F && this.random.nextFloat() < fakeDeathBurstChance) {
             onTriggerFakeDeath(source);
             this.onDeath(source);
         } else {
