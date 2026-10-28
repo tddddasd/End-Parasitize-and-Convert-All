@@ -12,7 +12,6 @@
     "common.LivingEntityMixin",
     "common.MobMixin",
     "common.ParasiteAiThrottleMixin",
-    
     "common.PointedDripstoneBlockMixin",
     "common.SugarCaneBlockMixin",
     "common.LevelRainLikeBiomeMixin",
