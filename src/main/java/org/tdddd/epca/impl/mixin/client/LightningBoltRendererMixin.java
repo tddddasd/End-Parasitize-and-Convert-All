@@ -11,7 +11,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,13 +22,6 @@ import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 @Mixin(LightningBoltRenderer.class)
 public class LightningBoltRendererMixin {
     @Unique private static final ThreadLocal<Boolean> IS_PURPLE = ThreadLocal.withInitial(() -> false);
-
-    @Shadow private static void quad(Matrix4f p_253966_, VertexConsumer p_115274_,
-                                     float p_115275_, float p_115276_, int p_115277_,
-                                     float p_115278_, float p_115279_, float p_115280_,
-                                     float p_115281_, float p_115282_, float p_115283_,
-                                     float p_115284_, boolean p_115285_, boolean p_115286_,
-                                     boolean p_115287_, boolean p_115288_) { }
 
     @Inject(method = "render", at = @At("HEAD"))
     private void onRenderHead(LightningBolt entity, float p1, float p2, PoseStack poseStack,
@@ -62,7 +54,7 @@ public class LightningBoltRendererMixin {
             g = 0.2f;
             b = 1.0f;
         }
-        quad(matrix, consumer, x1, z1, segment, x2, z2, r, g, b, offset1, offset2,
+        LightningBoltRendererAccessor.epca$quad(matrix, consumer, x1, z1, segment, x2, z2, r, g, b, offset1, offset2,
                 flag1, flag2, flag3, flag4);
     }
 }

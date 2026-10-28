@@ -30,6 +30,7 @@
     "client.GameRendererShaderLayerMixin",
     "client.ItemRendererShaderLayerMixin",
     "client.ItemRendererTwitchMixin",
+    "client.LightningBoltRendererAccessor",
     "client.LightningBoltRendererMixin",
     "client.LivingEntityRendererTintMixin",
     "client.ParasiteOcclusionMixin",
