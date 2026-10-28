@@ -119,13 +119,23 @@ public class BeckonCoreBlockEntity extends BlockEntity
             if (be.lastGainTick == Long.MIN_VALUE) {
                 be.lastGainTick = now;
             } else if (now - be.lastGainTick >= IDLE_DEGRADE_TICKS) {
-                BlockState hiveState = org.tdddd.epca.impl.overworld.registry.ModBlocks.HIVE_NODE.get().defaultBlockState();
-                int carried = Math.min(be.biomassCount, org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_BIOMASS_COUNT);
-                server.setBlock(pos, hiveState, 3);
-                if (server.getBlockEntity(pos) instanceof org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity node) {
-                    node.setBiomassCount(carried);
+                // A core may only turn into a node when no hive structure is close enough to be
+                // joined, and when this chunk still has room for another natural node.
+                if (org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules
+                        .hasHiveStructureNearby(server, pos)
+                        || !org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules
+                        .canCreateNaturalNode(server, pos)) {
+                    be.lastGainTick = now;              // try again after another idle period
+                } else {
+                    BlockState hiveState = org.tdddd.epca.impl.overworld.registry.ModBlocks.HIVE_NODE.get().defaultBlockState();
+                    int carried = Math.min(be.biomassCount, org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_BIOMASS_COUNT);
+                    server.setBlock(pos, hiveState, 3);
+                    org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules.markNatural(server, pos);
+                    if (server.getBlockEntity(pos) instanceof org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity node) {
+                        node.setBiomassCount(carried);
+                    }
+                    return;
                 }
-                return;
             }
         }
 
