@@ -605,12 +605,9 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
             return;
         }
         this.detonated = true;
-        // PROXIMITY path: same lock/animate/remove sequence as the death burst. It has NO fire check -
-        // that is unchanged from before, so a burning head still detonates on proximity; only the
-        // death path is fire-gated (see resolveBurst()).
-        burstLock(null);
+        // Self-destruct immediately, without the fake-death health lock or dying pose.
+        selfDestructBurst();
     }
-
     /**
      * THE shared health-lock entry point for both burst paths ("锁血随后移除自身").
      *
@@ -773,30 +770,13 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
      */
     @Override
     public void die(DamageSource source) {
-        // Cow-style fake death FIRST (user: "使用与虫染牛类似的假死逻辑和音效，随后触发后续的伤害等逻辑").
-        // The cow rolls 40 %; the user asked for "similar", and the head already has a 100 % rule for
-        // the not-on-fire case, so the fake death is taken unconditionally here and the burst still
-        // fires afterwards through the two-phase path. `fakeDeathResolved` stops the re-entry that
-        // would otherwise happen when a second death source lands during the pose.
-        if (!this.isFakingDeath() && !this.fakeDeathResolved && !this.level().isClientSide()) {
-            triggerFakeDeath(source);
-            return;
-        }
-        if (this.fakeDeathResolved) {
-            // Coming out of the timer: super.die/onDeath and the burst were already handled there.
-            super.die(source);
-            return;
-        }
-
-        boolean burning = this.isOnFire();
+        // Walking heads die normally, without the fake-death health lock or dying pose.
         super.die(source);
         this.onDeath(source);
-        // README: bursts on death with 100 % probability UNLESS burning. No roll, no cooldown.
-        if (!burning) {
+        if (!this.isOnFire()) {
             selfDestruct();
         }
     }
-
     /**
      * Cow-style fake death, copied from {@code InfestedCow#triggerFakeDeath} ({@code :622-633}).
      *
