@@ -1,7 +1,9 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -41,6 +43,8 @@ public class HiveNodeBlockEntity extends BlockEntity
     private static final int GROWTH_MIN_TICKS = 15 * 20;
     private static final int GROWTH_MAX_TICKS = 30 * 20;
     private static final String GROWTH_TAG_PREFIX = "epca:hive_growth:";
+    /** Last game tick at which any hive node advanced this bug's growth; limits the speed-up to one step per second. */
+    private static final String GROWTH_ACCEL_TAG_PREFIX = "epca:hive_growth_accel:";
     private static final double CAPTIVE_RADIUS = 8.0D;
     private static final int INFEST_RADIUS = 8;
     private static final int INFEST_MIN_TICKS = 20 * 20;
@@ -50,6 +54,9 @@ public class HiveNodeBlockEntity extends BlockEntity
     private static final double RIPPER_RADIUS = 8.0D;
 
     private int biomassCount = 0;
+
+    /** True when the parasite ecology created this node rather than a player placing it. */
+    private boolean natural = false;
     private int biomassTimer = 0;
     private int spawnTimer = 0;
     private int growthTimer = 0;
@@ -116,6 +123,20 @@ public class HiveNodeBlockEntity extends BlockEntity
         return this.biomassCount < MAX_BIOMASS_COUNT;
     }
 
+    /** True when this node appeared from the parasite ecology instead of a player placing it. */
+    public boolean isNatural() {
+        return this.natural;
+    }
+
+    /** Marks this node as naturally created; the flag is persisted with the block entity. */
+    public void setNatural(boolean natural) {
+        if (this.natural == natural) {
+            return;
+        }
+        this.natural = natural;
+        this.setChanged();
+    }
+
     private void updateStage() {
         if (this.level == null || this.level.isClientSide()) {
             return;
@@ -138,6 +159,7 @@ public class HiveNodeBlockEntity extends BlockEntity
         this.inStructure = input.getBooleanOr("inStructure", false);
         this.structureRewarded = input.getBooleanOr("structureRewarded", false);
         this.knownStructureSize = input.getIntOr("knownStructureSize", 0);
+        this.natural = input.getBooleanOr("natural", false);
     }
 
     @Override
@@ -151,6 +173,7 @@ public class HiveNodeBlockEntity extends BlockEntity
         output.putBoolean("inStructure", this.inStructure);
         output.putBoolean("structureRewarded", this.structureRewarded);
         output.putInt("knownStructureSize", this.knownStructureSize);
+        output.putBoolean("natural", this.natural);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, HiveNodeBlockEntity be) {
@@ -257,6 +280,15 @@ public class HiveNodeBlockEntity extends BlockEntity
             }
         }
         boolean now = reached.size() >= STRUCTURE_MIN_NODES;
+        // A second hive structure may not appear within eight chunks of an existing one. Nodes of
+        // this group are excluded, because they are the structure that is being detected.
+        if (now && !this.inStructure
+                && org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules.hasHiveStructureWithinChunks(
+                        level, this.worldPosition,
+                        org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules.STRUCTURE_EXCLUSION_CHUNKS,
+                        reached)) {
+            now = false;
+        }
         if (now != this.inStructure) {
             this.inStructure = now;
             this.setChanged();
@@ -355,16 +387,46 @@ public class HiveNodeBlockEntity extends BlockEntity
         }
     }
 
+    /** The game tick at which a hive node last advanced this bug's growth (0 when never). */
+    private static long lastGrowthAccel(Entity entity) {
+        for (String tag : entity.entityTags()) {
+            if (tag.startsWith(GROWTH_ACCEL_TAG_PREFIX)) {
+                try {
+                    return Long.parseLong(tag.substring(GROWTH_ACCEL_TAG_PREFIX.length()));
+                } catch (NumberFormatException ignored) {
+                    return 0L;
+                }
+            }
+        }
+        return 0L;
+    }
+
+    private static void setLastGrowthAccel(Entity entity, long tick) {
+        for (String tag : new java.util.ArrayList<>(entity.entityTags())) {
+            if (tag.startsWith(GROWTH_ACCEL_TAG_PREFIX)) {
+                entity.removeTag(tag);
+            }
+        }
+        entity.addTag(GROWTH_ACCEL_TAG_PREFIX + tick);
+    }
+
     private void advanceCaptiveGrowth() {
         if (!(this.level instanceof ServerLevel level)) {
             return;
         }
         AABB area = new AABB(this.worldPosition).inflate(CAPTIVE_RADIUS);
+        long now = level.getGameTime();
         for (Curbug bug : level.getEntitiesOfClass(Curbug.class, area)) {
             int left = growthLeft(bug);
             if (left < 0) {
                 continue;
             }
+            // Several nodes can cover the same bug. Only the first one in each growth step may
+            // advance it, so overlapping nodes do not stack their acceleration.
+            if (now - lastGrowthAccel(bug) < GROWTH_CHECK_TICKS) {
+                continue;
+            }
+            setLastGrowthAccel(bug, now);
             left -= GROWTH_CHECK_TICKS;
             if (left > 0) {
                 setGrowthLeft(bug, left);
@@ -373,12 +435,19 @@ public class HiveNodeBlockEntity extends BlockEntity
             setGrowthLeft(bug, 0);
             double x = bug.getX(), y = bug.getY(), z = bug.getZ();
             float yaw = bug.getYRot(), pitch = bug.getXRot();
+            SoundSource source = bug.getSoundSource();
             bug.discard();
             Mob ripper = ModEntities.RIPPER.get().create(level, net.minecraft.world.entity.EntitySpawnReason.EVENT);
             if (ripper != null) {
                 ripper.absSnapTo(x, y, z, yaw, pitch);
                 level.addFreshEntity(ripper);
             }
+            // The same feedback as a natural curbub-to-ripper transformation, plus the explosion
+            // particle burst used when two creatures fuse.
+            level.playSound(null, x, y, z,
+                    org.tdddd.epca.impl.overworld.registry.ModSoundEvents.CURBUG_EVOLVE.get(),
+                    source, 1.0F, 1.0F);
+            level.sendParticles(ParticleTypes.EXPLOSION, x, y + 1.0D, z, 3, 1.0D, 1.0D, 1.0D, 0.1D);
         }
     }
 
@@ -391,10 +460,15 @@ public class HiveNodeBlockEntity extends BlockEntity
             if (!ripper.isAlive()) {
                 continue;
             }
-            this.setBiomassCount(this.biomassCount - RIPPER_GROWTH_COST);
             BlockPos target = ripper.blockPosition();
+            if (!org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules
+                    .canCreateNaturalNode(level, target)) {
+                return;                             // this chunk already holds its natural-node quota
+            }
+            this.setBiomassCount(this.biomassCount - RIPPER_GROWTH_COST);
             ripper.discard();
             level.setBlock(target, ModBlocks.HIVE_NODE.get().defaultBlockState(), 3);
+            org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules.markNatural(level, target);
             spawnBiomassParticles(level);
             return;
         }

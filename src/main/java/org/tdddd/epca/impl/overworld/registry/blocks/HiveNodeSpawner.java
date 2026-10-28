@@ -72,8 +72,12 @@ public final class HiveNodeSpawner {
             return false;
         }
         BlockPos pos = ripper.blockPosition();
+        if (!HiveNodeRules.canCreateNaturalNode(level, pos)) {
+            return false;                           // this chunk already holds its natural-node quota
+        }
         ripper.discard();
         level.setBlock(pos, ModBlocks.HIVE_NODE.get().defaultBlockState(), 3);
+        HiveNodeRules.markNatural(level, pos);
         return true;
     }
 }

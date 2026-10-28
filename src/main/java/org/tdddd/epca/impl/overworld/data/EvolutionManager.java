@@ -100,6 +100,12 @@ public class EvolutionManager {
             return;
         }
 
+        // Early erosion stages grow more slowly: stage 0 gains only a quarter of the points,
+        // stage 1 half, stage 2 three quarters (rounded up). From stage 3 on the gain is unchanged.
+        if (amount > 0) {
+            amount = scalePointGain(amount, oldStage);
+        }
+
         int newPoints = evolutionPoints + amount;
 
         
@@ -110,6 +116,23 @@ public class EvolutionManager {
         evolutionPoints = clampPoints(newPoints);
         dataStorage.setPointsForDimension(level.dimension(), evolutionPoints);
         checkForStageChange(oldStage);
+    }
+
+    /**
+     * Multiplier applied to positive erosion point gains at the three earliest erosion stages.
+     * Rounded up so a gain always adds at least one point when it would otherwise be fractional.
+     */
+    private static int scalePointGain(int amount, int stage) {
+        double multiplier = switch (stage) {
+            case 0 -> 0.25D;
+            case 1 -> 0.5D;
+            case 2 -> 0.75D;
+            default -> 1.0D;
+        };
+        if (multiplier == 1.0D) {
+            return amount;
+        }
+        return (int) Math.ceil(amount * multiplier);
     }
 
     
