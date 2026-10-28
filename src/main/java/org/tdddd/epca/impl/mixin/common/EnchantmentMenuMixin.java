@@ -8,7 +8,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -20,10 +19,11 @@ import java.util.List;
 
 @Mixin(EnchantmentMenu.class)
 public abstract class EnchantmentMenuMixin {
-    @Shadow
-    private net.minecraft.world.Container enchantSlots;  
+    private net.minecraft.world.Container epca$slots() {
+        return ((EnchantmentMenuAccessor) (Object) this).epca$getEnchantSlots();
+    }
 
-    
+
     @Inject(
             method = "clickMenuButton",
             at = @At(
@@ -33,11 +33,11 @@ public abstract class EnchantmentMenuMixin {
             )
     )
     private void addCurses(Player player, int buttonId, CallbackInfoReturnable<Boolean> cir) {
-        ItemStack lapis = this.enchantSlots.getItem(1);
+        ItemStack lapis = this.epca$slots().getItem(1);
         if (!(lapis.getItem() instanceof InfestedLapisLazuli)) return;
 
-        
-        ItemStack enchantedItem = this.enchantSlots.getItem(0);
+
+        ItemStack enchantedItem = this.epca$slots().getItem(0);
         if (enchantedItem.isEmpty()) return;
 
         List<Holder<Enchantment>> curses = new ArrayList<>();

@@ -9,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -21,14 +20,19 @@ import java.util.Optional;
 
 @Mixin(BeaconMenu.class)
 public abstract class BeaconMenuMixin {
-    @Shadow private Container beacon;
-    @Shadow private ContainerLevelAccess access;
+    private Container epca$beacon() {
+        return ((BeaconMenuAccessor) (Object) this).epca$getBeacon();
+    }
+
+    private ContainerLevelAccess epca$access() {
+        return ((BeaconMenuAccessor) (Object) this).epca$getAccess();
+    }
 
     @Inject(method = "updateEffects", at = @At("HEAD"))
     private void onUpdateEffectsHead(Optional<MobEffect> primary, Optional<MobEffect> secondary, CallbackInfo ci) {
-        ItemStack stack = this.beacon.getItem(0);
+        ItemStack stack = this.epca$beacon().getItem(0);
         Item item = stack.getItem();
-        this.access.execute((level, pos) -> {
+        this.epca$access().execute((level, pos) -> {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof BeaconBlockEntity beaconBlock) {
                 IBeaconMixin mixin = (IBeaconMixin) beaconBlock;

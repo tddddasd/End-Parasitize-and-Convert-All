@@ -5,8 +5,10 @@
   "mixins": [
     "common.AbstractVillagerMixin",
     "common.BeaconBlockEntityMixin",
+    "common.BeaconMenuAccessor",
     "common.BeaconMenuMixin",
     "common.CactusBlockMixin",
+    "common.EnchantmentMenuAccessor",
     "common.EnchantmentMenuMixin",
     "common.LightningRodBlockMixin",
     "common.LivingEntityMixin",
