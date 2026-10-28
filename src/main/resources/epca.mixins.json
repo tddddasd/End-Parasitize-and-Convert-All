@@ -15,7 +15,6 @@
     "common.MerchantOfferMixin",
     "common.MobMixin",
     "common.ParasiteAiThrottleMixin",
-    
     "common.PointedDripstoneBlockMixin",
     "common.SugarCaneBlockMixin",
     "common.LevelRainMixin",
