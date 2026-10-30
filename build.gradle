@@ -122,6 +122,10 @@ repositories {
         url "https://maven.tterrag.com/"
     }
 
+    maven { // local bundled mod jars (epca_dismemberment)
+        url uri("localrepo")
+    }
+
     maven {
         url "https://www.cursemaven.com"
     }
@@ -146,6 +150,9 @@ dependencies {
 
     implementation fg.deobf("org.tdddd.eej:eej:1.0.0")
 
+    // EPCA-only dismemberment companion (jar-in-jar, local Maven repo).
+    implementation "org.tdddd.epca_dismemberment:epca_dismemberment:1.0.9"
+
     // 鍓嶇疆妯＄粍 epca_physics锛氱墿鐞嗗寲鏂瑰潡/缁撴瀯鐨勫疄浣撳熀绫伙紙寮轰緷璧栵紝瑙?META-INF/mods.toml锛?
     // Valkyrien Skies (soft dependency): the public API interfaces (ServerShip, PhysShip, ...) live in
     // the nested api jar, the mod classes (ShipAssembler, VSGameUtilsKt) in the mod jar.
@@ -169,6 +176,9 @@ dependencies {
     jarJar(group: 'software.bernie.geckolib', name: 'geckolib-forge-1.20.1', version: '[4.8.4,4.9)')
     jarJar(group: 'com.eliotlash.mclib', name: 'mclib', version: '[20,)')
     jarJar(group: 'org.tdddd.yawning_neko_api', name: 'yawningapi', version: '[1.0.4,)')
+
+    // EPCA-only dismemberment companion (jar-in-jar).
+    jarJar(group: 'org.tdddd.epca_dismemberment', name: 'epca_dismemberment', version: '[1.0.9,1.0.9]')
 
     // epca_physics (prerequisite mod, resolved from flatDir 'libs'): bundle it inside our own jar.
     // Maven-style coordinates are used so JarJar gets a real group/artifact id and a supported
@@ -252,7 +262,7 @@ tasks.named('processResources', ProcessResources).configure {
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
         expand replaceProperties + [project: project]
     }
-    from(layout.buildDirectory.dir("main/resources/META-INF")) {
+    from(layout.buildDirectory.dir("tmp/compileJava")) {
         include "epca.refmap.json"
     }
 }

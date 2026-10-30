@@ -48,7 +48,9 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         public Integer minResultCount = 1;
         public Integer maxResultCount = 1;
         public Boolean allowDuplicateResults = true;
-        public List<EntityResult> fixedResults;   
+        public List<EntityResult> fixedResults;
+        public String conversion_particle;
+        public String conversion_particle_color;
 
         @Override
         public boolean equals(Object o) {
@@ -645,8 +647,36 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         }
 
         private void playCompletionEffects() {
-            level.sendParticles(ParticleTypes.EXPLOSION, spawnPos.getX(), spawnPos.getY() + 1, spawnPos.getZ(),
-                    3, 1.0, 1.0, 1.0, 0.1);
+            // Summoning pillars (beckon stages) must not show a conversion burst.
+            if (rule.results != null && !rule.results.isEmpty()
+                    && rule.results.get(0).entity != null
+                    && rule.results.get(0).entity.contains("beckon")) {
+                return;
+            }
+            int variant = 0;
+            String id = rule.conversion_particle;
+            if (id != null) {
+                if (id.contains("infested")) variant = 1;
+                else if (id.contains("onesent")) variant = 2;
+                else if (id.contains("poverty")) variant = 3;
+                else if (id.contains("reshape")) variant = 4;
+            } else if (rule.results != null && !rule.results.isEmpty()) {
+                var type = net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getValue(
+                        new net.minecraft.resources.ResourceLocation(rule.results.get(0).entity));
+                if (type != null) {
+                    var probe = type.create(level);
+                    if (probe instanceof org.tdddd.epca.impl.overworld.registry.entities.IInfested) variant = 1;
+                    else if (probe instanceof org.tdddd.epca.impl.overworld.registry.entities.IOnesent) variant = 2;
+                    else if (probe instanceof org.tdddd.epca.impl.overworld.registry.entities.IPoverty) variant = 3;
+                    else if (probe instanceof org.tdddd.epca.impl.overworld.registry.entities.IReshape) variant = 4;
+                }
+            }
+            int color = 0x3F5A2A;
+            if (rule.conversion_particle_color != null) {
+                try { color = Integer.parseInt(rule.conversion_particle_color.replace("#", ""), 16); } catch (Exception ignored) {}
+            }
+            org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(level,
+                    spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5, variant, color);
         }
 
         private void cancelIntegration() {

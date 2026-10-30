@@ -295,6 +295,10 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         else {
             
             float healthThreshold = 0.3f;
+            if (entity.hasEffect(org.tdddd.epca.impl.overworld.registry.ModEffects.SYMBIOSIS_LIE.get())) {
+                healthThreshold = entity.hasEffect(org.tdddd.epca.impl.overworld.registry.ModEffects.CONTEMPT_INORGANIC.get())
+                        ? 0.10f : 0.05f;
+            }
             canConvert = (entity.getHealth() <= entity.getMaxHealth() * healthThreshold) ||
                     (killedByParasite && isSmallEntity && !entity.isAlive());
         }
@@ -556,6 +560,12 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         } else {
             EntityConversionUtil.convertTo(entity, ModEntities.MEDIUM_INCOMPLETE_FORM.get());
         }
+
+        // Hardcoded generic results (small/medium/large incomplete forms) use poverty_conversion.
+        if (entity.level() instanceof ServerLevel serverLevel) {
+            org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel,
+                    entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(), 3, 0xFFFFFF);
+        }
     }
 
     
@@ -766,6 +776,9 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             
             serverLevel.addFreshEntity(newEntity);
 
+            // Hardcoded non-living result (contaminated water) uses the poverty variant.
+            org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel, newEntity, 3, 0xFFFFFF);
+
             
             sendConversionFade(newEntity);
         }
@@ -774,6 +787,15 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
     
     public static void sendConversionFade(Entity newEntity) {
         if (newEntity instanceof LivingEntity livingNew) {
+            if (livingNew.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                int variant = 0;
+                if (livingNew instanceof org.tdddd.epca.impl.overworld.registry.entities.IInfested) variant = 1;
+                else if (livingNew instanceof org.tdddd.epca.impl.overworld.registry.entities.IOnesent) variant = 2;
+                else if (livingNew instanceof org.tdddd.epca.impl.overworld.registry.entities.IPoverty) variant = 3;
+                else if (livingNew instanceof org.tdddd.epca.impl.overworld.registry.entities.IReshape) variant = 4;
+                // Low-saturation deep green, used by the slime conversion data by default.
+                org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel, livingNew, variant, 0x3F5A2A);
+            }
             ModNetwork.sendToAllTracking(
                     new ColorEffectPacket(livingNew, TYPE_CONVERSION_FADE, 6), livingNew);
         }

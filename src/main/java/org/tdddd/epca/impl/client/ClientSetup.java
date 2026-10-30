@@ -95,6 +95,16 @@ public class ClientSetup {
                     return new BleedingParticle.BleedingParticleProvider(spriteSet);
                 });
 
+        event.registerSpriteSet(ModParticles.CONVERSION.get(), spriteSet ->
+                spriteSet == null ? null : new org.tdddd.epca.impl.client.particles.ConversionParticle.Provider(spriteSet, true));
+        event.registerSpriteSet(ModParticles.HORIZONTAL_CONVERSION.get(), spriteSet ->
+                spriteSet == null ? null : new org.tdddd.epca.impl.client.particles.HorizontalConversionParticle.Provider(spriteSet));
+        for (var type : java.util.List.of(ModParticles.INFESTED_CONVERSION, ModParticles.ONESENT_CONVERSION,
+                ModParticles.POVERTY_CONVERSION, ModParticles.RESHAPE_CONVERSION)) {
+            event.registerSpriteSet(type.get(), spriteSet ->
+                    spriteSet == null ? null : new org.tdddd.epca.impl.client.particles.ConversionParticle.Provider(spriteSet, false));
+        }
+
         event.registerSpriteSet(
                 ModParticles.LIVING_FLESH.get(),
                 spriteSet -> {

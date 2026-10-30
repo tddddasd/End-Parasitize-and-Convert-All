@@ -146,7 +146,8 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
                 if (!this.level().isClientSide) {
                     executeExplosionEffects();
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return;
             }
             return;
@@ -561,4 +562,14 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

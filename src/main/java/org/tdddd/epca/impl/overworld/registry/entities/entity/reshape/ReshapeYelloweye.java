@@ -361,7 +361,8 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             explosionTimer--;
             if (explosionTimer <= 0) {
                 if (!this.level().isClientSide) executeExplosionEffects();
-                this.discard();
+                triggerDismemberment();
+this.discard();
             }
             return;
         }
@@ -1028,4 +1029,14 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         
         blocksToDestroy.addAll(toDestroy);
     }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

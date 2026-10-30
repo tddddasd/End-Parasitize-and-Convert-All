@@ -490,7 +490,8 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
                 }
 
                 
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -1027,4 +1028,14 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
     public boolean isOwner(@Nullable LivingEntity entity) {
         return this.ownerUUID != null && entity != null && entity.getUUID().equals(this.ownerUUID);
     }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

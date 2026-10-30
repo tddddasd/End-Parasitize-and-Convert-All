@@ -254,6 +254,7 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
         if (!this.level().isClientSide) {
             onFakeDeathBurst();
         }
+        triggerDismemberment();
         this.discard();
     }
 
@@ -384,4 +385,16 @@ public abstract class AbstractEpcaEntity extends PathfinderMob
 
     /** Override to provide custom ambient sound. */
     protected SoundEvent getAmbientSound() { return null; }
+
+    /** Optional soft hook: the bundled epca_dismemberment mod turns this entity into gibs. */
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+            // The dismemberment jar is optional; nothing changes if it is absent.
+        }
+    }
+
 }

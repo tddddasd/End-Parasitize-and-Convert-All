@@ -10,6 +10,8 @@ import org.tdddd.epca.impl.overworld.registry.effects.buff.CamouflageEffect;
 import org.tdddd.epca.impl.overworld.registry.effects.buff.SpiritEffect;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.effects.buff.RageEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.buff.HyperplasiaEffect;
+import org.tdddd.epca.impl.overworld.registry.effects.buff.SymbiosisLieEffect;
 import org.tdddd.epca.impl.overworld.registry.effects.debuff.*;
 
 public class ModEffects {
@@ -60,6 +62,12 @@ public class ModEffects {
 
     public static final RegistryObject<MobEffect> SOUL_PROTECTION =
             EFFECTS.register("soul_protection", SoulProtectionEffect::new);
+
+    public static final RegistryObject<MobEffect> HYPERPLASIA =
+            EFFECTS.register("hyperplasia", HyperplasiaEffect::new);
+
+    public static final RegistryObject<MobEffect> SYMBIOSIS_LIE =
+            EFFECTS.register("symbiosis_lie", SymbiosisLieEffect::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);

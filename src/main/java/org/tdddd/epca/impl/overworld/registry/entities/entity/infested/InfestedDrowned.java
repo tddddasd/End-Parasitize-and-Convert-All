@@ -581,7 +581,8 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                 }
 
                 
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -1112,4 +1113,14 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             super.travel(travelVector);
         }
     }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

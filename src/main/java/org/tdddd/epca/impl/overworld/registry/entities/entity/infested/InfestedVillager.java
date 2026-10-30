@@ -316,7 +316,8 @@ public class InfestedVillager extends PathfinderMob implements IOverlayRenderabl
                 }
 
                 
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -926,4 +927,14 @@ public class InfestedVillager extends PathfinderMob implements IOverlayRenderabl
     public net.minecraft.resources.ResourceLocation getOverlayTexture() {
         return new net.minecraft.resources.ResourceLocation("epca", "textures/entity/infested_villager_plains.png");
     }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

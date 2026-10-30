@@ -583,6 +583,7 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
         }
         this.detonated = true;
         // Self-destruct immediately, without the fake-death health lock or dying pose.
+        triggerDismemberment();
         selfDestructBurst();
     }
     /**
@@ -986,4 +987,14 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, IPara
             }
         }
     }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

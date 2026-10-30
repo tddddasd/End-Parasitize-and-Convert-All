@@ -1015,7 +1015,8 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
             placeBurstWeb(serverLevel);
         }
 
-        this.discard();
+        triggerDismemberment();
+this.discard();
     }
 
     /** Variant effect on nearby non-parasites, matching the head: BLOOD -> Bleeding, CAVE -> Poison. */
@@ -1235,4 +1236,14 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, IParasit
             }
         }
     }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

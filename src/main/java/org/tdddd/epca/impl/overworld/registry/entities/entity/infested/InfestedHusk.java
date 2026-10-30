@@ -300,7 +300,8 @@ public class InfestedHusk extends PathfinderMob implements GeoEntity, IParasite,
                 }
 
                 
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -798,4 +799,14 @@ public class InfestedHusk extends PathfinderMob implements GeoEntity, IParasite,
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

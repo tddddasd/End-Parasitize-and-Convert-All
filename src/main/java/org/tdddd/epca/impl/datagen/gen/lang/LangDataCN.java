@@ -156,6 +156,8 @@ public class LangDataCN extends LanguageProvider {
         
         add("effect.epca.bleeding", "流血");
         add("effect.epca.link", "连结");
+        add("effect.epca.hyperplasia", "增生");
+        add("effect.epca.symbiosis_lie", "共生谎言");
         add("effect.epca.viral", "病毒");
         add("effect.epca.fear", "恐慌");
         add("effect.epca.para_curse", "\u00a7c虫咒缚身");
