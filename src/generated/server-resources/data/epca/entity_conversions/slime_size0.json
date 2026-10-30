@@ -8,5 +8,7 @@
   },
   "priority": 1,
   "small_entity_priority": false,
-  "to": "epca:infested_slime_size0"
+  "to": "epca:infested_slime_size0",
+  "conversion_particle": "epca:conversion",
+  "conversion_particle_color": "#3F5A2A"
 }

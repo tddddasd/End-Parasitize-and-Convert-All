@@ -328,6 +328,10 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         else {
             
             float healthThreshold = 0.3f;
+            if (entity.hasEffect(org.tdddd.epca.impl.overworld.registry.ModEffects.SYMBIOSIS_LIE)) {
+                healthThreshold = entity.hasEffect(org.tdddd.epca.impl.overworld.registry.ModEffects.CONTEMPT_INORGANIC)
+                        ? 0.10f : 0.05f;
+            }
             canConvert = (entity.getHealth() <= entity.getMaxHealth() * healthThreshold) ||
                     (killedByParasite && isSmallEntity && !entity.isAlive());
         }
@@ -650,6 +654,15 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
      */
     public static void notifyConvertedEntity(Entity newEntity) {
         if (newEntity instanceof LivingEntity living) {
+            if (living.level() instanceof ServerLevel serverLevel) {
+                int variant = 0;
+                if (living instanceof org.tdddd.epca.impl.overworld.registry.entities.IInfested) variant = 1;
+                else if (living instanceof org.tdddd.epca.impl.overworld.registry.entities.IOnesent) variant = 2;
+                else if (living instanceof org.tdddd.epca.impl.overworld.registry.entities.IPoverty) variant = 3;
+                else if (living instanceof org.tdddd.epca.impl.overworld.registry.entities.IReshape) variant = 4;
+                org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel, living, variant,
+                        variant == 0 ? 0x3F5A2A : 0xFFFFFF);
+            }
             ModNetwork.sendToAllTracking(living,
                     new ColorEffectPacket(living, COLOR_TYPE_CONVERSION_FADE, CONVERSION_FADE_TICKS));
         }
@@ -835,6 +848,7 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
 
             
             serverLevel.addFreshEntity(newEntity);
+            org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel, newEntity, 3, 0xFFFFFF);
 
             notifyConvertedEntity(newEntity);
         }

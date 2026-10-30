@@ -14,7 +14,7 @@
     },
     {
       "type": "minecraft:single",
-      "resource": "epca:mob_effect/coth"
+      "resource": "epca:mob_effect/para_curse"
     },
     {
       "type": "minecraft:single",
@@ -55,6 +55,14 @@
     {
       "type": "minecraft:single",
       "resource": "epca:mob_effect/soul_protection"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/hyperplasia"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "epca:mob_effect/symbiosis_lie"
     }
   ]
 }

@@ -292,7 +292,8 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -940,4 +941,12 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
         }
         return false; 
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

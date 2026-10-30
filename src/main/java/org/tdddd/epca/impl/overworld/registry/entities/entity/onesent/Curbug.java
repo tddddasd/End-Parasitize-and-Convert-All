@@ -248,7 +248,8 @@ public class Curbug extends AbstractOnesentEntity {
             serverLevel.addFreshEntity(rupter);
             serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
-            serverLevel.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.5, this.getZ(), 5, 0.5, 0.5, 0.5, 0.1);
+            org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel,
+                    this.getX(), this.getY() + 0.5, this.getZ(), 2, 0xFFFFFF);
             this.discard();
         }
     }

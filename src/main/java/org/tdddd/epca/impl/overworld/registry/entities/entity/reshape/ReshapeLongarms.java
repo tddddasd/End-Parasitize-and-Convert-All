@@ -1024,6 +1024,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
+                triggerDismemberment();
                 this.discard();
                 return;
             }
@@ -1603,4 +1604,12 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, IParasi
     public boolean isBackPartRemoved() {
         return backPartRemoved;
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

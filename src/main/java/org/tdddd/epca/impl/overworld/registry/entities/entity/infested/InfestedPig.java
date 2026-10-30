@@ -210,7 +210,8 @@ public class InfestedPig extends PathfinderMob implements GeoEntity, IParasite, 
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -575,4 +576,12 @@ public class InfestedPig extends PathfinderMob implements GeoEntity, IParasite, 
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

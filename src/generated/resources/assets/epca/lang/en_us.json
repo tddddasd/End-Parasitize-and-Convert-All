@@ -471,5 +471,7 @@
   "tooltip.epca.negative": "Negative: %s",
   "tooltip.epca.player_attack_count": "Attack count: %d/%d",
   "block.epca.hive_node": "Hive Node",
-  "effect.epca.link": "Link"
+  "effect.epca.link": "Link",
+  "effect.epca.hyperplasia": "Hyperplasia",
+  "effect.epca.symbiosis_lie": "Symbiosis Lie"
 }

@@ -226,7 +226,8 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return;
             }
             return;
@@ -707,4 +708,12 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             }
         }
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

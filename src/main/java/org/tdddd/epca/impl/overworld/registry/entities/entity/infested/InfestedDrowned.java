@@ -495,7 +495,8 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -927,4 +928,12 @@ public class InfestedDrowned extends PathfinderMob implements GeoEntity, IParasi
             super.travel(travelVector);
         }
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

@@ -431,7 +431,8 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return;
             }
             return;
@@ -1692,4 +1693,12 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 return Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_enderman.png");
         }
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

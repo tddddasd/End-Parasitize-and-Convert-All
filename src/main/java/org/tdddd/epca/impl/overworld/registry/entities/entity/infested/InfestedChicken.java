@@ -231,7 +231,8 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
                         spawnChickenHeads(serverLevel, deathPos, 2);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -816,4 +817,12 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

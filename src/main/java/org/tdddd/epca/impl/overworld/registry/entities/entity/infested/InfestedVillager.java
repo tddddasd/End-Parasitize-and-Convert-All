@@ -274,7 +274,8 @@ public class InfestedVillager extends PathfinderMob implements IOverlayRenderabl
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -763,4 +764,12 @@ public class InfestedVillager extends PathfinderMob implements IOverlayRenderabl
     public net.minecraft.resources.Identifier getOverlayTexture() {
         return Identifier.fromNamespaceAndPath("epca", "textures/entity/infested_villager_plains.png");
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

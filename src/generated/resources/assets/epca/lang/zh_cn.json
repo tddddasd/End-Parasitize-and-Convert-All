@@ -465,5 +465,7 @@
   "tooltip.epca.negative": "负面：%s",
   "tooltip.epca.player_attack_count": "攻击次数: %d/%d",
   "block.epca.hive_node": "虫巢节点",
-  "effect.epca.link": "连结"
+  "effect.epca.link": "连结",
+  "effect.epca.hyperplasia": "增生",
+  "effect.epca.symbiosis_lie": "共生谎言"
 }

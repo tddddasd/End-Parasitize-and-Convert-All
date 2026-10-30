@@ -315,7 +315,8 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
             }
             return;
         }
@@ -747,4 +748,12 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         }
         return motion;
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

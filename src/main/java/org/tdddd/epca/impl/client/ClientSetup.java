@@ -37,6 +37,8 @@ public class ClientSetup {
         // FMLClientSetupEvent to EpcaRenderClient.onClientSetup, which is what registers the shipped
         // bindings; this keeps that entry point and that ordering.
         org.tdddd.epca.impl.client.render.EpcaRenderClient.onClientSetup(event);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(
+                org.tdddd.epca.impl.client.render.EpcaGibRenderer.class);
     }
 
     /**
@@ -109,6 +111,17 @@ public class ClientSetup {
 
     @SubscribeEvent
     public static void registerParticles(RegisterParticleProvidersEvent event) {
+        event.registerSpriteSet(ModParticles.CONVERSION.get(), spriteSet ->
+                spriteSet == null ? null : new org.tdddd.epca.impl.client.particles.ConversionParticle.Provider(spriteSet, true));
+        // Variant 5: flat-on-the-ground burst, used by the Symbiosis Lie death burst.
+        event.registerSpriteSet(ModParticles.HORIZONTAL_CONVERSION.get(), spriteSet ->
+                spriteSet == null ? null : new org.tdddd.epca.impl.client.particles.HorizontalConversionParticle.Provider(spriteSet));
+        for (var type : java.util.List.of(ModParticles.INFESTED_CONVERSION, ModParticles.ONESENT_CONVERSION,
+                ModParticles.POVERTY_CONVERSION, ModParticles.RESHAPE_CONVERSION)) {
+            event.registerSpriteSet(type.get(), spriteSet ->
+                    spriteSet == null ? null : new org.tdddd.epca.impl.client.particles.ConversionParticle.Provider(spriteSet, false));
+        }
+
         event.registerSpriteSet(
                 ModParticles.SPLASHI.get(),
                 spriteSet -> {

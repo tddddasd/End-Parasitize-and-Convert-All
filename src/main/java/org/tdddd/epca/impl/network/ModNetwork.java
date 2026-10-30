@@ -113,6 +113,9 @@ public class ModNetwork {
         //  GUI 52  +  +  +
         registrar.playToClient(SyncHiveLeaderOrgansPacket.TYPE, SyncHiveLeaderOrgansPacket.STREAM_CODEC,
                 SyncHiveLeaderOrgansPacket::handle);
+        // EPCA-only render-only gibs.
+        registrar.playToClient(DismemberS2CPacket.TYPE, DismemberS2CPacket.STREAM_CODEC,
+                DismemberS2CPacket::handle);
     }
 
     

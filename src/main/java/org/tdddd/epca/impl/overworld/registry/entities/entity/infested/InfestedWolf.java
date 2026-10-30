@@ -423,7 +423,8 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
                         serverLevel.addFreshEntity(cloud);
                     }
                 }
-                this.discard();
+                triggerDismemberment();
+this.discard();
                 return; 
             }
             
@@ -866,4 +867,12 @@ public class InfestedWolf extends PathfinderMob implements IOverlayRenderable, G
     public boolean isOwner(@Nullable LivingEntity entity) {
         return this.ownerUUID != null && entity != null && entity.getUUID().equals(this.ownerUUID);
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }

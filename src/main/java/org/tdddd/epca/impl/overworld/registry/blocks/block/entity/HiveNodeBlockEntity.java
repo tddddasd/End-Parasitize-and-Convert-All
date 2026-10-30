@@ -235,6 +235,11 @@ public class HiveNodeBlockEntity extends BlockEntity
     }
 
     private boolean spawnCurbug(ServerLevel level) {
+        // A full block directly above the node blocks the spawn point.
+        net.minecraft.core.BlockPos above = this.worldPosition.above();
+        if (level.getBlockState(above).isCollisionShapeFullBlock(level, above)) {
+            return false;
+        }
         Mob mob = ModEntities.CURBUG.get().create(level, net.minecraft.world.entity.EntitySpawnReason.EVENT);
         if (mob == null) {
             return false;

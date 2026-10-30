@@ -27,7 +27,9 @@ public class EffectSpriteData extends SpriteSourceProvider {
                 "bleeding", "viral", "fear", "para_curse",
                 "contempt_inorganic", "corrosive", "rage", "needler",
                 "deep_sneak", "solidify", "ender_erosion",
-                "camouflage", "spirit", "soul_protection"
+                "camouflage", "spirit", "soul_protection",
+                // Hyperplasia and Symbiosis Lie icons (same list the 1.20.1 build uses).
+                "hyperplasia", "symbiosis_lie"
         };
 
         for (String name : effectTextures) {

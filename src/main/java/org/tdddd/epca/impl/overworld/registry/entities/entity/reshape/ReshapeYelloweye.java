@@ -325,7 +325,8 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             explosionTimer--;
             if (explosionTimer <= 0) {
                 if (!this.level().isClientSide()) executeExplosionEffects();
-                this.discard();
+                triggerDismemberment();
+this.discard();
             }
             return;
         }
@@ -894,4 +895,12 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         }
         blocksToDestroy.addAll(toDestroy);
     }
+
+    private void triggerDismemberment() {
+        try {
+            org.tdddd.epca.impl.network.packet.s2c.DismemberS2CPacket.send(this);
+        } catch (Throwable ignored) {
+        }
+    }
+
 }
