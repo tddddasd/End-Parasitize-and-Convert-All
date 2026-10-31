@@ -69,6 +69,11 @@ public class ModEffects {
     public static final RegistryObject<MobEffect> SYMBIOSIS_LIE =
             EFFECTS.register("symbiosis_lie", SymbiosisLieEffect::new);
 
+    /** 虫染不详之兆 - carrying it into a village starts an infested raid. */
+    public static final RegistryObject<MobEffect> INFESTED_OMEN =
+            EFFECTS.register("infested_omen",
+                    org.tdddd.epca.impl.overworld.registry.effects.debuff.InfestedOmenEffect::new);
+
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);
     }

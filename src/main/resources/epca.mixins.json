@@ -34,7 +34,9 @@
     "client.LightningBoltRendererMixin",
     "client.LivingEntityRendererTintMixin",
     "client.ParasiteOcclusionMixin",
-    "client.ClientLevelSkyMixin"
+    "client.ClientLevelSkyMixin",
+    "client.VideoSettingsScreenAccessor",
+    "client.VideoSettingsScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

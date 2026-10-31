@@ -109,6 +109,10 @@ public class ModNetwork {
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::encode,
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::decode,
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::handle);
+        INSTANCE.registerMessage(id++, org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket.class,
+                org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket::encode,
+                org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket::decode,
+                org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket::handle);
         INSTANCE.registerMessage(id++,
                 SyncAllInfestedSourcesPacket.class,
                 SyncAllInfestedSourcesPacket::encode,

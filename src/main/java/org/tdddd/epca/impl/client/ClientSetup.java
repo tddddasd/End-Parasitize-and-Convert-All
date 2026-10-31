@@ -30,6 +30,9 @@ public class ClientSetup {
         EpcaRenderClient.onClientSetup(event);
         
         event.enqueueWork(() -> {
+            // Load the saved gib sliders once and hand them to the bundled epca_dismemberment mod, so the
+            // very first death already uses them even if the player never opens Video Settings.
+            EpcaClientSettings.syncToCompanion();
             MenuScreens.register(ModMenus.SWALLOW_CYST.get(), SwallowCystScreen::new);
             Item bloodyClock = ModItems.BLOODY_CLOCK.get();
             ItemProperties.register(bloodyClock, new ResourceLocation("stage"),

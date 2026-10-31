@@ -173,6 +173,16 @@ public class LangDataCN extends LanguageProvider {
         add("effect.epca.soul_protection", "灵魂格护");
         add("effect.epca.fear.message", "你正处于恐慌状态！");
 
+        // 视频设置滑动选项（碎块爆发）
+        add("epca.option.gib_limit", "生物碎块数量");
+        add("epca.option.gib_limit.max", "最大（无限）");
+        add("epca.option.gib_multiplier", "碎块倍率（调试）");
+
+        // 虫染袭击
+        add("effect.epca.infested_omen", "虫染不详之兆");
+        add("epca.raid.bar", "虫染袭击 - 第 %s/%s 波");
+        add("epca.raid.started", "虫染袭击开始了！");
+
         
         add("item.epca.wooden_spear", "木矛");
         add("item.epca.stone_spear", "石矛");
