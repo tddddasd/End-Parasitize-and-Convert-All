@@ -171,6 +171,16 @@ public class LangDataEN extends LanguageProvider {
         add("effect.epca.soul_protection", "Soul Protection");
         add("effect.epca.fear.message", "You're in a state of panic!");
 
+        // Video settings sliders (gib burst)
+        add("epca.option.gib_limit", "Mob gib pieces");
+        add("epca.option.gib_limit.max", "Max");
+        add("epca.option.gib_multiplier", "Gib multiplier (debug)");
+
+        // Infested raid
+        add("effect.epca.infested_omen", "Infested Omen");
+        add("epca.raid.bar", "Infested Raid - Wave %s/%s");
+        add("epca.raid.started", "An infested raid has begun!");
+
         // Items
         add("item.epca.wooden_spear", "Wooden Spear");
         add("item.epca.stone_spear", "Stone Spear");

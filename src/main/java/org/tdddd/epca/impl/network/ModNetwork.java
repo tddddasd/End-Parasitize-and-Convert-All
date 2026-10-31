@@ -116,6 +116,9 @@ public class ModNetwork {
         // EPCA-only render-only gibs.
         registrar.playToClient(DismemberS2CPacket.TYPE, DismemberS2CPacket.STREAM_CODEC,
                 DismemberS2CPacket::handle);
+        // Infested raid victory barrier state (full replace).
+        registrar.playToClient(RaidBarrierS2CPacket.TYPE, RaidBarrierS2CPacket.STREAM_CODEC,
+                RaidBarrierS2CPacket::handle);
     }
 
     

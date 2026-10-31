@@ -467,5 +467,11 @@
   "block.epca.hive_node": "虫巢节点",
   "effect.epca.link": "连结",
   "effect.epca.hyperplasia": "增生",
-  "effect.epca.symbiosis_lie": "共生谎言"
+  "effect.epca.symbiosis_lie": "共生谎言",
+  "epca.option.gib_limit": "生物碎块数量",
+  "epca.option.gib_limit.max": "最大（无限）",
+  "epca.option.gib_multiplier": "碎块倍率（调试）",
+  "effect.epca.infested_omen": "虫染不详之兆",
+  "epca.raid.bar": "虫染袭击 - 第 %s/%s 波",
+  "epca.raid.started": "虫染袭击开始了！"
 }

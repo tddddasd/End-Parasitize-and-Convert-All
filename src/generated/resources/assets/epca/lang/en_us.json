@@ -473,5 +473,11 @@
   "block.epca.hive_node": "Hive Node",
   "effect.epca.link": "Link",
   "effect.epca.hyperplasia": "Hyperplasia",
-  "effect.epca.symbiosis_lie": "Symbiosis Lie"
+  "effect.epca.symbiosis_lie": "Symbiosis Lie",
+  "epca.option.gib_limit": "Mob gib pieces",
+  "epca.option.gib_limit.max": "Max",
+  "epca.option.gib_multiplier": "Gib multiplier (debug)",
+  "effect.epca.infested_omen": "Infested Omen",
+  "epca.raid.bar": "Infested Raid - Wave %s/%s",
+  "epca.raid.started": "An infested raid has begun!"
 }

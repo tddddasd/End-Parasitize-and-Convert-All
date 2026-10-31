@@ -25,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.bus.api.SubscribeEvent;
+import org.tdddd.epca.impl.client.EpcaClientSettings;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
 
 import java.util.ArrayList;
@@ -34,7 +35,6 @@ import java.util.List;
 /** Render-only dismemberment pieces, mirroring the 1.20.1 epca_dismemberment behaviour. */
 public final class EpcaGibRenderer {
     private static final List<Piece> PIECES = new ArrayList<>();
-    private static final int MAX_PARTS = 7;
 
     public static void add(String typeId, double x, double y, double z,
                            float yaw, float pitch, float width, float height) {
@@ -67,10 +67,15 @@ public final class EpcaGibRenderer {
             collect(bone, 0, 0, 0, candidates, texture);
         }
         if (candidates.isEmpty()) return;
-        if (candidates.size() > MAX_PARTS) {
-            candidates = new ArrayList<>(candidates.subList(0, MAX_PARTS));
-        }
-        for (Piece p : candidates) {
+
+        // Piece count comes from the Video Settings sliders instead of a hard-coded 7. The limit slider
+        // never asks for more parts than the model has; the debug multiplier may overshoot it, in which
+        // case the shuffled parts are repeated to reach the requested amount.
+        int count = EpcaClientSettings.resolvePieceCount(candidates.size());
+        if (count <= 0) return;
+        java.util.Collections.shuffle(candidates, new java.util.Random(level.getRandom().nextLong()));
+        for (int i = 0; i < count; i++) {
+            Piece p = candidates.get(i % candidates.size()).duplicate();
             p.baseX = (float) x; p.baseY = (float) y; p.baseZ = (float) z;
             p.yaw = p.yawO = yaw; p.pitch = p.pitchO = pitch;
             p.width = width; p.height = height;
@@ -155,6 +160,12 @@ public final class EpcaGibRenderer {
             this.halfX = Math.max(0.02F, hx); this.halfY = Math.max(0.02F, hy); this.halfZ = Math.max(0.02F, hz);
             this.spawnX = sx; this.spawnY = sy; this.spawnZ = sz;
             this.fadeStart = 40 + (int) (Math.random() * 20);
+        }
+
+        /** Fresh piece with the same geometry but its own motion/fade state (used when the multiplier repeats a part). */
+        Piece duplicate() {
+            return new Piece(this.cubes, this.texture, this.centerX, this.centerY, this.centerZ,
+                    this.halfX, this.halfY, this.halfZ, this.spawnX, this.spawnY, this.spawnZ);
         }
 
         void initMotion(ClientLevel level) {

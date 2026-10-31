@@ -33,7 +33,9 @@
     "client.ParasiteOcclusionMixin",
     "client.BiomeColorsLikeBiomeMixin",
     "client.FogRendererLikeBiomeMixin",
-    "client.SkyRendererLikeBiomeMixin"
+    "client.SkyRendererLikeBiomeMixin",
+    "client.OptionsSubScreenAccessor",
+    "client.VideoSettingsScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
