@@ -32,7 +32,6 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         super(properties);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {
@@ -44,14 +43,12 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         return super.getCollisionShape(state, level, pos, context);
     }
 
-    
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         Direction tipDir = state.getValue(TIP_DIRECTION);
         return isValidPointedDripstonePlacement(level, pos, tipDir);
     }
 
-    
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
                                   LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
@@ -75,7 +72,6 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         return state.setValue(THICKNESS, newThickness);
     }
 
-    
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
@@ -109,13 +105,11 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         }
     }
 
-    
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        
+
     }
 
-    
     private static boolean isCompatible(BlockState state) {
         return state.getBlock() instanceof PointedDripstoneBlock;
     }
@@ -124,7 +118,6 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         return isCompatible(state) && state.getValue(TIP_DIRECTION) == direction;
     }
 
-    
     private static boolean isValidPointedDripstonePlacement(LevelReader level, BlockPos pos, Direction direction) {
         BlockPos oppositePos = pos.relative(direction.getOpposite());
         BlockState oppositeState = level.getBlockState(oppositePos);
@@ -132,7 +125,6 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
                 || isCompatibleWithDirection(oppositeState, direction);
     }
 
-    
     @Nullable
     private static Direction calculateTipDirection(LevelReader level, BlockPos pos, Direction preferredDir) {
         if (isValidPointedDripstonePlacement(level, pos, preferredDir)) {
@@ -144,7 +136,6 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         }
     }
 
-    
     @Nullable
     private static DripstoneThickness calculateDripstoneThickness(LevelReader level, BlockPos pos,
                                                                   Direction tipDir, boolean mergeIfTip) {
@@ -173,19 +164,17 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         }
     }
 
-    
     @Override
     public void fallOn(Level level, BlockState state, BlockPos pos, Entity entity, float fallDistance) {
         boolean damaged = false;
-        
+
         if (state.getValue(TIP_DIRECTION) == Direction.UP && state.getValue(THICKNESS) == DripstoneThickness.TIP) {
             damaged = entity.causeFallDamage(fallDistance + 2.0F, 2.0F, level.damageSources().stalagmite());
         } else {
-            
+
             damaged = entity.causeFallDamage(fallDistance, 1.0F, level.damageSources().fall());
         }
 
-        
         if (damaged && entity instanceof LivingEntity living) {
             living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 30 * 20, 0));
         }
@@ -195,13 +184,13 @@ public class InfestedPointedDripstone extends PointedDripstoneBlock implements I
         BlockPos.MutableBlockPos mutable = pos.mutable();
         BlockState currentState = state;
         while (isStalactite(currentState)) {
-            
+
             FallingBlockEntity entity = FallingBlockEntity.fall(level, mutable, currentState);
             if (isTip(currentState, true)) {
                 int height = Math.max(1 + pos.getY() - mutable.getY(), 6);
                 float damage = 1.0F * height;
                 entity.setHurtsEntities(damage, 40);
-                break; 
+                break;
             }
             mutable.move(Direction.DOWN);
             currentState = level.getBlockState(mutable);

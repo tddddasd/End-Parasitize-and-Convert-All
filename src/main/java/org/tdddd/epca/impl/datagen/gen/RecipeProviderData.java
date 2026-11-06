@@ -21,7 +21,6 @@ import org.tdddd.epca.impl.overworld.registry.ModItems;
 
 import java.util.function.Consumer;
 
-
 public class RecipeProviderData extends RecipeProvider {
     public RecipeProviderData(PackOutput output) { super(output); }
 
@@ -34,33 +33,27 @@ public class RecipeProviderData extends RecipeProvider {
 
     @Override
     protected void buildRecipes(Consumer<FinishedRecipe> c) {
-        
+
         spearCrafting(c, Items.FLINT,          modItem("flint_spear"));
         spearCrafting(c, Items.COPPER_INGOT,   modItem("copper_spear"));
         spearCrafting(c, Items.IRON_INGOT,     modItem("iron_spear"));
         spearCrafting(c, Items.GOLD_INGOT,     modItem("golden_spear"));
         spearCrafting(c, Items.DIAMOND,        modItem("diamond_spear"));
-        // wooden/stone use tags, not single items
+
         spearCraftingTag(c, ItemTags.PLANKS,            modItem("wooden_spear"));
         spearCraftingTag(c, ItemTags.STONE_CRAFTING_MATERIALS, modItem("stone_spear"));
 
-        
         spearRecycling(c, modItem("copper_spear"),  ModItems.COPPER_NUGGET.get(), 0.1F);
         spearRecycling(c, modItem("iron_spear"),    Items.IRON_NUGGET,  0.1F);
         spearRecycling(c, modItem("golden_spear"),  Items.GOLD_NUGGET,  0.1F);
 
-        
         rawRecycling(c, modItem("infested_raw_copper"), ModItems.COPPER_NUGGET.get(), 0.1F);
         rawRecycling(c, modItem("infested_raw_iron"),   Items.IRON_NUGGET,  0.1F);
         rawRecycling(c, modItem("infested_raw_gold"),   Items.GOLD_NUGGET,  0.1F);
 
-        
         netheriteSmithing(c, modItem("diamond_spear"), modItem("netherite_spear"));
     }
 
-    
-
-    
     private void spearCrafting(Consumer<FinishedRecipe> c, Item material, Item result) {
         String matName = ForgeRegistries.ITEMS.getKey(material).getPath();
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
@@ -71,7 +64,6 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(c, modId(resultName + "_crafting_shaped"));
     }
 
-    
     private void spearCraftingTag(Consumer<FinishedRecipe> c, TagKey<Item> materialTag, Item result) {
         String tagPath = materialTag.location().getPath();
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
@@ -82,9 +74,6 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(c, modId(resultName + "_crafting_shaped"));
     }
 
-    
-
-    
     private void spearRecycling(Consumer<FinishedRecipe> c, Item spear, Item result, float xp) {
         String spearName = ForgeRegistries.ITEMS.getKey(spear).getPath();
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
@@ -101,7 +90,6 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(c, modId(spearName + "_blasting"));
     }
 
-    
     private void rawRecycling(Consumer<FinishedRecipe> c, Item raw, Item result, float xp) {
         String rawName = ForgeRegistries.ITEMS.getKey(raw).getPath();
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
@@ -118,9 +106,6 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(c, modId(rawName + "_blasting"));
     }
 
-    
-
-    
     private void netheriteSmithing(Consumer<FinishedRecipe> c, Item base, Item result) {
         String resultName = ForgeRegistries.ITEMS.getKey(result).getPath();
         SmithingTransformRecipeBuilder.smithing(

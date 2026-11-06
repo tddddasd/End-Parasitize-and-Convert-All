@@ -14,9 +14,7 @@ import org.tdddd.epca.impl.network.packet.c2s.*;
 import org.tdddd.epca.impl.network.packet.s2c.*;
 
 public class ModNetwork {
-    // STAGE B  1  C2S
-    // <b> id </b>id
-    // /
+
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(epca.MODID, "main"),
@@ -135,59 +133,41 @@ public class ModNetwork {
                 SyncHiveLeadersPacket::new,
                 SyncHiveLeadersPacket::handle);
 
-        // Batch sync of the entities carrying epca:soul_protection, so the flame shows on creatures
-        // and not only on the local player (vanilla only sends the mob-effect packet to that player).
         INSTANCE.registerMessage(id++, SyncSoulProtectionPacket.class,
                 SyncSoulProtectionPacket::encode,
                 SyncSoulProtectionPacket::decode,
                 SyncSoulProtectionPacket::handle);
 
-        // Visual state of the running sacrifice rituals, so the client can draw the purple aura the
-        // server-side BlockConversionManager owns and fade it out when the lightning falls.
         INSTANCE.registerMessage(id++, SyncRitualAuraPacket.class,
                 SyncRitualAuraPacket::encode,
                 SyncRitualAuraPacket::decode,
                 SyncRitualAuraPacket::handle);
 
-        // The Alayavijnana aura: which players carry a staff whose  counter reached the threshold
-        // (that is what drives the looping BGM and the fire field around them).
         INSTANCE.registerMessage(id++, SyncArayaAuraPacket.class,
                 SyncArayaAuraPacket::encode,
                 SyncArayaAuraPacket::decode,
                 SyncArayaAuraPacket::handle);
 
-        // The render-only vanilla fire blocks around those players. The server rolls where, how tall and
-        // for how long; the client only draws.
         INSTANCE.registerMessage(id++, SyncArayaFirePacket.class,
                 SyncArayaFirePacket::encode,
                 SyncArayaFirePacket::decode,
                 SyncArayaFirePacket::handle);
 
-        // One Alayavijnana slash: the white 50-degree cut with its refracting border, spawned by a kill
-        // of another player with the renamed staff.
         INSTANCE.registerMessage(id++, SpawnArayaSlashPacket.class,
                 SpawnArayaSlashPacket::encode,
                 SpawnArayaSlashPacket::decode,
                 SpawnArayaSlashPacket::handle);
 
-        //  1 20
-        //  0 =
         INSTANCE.registerMessage(id++, SyncHotbarMarkPacket.class,
                 SyncHotbarMarkPacket::encode,
                 SyncHotbarMarkPacket::decode,
                 SyncHotbarMarkPacket::handle);
 
-        //  2 2 /4  + 1.5
-        //  3 ""
         INSTANCE.registerMessage(id++, ScreenCorruptionPacket.class,
                 ScreenCorruptionPacket::encode,
                 ScreenCorruptionPacket::decode,
                 ScreenCorruptionPacket::handle);
 
-        //  GUISTAGE 1
-        //  C2S "" getSender()
-        //  S2C 52  ItemStack + 52
-        //       handle  lambda
         INSTANCE.registerMessage(id++, RequestOpenHiveLeaderOrgansPacket.class,
                 RequestOpenHiveLeaderOrgansPacket::encode,
                 RequestOpenHiveLeaderOrgansPacket::decode,
@@ -197,26 +177,16 @@ public class ModNetwork {
                 SyncHiveLeaderOrgansPacket::decode,
                 SyncHiveLeaderOrgansPacket::handle);
 
-        //  GUISTAGE 2
-        //   +  +
-        //   /  /  /  /
-        //   S2C
         INSTANCE.registerMessage(id++, HiveLeaderOrganActionPacket.class,
                 HiveLeaderOrganActionPacket::encode,
                 HiveLeaderOrganActionPacket::decode,
                 HiveLeaderOrganActionPacket::handle);
 
-        //  GUISTAGE B
-        //  ""
-        //   >= 2  20
-        //  id  id
         INSTANCE.registerMessage(id++, HiveLeaderOrganTeleportPacket.class,
                 HiveLeaderOrganTeleportPacket::encode,
                 HiveLeaderOrganTeleportPacket::decode,
                 HiveLeaderOrganTeleportPacket::handle);
 
-        //  ""
-        //  id  id
         INSTANCE.registerMessage(id++, HiveLeaderDecomposeParasitePacket.class,
                 HiveLeaderDecomposeParasitePacket::encode,
                 HiveLeaderDecomposeParasitePacket::decode,

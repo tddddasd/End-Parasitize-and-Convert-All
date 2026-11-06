@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -27,7 +28,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedCactus extends Block implements InfestedBlockInterface {
@@ -75,7 +75,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
         }
 
         if (entity instanceof LivingEntity living) {
-            if (IParasite.isParasiteByTagOrInterface(living)) {
+            if (ParasiteEvents.isParasiteByTagOrInterface(living)) {
                 return;
             }
             living.hurt(entity.damageSources().cactus(), 1.5F);

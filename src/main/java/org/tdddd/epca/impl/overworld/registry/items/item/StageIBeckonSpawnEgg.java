@@ -42,26 +42,22 @@ public class StageIBeckonSpawnEgg extends ForgeSpawnEggItem {
             return InteractionResult.FAIL;
         }
 
-        
         CompoundTag persistentData = player.getPersistentData();
 
-        
         int stage = EvolutionManager.getStageForDimension(serverLevel);
         if (stage < 3) {
-            
+
             long now = System.currentTimeMillis();
             long lastFail = persistentData.getLong(LAST_FAIL_TIME_KEY);
             int failCount = persistentData.getInt(FAIL_COUNT_KEY);
 
-            
             if (now - lastFail > RESET_INTERVAL_MS) {
                 failCount = 0;
             }
-            failCount++; 
+            failCount++;
             persistentData.putLong(LAST_FAIL_TIME_KEY, now);
             persistentData.putInt(FAIL_COUNT_KEY, failCount);
 
-            
             float factor = Math.min(failCount / 10.0f, 1.0f);
             int red = 255;
             int green = (int) (255 * (1 - factor));
@@ -75,7 +71,6 @@ public class StageIBeckonSpawnEgg extends ForgeSpawnEggItem {
             return InteractionResult.FAIL;
         }
 
-        
         BlockPos blockPos = context.getClickedPos();
         Direction direction = context.getClickedFace();
         ItemStack itemStack = context.getItemInHand();
@@ -94,7 +89,6 @@ public class StageIBeckonSpawnEgg extends ForgeSpawnEggItem {
                 itemStack.shrink(1);
             }
 
-            
             persistentData.remove(LAST_FAIL_TIME_KEY);
             persistentData.remove(FAIL_COUNT_KEY);
 

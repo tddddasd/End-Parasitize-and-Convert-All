@@ -10,7 +10,6 @@ import org.tdddd.epca.impl.epca;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-
 public class HallWorldGenData extends DatapackBuiltinEntriesProvider {
 
     public static final RegistrySetBuilder BUILDER = new RegistrySetBuilder()

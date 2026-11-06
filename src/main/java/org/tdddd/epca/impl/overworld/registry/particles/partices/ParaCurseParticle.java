@@ -10,16 +10,16 @@ public class ParaCurseParticle extends TextureSheetParticle {
     public ParaCurseParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet sprites) {
         super(level, x, y, z, xd, yd, zd);
         this.sprites = sprites;
-        this.lifetime = 32; 
+        this.lifetime = 32;
         this.setSpriteFromAge(sprites);
-        
-        this.xd = 0; 
-        this.yd = 0; 
-        this.zd = 0; 
-        
+
+        this.xd = 0;
+        this.yd = 0;
+        this.zd = 0;
+
         this.gravity = 0.0F;
-        
-        this.quadSize = 0.1F; 
+
+        this.quadSize = 0.1F;
     }
 
     @Override
@@ -35,7 +35,6 @@ public class ParaCurseParticle extends TextureSheetParticle {
         return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
     }
 
-    
     public static class ParaCurseParticleProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 

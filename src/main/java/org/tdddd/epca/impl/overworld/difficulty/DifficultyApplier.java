@@ -1,13 +1,13 @@
 package org.tdddd.epca.impl.overworld.difficulty;
 
 import net.minecraft.world.entity.Entity;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.epca;
 import net.minecraft.nbt.CompoundTag;
 
@@ -21,7 +21,7 @@ public class DifficultyApplier {
         Entity entity = event.getEntity();
 
         if (entity instanceof Player player && HiveLeaderManager.isHiveLeader(player.getUUID())) {
-            // Players are no longer IParasite; the leader stat bonus is applied through the world data hooks.
+
             CompoundTag persistentData = player.getPersistentData();
             if (!persistentData.getBoolean(DIFFICULTY_APPLIED_TAG)) {
                 org.tdddd.epca.impl.overworld.data.HiveLeaderPlayerHooks.applyDifficultyStatModifiers(player);
@@ -29,11 +29,11 @@ public class DifficultyApplier {
             }
         }
 
-        if (entity instanceof LivingEntity && entity instanceof IParasite parasite && !(entity instanceof Player)) {
+        if (entity instanceof LivingEntity living && ParasiteEvents.isParasiteEntity(living) && !(entity instanceof Player)) {
             CompoundTag persistentData = entity.getPersistentData();
-            
+
             if (!persistentData.getBoolean(DIFFICULTY_APPLIED_TAG)) {
-                parasite.applyDifficultyStatModifiers();
+                ParasiteEvents.applyDifficultyStatModifiers(living);
                 persistentData.putBoolean(DIFFICULTY_APPLIED_TAG, true);
             }
         }

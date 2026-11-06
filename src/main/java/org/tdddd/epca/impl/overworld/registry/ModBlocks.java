@@ -380,8 +380,6 @@ public class ModBlocks {
             () -> new InfestedPointedDripstone(BlockBehaviour.Properties.copy(Blocks.POINTED_DRIPSTONE).mapColor(DyeColor.LIGHT_GRAY))
     );
 
-    
-
     public static final RegistryObject<Block> HIVE_NODE = BLOCKS.register(
             "hive_node",
             () -> new HiveNode(Block.Properties.of().strength(15.0F, 25.0F).sound(SoundType.MUDDY_MANGROVE_ROOTS).mapColor(DyeColor.GREEN).requiresCorrectToolForDrops()));

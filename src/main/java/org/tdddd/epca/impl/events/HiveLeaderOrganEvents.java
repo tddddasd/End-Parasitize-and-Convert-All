@@ -7,33 +7,12 @@ import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganCarry;
 
-/**
- *  GUI STAGE 2 + STAGE 3 /
- *
- * <p>STAGE 2  /
- * {@link HiveLeaderOrganCarry}
- *  {@code ServerPlayer} </p>
- *
- * <p>STAGE 3  / <b></b>STAGE A  7  9
- *  {@code entity_gravity}
- * {@link HiveLeaderOrganDamageHandler#clear}
- * {@code HiveLeaderOrganEffects#clear}
- *
- * {@code epca#onPlayerTick}
- *  {@code addTransientModifier}  transient
- *  UUID </p>
- *
- * <p> {@code ClientHandlerI}  {@code @Mod.EventBusSubscriber}
- * <b></b> {@code value = Dist.CLIENT}
- * </p>
- */
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class HiveLeaderOrganEvents {
 
     private HiveLeaderOrganEvents() {
     }
 
-    /** +  STAGE 3  */
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -43,7 +22,6 @@ public final class HiveLeaderOrganEvents {
         HiveLeaderOrganDamageHandler.clear(player);
     }
 
-    /**  tick  */
     @SubscribeEvent
     public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -53,18 +31,6 @@ public final class HiveLeaderOrganEvents {
         HiveLeaderOrganDamageHandler.clear(player);
     }
 
-    /**
-     *
-     *
-     * <p> {@code epca#onPlayerTick}
-     * {@code HiveLeaderOrganEffects#notLeader}
-     *
-     *
-     *  tick  {@code notLeader} </p>
-     *
-     * <p> tick  {@code HiveLeaderOrganEffects#tick}
-     * </p>
-     */
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -73,4 +39,3 @@ public final class HiveLeaderOrganEvents {
         HiveLeaderOrganDamageHandler.clear(player);
     }
 }
-

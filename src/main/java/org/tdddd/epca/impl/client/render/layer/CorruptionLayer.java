@@ -12,47 +12,16 @@ import org.tdddd.epca.impl.events.render.ItemRenderRegistry;
 import org.tdddd.epca.impl.client.render.ItemShaderRenderTypes;
 import org.tdddd.epca.impl.client.render.shader.EpcaShaders;
 
-/**
- *  RottenRuinsSplendiding  corruption
- *
- * <h3></h3>
- * <ol>
- *   <li>RGB </li>
- *   <li> + </li>
- *   <li>/</li>
- *   <li></li>
- *   <li></li>
- *   <li> + </li>
- *   <li></li>
- *   <li></li>
- * </ol>
- * {@link ItemLayerConfig#twitch()}
- *
- * <h3></h3>
- * {@link CorruptionPulse#intensity}   NBT
- * {@code epca_corruption}
- * {@link ItemLayerConfig#strength()}
- *
- * <h3></h3>
- * <pre>{@code
- * ItemRenderRegistry.attach(ModItems.ENDER_BLADE_SCRAP, ItemShaderLayers.CORRUPTION);
- *
- * ItemRenderRegistry.attach(ModItems.CLUSTER, ItemShaderLayers.CORRUPTION,
- *         ItemLayerConfig.builder().strength(0.8f).twitch(true).build());
- * }</pre>
- */
 public final class CorruptionLayer implements IItemShaderLayer {
 
     public static final String NAME = "corruption";
 
     public static final CorruptionLayer INSTANCE = new CorruptionLayer();
 
-    /**  RottenRuinsSplendiding  */
     private static float defaultTintR = 0.55f;
     private static float defaultTintG = 0.08f;
     private static float defaultTintB = 0.50f;
 
-    /**  */
     private static float defaultSplitStrength = 1.0f;
 
     private CorruptionLayer() {
@@ -78,7 +47,7 @@ public final class CorruptionLayer implements IItemShaderLayer {
         if (config.maskOverride() != null) {
             return config.maskOverride();
         }
-        //    1:1
+
         return ItemRenderRegistry.defaultMaskFor(stack);
     }
 
@@ -89,7 +58,7 @@ public final class CorruptionLayer implements IItemShaderLayer {
 
         float intensity = CorruptionPulse.intensity(stack, gameTime) * config.strength();
         if (intensity < 0.005f) {
-            return false;  //  draw call
+            return false;
         }
 
         if (EpcaShaders.corruptionTimeUniform != null) {
@@ -112,17 +81,13 @@ public final class CorruptionLayer implements IItemShaderLayer {
         CorruptionPulse.applyTwitch(poseStack, stack, gameTime, config.strength());
     }
 
-
-    /** 01  RGB */
     public static void setDefaultTint(float r, float g, float b) {
         defaultTintR = r;
         defaultTintG = g;
         defaultTintB = b;
     }
 
-    /**  */
     public static void setDefaultSplitStrength(float value) {
         defaultSplitStrength = value;
     }
 }
-

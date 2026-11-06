@@ -13,14 +13,13 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.poverty.MediumInco
 
 @Mod.EventBusSubscriber
 public class PlayerDeathEventHandler {
-    
+
     @SubscribeEvent
     public static void onPlayerDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Player player)) return;
         if (player.level().isClientSide) return;
 
-        
         MobEffectInstance effect = player.getEffect(ModEffects.PARA_CURSE.get());
         if (effect == null || effect.getAmplifier() == 0) return;
 
@@ -28,11 +27,6 @@ public class PlayerDeathEventHandler {
         MediumIncompleteForm infested = new MediumIncompleteForm(
                 ModEntities.MEDIUM_INCOMPLETE_FORM.get(), level);
         infested.setPos(player.getX(), player.getY(), player.getZ());
-
-        
-
-        
-        
 
         level.addFreshEntity(infested);
 

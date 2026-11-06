@@ -3,37 +3,11 @@ package org.tdddd.epca.impl.client.render.compat;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 
-/**
- *  GL  RottenRuinsSplendiding
- * {@code LateOutlineRenderState}
- *
- * <p> GBuffer
- * framebuffer/ scissor
- * blend </p>
- *
- * <pre>{@code
- * LateRenderState.prepareMainTargetPass();
- * try {
- *     // ...  ...
- * } finally {
- *     LateRenderState.finishMainTargetPass();
- * }
- * }</pre>
- */
 public final class LateRenderState {
 
     private LateRenderState() {
     }
 
-    /**
-     *  framebuffer +  GL
-     * <ul>
-     *   <li> render target   GBuffer</li>
-     *   <li> scissor  </li>
-     *   <li>  LEQUAL </li>
-     *   <li> shader color blend</li>
-     * </ul>
-     */
     public static void prepareMainTargetPass() {
         Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
         RenderSystem.disableScissor();
@@ -44,9 +18,6 @@ public final class LateRenderState {
         RenderSystem.defaultBlendFunc();
     }
 
-    /**
-     * / pass
-     */
     public static void finishMainTargetPass() {
         Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
         RenderSystem.disableScissor();
@@ -56,4 +27,3 @@ public final class LateRenderState {
         RenderSystem.defaultBlendFunc();
     }
 }
-

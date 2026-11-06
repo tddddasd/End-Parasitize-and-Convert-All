@@ -6,21 +6,6 @@ import org.tdddd.epca.impl.client.effect.BioTortClientState;
 
 import java.util.function.Supplier;
 
-/**
- *  -&gt;  2 "" /  2
- *
- * <h2></h2>
- * <p>14  2 4  3
- *  5  {@code BioTortIncarnation}
- * " + / "
- *
- * ""</p>
- *
- * <h2></h2>
- * <p> {@code PacketDistributor.PLAYER}
- *
- *  {@code active = false} </p>
- */
 public class ScreenCorruptionPacket {
 
     private final boolean active;
@@ -33,12 +18,10 @@ public class ScreenCorruptionPacket {
         this.decayTicks = decayTicks;
     }
 
-    /** {@code corruptionTicks}  {@code decayTicks}  */
     public static ScreenCorruptionPacket start(int corruptionTicks, int decayTicks) {
         return new ScreenCorruptionPacket(true, corruptionTicks, decayTicks);
     }
 
-    /**  /  /  /  */
     public static ScreenCorruptionPacket stop() {
         return new ScreenCorruptionPacket(false, 0, 0);
     }
@@ -64,4 +47,3 @@ public class ScreenCorruptionPacket {
         ctx.get().setPacketHandled(true);
     }
 }
-

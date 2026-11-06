@@ -8,11 +8,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.tdddd.epca.impl.epca;
 
 public enum GuiTexture implements IGuiTexture {
-    
+
     CREATIVE_MODE_TAB_BLANK_ROW("creative_inventory", 0, 0, 162, 18),
-    CREATIVE_MODE_TAB_BLANK_ROW_MATERIALS("creative_inventory_materials", 0, 0, 162, 18),   
-    CREATIVE_MODE_TAB_BLANK_ROW_SPAWN("creative_inventory_spawn", 0, 0, 162, 18),          
-    CREATIVE_MODE_TAB_BLANK_ROW_BLOCKS("creative_inventory_blocks", 0, 0, 162, 18);        
+    CREATIVE_MODE_TAB_BLANK_ROW_MATERIALS("creative_inventory_materials", 0, 0, 162, 18),
+    CREATIVE_MODE_TAB_BLANK_ROW_SPAWN("creative_inventory_spawn", 0, 0, 162, 18),
+    CREATIVE_MODE_TAB_BLANK_ROW_BLOCKS("creative_inventory_blocks", 0, 0, 162, 18);
     public final ResourceLocation location;
     public final int width, height, startX, startY, textureWidth, textureHeight;
 

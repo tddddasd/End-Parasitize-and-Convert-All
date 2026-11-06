@@ -8,24 +8,6 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-/**
- *    shader
- *
- * <h3></h3>
- * <pre>{@code
- * ItemRenderRegistry.attach(ModItems.ENDER_BLADE_SCRAP, ItemShaderLayers.CORRUPTION,
- *         ItemLayerConfig.builder()
- *                 .strength(0.8f)                    //
- *                 .mask("epca:item/ender_blade_mask")//
- *                 .showInGui(false)                  //
- *                 .twitch(true)                      //
- *                 .uniform("tint", uniform -> ...)   //  shader uniform
- *                 .build());
- * }</pre>
- *
- * <p>{@link #DEFAULT}   1.0
- * </p>
- */
 public final class ItemLayerConfig {
 
     public static final ItemLayerConfig DEFAULT = builder().build();
@@ -54,12 +36,10 @@ public final class ItemLayerConfig {
         return new Builder();
     }
 
-    /** {@code null}  */
     public ResourceLocation maskOverride() {
         return maskOverride;
     }
 
-    /**  */
     public float strength() {
         return strength;
     }
@@ -68,14 +48,10 @@ public final class ItemLayerConfig {
         return twitch;
     }
 
-    /**  uniform  {@code prepare()}  */
     public BiConsumer<ItemStack, ShaderInstance> uniformShaper() {
         return uniformShaper;
     }
 
-    /**
-     *
-     */
     public boolean shouldRender(ItemStack stack, ItemDisplayContext ctx) {
         if (enabledWhen != null && !enabledWhen.test(stack)) {
             return false;
@@ -97,13 +73,11 @@ public final class ItemLayerConfig {
         private Predicate<ItemStack> enabledWhen;
         private BiConsumer<ItemStack, ShaderInstance> uniformShaper;
 
-        /**  {@code "epca:item/xxx"}  ResourceLocation */
         public Builder mask(ResourceLocation mask) {
             this.maskOverride = mask;
             return this;
         }
 
-        /**  {@code namespace:path}  namespace  epca */
         public Builder mask(String mask) {
             this.maskOverride = mask.indexOf(':') >= 0
                     ? new ResourceLocation(mask)
@@ -131,7 +105,6 @@ public final class ItemLayerConfig {
             return this;
         }
 
-        /**  */
         public Builder showEverywhere(boolean v) {
             this.showInGui = v;
             this.showWhenHeld = v;
@@ -139,19 +112,16 @@ public final class ItemLayerConfig {
             return this;
         }
 
-        /**  */
         public Builder twitch(boolean v) {
             this.twitch = v;
             return this;
         }
 
-        /**  false  */
         public Builder enabledWhen(Predicate<ItemStack> predicate) {
             this.enabledWhen = predicate;
             return this;
         }
 
-        /**  shader uniform uniform  */
         public Builder uniforms(BiConsumer<ItemStack, ShaderInstance> shaper) {
             this.uniformShaper = shaper;
             return this;
@@ -162,4 +132,3 @@ public final class ItemLayerConfig {
         }
     }
 }
-

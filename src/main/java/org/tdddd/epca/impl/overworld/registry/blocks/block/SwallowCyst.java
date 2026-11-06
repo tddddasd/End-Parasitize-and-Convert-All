@@ -78,7 +78,6 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
         return new SwallowCystBlockEntity(pos, state);
     }
 
-    
     public boolean canSurvive(BlockState state, Level level, BlockPos pos) {
         return level.getBlockState(pos.below()).isCollisionShapeFullBlock(level, pos.below());
     }
@@ -86,14 +85,14 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
     @Override
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
         if (!canSurvive(state, level, pos)) {
-            level.destroyBlock(pos, true);  
+            level.destroyBlock(pos, true);
         }
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
-            
+
             if (level.getBlockEntity(pos) instanceof SwallowCystBlockEntity be) {
                 ItemStackHandler inventory = be.getInventory();
                 for (int i = 0; i < inventory.getSlots(); i++) {
@@ -108,7 +107,6 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
         }
     }
 
-    
     @Override
     public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
         ItemStack stack = new ItemStack(this);
@@ -119,7 +117,6 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
         return stack;
     }
 
-    
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         ItemStack stack = context.getItemInHand();
@@ -135,7 +132,7 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
         if (!level.isClientSide) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof SwallowCystBlockEntity cyst) {
-                
+
                 NetworkHooks.openScreen((ServerPlayer) player, cyst, buf -> buf.writeBlockPos(pos));
                 return InteractionResult.CONSUME;
             }
@@ -150,17 +147,16 @@ public class SwallowCyst extends BaseEntityBlock implements InfestedBlockInterfa
                 (lvl, pos, st, be) -> be.tick(lvl, pos, st));
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 }

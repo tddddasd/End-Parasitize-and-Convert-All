@@ -7,9 +7,8 @@ import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 public class EffectApplicationInterceptor {
 
-    
     public static boolean canApplyEffect(LivingEntity target, MobEffectInstance effect) {
-        
+
         if (effect.getEffect() != ModEffects.PARA_CURSE.get()) {
             return true;
         }
@@ -18,7 +17,6 @@ public class EffectApplicationInterceptor {
         return ParaCurseEffect.canApplyEffect(target, newAmplifier);
     }
 
-    
     public static boolean applyEffectSafely(LivingEntity target, MobEffectInstance effect) {
         if (canApplyEffect(target, effect)) {
             target.addEffect(effect);

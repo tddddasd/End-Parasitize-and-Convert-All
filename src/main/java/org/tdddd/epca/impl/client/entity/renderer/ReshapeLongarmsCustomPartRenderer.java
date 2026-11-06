@@ -14,12 +14,12 @@ public class ReshapeLongarmsCustomPartRenderer extends EntityRenderer<ReshapeLon
 
     @Override
     public ResourceLocation getTextureLocation(ReshapeLongarms.CustomPart entity) {
-        return null; 
+        return null;
     }
 
     @Override
     public void render(ReshapeLongarms.CustomPart entity, float entityYaw, float partialTick,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        
+
     }
 }

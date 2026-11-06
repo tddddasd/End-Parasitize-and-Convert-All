@@ -13,7 +13,7 @@ import org.tdddd.epca.impl.client.entity.IGlowRenderable;
 import org.tdddd.epca.impl.client.entity.layer.EndermanAfterimageLayer;
 import org.tdddd.epca.impl.client.entity.model.InfestedEndermanModel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedEnderman;
-// model auto-resolved by EpcaGeoRenderer
+
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 
@@ -32,7 +32,7 @@ public class InfestedEndermanRenderer extends EpcaGeoRenderer<InfestedEnderman> 
     public void render(InfestedEnderman entity, float entityYaw, float partialTick,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         this.animatable = entity;
-        // Position carried entity in sync with the model bone
+
         if (entity.level().isClientSide) {
             Entity carried = entity.getCarriedEntity();
             if (carried != null) {
@@ -40,7 +40,7 @@ public class InfestedEndermanRenderer extends EpcaGeoRenderer<InfestedEnderman> 
                 bone.ifPresent(b -> carried.setPos(b.getWorldPosition().x, b.getWorldPosition().y, b.getWorldPosition().z));
             }
         }
-        // Main render  afterimage layer renders automatically via OuterLayerDelegate
+
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
 
         if (entity.isGlowEnabled()) {
@@ -68,4 +68,3 @@ public class InfestedEndermanRenderer extends EpcaGeoRenderer<InfestedEnderman> 
         poseStack.popPose();
     }
 }
-

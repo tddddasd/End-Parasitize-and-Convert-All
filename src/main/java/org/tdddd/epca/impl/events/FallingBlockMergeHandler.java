@@ -19,26 +19,24 @@ import java.util.Set;
 @Mod.EventBusSubscriber(modid = epca.MODID)
 public class FallingBlockMergeHandler {
 
-    private static final double SEARCH_RADIUS = 64.0; 
+    private static final double SEARCH_RADIUS = 64.0;
 
     @SubscribeEvent
     public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        
+
         if (event.side.isClient()) return;
         if (event.phase != TickEvent.Phase.END) return;
 
         Level level = event.level;
         if (level == null) return;
 
-        
         List<? extends Player> players = level.players();
         if (players.isEmpty()) return;
 
-        
         Set<FallingBlockEntity> processed = new HashSet<>();
 
         for (Player player : players) {
-            
+
             AABB searchBox = new AABB(
                     player.getX() - SEARCH_RADIUS,
                     player.getY() - SEARCH_RADIUS,
@@ -51,14 +49,13 @@ public class FallingBlockMergeHandler {
             List<FallingBlockEntity> fallingBlocks = level.getEntitiesOfClass(
                     FallingBlockEntity.class,
                     searchBox,
-                    entity -> true 
+                    entity -> true
             );
 
             for (FallingBlockEntity falling : fallingBlocks) {
-                
+
                 if (!processed.add(falling)) continue;
 
-                
                 BlockState state = falling.getBlockState();
                 if (state == null || state.isAir()) continue;
 

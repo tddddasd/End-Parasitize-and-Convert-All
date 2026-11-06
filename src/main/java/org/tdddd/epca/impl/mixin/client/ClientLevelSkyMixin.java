@@ -8,12 +8,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.client.LikeBiomeClientEffects;
 
-/**
- * Lets a like biome recolour the sky.
- *
- * <p>Verified signature (javap on the 1.20.1 mapped jar):
- * {@code public Vec3 getSkyColor(Vec3 cameraPos, float partialTick)}.</p>
- */
 @Mixin(ClientLevel.class)
 public abstract class ClientLevelSkyMixin {
 

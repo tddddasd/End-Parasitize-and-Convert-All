@@ -25,7 +25,6 @@ public abstract class BiomeColorsMixin {
     ) {
         if (level == null || pos == null) return;
 
-        // a like biome recolours the water outright when its colour toggle is on
         Integer likeWater = LikeBiomeClientEffects.waterColor(pos);
         if (likeWater != null) {
             cir.setReturnValue(likeWater);
@@ -34,14 +33,13 @@ public abstract class BiomeColorsMixin {
 
         Integer originalColor = cir.getReturnValue();
         if (originalColor == null) {
-            originalColor = 0x3F76E4; 
+            originalColor = 0x3F76E4;
         }
 
         int finalColor = WaterColorEffectsManager.getWaterColor(pos, originalColor);
         cir.setReturnValue(finalColor);
     }
 
-    /** Grass colour follows the like biome when the layer overrides colours. */
     @Inject(
             method = "getAverageGrassColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I",
             at = @At("RETURN"),
@@ -55,7 +53,6 @@ public abstract class BiomeColorsMixin {
         }
     }
 
-    /** Foliage colour follows the like biome when the layer overrides colours. */
     @Inject(
             method = "getAverageFoliageColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I",
             at = @At("RETURN"),

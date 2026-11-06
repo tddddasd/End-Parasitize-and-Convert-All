@@ -29,25 +29,14 @@ import software.bernie.geckolib.renderer.GeoBlockRenderer;
 import java.io.IOException;
 import java.util.Map;
 
-/**
- * Mod-bus client subscribers: entity renderer registration, client setup and the custom core shaders.
- *
- * <p>Every handler here receives a {@code net.minecraftforge.fml.event.IModBusEvent}, so the class
- * is annotated with {@code Bus.MOD}. Forge-bus client work (client ticking) lives in
- * {@link ClientEvents}, which keeps the default bus.</p>
- */
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientHandler {
     @SubscribeEvent
     public static void onRegisterRenderers(final EntityRenderersEvent.RegisterRenderers event) {
 
-        //  Auto-registered renderers (all entities via EpcaEntityManager.registerMobWithRender)
-        // These use EpcaTypeGeoRenderer + EpcaTypeGeoModel  reads model/texture/animation
-        // from EpcaEntityManager by entity type. No per-entity model class needed.
         for (EntityType<?> type : EpcaEntityManager.consumeRenderTypes()) {
             if (type == ModEntities.RESHAPE_YELLOWEYE.get()) {
-                // Has a dedicated renderer below (it needs the shader-rendered gas cloud layer).
-                // Registering the generic renderer as well would register this entity type twice.
+
                 continue;
             }
             @SuppressWarnings({"unchecked", "rawtypes"})
@@ -55,7 +44,6 @@ public class ClientHandler {
             event.registerEntityRenderer(rawType, EpcaGeoRenderer::new);
         }
 
-        //  Custom renderers ONLY (entities with special rendering: non-GeckoLib, shaders, etc.)
         event.registerEntityRenderer(ModEntities.CONTAMINATED_WATER.get(), ContaminatedWaterRenderer::new);
         event.registerEntityRenderer(ModEntities.YAWNING_NYA.get(), YawningNyaRenderer::new);
         event.registerEntityRenderer(ModEntities.BIO_TORT_INCARNATION.get(), BioTortIncarnationRenderer::new);
@@ -80,8 +68,7 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.WALKING_FOX_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingFoxHeadModel()));
         event.registerEntityRenderer(ModEntities.INFESTED_SKELETON.get(), ctx -> new EpcaGeoRenderer<>(ctx, new InfestedSkeletonModel()));
         event.registerEntityRenderer(ModEntities.WALKING_SKELETON_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingSkeletonHeadModel()));
-        // Variant spiders: the three variants share one model/animation file each and only differ in
-        // the texture, which the model reads back from the entity.
+
         event.registerEntityRenderer(ModEntities.INFESTED_SPIDER.get(), ctx -> new EpcaGeoRenderer<>(ctx, new InfestedSpiderModel()));
         event.registerEntityRenderer(ModEntities.WALKING_SPIDER_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingSpiderHeadModel()));
 
@@ -96,12 +83,9 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.ACID_BULLET.get(), AcidBulletRenderer::new);
         event.registerEntityRenderer(ModEntities.BONE_ARROW.get(), BoneArrowRenderer::new);
         event.registerEntityRenderer(ModEntities.BIOMASS_EGG.get(), BiomassEggRenderer::new);
-        //  Phase 3
-        //  epca_physics  SubLevelWorldRenderer
 
         event.registerBlockEntityRenderer(ModBlockEntities.SWALLOW_CYST.get(), ctx -> new GeoBlockRenderer<>(new SwallowCystModel()));
-        // age=3 InfestedSweetBerryBushGlowRenderer
-        //  JSON
+
         event.registerBlockEntityRenderer(ModBlockEntities.INFESTED_SWEET_BERRY_BUSH.get(),
                 InfestedSweetBerryBushGlowRenderer::new);
     }
@@ -126,8 +110,6 @@ public class ClientHandler {
                 return 1;
             });
 
-            
-            
             registerThrowingProperty(ModItems.WOODEN_SPEAR.get());
             registerThrowingProperty(ModItems.STONE_SPEAR.get());
             registerThrowingProperty(ModItems.FLINT_SPEAR.get());
@@ -140,26 +122,12 @@ public class ClientHandler {
         );
     }
 
-    
     private static void registerThrowingProperty(Item item) {
         ItemProperties.register(item, new ResourceLocation(epca.MODID, "throwing"),
                 (stack, level, entity, seed) ->
                         entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1.0F : 0.0F);
     }
 
-    /**
-     * Builds the custom core shader used by the shader-rendered gas clouds.
-     *
-     * <p>The shader assets live in {@code assets/epca/shaders/core/gas_cloud.json} (plus
-     * {@code gas_cloud.vsh} / {@code gas_cloud.fsh}); the resulting {@link ShaderInstance} is handed
-     * to {@link GasCloudRenderType}, which wraps it in a custom RenderType.</p>
-     *
-     * <p>This MUST be a mod-bus subscriber:
-     * {@code net.minecraftforge.client.event.RegisterShadersEvent} implements
-     * {@code net.minecraftforge.fml.event.IModBusEvent}, so it is only ever posted to the mod event
-     * bus. Registering it on the forge bus would silently leave the shader unbuilt and the clouds
-     * invisible.</p>
-     */
     @SubscribeEvent
     public static void onRegisterShaders(RegisterShadersEvent event) throws IOException {
         ShaderInstance shader = new ShaderInstance(

@@ -15,7 +15,7 @@ import org.tdddd.epca.impl.client.entity.model.InfestedEndermanModel;
 import org.tdddd.epca.impl.client.entity.model.WalkingEndermanHeadModel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedEnderman;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingEndermanHead;
-// model auto-resolved by EpcaGeoRenderer
+
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 

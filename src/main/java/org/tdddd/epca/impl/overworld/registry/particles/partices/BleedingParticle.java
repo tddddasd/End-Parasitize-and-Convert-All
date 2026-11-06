@@ -13,10 +13,10 @@ public class BleedingParticle extends TextureSheetParticle {
         this.lifetime = 7;
         this.setSpriteFromAge(sprites);
         this.speedUpWhenYMotionIsBlocked = true;
-        
+
         this.gravity = 0.6F;
-        
-        this.quadSize = 0.1F; 
+
+        this.quadSize = 0.1F;
     }
 
     @Override
@@ -32,7 +32,6 @@ public class BleedingParticle extends TextureSheetParticle {
         return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
     }
 
-    
     public static class BleedingParticleProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 

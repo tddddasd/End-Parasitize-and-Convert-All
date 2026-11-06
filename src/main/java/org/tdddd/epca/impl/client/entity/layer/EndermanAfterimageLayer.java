@@ -25,14 +25,6 @@ import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 
 import java.util.*;
 
-/**
- * Layer provider that renders fading afterimage ghosts behind a moving entity.
- * Each afterimage captures the entity's bone pose at spawn time so it renders
- * frozen at that moment rather than following the current animation.
- *
- * <p>Movement detection uses the per-tick position delta ({@code getX() - xo}),
- * which is reliable on the client side. Spawning is throttled to once per game tick.</p>
- */
 public class EndermanAfterimageLayer implements IGeoLayerProvider {
 
     private static final float SPAWN_CHANCE = 0.30F;
@@ -43,16 +35,13 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     private static final Map<UUID, List<AfterimageData>> AFTERIMAGES = new HashMap<>();
     private static final Map<UUID, Integer> LAST_SPAWN_TICK = new HashMap<>();
 
-    /** Cache: base texture  afterimage texture. */
     private static final Map<ResourceLocation, ResourceLocation> TEX_CACHE = new HashMap<>();
 
-    /** Derive afterimage texture from the entity type's Forge registry key. */
     private static ResourceLocation getAfterimageTexture(LivingEntity entity) {
         ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
 
         if (key == null) return new ResourceLocation("epca", "textures/entity/none.png");
 
-        
         boolean isUnstable = false;
         if (entity instanceof InfestedEndermite endermite) {
             isUnstable = endermite.getVariant() == InfestedEndermite.Variant.UNSTABLE;
@@ -64,7 +53,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
             isUnstable = endermanHead.getVariant() == WalkingEndermanHead.Variant.UNSTABLE;
         }
 
-        
         ResourceLocation cacheKey = isUnstable ?
                 new ResourceLocation(key.getNamespace(), key.getPath() + "_unstable") :
                 key;
@@ -73,7 +61,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         return TEX_CACHE.computeIfAbsent(cacheKey, k -> {
             String namespace = key.getNamespace();
             String path = key.getPath();
-            
+
             String suffix = finalIsUnstable ? "_unstable_afterimage" : "_afterimage";
             return new ResourceLocation(namespace, "textures/entity/" + path + suffix + ".png");
         });
@@ -95,15 +83,12 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     ) {
         int currentTick = (int) entity.level().getGameTime();
 
-        //  1. Try spawn (with bone snapshot from current bakedModel)
         trySpawn(entity, bakedModel, currentTick);
 
-        //  2. Get active afterimages, prune expired
         List<AfterimageData> afterimages = AFTERIMAGES.get(entity.getUUID());
         if (afterimages == null || afterimages.isEmpty()) return;
         afterimages.removeIf(data -> !data.isAlive(currentTick));
 
-        //  3. Render each afterimage with its frozen bone pose
         ResourceLocation afterimageTex = getAfterimageTexture(entity);
         RenderType afterimageRenderType = RenderType.entityTranslucent(afterimageTex);
         for (AfterimageData data : afterimages) {
@@ -118,32 +103,11 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
                     afterPos.y - entity.getY() + 0.02,
                     afterPos.z - entity.getZ()
             );
-            // Y rotation. This layer runs INSIDE the entity's already-yawed pose stack
-            // (EpcaGeoRenderer#render delegates to GeckoLib's GeoEntityRenderer, a LivingEntityRenderer
-            // that applies the LIVE interpolated entity yaw before dispatching layers), so the ghost's
-            // world facing was (LIVE yaw) + (this term) - a live additive term that made the ghost track
-            // its owner no matter what the frozen record held.
-            //
-            // So we CANCEL the live term first, then apply the FROZEN one:
-            //   (a) rotate by -liveYaw  -> cancels the base transform
-            //   (b) rotate by data.yRot -> the frozen facing
-            // Net world facing = data.yRot: only the FROZEN contribution survives.
-            //
-            // The user asked for an ADDITIONAL 180 on the initial Y ("残影的初始Y轴需旋转180°") on top of
-            // the earlier direction flip. This is the one term that determines the ghost's facing, and
-            // 180 + 180 = 360 == 0, so the extra half-turn is expressible exactly by DROPPING the
-            // constant: `180.0F + data.yRot` -> `data.yRot`. That is a genuine additional 180 (the
-            // earlier `+` handedness is preserved, not reverted) and it is the only place the frozen
-            // facing is decided - the ghost has no entity of its own, so there is no separate base yaw
-            // to carry the extra half-turn.
+
             float liveYaw = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot());
             poseStack.mulPose(Axis.YP.rotationDegrees(-liveYaw));
             poseStack.mulPose(Axis.YP.rotationDegrees(data.yRot));
 
-            // FROZEN render: this entry point marks the pass so GeckoLib's animation cannot overwrite
-            // the captured pose (see FrozenGhostRender), and re-applies data.bonePose inside preRender -
-            // after the animation pass, before geometry. The walkApply/walkRestore pair is kept so the
-            // live model is left exactly as it was for the owner's own draw.
             Map<String, BoneSnapshot> savedPose = new HashMap<>();
             walkApply(bakedModel, data.bonePose, savedPose);
             float alpha = fade * MAX_ALPHA;
@@ -157,11 +121,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    //  Bone pose save / apply / restore
-
-    //  Bone iteration: walk the baked model's bone tree
-
-    /** Find top-level bones (parent == null) from the baked model's bone list. */
     private static List<CoreGeoBone> topLevelBones(BakedGeoModel model) {
         List<CoreGeoBone> roots = new ArrayList<>();
         for (CoreGeoBone bone : model.getBones()) {
@@ -170,7 +129,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         return roots;
     }
 
-    /** Walk the bone tree and walk the snapshot + save originals in parallel. */
     private static void walkApply(BakedGeoModel model,
                                    Map<String, BoneSnapshot> target,
                                    Map<String, BoneSnapshot> saved) {
@@ -190,7 +148,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    /** Walk the bone tree and restore saved values. */
     private static void walkRestore(BakedGeoModel model, Map<String, BoneSnapshot> saved) {
         for (CoreGeoBone root : topLevelBones(model)) {
             restoreRecursive(root, saved);
@@ -205,17 +162,13 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    //  Spawning
-
     private static void trySpawn(LivingEntity entity, BakedGeoModel bakedModel, int currentTick) {
         UUID id = entity.getUUID();
 
-        // Throttle: only once per game tick
         Integer lastTick = LAST_SPAWN_TICK.get(id);
         if (lastTick != null && lastTick == currentTick) return;
         LAST_SPAWN_TICK.put(id, currentTick);
 
-        // Movement check via per-tick position delta
         double dx = entity.getX() - entity.xo;
         double dy = entity.getY() - entity.yo;
         double dz = entity.getZ() - entity.zo;
@@ -225,7 +178,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         list.removeIf(data -> !data.isAlive(currentTick));
 
         if (list.size() < MAX_AFTERIMAGES && entity.level().random.nextFloat() < SPAWN_CHANCE) {
-            // Capture the current bone pose from the baked model
+
             Map<String, BoneSnapshot> bonePose = new HashMap<>();
             for (CoreGeoBone root : topLevelBones(bakedModel)) {
                 AfterimageData.captureRecursive(root, bonePose);
@@ -244,8 +197,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
             ));
         }
     }
-
-    //  Global cleanup
 
     public static void cleanupOrphaned() {
         Minecraft mc = Minecraft.getInstance();
@@ -274,4 +225,3 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         });
     }
 }
-

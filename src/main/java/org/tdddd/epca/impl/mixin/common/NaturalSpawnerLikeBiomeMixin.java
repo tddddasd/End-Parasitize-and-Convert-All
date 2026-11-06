@@ -16,14 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.overworld.data.LikeBiome;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 
-/**
- * Applies the like biome spawn mode.
- *
- * <p>Verified signature (javap on the 1.20.1 mapped jar):
- * {@code private static WeightedRandomList<MobSpawnSettings.SpawnerData> mobsAt(ServerLevel,
- * StructureManager, ChunkGenerator, MobCategory, BlockPos, Holder<Biome>)}. Overriding its result is the
- * narrowest way to swap the spawn table, because the real biome is handed in as the last argument.</p>
- */
 @Mixin(net.minecraft.world.level.NaturalSpawner.class)
 public abstract class NaturalSpawnerLikeBiomeMixin {
 
@@ -36,7 +28,7 @@ public abstract class NaturalSpawnerLikeBiomeMixin {
         if (like == null || like.spawnMode() == LikeBiome.SPAWN_NONE) {
             return;
         }
-        // coexist keeps the real table half of the time
+
         if (like.spawnMode() == LikeBiome.SPAWN_COEXIST && level.getRandom().nextBoolean()) {
             return;
         }

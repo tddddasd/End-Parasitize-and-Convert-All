@@ -8,48 +8,22 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Client-side registry of the water colour modifiers of the mod.
- *
- * <p>Two independent sources remain:</p>
- * <ul>
- *   <li><b>acid</b> - {@link #updateClientEffect}/{@link #removeClientEffect}, pushed by
- *       {@code AcidWaterColorPacket} and read by {@link #getWaterColor};</li>
- *   <li><b>infested</b> - {@link #addInfestedSource}/{@link #removeInfestedSource}/
- *       {@link #addInfestedSourcesBatch}/{@link #clearInfestedCache}, pushed by
- *       {@code InfestedSourcePacket} / {@code SyncAllInfestedSourcesPacket}. The infested tint
- *       itself is currently commented out inside {@link #getWaterColor} (its colour constant is
- *       commented out too), so today only the acid source actually changes water.</li>
- * </ul>
- *
- * <p>The {@code epca:contaminated_water} entity no longer contributes here at all: its red water
- * tint was removed on request. Do not reintroduce it - the entity's own visuals are the red gas
- * clouds and dark-red specks drawn by {@code GasCloudRenderer}, not a recoloured water block.</p>
- */
 public class WaterColorEffectsManager {
 
     private static final Map<BlockPos, Integer> acidSources = new ConcurrentHashMap<>();
 
-    
-    // Infested blocks no longer tint water, so nothing is bookkept here and no chunk area is refreshed
-    // on their behalf. The four entry points stay so the existing packet handlers keep compiling; they
-    // are deliberately empty.
     public static void addInfestedSource(BlockPos pos) {
     }
 
-    
     public static void removeInfestedSource(BlockPos pos) {
     }
 
-    
     public static void addInfestedSourcesBatch(Collection<BlockPos> positions) {
     }
 
-    
     public static void clearInfestedCache() {
     }
 
-    
     public static int getWaterColor(BlockPos pos, int originalColor) {
         int acidColor = getAcidColor(pos);
 
@@ -61,7 +35,6 @@ public class WaterColorEffectsManager {
         return mixed;
     }
 
-    
     public static void updateClientEffect(BlockPos waterPos, BlockPos acidPos, int distance) {
         acidSources.put(waterPos.immutable(), Math.min(distance, 8));
         forceChunkUpdate(waterPos);
@@ -95,7 +68,6 @@ public class WaterColorEffectsManager {
         return (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
 
-    
     private static void forceChunkUpdate(BlockPos pos) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null && mc.levelRenderer != null) {

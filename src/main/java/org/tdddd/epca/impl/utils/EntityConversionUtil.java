@@ -14,14 +14,12 @@ import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 public class EntityConversionUtil {
     public static void convertTo(LivingEntity entity, EntityType<? extends LivingEntity> targetType) {
-        
+
         if (entity.level().isClientSide) return;
 
-        
         entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 SoundEvents.ZOMBIE_INFECT, SoundSource.HOSTILE, 1.0F, 1.0F);
 
-        
         if (entity.level() instanceof ServerLevel serverLevel) {
             int count = 3 + serverLevel.getRandom().nextInt(3);
             serverLevel.sendParticles(ModParticles.LIVING_FLESH.get(),
@@ -29,40 +27,28 @@ public class EntityConversionUtil {
                     count, 0.5, 0.5, 0.5, 0.05);
         }
 
-        
         LivingEntity newEntity = targetType.create(entity.level());
         if (newEntity != null) {
-            
+
             newEntity.copyPosition(entity);
             newEntity.setYHeadRot(entity.getYHeadRot());
             newEntity.setYBodyRot(entity.yBodyRot);
 
-            
             if (entity.hasCustomName()) {
                 newEntity.setCustomName(entity.getCustomName());
                 newEntity.setCustomNameVisible(entity.isCustomNameVisible());
             }
 
-            
             newEntity.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
 
-            // create()
-            // MAX_HEALTH LivingEntity  setHealth(getMaxHealth())
-            //  MAX_HEALTH  0 0  1.20.1
-            //  isDeadOrDying() == true LivingEntity#hurt  false
-            // LivingEntity#aiStep  isImmobile()
-            // ConvertedEntitySupport  +  +  AI
             ConvertedEntitySupport.initializeConvertedEntity(newEntity);
 
-            
             entity.level().addFreshEntity(newEntity);
 
-            
             ModNetwork.sendToAllTracking(
                     new ColorEffectPacket(newEntity, ParaCurseEffect.TYPE_CONVERSION_FADE, 6), newEntity);
         }
 
-        
         if (!(entity instanceof Player)) {
             entity.remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER);
         }

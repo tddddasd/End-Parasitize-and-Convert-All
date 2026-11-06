@@ -13,7 +13,7 @@ import org.tdddd.epca.impl.overworld.registry.ModItems;
 @Mod.EventBusSubscriber
 public class ItemEffectHandler {
 
-    private static final int EFFECT_DURATION = 600; 
+    private static final int EFFECT_DURATION = 600;
     private static final int CHECK_INTERVAL = 300;
 
     @SubscribeEvent
@@ -29,7 +29,7 @@ public class ItemEffectHandler {
         boolean hasInfested = false;
 
         if (entity instanceof Player player) {
-            
+
             for (ItemStack stack : player.getInventory().items) {
                 if (!stack.isEmpty() && isInfestedItem(stack)) {
                     hasInfested = true;
@@ -37,7 +37,7 @@ public class ItemEffectHandler {
                 }
             }
         } else {
-            
+
             for (ItemStack stack : entity.getArmorSlots()) {
                 if (!stack.isEmpty() && isInfestedItem(stack)) {
                     hasInfested = true;

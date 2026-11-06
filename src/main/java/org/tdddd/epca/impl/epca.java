@@ -79,17 +79,16 @@ public class epca {
         ModConfig.register();
         WingChestManager.init();
 
-        
         if (org.tdddd.epca.impl.compat.EejCompat.loaded()) {
             org.tdddd.epca.impl.compat.EejAltarCompat.registerInteraction();
         }
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.register(ClientSetup.class);
-            //  shader  shader
+
             org.tdddd.epca.impl.client.render.EpcaRenderClient.init(modEventBus);
         }
-        
+
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::clientSetup);
         MinecraftForge.EVENT_BUS.register(EvolutionStageEvents.class);
@@ -114,7 +113,6 @@ public class epca {
         }
     }
 
-    
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         org.tdddd.epca.impl.commands.BiomassCountCommand.register(event.getDispatcher());
@@ -124,6 +122,7 @@ public class epca {
         event.getDispatcher().register(ParasiteSummonCommand.registerSetParasite());
         HiveLeaderCommand.register(event);
         org.tdddd.epca.impl.commands.LikeBiomeCommand.register(event.getDispatcher());
+        org.tdddd.epca.impl.soul.SoulSystem.register(event.getDispatcher());
     }
 
     @SubscribeEvent
@@ -132,15 +131,6 @@ public class epca {
         EvolutionDataStorage.get(overworld);
     }
 
-    
-    /**
-     *  tick
-     *
-     * <p> {@code ParasiteAttractionManager.tick(level)}""
-     *  SPEC  A1
-     * {@link org.tdddd.epca.impl.events.PendingConversionManager#tick(MinecraftServer)}
-     *  tick </p>
-     */
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
@@ -150,24 +140,11 @@ public class epca {
         }
     }
 
-    /**
-     *  tick  + STAGE 3
-     *
-     * <p> SPEC  2  3
-     * {@code HiveLeaderManager#isHiveLeader}
-     * {@link OrganStatSummary#compute}
-     * {@link HiveLeaderOrganEffects#tick} STAGE A  7  9
-     * +  {@code entity_gravity} +
-     *  tick
-     *  {@link HiveLeaderOrganEffects#notLeader} tick
-     * SPEC  1  2 </p>
-     */
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             LivingArmorBox.applyBiomassEffects(event.player);
 
-            // STAGE 3 HiveLeaderOrganEffects
             if (!event.player.level().isClientSide()) {
                 if (HiveLeaderManager.isHiveLeader(event.player.getUUID())) {
                     HiveLeaderOrganEffects.tick(event.player);
@@ -185,14 +162,9 @@ public class epca {
         event.addListener(new EntityBiomassCountManager());
         event.addListener(CarryConfigManager.INSTANCE);
         event.addListener(new BiomassSpawnManager());
-        // SPEC D6 json
-        // data/epca/organ_stats/<item>.json + _defaults.json OrganStatManager
+
         event.addListener(new OrganStatManager());
     }
-
-    // Attribute registration is now handled by ModEntityEvents.onEntityAttributeCreation()
-    // which delegates to both EpcaEntityManager.createAttributes() (auto-registration)
-    // and registerManualAttributes() (backward compat for existing entities).
 
     public static final GameRules.Key<GameRules.BooleanValue> DO_INFESTED_FALLBACK =
             GameRules.register("epca_hardnessConversionBlock", GameRules.Category.MISC,

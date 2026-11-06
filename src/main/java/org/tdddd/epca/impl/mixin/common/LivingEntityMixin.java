@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.mixin.common;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.*;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.items.item.KillStick;
 import org.tdddd.epca.impl.utils.ShieldProtectionHelper;
 
@@ -26,8 +26,6 @@ import org.tdddd.epca.impl.utils.ShieldProtectionHelper;
 public abstract class LivingEntityMixin {
     private static final ThreadLocal<Boolean> applyingCustomParaCurse = ThreadLocal.withInitial(() -> false);
 
-    
-    
     @Inject(method = "canBeSeenAsEnemy", at = @At("HEAD"), cancellable = true)
     private void epca$untargetableWhileConverting(CallbackInfoReturnable<Boolean> cir) {
         if (org.tdddd.epca.impl.events.PendingConversionManager.isPending((LivingEntity) (Object) this)) {
@@ -39,12 +37,11 @@ public abstract class LivingEntityMixin {
             at = @At("HEAD"),
             cancellable = true)
     private void onAddEffect(MobEffectInstance effectInstance, CallbackInfoReturnable<Boolean> cir) {
-        
+
         if (applyingCustomParaCurse.get()) {
             return;
         }
 
-        
         if (effectInstance == null || effectInstance.getEffect() != ModEffects.PARA_CURSE.get()) {
             return;
         }
@@ -52,47 +49,41 @@ public abstract class LivingEntityMixin {
         LivingEntity self = (LivingEntity) (Object) this;
         Level level = self.level();
 
-        
         if (level.isClientSide()) return;
         if (self instanceof Player) return;
-        if (self instanceof IParasite) return;
+        if (ParasiteEvents.isParasiteEntity(self)) return;
         if (!DifficultyEffects.isParaCurseEffectEnabled(level)) return;
 
-        
-        
         cir.setReturnValue(false);
         cir.cancel();
 
-        
         MobEffectInstance existing = self.getEffect(ModEffects.PARA_CURSE.get());
         if (existing != null) {
             self.removeEffect(ModEffects.PARA_CURSE.get());
         }
 
-        
         applyingCustomParaCurse.set(true);
         try {
-            
+
             MobEffectInstance customParaCurse = new MobEffectInstance(
                     ModEffects.PARA_CURSE.get(),
-                    1200,      
-                    4,         
+                    1200,
+                    4,
                     false, false, true
             );
             self.addEffect(customParaCurse);
-            
+
             self.getPersistentData().putBoolean("PARA_CURSE", true);
         } finally {
             applyingCustomParaCurse.set(false);
         }
     }
 
-    
     @Inject(method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
             at = @At("HEAD"),
             cancellable = true)
     private void onAddEffectWithSource(MobEffectInstance effectInstance, Entity source, CallbackInfoReturnable<Boolean> cir) {
-        
+
         if (applyingCustomParaCurse.get()) {
             return;
         }
@@ -106,10 +97,9 @@ public abstract class LivingEntityMixin {
 
         if (level.isClientSide()) return;
         if (self instanceof Player) return;
-        if (self instanceof IParasite) return;
+        if (ParasiteEvents.isParasiteEntity(self)) return;
         if (!DifficultyEffects.isParaCurseEffectEnabled(level)) return;
 
-        
         cir.setReturnValue(false);
         cir.cancel();
 
@@ -145,15 +135,14 @@ public abstract class LivingEntityMixin {
         if (newHealth < oldHealth) {
             float damage = oldHealth - newHealth;
 
-            
             if (self instanceof Player) {
                 Player player = (Player) self;
                 if (KillStick.hasAlayavijnanaItem(player)) {
                     LivingEntity target = KillStick.findLowestHealthEntity(player, 8.0);
                     if (target != null) {
-                        
+
                         target.hurt(player.damageSources().generic(), damage);
-                        
+
                         processingSetHealth.set(true);
                         try {
                             self.setHealth(oldHealth);
@@ -163,26 +152,17 @@ public abstract class LivingEntityMixin {
                         ci.cancel();
                         return;
                     } else {
-                        
+
                         damage = damage * 0.3f;
                         newHealth = oldHealth - damage;
-                        
+
                     }
                 }
             }
 
-            
-            // ShieldEventHandler#onLivingHurt(LivingDamageEvent)  ShieldProtectionHelper
-            //  setHealth 1.20.1  setHealth
-            // Mth.clamp(health, 0.0F, getMaxHealth())
-            // _tmp_vanilla_src/net/minecraft/world/entity/LivingEntity.java:1050-1052
-            //  hurt()
-            // setHealth
-            //  ShieldProtectionHelper#applyShieldPool
-            //  LocalPlayer#hurtTo  setHealth
             float remainingDamage = ShieldProtectionHelper.applyShieldPool(self, damage);
             if (remainingDamage <= 0) {
-                
+
                 processingSetHealth.set(true);
                 try {
                     self.setHealth(oldHealth);
@@ -192,8 +172,7 @@ public abstract class LivingEntityMixin {
                 ci.cancel();
                 return;
             } else if (remainingDamage < damage) {
-                //  setHealth
-                
+
                 float actualNewHealth = oldHealth - remainingDamage;
                 processingSetHealth.set(true);
                 try {
@@ -204,10 +183,10 @@ public abstract class LivingEntityMixin {
                 ci.cancel();
                 return;
             } else {
-                
+
                 processingSetHealth.set(true);
                 try {
-                    // KillStick  newHealth
+
                     self.setHealth(newHealth);
                 } finally {
                     processingSetHealth.set(false);
@@ -218,26 +197,23 @@ public abstract class LivingEntityMixin {
         }
     }
 
-    
     private static boolean isClimbableWall(BlockState state) {
         Block block = state.getBlock();
 
-        
         if (block instanceof InfestedSandstoneWall || block instanceof InfestedStoneWall ||
                 block instanceof InfestedStoneBricksWall || block instanceof InfestedCobblestoneWall ||
                 block instanceof InfestedPlanksFence) {
             return true;
         }
-        
+
         return false;
     }
 
     @Inject(method = "aiStep", at = @At("TAIL"))
     private void onAiStep(CallbackInfo ci) {
         LivingEntity self = (LivingEntity) (Object) this;
-        if (!(IParasite.isParasiteByTagOrInterface(self))) return;
+        if (!(ParasiteEvents.isParasiteByTagOrInterface(self))) return;
 
-        
         AABB box = self.getBoundingBox();
         Level level = self.level();
         BlockPos min = new BlockPos((int) Math.floor(box.minX), (int) Math.floor(box.minY), (int) Math.floor(box.minZ));
@@ -251,26 +227,22 @@ public abstract class LivingEntityMixin {
         }
         if (!touchingClimbable) return;
 
-        
         Vec3 delta = self.getDeltaMovement();
         if (delta.y < 0.2) {
             self.setDeltaMovement(delta.x, 0.5, delta.z);
             self.fallDistance = 0;
         }
 
-        
-        
         double minHorizontalSpeed = 0.0;
         double horizontalSpeedSqr = delta.x * delta.x + delta.z * delta.z;
         if (horizontalSpeedSqr < minHorizontalSpeed * minHorizontalSpeed) {
-            
+
             float yaw = self.getYRot();
             Vec3 forward = Vec3.directionFromRotation(0, yaw).normalize();
-            
+
             double thrust = 0.15;
-            
+
             self.setDeltaMovement(delta.x + forward.x * thrust, delta.y, delta.z + forward.z * thrust);
         }
     }
 }
-

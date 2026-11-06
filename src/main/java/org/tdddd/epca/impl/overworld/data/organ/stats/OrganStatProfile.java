@@ -3,57 +3,6 @@ package org.tdddd.epca.impl.overworld.data.organ.stats;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * SPEC  0  D6 json
- *
- * <h2></h2>
- * <p><b>STAGE A  7  9 </b>
- * <b></b> -2%
- *  {@link OrganStatSummary#STAT_ATTRIBUTE_KEYS}</p>
- *
- * <table border="1">
- *   <caption> -&gt;  / </caption>
- *   <tr><th></th><th></th><th></th></tr>
- *   <tr><td>{@code health}</td><td></td>
- *       <td>{@code minecraft:generic.max_health}{@code Attributes.MAX_HEALTH}</td></tr>
- *   <tr><td>{@code armor}</td><td></td>
- *       <td>{@code minecraft:generic.armor}{@code Attributes.ARMOR}</td></tr>
- *   <tr><td>{@code armor_toughness}</td><td>STAGE A </td>
- *       <td>{@code minecraft:generic.armor_toughness}{@code Attributes.ARMOR_TOUGHNESS}
- *           {@code _tmp_vanilla_src/net/minecraft/world/entity/ai/attributes/Attributes.java}
- *            16 </td></tr>
- *   <tr><td>{@code attack_damage}</td><td></td>
- *       <td>{@code minecraft:generic.attack_damage}</td></tr>
- *   <tr><td>{@code knockback_resistance}</td><td></td>
- *       <td>{@code minecraft:generic.knockback_resistance}</td></tr>
- *   <tr><td>{@code movement_speed}</td><td></td>
- *       <td>{@code minecraft:generic.movement_speed}</td></tr>
- *   <tr><td>{@code swim_speed}</td><td>STAGE A </td>
- *       <td>{@code forge:swim_speed}{@code ForgeMod.SWIM_SPEED}
- *           {@code _tmp_vanilla_src/net/minecraftforge/common/ForgeMod.java}  151
- *            1.0{@code LivingEntity#travel}  2053
- *           +5%  {@code 0.05}  +5%</td></tr>
- *   <tr><td>{@code attack_range}</td><td></td>
- *       <td>{@code forge:entity_reach} {@code forge:attack_range}  1.20.1
- *           {@code ForgeMod.ENTITY_REACH} 3.0</td></tr>
- *   <tr><td>{@code block_reach}</td><td></td>
- *       <td>{@code forge:block_reach}{@code ForgeMod.BLOCK_REACH} 4.5</td></tr>
- *   <tr><td>{@code entity_gravity}</td><td><b></b></td>
- *       <td>{@code forge:entity_gravity}{@code ForgeMod.ENTITY_GRAVITY} 0.08
- *           {@code LivingEntity#travel}  2020/2027  {@code gravity.getValue()}
- *            -2%   -2%
- *           <b></b> {@link OrganStatSummary#STAT_ATTRIBUTE_KEYS}
- *            STAGE A </td></tr>
- *   <tr><td>{@code minimum_damage}</td><td></td><td> C9</td></tr>
- *   <tr><td>{@code adaptation_reduction}</td><td>01</td>
- *       <td> C9</td></tr>
- * </table>
- *
- * <h2> + </h2>
- * <p>{@link #ZERO}  0{@link #addTo}
- * {@link #plus(OrganStatProfile)} STAGE A  +
- * </p>
- */
 public record OrganStatProfile(
         double health,
         double armor,
@@ -68,11 +17,9 @@ public record OrganStatProfile(
         double minimumDamage,
         double adaptationReduction) {
 
-    /**  0  /  */
     public static final OrganStatProfile ZERO = new OrganStatProfile(
             0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
 
-    /** {@link #toImmutable()}  */
     public static final class Accumulator {
         private double health;
         private double armor;
@@ -87,7 +34,6 @@ public record OrganStatProfile(
         private double minimumDamage;
         private double adaptationReduction;
 
-        /** {@code null}  {@link #ZERO} */
         public void add(OrganStatProfile profile) {
             if (profile == null) return;
             this.health += profile.health();
@@ -104,7 +50,6 @@ public record OrganStatProfile(
             this.adaptationReduction += profile.adaptationReduction();
         }
 
-        /**  {@code count}  n  */
         public void addRepeated(OrganStatProfile profile, int count) {
             if (profile == null || count <= 0) return;
             for (int i = 0; i < count; i++) {
@@ -123,7 +68,6 @@ public record OrganStatProfile(
         }
     }
 
-    /** {@code null}  {@link #ZERO} */
     public OrganStatProfile plus(OrganStatProfile other) {
         if (other == null) return this;
         Accumulator accumulator = new Accumulator();
@@ -132,13 +76,11 @@ public record OrganStatProfile(
         return accumulator.toImmutable();
     }
 
-    /**  {@code entityGravity} /  */
     public double totalAttributeBonus() {
         return health + armor + armorToughness + attackDamage + knockbackResistance
                 + movementSpeed + swimSpeed + attackRange + blockReach;
     }
 
-    /**  0 */
     public boolean isZero() {
         return health == 0.0D && armor == 0.0D && armorToughness == 0.0D
                 && attackDamage == 0.0D && knockbackResistance == 0.0D
@@ -148,12 +90,6 @@ public record OrganStatProfile(
                 && minimumDamage == 0.0D && adaptationReduction == 0.0D;
     }
 
-    /**
-     *  -&gt;  JSON  {@link OrganStatProfile}
-     *
-     * <p><b></b>
-     * {@code null} </p>
-     */
     public static OrganStatProfile fromJsonMap(Map<String, Double> values) {
         if (values == null || values.isEmpty()) return ZERO;
         return new OrganStatProfile(
@@ -176,11 +112,6 @@ public record OrganStatProfile(
         return value == null ? 0.0D : value;
     }
 
-    /**
-     *  0
-     *
-     * <p> {@link OrganStatDefaults#format(double)} 2 </p>
-     */
     public String describeNonZero() {
         Map<String, String> parts = new LinkedHashMap<>();
         putIfNonZero(parts, "health", health);
@@ -199,10 +130,8 @@ public record OrganStatProfile(
     }
 
     private static void putIfNonZero(Map<String, String> parts, String key, double value) {
-        //  2  0
-        //  health=0
+
         if (OrganStatDefaults.round2(value) == 0.0D) return;
         parts.put(key, OrganStatDefaults.format(value));
     }
 }
-

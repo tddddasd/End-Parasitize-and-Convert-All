@@ -23,11 +23,6 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModEntityEvents {
 
-    /**
-     * All entity attributes are now routed through EpcaEntityManager.
-     * ModEntities.registerMobAttributes() adds each type  EpcaEntityManager.registerMobNoRender()
-     * stores the attribute supplier. Then this single call processes them all.
-     */
     @SubscribeEvent
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
         EpcaEntityManager.createAttributes(event);
@@ -98,4 +93,3 @@ public class ModEntityEvents {
         event.register(ModEntities.WALKING_SPIDER_HEAD.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WalkingSpiderHead::checkWalkingSpiderHeadSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
     }
 }
-

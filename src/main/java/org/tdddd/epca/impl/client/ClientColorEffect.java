@@ -13,18 +13,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod.EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 @OnlyIn(Dist.CLIENT)
 public class ClientColorEffect {
-    
+
     public static final int TYPE_PARTIAL_ADAPTATION = 0;
-    
+
     public static final int TYPE_FULL_ADAPTATION = 1;
-    
+
     public static final int TYPE_CONVERSION = 2;
-    
+
     public static final int TYPE_CONVERSION_FADE = 3;
 
-    
     private static final float RAMP_MAX_ALPHA = 0.8F;
-    
+
     private static final float PURPLE_R = 0.9F;
     private static final float PURPLE_G = 0.2F;
     private static final float PURPLE_B = 0.9F;
@@ -50,8 +49,7 @@ public class ClientColorEffect {
             ACTIVE.remove(entity.getId());
             return null;
         }
-        // The colour comes from yawning_neko_api's adaptation_color_models json when it covers this
-        // entity; otherwise the built-in colours below are used.
+
         int override = 0;
         if (org.tdddd.yawning_neko_api.data.AdaptationColorConfig.applies(entity)) {
             int eventType = org.tdddd.yawning_neko_api.data.DamageAdaptation.getActiveAdaptationEvent(entity);
@@ -72,12 +70,11 @@ public class ClientColorEffect {
     }
 
     public static class EffectData {
-        public final int type;   
+        public final int type;
         public int remainingTicks;
 
-        /** 0 = use the built-in colours; otherwise the ARGB decided by yawning_neko_api's json. */
         public int colorOverride = 0;
-        
+
         public final int totalTicks;
 
         public EffectData(int type, int ticks) {
@@ -99,19 +96,18 @@ public class ClientColorEffect {
         }
 
         public float[] getColorRGB() {
-            if (type == TYPE_PARTIAL_ADAPTATION) { 
+            if (type == TYPE_PARTIAL_ADAPTATION) {
                 return new float[]{0.2F, 0.9F, 1.0F};
             }
             if (type == TYPE_CONVERSION || type == TYPE_CONVERSION_FADE) {
-                
+
                 float alpha = getRampAlpha();
                 return new float[]{PURPLE_R * alpha, PURPLE_G * alpha, PURPLE_B * alpha};
-            } else {         
+            } else {
                 return new float[]{PURPLE_R, PURPLE_G, PURPLE_B};
             }
         }
 
-        
         private float getRampAlpha() {
             float progress = getProgress();
             if (type == TYPE_CONVERSION) {
@@ -130,7 +126,6 @@ public class ClientColorEffect {
             return progress;
         }
 
-        
         private int getAlphaChannel() {
             if (type == TYPE_CONVERSION || type == TYPE_CONVERSION_FADE) {
                 int alpha = (int) (getRampAlpha() * 255.0F);

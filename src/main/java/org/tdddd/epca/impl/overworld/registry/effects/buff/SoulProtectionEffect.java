@@ -10,7 +10,7 @@ public class SoulProtectionEffect extends MobEffect {
 
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
-        
+
         return false;
     }
 }

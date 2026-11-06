@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.data;
 
 import com.google.gson.Gson;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import com.google.gson.GsonBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -17,7 +18,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,14 +26,12 @@ import java.util.stream.Collectors;
 
 public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
-    /** Erosion points granted when an entity fusion completes. */
     private static final int FUSION_EROSION_POINTS = 3;
     private static final Gson GSON = new GsonBuilder().create();
     private static final Map<String, List<EntityIntegrationRule>> INTEGRATION_RULES = new HashMap<>();
-    
+
     private static final Map<String, IntegrationProcess> ACTIVE_INTEGRATIONS = new HashMap<>();
 
-    
     private static final Set<String> PROCESSED_GROUPS_THIS_TICK = new HashSet<>();
     private static long lastTickProcessed = -1;
 
@@ -137,10 +135,9 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
                         for (EntityIntegrationRule rule : rules) {
                             if (isValidRule(rule)) {
-                                
+
                                 standardizeRule(rule);
 
-                                
                                 String fileName = resourceLocation.getPath().substring(
                                         resourceLocation.getPath().lastIndexOf("/") + 1,
                                         resourceLocation.getPath().lastIndexOf(".")
@@ -167,26 +164,24 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
                 .filter(type -> type.is(tagKey))
                 .collect(Collectors.toList());
     }
-    
+
     private static void standardizeRule(EntityIntegrationRule rule) {
-        
+
         if (rule.randomResult == null) rule.randomResult = false;
         if (rule.minResultCount == null) rule.minResultCount = 1;
         if (rule.maxResultCount == null) rule.maxResultCount = 1;
         if (rule.allowDuplicateResults == null) rule.allowDuplicateResults = true;
         if (rule.fixedResults == null) rule.fixedResults = new ArrayList<>();
-        
+
         if (rule.maxResultCount < rule.minResultCount) {
             rule.maxResultCount = rule.minResultCount;
         }
 
-        
         if (rule.resultProbabilities != null) {
             double totalProbability = rule.resultProbabilities.values().stream()
                     .mapToDouble(Double::doubleValue)
                     .sum();
 
-            
             if (totalProbability > 1.0) {
                 for (Map.Entry<String, Double> entry : rule.resultProbabilities.entrySet()) {
                     entry.setValue(entry.getValue() / totalProbability);
@@ -195,7 +190,6 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         }
     }
 
-    
     private boolean isValidRule(EntityIntegrationRule rule) {
         return rule.entities != null && !rule.entities.isEmpty() &&
                 rule.results != null && !rule.results.isEmpty() &&
@@ -203,102 +197,86 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
                 rule.time >= 0;
     }
 
-    
     public static void checkIntegration(ServerLevel level, List<Mob> entities) {
         if (entities.isEmpty() || level.isClientSide()) return;
 
-        
         long currentTick = level.getGameTime();
         if (currentTick != lastTickProcessed) {
             PROCESSED_GROUPS_THIS_TICK.clear();
             lastTickProcessed = currentTick;
         }
 
-        
         String groupId = generateGroupId(entities);
 
-        
         if (ACTIVE_INTEGRATIONS.containsKey(groupId)) {
             return;
         }
 
-        
         if (PROCESSED_GROUPS_THIS_TICK.contains(groupId)) {
             return;
         }
 
-        
         for (Map.Entry<String, List<EntityIntegrationRule>> entry : INTEGRATION_RULES.entrySet()) {
             String ruleGroup = entry.getKey();
             List<EntityIntegrationRule> ruleList = entry.getValue();
 
             for (EntityIntegrationRule rule : ruleList) {
                 if (matchesRule(level, entities, rule)) {
-                    
+
                     PROCESSED_GROUPS_THIS_TICK.add(groupId);
 
-                    
                     startIntegration(level, entities, rule, groupId);
-                    return; 
+                    return;
                 }
             }
         }
 
-        
         PROCESSED_GROUPS_THIS_TICK.add(groupId);
     }
 
-    
     private static boolean matchesRule(ServerLevel level, List<Mob> entities, EntityIntegrationRule rule) {
-        
+
         if (!matchesEntityRequirements(level, entities, rule)) {
             return false;
         }
 
-        
         return checkEntityProbabilities(level, entities, rule);
     }
 
-    
     private static boolean matchesEntityRequirements(ServerLevel level, List<Mob> entities, EntityIntegrationRule rule) {
-        
+
         List<EntityRequirement> requirements = new ArrayList<>(rule.entities);
         List<Mob> remainingEntities = new ArrayList<>(entities);
 
-        
         for (EntityRequirement requirement : requirements) {
             int matchedCount = 0;
             int minRequired = requirement.minCount != null ? requirement.minCount : 1;
             int maxRequired = requirement.maxCount != null ? requirement.maxCount : Integer.MAX_VALUE;
 
-            
             Iterator<Mob> iterator = remainingEntities.iterator();
             while (iterator.hasNext() && matchedCount < maxRequired) {
                 Mob entity = iterator.next();
                 if (matchesEntityRequirement(entity, requirement)) {
-                    
+
                     if (requirement.chance < 1.0) {
                         if (level.random.nextDouble() > requirement.chance) {
-                            continue; 
+                            continue;
                         }
                     }
 
                     matchedCount++;
-                    iterator.remove(); 
+                    iterator.remove();
                 }
             }
 
-            
             if (matchedCount < minRequired || matchedCount > maxRequired) {
                 return false;
             }
         }
 
-        
         boolean result = remainingEntities.isEmpty();
         return result;
     }
-
 
     public static boolean matchesEntityRequirement(Mob entity, EntityRequirement requirement) {
         ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
@@ -323,13 +301,11 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         return true;
     }
 
-    
     private static boolean checkEntityProbabilities(ServerLevel level, List<Mob> entities, EntityIntegrationRule rule) {
-        
+
         return matchesEntityRequirements(level, entities, rule);
     }
 
-    
     private static String generateGroupId(List<Mob> entities) {
         List<String> entityIds = new ArrayList<>();
         for (Mob entity : entities) {
@@ -342,7 +318,6 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         return String.join("|", entityIds);
     }
 
-    
     private static void startIntegration(ServerLevel level, List<Mob> entities, EntityIntegrationRule rule, String groupId) {
         BlockPos spawnPos = findNearestToCenter(entities);
         if (spawnPos == null) return;
@@ -350,13 +325,11 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         IntegrationProcess process = new IntegrationProcess(level, entities, rule, spawnPos);
         ACTIVE_INTEGRATIONS.put(groupId, process);
 
-        
         if (rule.time == 0) {
             process.tick();
         }
     }
 
-    
     public static void tick() {
         Iterator<Map.Entry<String, IntegrationProcess>> iterator = ACTIVE_INTEGRATIONS.entrySet().iterator();
 
@@ -372,11 +345,9 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         }
     }
 
-    
     private static BlockPos findNearestToCenter(List<Mob> entities) {
         if (entities.isEmpty()) return null;
 
-        
         double centerX = 0, centerY = 0, centerZ = 0;
         for (Mob entity : entities) {
             centerX += entity.getX();
@@ -387,7 +358,6 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         centerY /= entities.size();
         centerZ /= entities.size();
 
-        
         Mob nearestEntity = null;
         double minDistanceSq = Double.MAX_VALUE;
 
@@ -406,7 +376,6 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         return INTEGRATION_RULES;
     }
 
-    
     private static class IntegrationProcess {
         private final ServerLevel level;
         private final List<Mob> entities;
@@ -416,7 +385,6 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         private boolean hasPlayedEffects = false;
         private boolean isFinished = false;
 
-        
         private CompoundTag inheritedVariantData = new CompoundTag();
 
         public IntegrationProcess(ServerLevel level, List<Mob> entities, EntityIntegrationRule rule, BlockPos spawnPos) {
@@ -426,41 +394,35 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
             this.spawnPos = spawnPos;
             this.ticksRemaining = rule.time;
 
-            
             for (Mob entity : entities) {
                 entity.getNavigation().stop();
             }
 
-            
             extractInheritedVariantData();
         }
 
-        
         private void extractInheritedVariantData() {
             for (Mob entity : entities) {
-                if (entity instanceof IParasite parasite) {
-                    CompoundTag data = parasite.getVariantData();
+                if (ParasiteEvents.isParasiteEntity(entity)) {
+                    CompoundTag data = ParasiteEvents.getVariantData(entity);
                     if (data != null && !data.isEmpty()) {
                         inheritedVariantData = data;
-                        break; 
+                        break;
                     }
                 }
             }
         }
 
-        
         private void applyInheritedVariant(Entity newEntity) {
             if (inheritedVariantData == null || inheritedVariantData.isEmpty()) return;
-            if (newEntity instanceof IParasite parasite) {
-                parasite.setVariantData(inheritedVariantData);
+            if (ParasiteEvents.isParasiteEntity(newEntity)) {
+                if (newEntity instanceof net.minecraft.world.entity.LivingEntity living) ParasiteEvents.setVariantData(living, inheritedVariantData);
             }
         }
-
 
         public void tick() {
             if (isFinished) return;
 
-            
             if (rule.time == 0) {
                 if (!hasPlayedEffects) {
                     playIntegrationEffects();
@@ -472,37 +434,31 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
 
             ticksRemaining--;
 
-            
             if (!validateEntities()) {
                 cancelIntegration();
                 return;
             }
 
-            
             if (ticksRemaining == 1 && !hasPlayedEffects) {
                 playIntegrationEffects();
                 hasPlayedEffects = true;
             }
 
-            
             if (ticksRemaining <= 0) {
                 completeIntegration();
             }
         }
 
-        
         private boolean validateEntities() {
             double rangeSq = rule.range * rule.range;
 
             for (int i = entities.size() - 1; i >= 0; i--) {
                 Mob entity = entities.get(i);
 
-                
                 if (!entity.isAlive() || entity.isRemoved()) {
                     return false;
                 }
 
-                
                 if (entity.distanceToSqr(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ()) > rangeSq) {
                     return false;
                 }
@@ -511,9 +467,8 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
             return true;
         }
 
-        
         private void playIntegrationEffects() {
-            
+
             level.playSound(null,
                     spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(),
                     SoundEvents.ZOMBIE_INFECT,
@@ -522,29 +477,26 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
             );
         }
 
-        
         private void completeIntegration() {
-        // An entity fusion is worth 3 erosion points, once per completed integration.
+
         var evolution = EvolutionManager.forDimension(this.level);
         if (evolution != null) {
             evolution.addPoints(FUSION_EROSION_POINTS);
         }
             if (isFinished) return;
-            
+
             spawnFixedResults();
-            
+
             if (rule.randomResult) {
                 spawnRandomResults();
             } else {
                 spawnAllResults();
             }
 
-            
             for (Mob entity : entities) {
                 entity.discard();
             }
 
-            
             playCompletionEffects();
 
             isFinished = true;
@@ -557,16 +509,14 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
             }
         }
 
-        
         private void spawnAllResults() {
             for (EntityResult result : rule.results) {
                 spawnEntityResult(result);
             }
         }
 
-        
         private void spawnRandomResults() {
-            RandomSource random = level.random;   
+            RandomSource random = level.random;
 
             int resultCount = rule.minResultCount;
             if (rule.maxResultCount > rule.minResultCount) {
@@ -647,7 +597,7 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
         }
 
         private void playCompletionEffects() {
-            // Summoning pillars (beckon stages) must not show a conversion burst.
+
             if (rule.results != null && !rule.results.isEmpty()
                     && rule.results.get(0).entity != null
                     && rule.results.get(0).entity.contains("beckon")) {
@@ -665,10 +615,10 @@ public class EntityIntegrationManager implements ResourceManagerReloadListener {
                         new net.minecraft.resources.ResourceLocation(rule.results.get(0).entity));
                 if (type != null) {
                     var probe = type.create(level);
-                    if (probe instanceof org.tdddd.epca.impl.overworld.registry.entities.IInfested) variant = 1;
-                    else if (probe instanceof org.tdddd.epca.impl.overworld.registry.entities.IOnesent) variant = 2;
-                    else if (probe instanceof org.tdddd.epca.impl.overworld.registry.entities.IPoverty) variant = 3;
-                    else if (probe instanceof org.tdddd.epca.impl.overworld.registry.entities.IReshape) variant = 4;
+                    if (probe.getType().is(org.tdddd.epca.impl.overworld.registry.ModTags.INFESTED)) variant = 1;
+                    else if (probe.getType().is(org.tdddd.epca.impl.overworld.registry.ModTags.ONESENT)) variant = 2;
+                    else if (probe.getType().is(org.tdddd.epca.impl.overworld.registry.ModTags.POVERTY)) variant = 3;
+                    else if (probe.getType().is(org.tdddd.epca.impl.overworld.registry.ModTags.RESHAPE)) variant = 4;
                 }
             }
             int color = 0x3F5A2A;

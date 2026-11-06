@@ -8,8 +8,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 
 public class LivingArmorMaterial implements ArmorMaterial {
-    private static final int[] BASE_DURABILITY = new int[]{858, 1056, 990, 726}; 
-    private static final int[] PROTECTION_VALUES = new int[]{4, 8, 10, 4}; 
+    private static final int[] BASE_DURABILITY = new int[]{858, 1056, 990, 726};
+    private static final int[] PROTECTION_VALUES = new int[]{4, 8, 10, 4};
 
     @Override
     public int getDurabilityForType(ArmorItem.Type type) {
@@ -43,11 +43,11 @@ public class LivingArmorMaterial implements ArmorMaterial {
 
     @Override
     public float getToughness() {
-        return 3.0F; 
+        return 3.0F;
     }
 
     @Override
     public float getKnockbackResistance() {
-        return 0.0F; 
+        return 0.0F;
     }
 }

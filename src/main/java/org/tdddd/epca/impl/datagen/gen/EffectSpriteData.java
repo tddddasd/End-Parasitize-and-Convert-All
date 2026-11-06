@@ -9,7 +9,6 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.Optional;
 
-
 public class EffectSpriteData extends SpriteSourceProvider {
 
     public EffectSpriteData(PackOutput output, ExistingFileHelper fileHelper) {
@@ -18,10 +17,9 @@ public class EffectSpriteData extends SpriteSourceProvider {
 
     @Override
     protected void addSources() {
-        
+
         ResourceLocation effectsAtlas = new ResourceLocation("textures/atlas/mob_effects.png");
 
-        
         String[] effectTextures = {
                 "bleeding", "viral", "fear", "para_curse",
                 "contempt_inorganic", "corrosive", "rage", "needler",

@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
 import net.minecraft.world.damagesource.DamageSource;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -16,7 +17,6 @@ import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.effects.RemovableEffect;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.UUID;
 
@@ -33,8 +33,7 @@ public class DeepSneakEffect extends MobEffect implements RemovableEffect{
     public void applyEffectTick(LivingEntity entity, int amplifier) {
         super.applyEffectTick(entity, amplifier);
 
-        
-        boolean isParasite = IParasite.isParasiteByTagOrInterface(entity);
+        boolean isParasite = ParasiteEvents.isParasiteByTagOrInterface(entity);
 
         if (isParasite) {
             if (entity.isOnFire() && !entity.isInLava()) {
@@ -82,7 +81,6 @@ public class DeepSneakEffect extends MobEffect implements RemovableEffect{
         AttributeInstance instance = entity.getAttribute(Attributes.MOVEMENT_SPEED);
         if (instance == null) return;
 
-        
         instance.removeModifier(UUID.fromString(SPEED_MODIFIER_UUID));
 
         double amount = -0.0125 * (amplifier + 1);
@@ -105,10 +103,10 @@ public class DeepSneakEffect extends MobEffect implements RemovableEffect{
     @Override
     public double getAttributeModifierValue(int amplifier, AttributeModifier modifier) {
         if (modifier.getId().toString().equals(SPEED_MODIFIER_UUID)) {
-            
+
             return -0.0125 * (amplifier + 1);
         } else if (modifier.getId().toString().equals(DAMAGE_MODIFIER_UUID)) {
-            
+
             return -0.0125 * (amplifier + 1);
         }
         return 0;
@@ -119,7 +117,7 @@ public class DeepSneakEffect extends MobEffect implements RemovableEffect{
         DamageSource source = event.getSource();
 
         if (source.getEntity() instanceof LivingEntity attacker) {
-            if (attacker.hasEffect(ModEffects.DEEP_SNEAK.get()) && !IParasite.isParasiteByTagOrInterface(attacker)) {
+            if (attacker.hasEffect(ModEffects.DEEP_SNEAK.get()) && !ParasiteEvents.isParasiteByTagOrInterface(attacker)) {
                 if (!hasTurtleHelmet(attacker)) {
                     int amplifier = attacker.getEffect(ModEffects.DEEP_SNEAK.get()).getAmplifier();
                     float damageReduction = 0.0125f * (amplifier + 1);
@@ -137,7 +135,7 @@ public class DeepSneakEffect extends MobEffect implements RemovableEffect{
 
     @Override
     public boolean isRemovable() {
-        return false; 
+        return false;
     }
 
     @SubscribeEvent

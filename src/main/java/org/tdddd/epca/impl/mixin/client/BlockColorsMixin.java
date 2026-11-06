@@ -53,20 +53,6 @@ public abstract class BlockColorsMixin {
         cir.setReturnValue(finalColor);
     }
 
-    /**
-     * Makes every leaf block take the foliage colour of the biome it stands in.
-     *
-     * <p>Vanilla registers the biome foliage {@code BlockColor} only for oak/jungle/acacia/dark oak/mangrove
-     * leaves; spruce and birch (and the azalea leaves) use hardcoded grayscale tints that ignore the biome
-     * altogether. The cursed world's parasite biome sets {@code effects.foliage_color} to the purple
-     * {@code 0x8E44AD} ({@code data/epca/worldgen/biome/parasite_biome.json}), so once those leaves follow the
-     * biome they turn purple as well, while every other world keeps rendering them exactly as vanilla does -
-     * the value installed here <b>is</b> the biome's own foliage colour, and a biome that overrides nothing
-     * leaves the vanilla result untouched.
-     *
-     * <p>The biome lookup only works when the tint getter really is a level, which is always the case for
-     * in-world block rendering; anything else falls through with the vanilla colour.
-     */
     private static void applyBiomeFoliageColor(
             BlockState state,
             BlockAndTintGetter level,

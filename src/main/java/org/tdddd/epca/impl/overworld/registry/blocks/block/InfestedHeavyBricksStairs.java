@@ -32,7 +32,7 @@ public class InfestedHeavyBricksStairs extends StairBlock implements InfestedBlo
 
     public InfestedHeavyBricksStairs(Properties properties) {
         super(() -> Blocks.DEEPSLATE.defaultBlockState(), properties);
-        
+
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(NATURAL_SPAWN, true)
                 .setValue(FACING, Direction.NORTH)
@@ -58,17 +58,16 @@ public class InfestedHeavyBricksStairs extends StairBlock implements InfestedBlo
         return Blocks.DEEPSLATE_BRICKS.getSoundType(Blocks.DEEPSLATE_BRICKS.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 }

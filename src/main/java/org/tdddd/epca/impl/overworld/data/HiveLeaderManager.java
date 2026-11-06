@@ -29,9 +29,7 @@ public class HiveLeaderManager {
         HiveLeaderSavedData data = getSavedData();
         if (data != null) {
             data.addLeader(uuid);
-            // STAGE 1 SPEC
-            //  16 39  22  / 1  / 4
-            // 33  0-5  7  1  6  8
+
             initOrganDefaults(uuid);
             broadcastLeaders();
             return true;
@@ -39,19 +37,6 @@ public class HiveLeaderManager {
         return false;
     }
 
-    /**
-     *
-     *
-     * <p><b></b> SavedData {@code hiveleader_organs.dat}
-     *  {@code HiveLeaderOrganSavedData} UUID
-     *  {@code ServerPlayer}
-     * <b></b>{@code Player#getPersistentData()}
-     * {@code HiveLeaderOrgans} {@code Player}
-     *  {@code /epca_hiveleader add}  {@code EntityArgument.player()}
-     *  tick  /
-     * {@code HiveLeaderOrganEffects#tick}  tick
-     * {@code HiveLeaderOrganSavedData#readOrCreate} / </p>
-     */
     private static void initOrganDefaults(UUID uuid) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;

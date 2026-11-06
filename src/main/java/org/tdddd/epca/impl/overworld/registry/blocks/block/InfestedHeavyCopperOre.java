@@ -23,7 +23,7 @@ import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedHeavyCopperOre extends Block implements InfestedBlockInterface {
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedHeavyCopperOre(Properties properties) {
@@ -48,17 +48,16 @@ public class InfestedHeavyCopperOre extends Block implements InfestedBlockInterf
         return Blocks.DEEPSLATE_COPPER_ORE.getSoundType(Blocks.DEEPSLATE_COPPER_ORE.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 }

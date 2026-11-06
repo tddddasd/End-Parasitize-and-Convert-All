@@ -15,19 +15,6 @@ import org.tdddd.epca.impl.overworld.data.LikeBiome;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeSavedData;
 
-/**
- * {@code /epca_biome_like} - stack a biome on top of the real one for the chunk the command runs in.
- *
- * <pre>
- * /epca_biome_like set &lt;biome&gt; [colors] [rain] [spawn]
- * /epca_biome_like remove
- * /epca_biome_like removeall
- * /epca_biome_like info
- * </pre>
- *
- * <p>{@code colors}, {@code rain} are booleans; {@code spawn} is {@code override}, {@code coexist} or
- * {@code none}. The like biome only layers properties on top: the real biome of the chunk is untouched.</p>
- */
 public final class LikeBiomeCommand {
 
     private LikeBiomeCommand() {
@@ -81,7 +68,7 @@ public final class LikeBiomeCommand {
             source.sendFailure(Component.literal("无效的生物群系 id: " + StringArgumentType.getString(ctx, "biome")));
             return 0;
         }
-        // the like biome must be a real biome, otherwise nothing could be overlaid
+
         if (LikeBiomeManager.resolve(level, id) == null) {
             source.sendFailure(Component.literal("生物群系不存在: " + id));
             return 0;

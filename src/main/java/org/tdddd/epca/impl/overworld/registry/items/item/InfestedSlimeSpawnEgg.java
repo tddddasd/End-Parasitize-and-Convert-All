@@ -17,7 +17,7 @@ public class InfestedSlimeSpawnEgg extends ForgeSpawnEggItem {
     private static final Random RANDOM = new Random();
 
     public InfestedSlimeSpawnEgg(Properties properties) {
-        
+
         super(() -> ModEntities.INFESTED_SLIME_SIZE0.get(), -1, -1, properties);
     }
 

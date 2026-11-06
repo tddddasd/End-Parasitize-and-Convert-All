@@ -10,12 +10,6 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Stores which chunk units carry which like biome, per dimension.
- *
- * <p>The unit is one 4x4x4 section ({@link SectionPos}): a like biome can be stacked on a single small
- * volume instead of a whole chunk column, which is what makes it useful for shaping a region.</p>
- */
 public class LikeBiomeSavedData extends SavedData {
 
     private static final String DATA_NAME = "epca_like_biomes";
@@ -30,7 +24,6 @@ public class LikeBiomeSavedData extends SavedData {
         return storage.computeIfAbsent(LikeBiomeSavedData::load, LikeBiomeSavedData::new, DATA_NAME);
     }
 
-    /** The like biome of the 4x4x4 section containing {@code pos}, or {@code null}. */
     public LikeBiome at(BlockPos pos) {
         return this.byChunk.get(SectionPos.asLong(pos));
     }
@@ -44,7 +37,6 @@ public class LikeBiomeSavedData extends SavedData {
         this.setDirty();
     }
 
-    /** @return true when a like biome was actually removed */
     public boolean remove(long sectionKey) {
         if (this.byChunk.remove(sectionKey) != null) {
             this.setDirty();
@@ -53,7 +45,6 @@ public class LikeBiomeSavedData extends SavedData {
         return false;
     }
 
-    /** @return how many chunks were cleared */
     public int removeAll() {
         int size = this.byChunk.size();
         if (size > 0) {
@@ -89,7 +80,7 @@ public class LikeBiomeSavedData extends SavedData {
                     data.byChunk.put(Long.parseLong(key), value);
                 }
             } catch (NumberFormatException ignored) {
-                // a corrupt key is dropped rather than failing the whole save
+
             }
         }
         return data;

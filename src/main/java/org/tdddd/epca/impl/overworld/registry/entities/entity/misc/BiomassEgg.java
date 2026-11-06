@@ -1,7 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import org.tdddd.epca.impl.client.entity.IMotionAligned;
-
 
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -19,7 +19,6 @@ import net.minecraftforge.network.NetworkHooks;
 import org.tdddd.epca.impl.overworld.registry.capability.LifetimeCapability;
 import software.bernie.geckolib.animatable.GeoEntity;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingChickenHead;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -34,28 +33,26 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int age = 0;
-    private final int MAX_AGE = 15 * 20; 
+    private final int MAX_AGE = 15 * 20;
 
     public BiomassEgg(EntityType<? extends AbstractArrow> type, Level level) {
         super(type, level);
-        this.setNoGravity(false); 
+        this.setNoGravity(false);
     }
 
     public BiomassEgg(Level level, LivingEntity shooter) {
-        super(ModEntities.BIOMASS_EGG.get(), shooter, level); 
-        this.setNoGravity(false); 
+        super(ModEntities.BIOMASS_EGG.get(), shooter, level);
+        this.setNoGravity(false);
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        
         age++;
         if (age >= MAX_AGE && !this.level().isClientSide) {
             this.discard();
         }
-
 
         if (!this.inGround) {
             Vec3 deltaMovement = this.getDeltaMovement();
@@ -70,7 +67,7 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
 
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        if (this.random.nextFloat() < 0.125f) { 
+        if (this.random.nextFloat() < 0.125f) {
             this.spawnWalkingChickenHeads();
         }
         this.discard();
@@ -81,8 +78,8 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
     protected void onHitEntity(EntityHitResult result) {
         if (result.getEntity() instanceof LivingEntity) {
             LivingEntity target = (LivingEntity) result.getEntity();
-            
-            if (!IParasite.isParasiteByTagOrInterface(target)) {
+
+            if (!ParasiteEvents.isParasiteByTagOrInterface(target)) {
                 target.hurt(target.damageSources().indirectMagic(this, this.getOwner()), 0.5f);
                 target.addEffect(new MobEffectInstance(
                         ModEffects.PARA_CURSE.get(),
@@ -93,7 +90,7 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
                 ));
             }
         }
-        if (this.random.nextFloat() < 0.125f) { 
+        if (this.random.nextFloat() < 0.125f) {
             this.spawnWalkingChickenHeads();
         }
         this.discard();
@@ -103,27 +100,23 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
         entity.getCapability(LifetimeCapability.LIFETIME).ifPresent(cap -> cap.setRemainingTicks(ticks));
     }
 
-    
     private void spawnWalkingChickenHeads() {
         if (!this.level().isClientSide) {
-            
-            int count = 1 + random.nextInt(2); 
+
+            int count = 1 + random.nextInt(2);
 
             for (int i = 0; i < count; i++) {
                 WalkingChickenHead walkingChickenHead = new WalkingChickenHead(ModEntities.WALKING_CHICKEN_HEAD.get(), this.level());
                 walkingChickenHead.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
                 setLifeTime(walkingChickenHead, 1200);
 
-                
                 walkingChickenHead.addEffect(new MobEffectInstance(
-                        ModEffects.RAGE.get(), 
-                        1200,  
-                        1       
+                        ModEffects.RAGE.get(),
+                        1200,
+                        1
                 ));
 
-                
-                //  IParasite#BIOMASS_SPAWNED_KEY
-                IParasite.markBiomassSpawned(walkingChickenHead);
+                ParasiteEvents.markBiomassSpawned(walkingChickenHead);
 
                 this.level().addFreshEntity(walkingChickenHead);
             }
@@ -132,7 +125,7 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
 
     @Override
     protected ItemStack getPickupItem() {
-        
+
         return ItemStack.EMPTY;
     }
 
@@ -141,7 +134,6 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
@@ -157,4 +149,3 @@ public class BiomassEgg extends AbstractArrow implements GeoEntity, IMotionAlign
         return this.cache;
     }
 }
-

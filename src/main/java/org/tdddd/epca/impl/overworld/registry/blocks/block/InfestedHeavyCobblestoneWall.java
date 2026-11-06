@@ -51,7 +51,7 @@ public class InfestedHeavyCobblestoneWall extends WallBlock implements InfestedB
 
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         BlockState baseState = super.defaultBlockState()
                 .setValue(UP, state.getValue(UP))
                 .setValue(NORTH_WALL, state.getValue(NORTH_WALL))
@@ -68,7 +68,6 @@ public class InfestedHeavyCobblestoneWall extends WallBlock implements InfestedB
         return shape;
     }
 
-    
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         BlockState baseState = super.defaultBlockState()

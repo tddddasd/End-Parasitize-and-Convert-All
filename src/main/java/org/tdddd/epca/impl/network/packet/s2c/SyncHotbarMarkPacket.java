@@ -6,24 +6,8 @@ import org.tdddd.epca.impl.client.effect.BioTortClientState;
 
 import java.util.function.Supplier;
 
-/**
- *  -&gt; "" 1
- *
- * <h2></h2>
- * <p> 20
- * {@code BioTortIncarnation} /</p>
- *
- * <h2></h2>
- * <p>{@code slotMask}  9 bit 0..8 =  0..8{@code 0}
- * ""
- * ""{@code durationTicks}
- * </p>
- *
- * <p>{@code PacketDistributor.PLAYER}</p>
- */
 public class SyncHotbarMarkPacket {
 
-    /** bit 0..8 */
     public static final int SLOT_MASK_BITS = 9;
 
     private final int slotMask;
@@ -34,12 +18,10 @@ public class SyncHotbarMarkPacket {
         this.durationTicks = durationTicks;
     }
 
-    /**  {@code slotMask == 0}  */
     public static SyncHotbarMarkPacket mark(int slotMask, int durationTicks) {
         return new SyncHotbarMarkPacket(slotMask, durationTicks);
     }
 
-    /**  */
     public static SyncHotbarMarkPacket clear() {
         return new SyncHotbarMarkPacket(0, 0);
     }
@@ -58,4 +40,3 @@ public class SyncHotbarMarkPacket {
         ctx.get().setPacketHandled(true);
     }
 }
-

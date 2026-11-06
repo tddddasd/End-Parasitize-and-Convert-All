@@ -28,11 +28,11 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedInfestedCrackedStoneBricks extends Block implements InfestedBlockInterface {
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedInfestedCrackedStoneBricks(Properties properties) {
-        
+
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(NATURAL_SPAWN, true));
     }
@@ -54,18 +54,18 @@ public class InfestedInfestedCrackedStoneBricks extends Block implements Infeste
         super.onRemove(state, level, pos, newState, movedByPiston);
 
         if (!level.isClientSide) {
-            
+
             if (!movedByPiston) {
-                
+
                 Player nearestPlayer = level.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 5.0, false);
                 boolean shouldSpawn = true;
 
                 if (nearestPlayer != null) {
-                    
+
                     if (nearestPlayer.isCreative()) {
                         shouldSpawn = false;
                     } else {
-                        
+
                         ItemStack mainHand = nearestPlayer.getMainHandItem();
                         if (mainHand.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0) {
                             shouldSpawn = false;
@@ -74,7 +74,7 @@ public class InfestedInfestedCrackedStoneBricks extends Block implements Infeste
                 }
 
                 if (shouldSpawn) {
-                    
+
                     EntityType<?> infestedSilverfishEntityType = ModEntities.INFESTED_SILVERFISH.get();
                     Entity infestedSilverfish = infestedSilverfishEntityType.create(level);
                     if (infestedSilverfish != null) {
@@ -86,7 +86,6 @@ public class InfestedInfestedCrackedStoneBricks extends Block implements Infeste
                         level.addFreshEntity(infestedSilverfish);
                     }
 
-                    
                     ((ServerLevel) level).sendParticles(ParticleTypes.POOF,
                             pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                             10, 0.2, 0.2, 0.2, 0.0);
@@ -100,17 +99,16 @@ public class InfestedInfestedCrackedStoneBricks extends Block implements Infeste
         return Blocks.STONE.getSoundType(Blocks.STONE.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 }

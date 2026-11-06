@@ -20,37 +20,27 @@ public class ModItems {
     public static final DeferredRegister<Item> ITEMS =
             DeferredRegister.create(ForgeRegistries.ITEMS, epca.MODID);
 
-    
-
-    
     private static RegistryObject<Item> simpleItem(String name) {
         return ITEMS.register(name, () -> new Item(new Item.Properties()));
     }
 
-    
     private static <T extends Item> RegistryObject<T> customItem(String name, Supplier<T> supplier) {
         return ITEMS.register(name, supplier);
     }
 
-    
     private static RegistryObject<Item> spawnEgg(String name, Supplier<? extends EntityType<? extends Mob>> entitySupplier) {
         return ITEMS.register(name + "_spawn_egg",
                 () -> new ForgeSpawnEggItem(entitySupplier, -1, -1, new Item.Properties()));
     }
 
-    
     private static RegistryObject<Item> blockItem(String name, RegistryObject<? extends Block> block) {
         return ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
     }
 
-    
     private static <T extends BlockItem> RegistryObject<T> customBlockItem(String name, Supplier<T> supplier) {
         return ITEMS.register(name, supplier);
     }
 
-    
-
-    
     public static final RegistryObject<Item> CLUSTER = customItem("cluster", () -> new Cluster(new Item.Properties()));
     public static final RegistryObject<Item> PARASITE_VISCERA = customItem("parasite_viscera", () -> new ParasiteViscera(new Item.Properties()));
     public static final RegistryObject<Item> FINS_FIN = customItem("fins_fin", () -> new FinsFin(new Item.Properties()));
@@ -81,7 +71,6 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_SWEET_BERRIES = customItem("infested_sweet_berries", () -> new InfestedSweetBerries(new Item.Properties()));
     public static final RegistryObject<Item> COPPER_NUGGET = customItem("copper_nugget", () -> new CopperNugget(new Item.Properties()));
 
-    
     public static final RegistryObject<Item> BLOODY_CLOCK = ITEMS.register("erosion_clock",
             () -> new BloodyClock(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
     public static final RegistryObject<Item> KILL_STICK = ITEMS.register("endless_wand",
@@ -107,7 +96,6 @@ public class ModItems {
     public static final RegistryObject<Item> ENDER_BLADE_SCRAP = ITEMS.register("ender_blade_scrap",
             () -> new EnderBladeScrap(new Item.Properties().rarity(Rarity.UNCOMMON)));
 
-    
     public static final RegistryObject<Item> WOODEN_SPEAR = ITEMS.register("wooden_spear",
             () -> new WoodenSpear(new Item.Properties().stacksTo(1).durability(64)));
     public static final RegistryObject<Item> STONE_SPEAR = ITEMS.register("stone_spear",
@@ -125,7 +113,6 @@ public class ModItems {
     public static final RegistryObject<Item> NETHERITE_SPEAR = ITEMS.register("netherite_spear",
             () -> new NetheriteSpear(new Item.Properties().stacksTo(1).durability(2031)));
 
-    
     public static final RegistryObject<LivingArmorItem> LIVING_HELMET = ITEMS.register("living_helmet",
             () -> new LivingArmorItem(new LivingArmorMaterial(), ArmorItem.Type.HELMET, new Item.Properties()));
     public static final RegistryObject<LivingArmorItem> LIVING_CHESTPLATE = ITEMS.register("living_chestplate",
@@ -135,7 +122,6 @@ public class ModItems {
     public static final RegistryObject<LivingArmorItem> LIVING_BOOTS = ITEMS.register("living_boots",
             () -> new LivingArmorItem(new LivingArmorMaterial(), ArmorItem.Type.BOOTS, new Item.Properties()));
 
-    
     public static final RegistryObject<Item> ACID_SOLUTION_BUCKET = ITEMS.register("acid_bucket",
             () -> new BucketItem(ModFluids.ACID_SOLUTION, new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> INFESTED_SPIDER_WEB_PROJECTILE =
@@ -147,7 +133,7 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_CAVE_SPIDER_WEB_PROJECTILE =
             ITEMS.register("infested_cave_spider_web_projectile",
                     () -> new Item(new Item.Properties()));
-    
+
     public static final RegistryObject<Item> BUGLIN_SPAWN_EGG = spawnEgg("curbug", ModEntities.CURBUG);
     public static final RegistryObject<Item> YAWNING_NYA_SPAWN_EGG = spawnEgg("yawning_nya", ModEntities.YAWNING_NYA);
     public static final RegistryObject<Item> BIO_TORT_INCARNATION_SPAWN_EGG = spawnEgg("bio_tort_incarnation", ModEntities.BIO_TORT_INCARNATION);
@@ -203,18 +189,7 @@ public class ModItems {
             ITEMS.register("living_flesh_spawn_egg",
                     () -> new ForgeSpawnEggItem(() -> ModEntities.LIVING_FLESH_SIZE0.get(), -1, -1, new Item.Properties()));
     public static final RegistryObject<Item> INFESTED_BAT_SPAWN_EGG = spawnEgg("infested_bat", ModEntities.INFESTED_BAT);
-    // Spiders: FOUR eggs, one per supplied texture. The cave forms are a synced Variant on the same
-    // entity type, so each egg is a VariantSpawnEgg that writes its own variant onto the mob it
-    // creates (a plain ForgeSpawnEggItem can only produce the default variant).
-    // Variant ordinals: 0 = DEFAULT, 1 = BLOOD, 2 = CAVE.
-    // The RegistryObject is passed ITSELF, never .get(): ModItems is populated during the ITEM
-    // registration phase, which runs BEFORE entity types are registered, so resolving an entity
-    // holder here throws "Registry Object not present: epca:..." and the mod fails to load.
-    //
-    // Variant rules (user spec):
-    //   plain spider / plain head egg : 30 % BLOOD, otherwise DEFAULT, NEVER CAVE -> weights {55,30,0}
-    //   cave spider / cave head egg   : always CAVE                              -> pinned ordinal 2
-    /** Weights for the plain eggs, indexed by variant ordinal: DEFAULT 55, BLOOD 30, CAVE 0. */
+
     private static final int[] PLAIN_SPIDER_EGG_WEIGHTS = {55, 30, 0};
 
     public static final RegistryObject<Item> INFESTED_SPIDER_SPAWN_EGG =
@@ -229,8 +204,6 @@ public class ModItems {
     public static final RegistryObject<Item> WALKING_CAVE_SPIDER_HEAD_SPAWN_EGG =
             customItem("walking_cave_spider_head_spawn_egg",
                     () -> new VariantSpawnEgg(ModEntities.WALKING_SPIDER_HEAD, 2, new Item.Properties()));
-
-    
 
     public static final RegistryObject<Item> INFESTED_REMAINS_SMALL = blockItem("infested_remains_small", ModBlocks.INFESTED_REMAINS_SMALL);
     public static final RegistryObject<Item> INFESTED_REMAINS_MEDIUM = blockItem("infested_remains_medium", ModBlocks.INFESTED_REMAINS_MEDIUM);
@@ -346,7 +319,6 @@ public class ModItems {
     public static final RegistryObject<Item> INFESTED_SHORT_DRY_GRASS = blockItem("infested_short_dry_grass", ModBlocks.INFESTED_SHORT_DRY_GRASS);
     public static final RegistryObject<Item> INFESTED_TALL_DRY_GRASS = blockItem("infested_tall_dry_grass", ModBlocks.INFESTED_TALL_DRY_GRASS);
 
-    
     public static final RegistryObject<InfestedLog.InfestedLogItem> INFESTED_LOG =
             customBlockItem("infested_log", () -> new InfestedLog.InfestedLogItem(ModBlocks.INFESTED_LOG.get(), new Item.Properties()));
     public static final RegistryObject<InfestedWood.InfestedWoodItem> INFESTED_WOOD =

@@ -1,6 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -26,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
@@ -42,26 +42,23 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
+public class InfestedSilverfish extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int ambientSoundTime;
-    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
-    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
+    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20;
+    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20;
 
     public InfestedSilverfish(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
 
-        
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
 
-        
         this.navigation = new InfestedSilverfishNavigation(this, level);
     }
 
-    @Override
-    public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        public boolean canPassThroughInfestedLeaves() {
+        return true;
     }
 
     public static AttributeSupplier setAttributes() {
@@ -78,14 +75,12 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     protected void registerGoals() {
         super.registerGoals();
 
-        
         this.goalSelector.addGoal(5, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
 
-        
         this.targetSelector.addGoal(1, new PriorityTargetGoal(this, 16.0D));
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
@@ -97,7 +92,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
         super.tick();
 
         if (!this.level().isClientSide) {
-            
+
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
@@ -105,15 +100,13 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                 }
             }
 
-            
             LivingEntity target = this.getTarget();
 
             if (target != null) {
-                
+
                 double dy = target.getY() - this.getY();
                 double horizontalDistSq = this.distanceToSqr(target.getX(), this.getY(), target.getZ());
 
-                
                 if (Math.abs(dy) < 1.5 && horizontalDistSq < 4.0) {
                     Vec3 motion = this.getDeltaMovement();
                     if (motion.y < 0) {
@@ -121,21 +114,17 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                     }
                 }
 
-                
                 if (this.navigation.isDone() && this.random.nextInt(20) == 0) {
                     this.navigation.moveTo(target, 1.0);
                 }
             }
 
-            
-            
             BlockPos epcaFoot = this.blockPosition();
             boolean epcaInsideInfested =
                     this.level().getBlockState(epcaFoot).getBlock() instanceof InfestedBlockInterface
                             || this.level().getBlockState(epcaFoot.above()).getBlock() instanceof InfestedBlockInterface;
             if (epcaInsideInfested) {
-                // Crawling inside an infested block: hold height instead of falling through it, and
-                // never add upward velocity - that lift is what used to read as swimming.
+
                 this.setNoGravity(true);
                 Vec3 epcaMotion = this.getDeltaMovement();
                 if (epcaMotion.y != 0.0D) {
@@ -145,85 +134,72 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                 this.setNoGravity(false);
             }
 
-            
             updateFloating();
         }
     }
 
-    
     public void playAmbientSound() {
         if (!this.isSilent() && this.random.nextInt(3) == 0) {
-            
+
             this.playSound(SoundEvents.SILVERFISH_AMBIENT, 0.95F, 0.8F);
         }
     }
 
-    
-
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        
+
         return SoundEvents.SILVERFISH_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return SoundEvents.SILVERFISH_DEATH;
     }
 
     @Override
     protected void playHurtSound(DamageSource source) {
-        
+
         SoundEvent soundevent = this.getHurtSound(source);
         if (soundevent != null) {
-            this.playSound(soundevent, 0.95F, 0.8F); 
+            this.playSound(soundevent, 0.95F, 0.8F);
         }
     }
 
-    
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        
+
         if (source == this.damageSources().fall() && this.isInInfestedBlock()) {
             return false;
         }
 
-        
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
 
         if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
 
-        
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-
-        
-        boolean result = super.hurt(source, adjustedAmount);
-
-        return result;
+        return super.hurt(source, amount);
     }
 
     private boolean isInInfestedBlock() {
         BlockPos pos = this.blockPosition();
-        
+
         if (this.level().getBlockState(pos).getBlock() instanceof InfestedBlockInterface) {
             return true;
         }
         if (this.level().getBlockState(pos.above()).getBlock() instanceof InfestedBlockInterface) {
             return true;
         }
-        
+
         return false;
     }
 
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
@@ -233,10 +209,10 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
 
         if (event.isMoving()) {
             if (this.isInWall()) {
-                
+
                 event.getController().setAnimation(RawAnimation.begin().thenLoop("mining"));
             } else {
-                
+
                 event.getController().setAnimation(RawAnimation.begin().thenLoop("walk"));
             }
         } else {
@@ -252,35 +228,31 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         if (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION) {
-            
+
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
 
-            
             if (stage < 2 || stage > 5) {
                 return false;
             }
         }
 
-        
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
 
-    
     @Override
     public boolean startRiding(Entity vehicle, boolean force) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
         return super.startRiding(vehicle, force);
     }
 
-    
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -295,26 +267,21 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     @Override
     public void die(DamageSource source) {
         super.die(source);
-        this.onDeath(source); 
     }
 
-    
     private int floatingTime;
 
-    
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
 
-            
             this.floatingTime++;
 
-            
             if (this.floatingTime > 10) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.4D, 0.0D));
                 this.floatingTime = 0;
@@ -334,11 +301,10 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
         super.readAdditionalSaveData(tag);
     }
 
-    
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
@@ -347,28 +313,24 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
         }
     }
 
-    
     @Override
     protected boolean isAffectedByFluids() {
         return true;
     }
 
-    
     @Override
     public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) {
         return false;
     }
 
-    
-    
     @Override
     public boolean isInWall() {
-        
+
         float f = this.getDimensions(this.getPose()).width * 0.8F;
         AABB aabb = AABB.ofSize(this.getEyePosition(), (double)f, 1.0E-6D, (double)f);
         return BlockPos.betweenClosedStream(aabb).anyMatch((pos) -> {
             BlockState blockstate = this.level().getBlockState(pos);
-            
+
             if (blockstate.getBlock() instanceof InfestedBlockInterface) {
                 return false;
             }

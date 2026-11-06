@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.effects.buff;
 
 import net.minecraft.world.effect.MobEffect;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -8,8 +9,6 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.effects.RemovableEffect;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
-
 
 public class CamouflageEffect extends MobEffect implements RemovableEffect {
 
@@ -31,25 +30,23 @@ public class CamouflageEffect extends MobEffect implements RemovableEffect {
         }
     }
 
-    
     private boolean shouldClearTarget(LivingEntity holder, LivingEntity entity) {
-        
+
         boolean isHolderParasite = isParasite(holder);
         boolean isMobParasite = isParasite(entity);
 
         if (isHolderParasite) {
-            
+
             return !(entity instanceof Player);
         } else {
-            
+
             return isMobParasite;
         }
     }
 
-    
     private static boolean isParasite(LivingEntity entity) {
-        
-        return IParasite.isParasiteByTagOrInterface(entity);
+
+        return ParasiteEvents.isParasiteByTagOrInterface(entity);
     }
 
     @Override
@@ -57,7 +54,6 @@ public class CamouflageEffect extends MobEffect implements RemovableEffect {
         return duration % 20 == 0;
     }
 
-    
     public static boolean tryRemoveOnAttack(LivingEntity attacker, LivingEntity target) {
         if (attacker == null || !attacker.hasEffect(ModEffects.CAMOUFLAGE.get())) {
             return false;
@@ -68,12 +64,12 @@ public class CamouflageEffect extends MobEffect implements RemovableEffect {
         boolean isTargetParasite = isParasite(target);
 
         if (isAttackerParasite) {
-            
+
             if (!(target instanceof Player) && !isTargetParasite) {
                 shouldRemove = true;
             }
         } else {
-            
+
             if (isTargetParasite) {
                 shouldRemove = true;
             }

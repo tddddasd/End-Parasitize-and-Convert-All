@@ -24,7 +24,6 @@ public class InfestedShortGrass extends BushBlock implements InfestedBlockInterf
         return SHAPE;
     }
 
-    
     @Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
@@ -32,7 +31,7 @@ public class InfestedShortGrass extends BushBlock implements InfestedBlockInterf
 
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter world, BlockPos pos) {
-        
+
         Block block = state.getBlock();
         return block == ModBlocks.INFESTED_DIRT.get() ||
                 super.mayPlaceOn(state, world, pos);
@@ -40,11 +39,11 @@ public class InfestedShortGrass extends BushBlock implements InfestedBlockInterf
 
     @Override
     public int getFlammability(BlockState state, BlockGetter level, BlockPos pos, Direction face) {
-        return 100;  
+        return 100;
     }
 
     @Override
     public int getFireSpreadSpeed(BlockState state, BlockGetter level, BlockPos pos, Direction face) {
-        return 60;   
+        return 60;
     }
 }

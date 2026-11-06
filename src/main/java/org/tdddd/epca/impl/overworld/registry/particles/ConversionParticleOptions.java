@@ -8,7 +8,6 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 
-/** Color + family variant for the 10-frame conversion burst. */
 public record ConversionParticleOptions(int color, int variant) implements ParticleOptions {
     public static final MapCodec<ConversionParticleOptions> CODEC = RecordCodecBuilder.mapCodec(i ->
             i.group(Codec.INT.fieldOf("color").forGetter(ConversionParticleOptions::color),

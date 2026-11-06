@@ -13,95 +13,27 @@ import org.joml.Vector3f;
 import org.tdddd.epca.impl.client.render.compat.IrisShaderCompat;
 import org.tdddd.epca.impl.client.render.compat.LateRenderState;
 
-/**
- *
- *
- * <h3> </h3>
- *  Forge  {@code RenderLevelStageEvent.Stage.AFTER_SKY}
- *  {@code LevelRenderer.renderLevel()}  {@code renderSky()} <b></b>
- *  1.20.1 {@code renderSky}  438
- * Forge  AFTER_SKY  441 {@code renderChunkLayer}  557
- *
- * <pre>
- *   renderSky    ///    HUD
- * </pre>
- *
- * <h3> </h3>
- *  {@code GameRenderer.renderLevel()}
- *  z=1 +  {@code LEQUAL}
- *
- *
- * <blockquote>
- * <b></b>
- *  {@code RenderType}  {@code TRANSLUCENT_TRANSPARENCY + COLOR_DEPTH_WRITE}
- *  alpha test
- *
- * <b></b>
- * </blockquote>
- *
- * <p>
- *
- * </p>
- *
- * <p><b></b>
- * {@code renderSky}  {@code depthMask(false)}
- * <b></b>
- * </p>
- *
- * <h3></h3>
- * <ol>
- *   <li> NDC {@code z = 1} {@code LEQUAL}</li>
- *   <li><b></b>
- *       </li>
- * </ol>
- *
- * <h3>Iris / Oculus</h3>
- *  AFTER_SKY  GBuffer
- *  framebuffer  composite
- *  {@code renderLevel()}
- * {@code renderDeferred()} {@code GameRendererShaderLayerMixin}
- *  {@code mainRenderTarget}  framebuffer GBuffer
- *
- */
 public final class SkyRuptureRenderer {
 
     private SkyRuptureRenderer() {
     }
 
-    /**
-     *
-     *
-     * <p> {@code GameRenderer.render(FJZ)}  HEAD
-     * <b></b> {@code AFTER_SKY}  shadow pass
-     * {@code LevelRenderer.renderLevel()}
-     * </p>
-     */
     public static void update() {
         SkyRuptureEffect.update();
     }
 
-    /**
-     *  {@code RenderLevelStageEvent.Stage.AFTER_SKY}
-     *
-     */
     public static void renderAfterSky() {
         if (!IrisShaderCompat.isShaderPackActive()) {
             drawIfActive();
         }
     }
 
-    /**
-     *  {@code GameRenderer.renderLevel()}
-     *
-     * <p></p>
-     */
     public static void renderDeferred() {
         if (IrisShaderCompat.isShaderPackActive()) {
             drawIfActive();
         }
     }
 
-    /**  {@link #update()}  */
     private static void drawIfActive() {
         if (!SkyRuptureEffect.isActive()) {
             return;
@@ -117,7 +49,6 @@ public final class SkyRuptureRenderer {
             return;
         }
 
-        //  sprite  uniform Embeddium
         SkyRuptureShaders.markSpritesActive();
 
         applyCameraUniforms(mc.gameRenderer.getMainCamera());
@@ -128,7 +59,7 @@ public final class SkyRuptureRenderer {
         LateRenderState.prepareMainTargetPass();
         try {
             VertexConsumer consumer = buffers.getBuffer(SkyRuptureRenderType.SKY_RUPTURE);
-            //  0..1  xy  NDCz
+
             consumer.vertex(0.0f, 0.0f, 0.0f).endVertex();
             consumer.vertex(1.0f, 0.0f, 0.0f).endVertex();
             consumer.vertex(1.0f, 1.0f, 0.0f).endVertex();
@@ -139,19 +70,11 @@ public final class SkyRuptureRenderer {
         }
     }
 
-    /**
-     *
-     *
-     * <p>{@code rayRight / rayUp}  {@code tan(fov/2)}
-     *  {@code normalize(forward + right * ndc.x + up * ndc.y)}
-     * </p>
-     */
     private static void applyCameraUniforms(Camera camera) {
         Vector3f forward = camera.getLookVector();
         Vector3f up = camera.getUpVector();
         Vector3f left = camera.getLeftVector();
 
-        //  tan(fov/2)perspective()  m11 = 1/tan(fovY/2)m00 = 1/(tan(fovY/2)*aspect)
         float tanY = 1.0f;
         float tanX = 1.7778f;
         Matrix4f projection = RenderSystem.getProjectionMatrix();
@@ -190,7 +113,6 @@ public final class SkyRuptureRenderer {
         setVec3(SkyRuptureShaders.uFlashColor,
                 SkyRuptureEffect.flashRed(), SkyRuptureEffect.flashGreen(), SkyRuptureEffect.flashBlue());
 
-        // 12  sprite  UV
         setFloatArray(SkyRuptureShaders.uCosmicUvs, SkyRuptureShaders.COSMIC_UVS);
 
         setFloat(SkyRuptureShaders.uSkyDarkProgress, DarknessDevourEffect.skyProgress());
@@ -221,4 +143,3 @@ public final class SkyRuptureRenderer {
         }
     }
 }
-

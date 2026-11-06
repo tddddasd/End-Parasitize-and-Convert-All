@@ -33,12 +33,11 @@ public class KeyPressPacket {
     public static void handle(KeyPressPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            
+
             if (!context.getDirection().getReceptionSide().isServer()) {
                 return;
             }
 
-            
             KeyInputHandler.updateKeyState(
                     packet.playerId,
                     packet.spacePressed,

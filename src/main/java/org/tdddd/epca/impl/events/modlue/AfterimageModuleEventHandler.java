@@ -25,11 +25,10 @@ public class AfterimageModuleEventHandler {
     private static final AttributeModifier SPEED_MODIFIER = new AttributeModifier(
             SPEED_MODIFIER_UUID,
             "afterimage_speed_boost",
-            0.15, // 15%
+            0.15,
             AttributeModifier.Operation.MULTIPLY_TOTAL
     );
 
-    
     private static boolean isWearingFullLivingArmor(Player player) {
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
         ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
@@ -42,14 +41,12 @@ public class AfterimageModuleEventHandler {
                 isLivingArmor(boots);
     }
 
-    
     private static boolean isLivingArmor(ItemStack stack) {
         return stack.getItem() instanceof LivingArmorItem;
     }
 
-    
     private static ItemStack findLivingArmorBox(Player player) {
-        
+
         ItemStack mainHand = player.getMainHandItem();
         ItemStack offHand = player.getOffhandItem();
 
@@ -60,7 +57,6 @@ public class AfterimageModuleEventHandler {
             return offHand;
         }
 
-        
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() instanceof LivingArmorBox) {
@@ -71,7 +67,6 @@ public class AfterimageModuleEventHandler {
         return ItemStack.EMPTY;
     }
 
-    
     private static boolean hasInstinctModuleI(ItemStack boxStack) {
         if (!(boxStack.getItem() instanceof LivingArmorBox)) {
             return false;
@@ -129,7 +124,6 @@ public class AfterimageModuleEventHandler {
         }
     }
 
-    
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;

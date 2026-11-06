@@ -12,20 +12,20 @@ public class ReshapeFlesh extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(7)  
-                .saturationMod(0.2F)  
+                .nutrition(7)
+                .saturationMod(0.2F)
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.PARA_CURSE.get(),  
-                        15 * 20,  
-                        0  
-                ), 0.6F)  
+                        ModEffects.PARA_CURSE.get(),
+                        15 * 20,
+                        0
+                ), 0.6F)
                 .effect(() -> new MobEffectInstance(
-                        MobEffects.POISON,  
-                        5 * 20,  
-                        0  
-                ), 0.9F)  
+                        MobEffects.POISON,
+                        5 * 20,
+                        0
+                ), 0.9F)
                 .build();
     }
 }

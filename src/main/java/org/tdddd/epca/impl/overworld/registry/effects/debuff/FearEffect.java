@@ -14,58 +14,48 @@ public class FearEffect extends MobEffect implements RemovableEffect {
     public static final MutableComponent FEAR_MESSAGE = Component.translatable("effect.epca.fear.message")
             .withStyle(ChatFormatting.RED);
 
-    
     public static final float PANIC_MISS_CHANCE = 0.15F;
 
-    
     private static final double PANIC_SCRAMBLE_BASE = 0.04D;
 
-    
     private static final double PANIC_SCRAMBLE_MAX = 0.30D;
 
     public FearEffect() {
         super(MobEffectCategory.BENEFICIAL,  0x333333);
     }
 
-    
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
-        
+
         if (entity.level().isClientSide) return;
 
-        
         if (entity instanceof Player) return;
 
         scramble(entity, amplifier);
     }
 
-    
     public static void scramble(LivingEntity entity, int amplifier) {
-        
+
         double strength = Math.min(PANIC_SCRAMBLE_BASE * (amplifier + 1), PANIC_SCRAMBLE_MAX);
 
-        
         int direction = entity.getRandom().nextInt(4);
         double dx = 0.0D;
         double dz = 0.0D;
         switch (direction) {
-            case 0 -> dx = -strength; 
-            case 1 -> dx = strength;  
-            case 2 -> dz = -strength; 
-            default -> dz = strength; 
+            case 0 -> dx = -strength;
+            case 1 -> dx = strength;
+            case 2 -> dz = -strength;
+            default -> dz = strength;
         }
 
-        
         Vec3 motion = entity.getDeltaMovement();
         entity.setDeltaMovement(motion.x + dx, motion.y, motion.z + dz);
     }
 
-    
     public static boolean rollPanicMiss(LivingEntity attacker) {
         return attacker.getRandom().nextFloat() < PANIC_MISS_CHANCE;
     }
 
-    
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
         return true;
@@ -73,16 +63,13 @@ public class FearEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public boolean isRemovable() {
-        return false; 
+        return false;
     }
 
-
-    
     public static boolean shouldPreventBlockPlacement(int amplifier) {
         return amplifier + 1 >= 2 && Math.random() < 0.2;
     }
 
-    
     public static boolean shouldPreventItemUse(int amplifier) {
         return amplifier + 1 >= 3 && Math.random() < 0.2;
     }

@@ -19,25 +19,24 @@ import org.jetbrains.annotations.NotNull;
 public class EvolutionDataStorage extends SavedData {
     private static final String DATA_NAME = "EvolutionData";
 
-    
     private final Map<ResourceKey<Level>, Integer> dimensionPoints = new ConcurrentHashMap<>();
-    
+
     private final Map<ResourceKey<Level>, Long> dimensionCooldowns = new ConcurrentHashMap<>();
     private final Map<ResourceKey<Level>, Integer> overriddenStages = new ConcurrentHashMap<>();
 
     public EvolutionDataStorage() {
-        
+
         dimensionPoints.put(Level.OVERWORLD, 0);
         dimensionPoints.put(Level.NETHER, -50);
         dimensionPoints.put(Level.END, -50);
-        
+
         ResourceKey<Level> twilightForest = ResourceKey.create(ResourceKey.createRegistryKey(new ResourceLocation("dimension")),
                 new ResourceLocation("twilightforest:twilight_forest"));
         dimensionPoints.put(twilightForest, -50);
     }
 
     public EvolutionDataStorage(CompoundTag nbt) {
-        
+
         ListTag pointsList = nbt.getList("Dimensions", Tag.TAG_COMPOUND);
         for (int i = 0; i < pointsList.size(); i++) {
             CompoundTag tag = pointsList.getCompound(i);
@@ -46,7 +45,6 @@ public class EvolutionDataStorage extends SavedData {
             dimensionPoints.put(dim, points);
         }
 
-        
         if (nbt.contains("Cooldowns", Tag.TAG_LIST)) {
             ListTag list = nbt.getList("Cooldowns", Tag.TAG_COMPOUND);
             for (int i = 0; i < list.size(); i++) {
@@ -69,7 +67,7 @@ public class EvolutionDataStorage extends SavedData {
 
     @Override
     public @NotNull CompoundTag save(CompoundTag nbt) {
-        
+
         ListTag pointsList = new ListTag();
         dimensionPoints.forEach((dim, points) -> {
             CompoundTag tag = new CompoundTag();
@@ -79,7 +77,6 @@ public class EvolutionDataStorage extends SavedData {
         });
         nbt.put("Dimensions", pointsList);
 
-        
         ListTag cooldownList = new ListTag();
         dimensionCooldowns.forEach((dim, end) -> {
             CompoundTag tag = new CompoundTag();
@@ -109,7 +106,6 @@ public class EvolutionDataStorage extends SavedData {
         );
     }
 
-    
     public int getPointsForDimension(ResourceKey<Level> dimension) {
         return dimensionPoints.getOrDefault(dimension, 0);
     }
@@ -119,7 +115,6 @@ public class EvolutionDataStorage extends SavedData {
         setDirty();
     }
 
-    
     public long getCooldownEndForDimension(ResourceKey<Level> dimension) {
         return dimensionCooldowns.getOrDefault(dimension, 0L);
     }
@@ -129,7 +124,6 @@ public class EvolutionDataStorage extends SavedData {
         setDirty();
     }
 
-    
     public Integer getOverriddenStage(ResourceKey<Level> dimension) {
         return overriddenStages.get(dimension);
     }
@@ -148,13 +142,12 @@ public class EvolutionDataStorage extends SavedData {
         return Collections.unmodifiableSet(overriddenStages.keySet());
     }
 
-    
     public void resetDimension(ResourceKey<Level> dimension) {
         if (dimension.equals(Level.OVERWORLD)) setPointsForDimension(dimension, 0);
         else if (dimension.equals(Level.NETHER) || dimension.equals(Level.END))
             setPointsForDimension(dimension, -50);
         else setPointsForDimension(dimension, 0);
-        clearOverriddenStage(dimension); 
+        clearOverriddenStage(dimension);
     }
 
     public void resetAllDimensions() {

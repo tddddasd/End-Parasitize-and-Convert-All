@@ -23,7 +23,7 @@ public class YawningNyaRenderer extends HumanoidMobRenderer<YawningNya, PlayerMo
                     slim ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER
             ), slim);
         } catch (Exception e) {
-            
+
             System.err.println("Failed to create player model, using fallback: " + e.getMessage());
             return new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), false);
         }

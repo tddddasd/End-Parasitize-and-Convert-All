@@ -20,7 +20,6 @@ public class InfestedEnderPearl extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
 
-        
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ENDER_PEARL_THROW, SoundSource.NEUTRAL,
                 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));

@@ -21,37 +21,36 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 
 public class InfestedRemainsLarge extends Block {
-    
-    private static final VoxelShape INTERACTION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D); 
-    
+
+    private static final VoxelShape INTERACTION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
+
     private static final VoxelShape COLLISION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 0.1D, 16.0D);
 
     public InfestedRemainsLarge() {
         super(Properties.of()
-                .noOcclusion() 
-                .strength(0.0f) 
+                .noOcclusion()
+                .strength(0.0f)
                 .sound(SoundType.NETHER_WART)
-                .isViewBlocking((state, world, pos) -> false) 
-                .isSuffocating((state, world, pos) -> false) 
-                .instabreak() 
-                .pushReaction(PushReaction.DESTROY) 
+                .isViewBlocking((state, world, pos) -> false)
+                .isSuffocating((state, world, pos) -> false)
+                .instabreak()
+                .pushReaction(PushReaction.DESTROY)
         );
     }
 
-    
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (!level.isClientSide && entity instanceof LivingEntity livingEntity) {
-            
+
             if (!livingEntity.hasEffect(ModEffects.PARA_CURSE.get())) {
-                
+
                 livingEntity.addEffect(new MobEffectInstance(
                         ModEffects.PARA_CURSE.get(),
-                        900,   
-                        1,     
-                        false, 
-                        true,  
-                        true   
+                        900,
+                        1,
+                        false,
+                        true,
+                        true
                 ));
             }
         }
@@ -68,26 +67,22 @@ public class InfestedRemainsLarge extends Block {
         return INTERACTION_SHAPE;
     }
 
-    
     @Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
 
-    
     @Override
     public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
         return true;
     }
 
-    
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockPos belowPos = pos.below();
         return Block.canSupportCenter(level, belowPos, Direction.UP);
     }
 
-    
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
                                   LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
@@ -97,7 +92,6 @@ public class InfestedRemainsLarge extends Block {
         return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
 
-    
     @Override
     public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!state.canSurvive(level, pos)) {
@@ -105,7 +99,6 @@ public class InfestedRemainsLarge extends Block {
         }
     }
 
-    
     @Override
     public PushReaction getPistonPushReaction(BlockState state) {
         return PushReaction.DESTROY;

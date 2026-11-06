@@ -7,7 +7,6 @@ import org.tdddd.epca.impl.client.ClientErosionData;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-
 public class ClearErosionDisplayPacket {
     private final UUID playerUUID;
 
@@ -27,7 +26,7 @@ public class ClearErosionDisplayPacket {
     public static void handle(ClearErosionDisplayPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            
+
             if (context.getDirection().getReceptionSide().isClient()) {
                 ClientErosionData.clearErosionData(packet.playerUUID);
             }

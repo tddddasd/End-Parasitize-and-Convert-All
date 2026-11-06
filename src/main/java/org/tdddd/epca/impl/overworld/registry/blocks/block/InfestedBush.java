@@ -13,13 +13,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 
-/**
- * Infested bush (虫染灌木丛). A single-block cross plant, the infested counterpart of the vanilla
- * bush.
- *
- * <p>It is sown by {@link InfestedDirt} with the very same chance and range as
- * {@link InfestedPumpkin} (see {@code InfestedDirt#spawnBushes}), but without any biome requirement.
- */
 public class InfestedBush extends BushBlock implements InfestedBlockInterface {
     protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
 

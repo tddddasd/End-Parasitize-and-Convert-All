@@ -21,8 +21,8 @@ public class LifetimeCapability implements ILifetimeCapability {
     public static final Capability<ILifetimeCapability> LIFETIME = CapabilityManager.get(new CapabilityToken<>() {});
     private static final ResourceLocation ID = new ResourceLocation(epca.MODID, "lifetime");
 
-    private int remainingTicks = -1; 
-    private LivingEntity entity;     
+    private int remainingTicks = -1;
+    private LivingEntity entity;
 
     public LifetimeCapability(LivingEntity entity) {
         this.entity = entity;
@@ -43,12 +43,11 @@ public class LifetimeCapability implements ILifetimeCapability {
         if (remainingTicks > 0) {
             remainingTicks--;
             if (remainingTicks == 0 && entity != null && !entity.level().isClientSide) {
-                entity.discard(); 
+                entity.discard();
             }
         }
     }
 
-    
     @SubscribeEvent
     public static void onAttachCapabilities(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof LivingEntity living) {
@@ -74,7 +73,6 @@ public class LifetimeCapability implements ILifetimeCapability {
         }
     }
 
-    
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         event.getEntity().getCapability(LIFETIME).ifPresent(ILifetimeCapability::tick);

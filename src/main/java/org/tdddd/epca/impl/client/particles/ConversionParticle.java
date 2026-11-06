@@ -8,7 +8,6 @@ import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.util.Mth;
 import org.tdddd.epca.impl.overworld.registry.particles.ConversionParticleOptions;
 
-/** 10-frame, 15 FPS conversion burst. 15 FPS = 1.333 ticks per frame. */
 public class ConversionParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
 
@@ -30,16 +29,10 @@ public class ConversionParticle extends TextureSheetParticle {
         super.tick();
         int frame = Mth.clamp((int) (this.age * 0.75F), 0, 9);
         this.setSprite(sprites.get(frame, 10));
-        // Opaque: no alpha fade-out - the burst keeps the sprite's own (fully opaque) pixels.
+
         this.alpha = 1.0F;
     }
 
-    /**
-     * Fully opaque burst: the vertex alpha stays at 1.0 for the particle's whole life instead of
-     * fading out. The translucent sheet is kept on purpose - the convert_* sheet is a cut-out
-     * (its transparent texels carry black RGB and there is no partial alpha), so PARTICLE_SHEET_OPAQUE
-     * would draw those texels as a black box around the burst.
-     */
     @Override public ParticleRenderType getRenderType() { return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT; }
 
     public static class Provider implements ParticleProvider<ConversionParticleOptions> {

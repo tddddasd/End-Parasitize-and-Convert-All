@@ -12,20 +12,20 @@ public class InfestedFlesh extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(5)  
-                .saturationMod(0.1F)  
+                .nutrition(5)
+                .saturationMod(0.1F)
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.PARA_CURSE.get(),  
-                        15 * 20,  
-                        0  
-                ), 0.7F)  
+                        ModEffects.PARA_CURSE.get(),
+                        15 * 20,
+                        0
+                ), 0.7F)
                 .effect(() -> new MobEffectInstance(
-                        MobEffects.POISON,  
-                        5 * 20,  
-                        0  
-                ), 0.9F)  
+                        MobEffects.POISON,
+                        5 * 20,
+                        0
+                ), 0.9F)
                 .build();
     }
 }

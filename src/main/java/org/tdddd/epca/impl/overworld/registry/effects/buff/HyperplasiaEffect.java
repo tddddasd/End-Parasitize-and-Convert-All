@@ -1,17 +1,16 @@
 package org.tdddd.epca.impl.overworld.registry.effects.buff;
 
 import net.minecraft.world.effect.MobEffect;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.UUID;
 
-/** Hyperplasia: regeneration for parasites; max-health growth for other mobs; decay for players. */
 public class HyperplasiaEffect extends MobEffect {
     public static final UUID HEALTH_MOD = UUID.fromString("8f4c1c7e-6d0f-4d0e-9a1e-2b7a4c5d6e7f");
     public static final String HEALTH_MARK = "epca:hyperplasia_health";
@@ -23,7 +22,7 @@ public class HyperplasiaEffect extends MobEffect {
     @Override public boolean isDurationEffectTick(int duration, int amplifier) { return duration % 20 == 0; }
 
     @Override public void applyEffectTick(LivingEntity entity, int amplifier) {
-        boolean parasite = entity instanceof IParasite
+        boolean parasite = ParasiteEvents.isParasiteEntity(entity)
                 || (entity instanceof Player player && HiveLeaderManager.isHiveLeader(player.getUUID()));
         if (parasite) {
             entity.heal(1.0F + amplifier);

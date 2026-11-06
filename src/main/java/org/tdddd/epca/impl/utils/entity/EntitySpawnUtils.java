@@ -9,28 +9,20 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
-/**
- * Utility methods for entity spawning rules and placement checks.
- */
 public final class EntitySpawnUtils {
 
     private EntitySpawnUtils() {}
 
-    /** Standard monster spawn check: low light level. */
     public static boolean checkMonsterSpawnRules(
             EntityType<?> type, ServerLevelAccessor level,
             MobSpawnType spawnType, BlockPos pos, RandomSource random) {
         return level.getMaxLocalRawBrightness(pos) < 8;
     }
 
-    /** Check if sky is dark enough for spawning. */
     public static boolean isDarkSky(ServerLevelAccessor level, BlockPos pos) {
         return level.getMaxLocalRawBrightness(pos) < 8;
     }
 
-    /**
-     * Spawn an entity of the given type at the specified position with optional random offset and velocity.
-     */
     public static <T extends Entity> T spawnEntity(EntityType<T> type, Level level,
                                                      double x, double y, double z,
                                                      boolean randomOffset, boolean randomVelocity) {

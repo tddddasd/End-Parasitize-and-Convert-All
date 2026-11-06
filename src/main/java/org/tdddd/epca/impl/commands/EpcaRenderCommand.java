@@ -15,16 +15,8 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-/**
- * {@code /epca_render <id> [pos]} - plays one of epca's render effects on the client.
- *
- * <p>Registered on the client command dispatcher, so the effect triggers can be called directly
- * without a sync packet. Effects that need a position accept one; the rest are global or screen space
- * effects and ignore it.</p>
- */
 public final class EpcaRenderCommand {
 
-    /** One render effect: its id, whether it takes a position, and how to trigger it. */
     private record Entry(String id, boolean positional, Consumer<CommandContext<CommandSourceStack>> global,
                          BiConsumer<CommandContext<CommandSourceStack>, Vec3> atPosition) {
     }
@@ -32,7 +24,7 @@ public final class EpcaRenderCommand {
     private static final Map<String, Entry> ENTRIES = new LinkedHashMap<>();
 
     static {
-        // id order matters: this is the order they are documented and listed in.
+
         register(new Entry("sky_rupture", false,
                 ctx -> org.tdddd.epca.impl.client.render.sky.SkyRuptureEffect.trigger(13),
                 null));
@@ -54,7 +46,7 @@ public final class EpcaRenderCommand {
                             return builder.buildFuture();
                         })
                         .executes(ctx -> run(ctx, StringArgumentType.getString(ctx, "id"), null))
-                        // erosion_stage_rise takes a stage instead of a position
+
                         .then(Commands.argument("stage", IntegerArgumentType.integer(-2, 13))
                                 .executes(ctx -> runStage(ctx, StringArgumentType.getString(ctx, "id"),
                                         IntegerArgumentType.getInteger(ctx, "stage"))))
@@ -89,7 +81,6 @@ public final class EpcaRenderCommand {
         }
     }
 
-    /** {@code erosion_stage_rise <stage>}: everything a world erosion stage rise plays. */
     private static int runStage(CommandContext<CommandSourceStack> ctx, String id, int stage) {
         if (!"erosion_stage_rise".equals(id)) {
             ctx.getSource().sendFailure(Component.literal(
@@ -100,7 +91,7 @@ public final class EpcaRenderCommand {
     }
 
     private static int runErosionStageRise(CommandContext<CommandSourceStack> ctx, int stage) {
-        // id 7: the group of effects a stage rise plays. Filled in as those effects are wired up.
+
         org.tdddd.epca.impl.client.render.sky.SkyRuptureEffect.trigger(stage);
         ctx.getSource().sendSuccess(() -> Component.literal("erosion stage rise at stage " + stage), false);
         return 1;

@@ -10,16 +10,16 @@ public class PAdaptationParticle extends TextureSheetParticle {
     public PAdaptationParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet sprites) {
         super(level, x, y, z, xd, yd, zd);
         this.sprites = sprites;
-        this.lifetime = 24; 
+        this.lifetime = 24;
         this.setSpriteFromAge(sprites);
-        
-        this.xd = 0; 
-        this.yd = 0.04; 
-        this.zd = 0; 
-        
+
+        this.xd = 0;
+        this.yd = 0.04;
+        this.zd = 0;
+
         this.gravity = 0.0F;
-        
-        this.quadSize = 0.15F; 
+
+        this.quadSize = 0.15F;
     }
 
     @Override
@@ -35,7 +35,6 @@ public class PAdaptationParticle extends TextureSheetParticle {
         return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
     }
 
-    
     public static class PAdaptationParticleProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 

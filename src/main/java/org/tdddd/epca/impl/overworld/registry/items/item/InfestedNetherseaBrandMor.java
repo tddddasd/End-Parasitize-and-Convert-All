@@ -16,14 +16,14 @@ public class InfestedNetherseaBrandMor extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(1)  
+                .nutrition(1)
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.PARA_CURSE.get(),  
-                        30 * 20,  
-                        0  
-                ), 0.7F)  
+                        ModEffects.PARA_CURSE.get(),
+                        30 * 20,
+                        0
+                ), 0.7F)
                 .build();
     }
 }

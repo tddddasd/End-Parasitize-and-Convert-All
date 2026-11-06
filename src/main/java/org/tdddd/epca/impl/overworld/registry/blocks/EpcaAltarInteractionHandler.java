@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -29,24 +30,21 @@ import org.tdddd.eej.api.AltarItemContainer;
 import org.tdddd.eej.api.AltarStructure;
 import org.tdddd.eej.impl.altar.AbstractAltarBlock;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 
 public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
 
     @Override
     public InteractionResult onAltarUse(Level level, BlockPos pos, BlockState state,
                                         Player player, InteractionHand hand, ItemStack heldItem) {
-        
+
         if (tryPerformSacrifice(level, pos, player)) {
             return InteractionResult.SUCCESS;
         }
 
-        
         if (heldItem.is(ModItems.KILL_STICK.get())) {
             if (!(state.getBlock() instanceof AbstractAltarBlock altarBlock)) {
                 return InteractionResult.PASS;
@@ -70,8 +68,6 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         return InteractionResult.PASS;
     }
 
-    
-
     private boolean tryPerformSacrifice(Level level, BlockPos pos, Player player) {
         if (level.isClientSide) return false;
         if (!(level instanceof ServerLevel serverLevel)) return false;
@@ -90,7 +86,7 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         List<Entity> entities = level.getEntities(null, new AABB(pos).inflate(radius));
         for (Entity e : entities) {
             if (e.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= radius * radius) {
-                if (IParasite.isParasiteNoLivingByTagOrInterface(e)) {
+                if (ParasiteEvents.isParasiteNoLivingByTagOrInterface(e)) {
                     return false;
                 }
                 if (!e.isAlive()) continue;
@@ -161,4 +157,3 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
                 entity instanceof Evoker;
     }
 }
-

@@ -18,42 +18,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-/**
- *  {@link TextureAtlasSprite}  {@link BakedQuad}
- *  {@code ItemRenderer.renderQuadList()}
- *
- * <p> RottenRuinsSplendiding  {@code CosmicRenderUtils}
- *  {@link WeakHashMap}
- *  sprite </p>
- */
 public final class ItemShaderBakery {
 
     private static final ItemModelGenerator ITEM_MODEL_GENERATOR = new ItemModelGenerator();
     private static final FaceBakery FACE_BAKERY = new FaceBakery();
 
-    /**
-     *  ModelState UV
-     *
-     * <p> Forge  {@code SimpleModelState} Forge API
-     * {@link ModelState} </p>
-     */
     private static final ModelState IDENTITY_STATE = new ModelState() {
     };
 
-    /**
-     *  sprite  sprite
-     *
-     */
     private static final Map<TextureAtlasSprite, List<BakedQuad>> CACHE =
             Collections.synchronizedMap(new WeakHashMap<>());
 
     private ItemShaderBakery() {
     }
 
-    /**
-     *  sprite  quad
-     *
-     */
     public static List<BakedQuad> quads(TextureAtlasSprite sprite) {
         if (sprite == null) {
             return List.of();
@@ -67,7 +45,6 @@ public final class ItemShaderBakery {
         return baked;
     }
 
-    /**  */
     public static void invalidate() {
         CACHE.clear();
     }
@@ -80,7 +57,7 @@ public final class ItemShaderBakery {
         try {
             unbaked = ITEM_MODEL_GENERATOR.processFrames(0, "layer0", sprite.contents());
         } catch (Exception e) {
-            //  /
+
             return quads;
         }
 
@@ -98,9 +75,7 @@ public final class ItemShaderBakery {
         return quads;
     }
 
-    /**  */
     public static Transformation identity() {
         return Transformation.identity();
     }
 }
-

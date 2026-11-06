@@ -6,37 +6,6 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-/**
- *  -&gt;
- *
- * <h2></h2>
- * <p><b></b> {@link HiveLeaderOrganTeleportPacket} /
- * {@link RequestOpenHiveLeaderOrgansPacket}
- *  +  +
- *  id /
- *
- * <b></b>{@code ServerPlayer#getEyePosition()} /
- * {@code getLookAngle()}
- * {@link HiveLeaderDecomposeParasiteHandler#pickParasite}</p>
- *
- * <h2></h2>
- * <p> {@link HiveLeaderDecomposeParasiteHandler#handleRequest(ServerPlayer)}
- *  +  sender </p>
- * <ol>
- *   <li> C2S{@code getDirection().getReceptionSide().isServer()}
- *        {@code getSender()}  null</li>
- *   <li>{@code HiveLeaderManager#isHiveLeader(sender.getUUID())}</li>
- *   <li>{@code LivingEntity}  {@code instanceof IParasite}
- *        {@code Player} </li>
- *   <li> {@code BiomassEventHandler#computeParasiteBiomass}
- *       </li>
- *   <li><b></b>{@code IParasite#isBiomassSpawned()}
- *       </li>
- *   <li>{@code Entity#discard()} <b></b> {@code die()}
- *        {@code LivingDeathEvent}</li>
- *   <li> + {@code BiomassManager#addBiomassPoints} + {@code BiomassSyncPacket} </li>
- * </ol>
- */
 public class HiveLeaderDecomposeParasitePacket {
 
     public HiveLeaderDecomposeParasitePacket() {
@@ -67,4 +36,3 @@ public class HiveLeaderDecomposeParasitePacket {
         context.setPacketHandled(true);
     }
 }
-

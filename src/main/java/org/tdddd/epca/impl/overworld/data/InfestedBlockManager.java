@@ -17,17 +17,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Tracks which blocks are infested and tells clients about them.
- *
- * <p>Block changes are <b>batched per server tick</b>. Mass infestation (a beckon converting an area, a
- * hive node spreading) used to send one packet per block to every player, which is what made large
- * infested regions laggy; now at most one batched packet goes out per level per tick.</p>
- */
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class InfestedBlockManager {
 
-    /** Blocks infested since the last flush, per level. */
     private static final List<Pending> PENDING = new ArrayList<>();
 
     private static final class Pending {
@@ -67,7 +59,6 @@ public class InfestedBlockManager {
         pending.removed.add(immutable);
     }
 
-    /** Sends one batched packet per level that saw changes this tick. */
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || PENDING.isEmpty()) {

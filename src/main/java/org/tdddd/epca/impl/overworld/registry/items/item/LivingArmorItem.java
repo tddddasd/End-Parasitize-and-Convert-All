@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 public final class LivingArmorItem extends ArmorItem implements GeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    
     public LivingArmorItem(ArmorMaterial material, Type type, Properties properties) {
         super(material, type, properties);
     }
@@ -45,7 +44,7 @@ public final class LivingArmorItem extends ArmorItem implements GeoItem {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        
+
     }
 
     @Override
@@ -55,25 +54,25 @@ public final class LivingArmorItem extends ArmorItem implements GeoItem {
 
     @Override
     public boolean isDamageable(ItemStack stack) {
-        
+
         return false;
     }
 
     @Override
     public boolean isBarVisible(ItemStack stack) {
-        
+
         return false;
     }
 
     @Override
     public boolean canBeDepleted() {
-        
+
         return false;
     }
 
     @Override
     public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
-        
+
         entity.discard();
         return true;
     }

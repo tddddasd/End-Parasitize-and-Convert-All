@@ -7,31 +7,23 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import org.tdddd.epca.impl.epca;
 
-/**
- *  /
- *
- * <p> JSON
- * {@code src/main/resources/data/epca/tags/...}
- * {@code src/generated/resources/...} {@code ItemAndEntityTagsData} </p>
- */
 public class ModTags {
+    public static final TagKey<EntityType<?>> PARASITE =
+            TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(epca.MODID, "parasite"));
+    public static final TagKey<EntityType<?>> ONESENT =
+            TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(epca.MODID, "onesent"));
+    public static final TagKey<EntityType<?>> POVERTY =
+            TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(epca.MODID, "poverty"));
+    public static final TagKey<EntityType<?>> INFESTED =
+            TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(epca.MODID, "infested"));
+    public static final TagKey<EntityType<?>> RESHAPE =
+            TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(epca.MODID, "reshape"));
+    public static final TagKey<EntityType<?>> LINK =
+            TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(epca.MODID, "link"));
 
-
-    public static final TagKey<EntityType<?>> INFESTED_UNDEAD =
-            TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(epca.MODID, "infested_undead"));
-
-
-    /**
-     * {@code epca:organ_part} GUI
-     *
-     * <p>SPEC  1  D1 {@code } tag
-     *  tag
-     * {@code src/generated/resources/data/epca/tags/items/organ_part.json}</p>
-     */
     public static final TagKey<Item> ORGAN_PART =
             TagKey.create(Registries.ITEM, new ResourceLocation(epca.MODID, "organ_part"));
 
     private ModTags() {
     }
 }
-

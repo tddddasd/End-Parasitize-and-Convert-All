@@ -16,12 +16,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.tdddd.epca.impl.overworld.data.BiomassStorage;
 import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 
-/**
- * {@code /epca_biomass_count} - reads and writes the biomass of an entity or a block.
- *
- * <p>Both sides go through {@link BiomassStorage}, so the clamp rules are the same ones the game uses
- * for players, mobs, the beckon core and the hive node.</p>
- */
 public final class BiomassCountCommand {
 
     private BiomassCountCommand() {

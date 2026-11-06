@@ -26,11 +26,10 @@ public class FlightModuleEventHandler {
     private static final float HOVER_HORIZONTAL_SPEED = 0.1F;
     private static final int MAX_HEIGHT_ABOVE_GROUND = 20;
     private static final int BIOMASS_COST_PER_SECOND = 1;
-    
+
     private static final float ASCEND_ACCELERATION = 0.05F;
     private static final float MAX_ASCEND_SPEED = 0.5F;
 
-    
     private static final Map<UUID, Integer> flightTimers = new HashMap<>();
     private static final Map<UUID, Integer> biomassConsumeTimers = new HashMap<>();
     private static final Map<UUID, Float> playerAscendSpeed = new HashMap<>();
@@ -46,12 +45,10 @@ public class FlightModuleEventHandler {
         Player player = event.player;
         UUID playerId = player.getUUID();
 
-        
         if (player.level().isClientSide()) {
             return;
         }
 
-        
         ItemStack boxStack = findLivingArmorBox(player);
         if (boxStack.isEmpty()) {
             if (playerIsFlying.getOrDefault(playerId, false)) {
@@ -63,13 +60,10 @@ public class FlightModuleEventHandler {
 
         LivingArmorBox boxItem = (LivingArmorBox) boxStack.getItem();
 
-        
         ensureBiomassInitialized(boxItem, boxStack);
 
-        
         boolean canFly = canFly(player, boxStack, boxItem);
 
-        
         if (playerIsFlying.getOrDefault(playerId, false) && !canFly) {
             disableFlight(player);
             resetPlayerFlightState(playerId);
@@ -77,7 +71,6 @@ public class FlightModuleEventHandler {
             return;
         }
 
-        
         if (!canFly) {
             if (playerIsFlying.getOrDefault(playerId, false)) {
                 disableFlight(player);
@@ -87,90 +80,76 @@ public class FlightModuleEventHandler {
             return;
         }
 
-        
         boolean isJumping = KeyInputHandler.isSpacePressed(playerId);
         boolean isSneaking = KeyInputHandler.isShiftPressed(playerId);
-        
+
         boolean wasSpacePressed = lastSpacePressed.getOrDefault(playerId, false);
         boolean spaceJustPressed = isJumping && !wasSpacePressed;
         lastSpacePressed.put(playerId, isJumping);
 
-        
         if (isJumping) {
-            
+
             if (spaceJustPressed) {
                 enableFlight(player);
                 playerIsFlying.put(playerId, true);
-                
+
                 playerAscendSpeed.put(playerId, 0.0F);
             }
 
-            
             int flightTime = flightTimers.getOrDefault(playerId, 0) + 1;
             flightTimers.put(playerId, flightTime);
 
-            
             int biomassTimer = biomassConsumeTimers.getOrDefault(playerId, 0) + 1;
             biomassConsumeTimers.put(playerId, biomassTimer);
 
-            
             player.fallDistance = 0.0F;
 
-            
             int heightAboveGround = getHeightAboveGround(player);
             boolean canAscend = heightAboveGround < MAX_HEIGHT_ABOVE_GROUND;
 
-            
             if (isSneaking) {
-                
+
                 applyHoverMovement(player);
                 applyHorizontalMovement(player, HOVER_HORIZONTAL_SPEED);
-                
+
                 playerAscendSpeed.put(playerId, 0.0F);
             }
-            
+
             else {
-                
+
                 float ascendSpeed = playerAscendSpeed.getOrDefault(playerId, 0.0F);
 
-                
                 if (canAscend) {
-                    
+
                     ascendSpeed = Math.min(ascendSpeed + ASCEND_ACCELERATION, MAX_ASCEND_SPEED);
                     playerAscendSpeed.put(playerId, ascendSpeed);
 
-                    
                     applyAscendMovement(player, ascendSpeed);
                 } else {
-                    
+
                     ascendSpeed = 0;
                     playerAscendSpeed.put(playerId, ascendSpeed);
-                    
+
                     applyHoverMovement(player);
                 }
 
-                
                 applyHorizontalMovement(player, HORIZONTAL_SPEED);
 
-                
                 if (player.isFallFlying()) {
                     applyElytraBoost(player);
                 }
             }
 
-            
-            if (biomassTimer >= 20) { 
+            if (biomassTimer >= 20) {
                 biomassConsumeTimers.put(playerId, 0);
 
-                
                 int currentBiomass = boxItem.getBiomass(boxStack);
 
                 if (currentBiomass >= BIOMASS_COST_PER_SECOND) {
-                    
+
                     int newBiomass = currentBiomass - BIOMASS_COST_PER_SECOND;
                     boxItem.setBiomass(boxStack, newBiomass);
 
-                    
                     if (newBiomass <= 0) {
                         disableFlight(player);
                         resetPlayerFlightState(playerId);
@@ -184,7 +163,7 @@ public class FlightModuleEventHandler {
             }
 
         } else {
-            
+
             if (playerIsFlying.getOrDefault(playerId, false)) {
                 disableFlight(player);
                 resetPlayerFlightState(playerId);
@@ -193,64 +172,56 @@ public class FlightModuleEventHandler {
         }
     }
 
-    
     private static void enableFlight(Player player) {
         player.setNoGravity(true);
-        
+
         player.setDeltaMovement(
                 player.getDeltaMovement().x(),
-                0.1F,  
+                0.1F,
                 player.getDeltaMovement().z()
         );
     }
 
-    
     private static void disableFlight(Player player) {
         player.setNoGravity(false);
     }
 
-    
     private static void applyHoverMovement(Player player) {
-        
+
         player.setDeltaMovement(
                 player.getDeltaMovement().x() * 0.5,
-                0, 
+                0,
                 player.getDeltaMovement().z() * 0.5
         );
     }
     private static final Map<UUID, Boolean> playerWasFlying = new HashMap<>();
-    
+
     private static final Map<UUID, Boolean> spaceKeyStates = new HashMap<>();
     private static final Map<UUID, Boolean> shiftKeyStates = new HashMap<>();
 
-    
     private static void applyAscendMovement(Player player, float ascendSpeed) {
-        
+
         player.setDeltaMovement(
                 player.getDeltaMovement().x(),
-                ascendSpeed, 
+                ascendSpeed,
                 player.getDeltaMovement().z()
         );
     }
 
-    
     private static boolean canFly(Player player, ItemStack boxStack, LivingArmorBox boxItem) {
-        
+
         if (!isWearingFullLivingArmor(player)) {
             return false;
         }
 
-        
         if (!boxItem.getState(boxStack)) {
             return false;
         }
 
-        
         if (!hasFlightModuleI(boxStack)) {
             return false;
         }
 
-        
         int biomass = boxItem.getBiomass(boxStack);
         if (biomass <= 0) {
             return false;
@@ -259,42 +230,38 @@ public class FlightModuleEventHandler {
         return true;
     }
 
-    
     private static void ensureBiomassInitialized(LivingArmorBox boxItem, ItemStack boxStack) {
-        
+
         if (!boxStack.hasTag() || !boxStack.getTag().contains("Biomass")) {
-            
+
             boxItem.setBiomass(boxStack, 0);
         }
     }
 
-    
     private static void applyHorizontalMovement(Player player, float speed) {
         float yRotRad = player.getYRot() * ((float)Math.PI / 180F);
         float moveX = 0;
         float moveZ = 0;
 
-        
         float xxa = player.xxa;
         float zza = player.zza;
 
-        if (zza > 0) { 
+        if (zza > 0) {
             moveX -= Mth.sin(yRotRad) * speed;
             moveZ += Mth.cos(yRotRad) * speed;
-        } else if (zza < 0) { 
+        } else if (zza < 0) {
             moveX += Mth.sin(yRotRad) * speed;
             moveZ -= Mth.cos(yRotRad) * speed;
         }
 
-        if (xxa > 0) { 
+        if (xxa > 0) {
             moveX += Mth.cos(yRotRad) * speed;
             moveZ += Mth.sin(yRotRad) * speed;
-        } else if (xxa < 0) { 
+        } else if (xxa < 0) {
             moveX -= Mth.cos(yRotRad) * speed;
             moveZ -= Mth.sin(yRotRad) * speed;
         }
 
-        
         player.setDeltaMovement(
                 player.getDeltaMovement().x() * 0.5 + moveX,
                 player.getDeltaMovement().y(),
@@ -302,17 +269,14 @@ public class FlightModuleEventHandler {
         );
     }
 
-    
     private static void applyElytraBoost(Player player) {
         float yawRad = player.getYRot() * ((float)Math.PI / 180F);
         float pitchRad = player.getXRot() * ((float)Math.PI / 180F);
 
-        
         float forwardX = -Mth.sin(yawRad) * Mth.cos(pitchRad);
         float forwardZ = Mth.cos(yawRad) * Mth.cos(pitchRad);
         float forwardY = -Mth.sin(pitchRad);
 
-        
         player.setDeltaMovement(
                 player.getDeltaMovement().x() + forwardX * 0.1F,
                 player.getDeltaMovement().y() + forwardY * 0.1F,
@@ -320,37 +284,33 @@ public class FlightModuleEventHandler {
         );
     }
 
-    
     private static void resetPlayerFlightState(UUID playerId) {
         flightTimers.remove(playerId);
         biomassConsumeTimers.remove(playerId);
         playerAscendSpeed.remove(playerId);
     }
 
-    
     @SubscribeEvent
     public static void onLivingFall(LivingFallEvent event) {
         if (event.getEntity() instanceof Player player) {
-            
+
             ItemStack boxStack = findLivingArmorBox(player);
             if (!boxStack.isEmpty()) {
                 LivingArmorBox boxItem = (LivingArmorBox) boxStack.getItem();
                 if (isWearingFullLivingArmor(player) &&
                         boxItem.getState(boxStack) &&
                         hasFlightModuleI(boxStack)) {
-                    
+
                     event.setCanceled(true);
                 }
             }
         }
     }
 
-    
     private static int getHeightAboveGround(Player player) {
         BlockPos playerPos = player.blockPosition();
         BlockPos groundPos = playerPos;
 
-        
         int minY = player.level().getMinBuildHeight();
         int searchDepth = 0;
 
@@ -365,7 +325,6 @@ public class FlightModuleEventHandler {
         return Math.max(0, playerPos.getY() - groundPos.getY());
     }
 
-    
     private static boolean isWearingFullLivingArmor(Player player) {
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
         ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
@@ -378,14 +337,12 @@ public class FlightModuleEventHandler {
                 isLivingArmor(boots);
     }
 
-    
     private static boolean isLivingArmor(ItemStack stack) {
         return stack.getItem() instanceof LivingArmorItem;
     }
 
-    
     private static ItemStack findLivingArmorBox(Player player) {
-        
+
         ItemStack mainHand = player.getMainHandItem();
         ItemStack offHand = player.getOffhandItem();
 
@@ -396,7 +353,6 @@ public class FlightModuleEventHandler {
             return offHand;
         }
 
-        
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() instanceof LivingArmorBox) {
@@ -407,7 +363,6 @@ public class FlightModuleEventHandler {
         return ItemStack.EMPTY;
     }
 
-    
     private static boolean hasFlightModuleI(ItemStack boxStack) {
         if (!(boxStack.getItem() instanceof LivingArmorBox)) {
             return false;
@@ -425,7 +380,6 @@ public class FlightModuleEventHandler {
         return false;
     }
 
-    
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         UUID playerId = event.getEntity().getUUID();
@@ -436,7 +390,6 @@ public class FlightModuleEventHandler {
         playerWasFlying.remove(playerId);
         playerIsFlying.remove(playerId);
 
-        
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             player.setNoGravity(false);

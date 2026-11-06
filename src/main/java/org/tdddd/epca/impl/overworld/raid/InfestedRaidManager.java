@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.raid;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -25,7 +26,6 @@ import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,45 +33,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * The infested raid.
- *
- * <p>Vanilla's {@code Raid}/{@code Raider} stack cannot be reused here: the infested pillager and
- * vindicator are plain {@code PathfinderMob}s, not vanilla {@code Raider}s, so this class reimplements the
- * visible parts of a raid (boss bar, waves, wave horn, difficulty scaling, victory) on its own terms.</p>
- *
- * <p>Triggered by the {@link ModEffects#INFESTED_OMEN} effect while the carrier stands inside a village
- * ({@code ServerLevel#isVillage}).</p>
- */
 @Mod.EventBusSubscriber(modid = epca.MODID)
 public final class InfestedRaidManager {
-    /** Raid area radius, and the radius of the victory barrier. */
+
     public static final double AREA_RADIUS = InfestedRaidBarrierData.RADIUS;
-    /** Range in which parasites get the 2.5x target range boost. */
+
     public static final double PARASITE_BOOST_RANGE = AREA_RADIUS;
-    /** 16 blocks is the usual parasite acquisition range; the raid multiplies it by 2.5. */
+
     public static final double PARASITE_TARGET_RANGE = 16.0D * 2.5D;
 
     private static final int WAVE_DELAY_TICKS = 100;
     private static final double SPAWN_RING_MIN = 22.0D;
     private static final double SPAWN_RING_MAX = 40.0D;
-    /** Vanilla raid mob count is scaled by 1.5 as the spec requires. */
+
     private static final double SIZE_MULTIPLIER = 1.5D;
 
-    /**
-     * Vanilla {@code Raid.RaiderType} tables, copied verbatim: index is the wave number, entry 0 is unused.
-     * <pre>VINDICATOR(EntityType.VINDICATOR, new int[]{0, 0, 2, 0, 1, 4, 2, 5})
-     * PILLAGER  (EntityType.PILLAGER,  new int[]{0, 4, 3, 3, 4, 4, 4, 2})</pre>
-     */
     private static final int[] PILLAGER_PER_WAVE = {0, 4, 3, 3, 4, 4, 4, 2};
     private static final int[] VINDICATOR_PER_WAVE = {0, 0, 2, 0, 1, 4, 2, 5};
 
-    /** Vanilla count -> infested-raid count (x1.5, rounded up so one pillager still means two). */
     private static int scaleToRaid(int vanillaCount) {
         return vanillaCount <= 0 ? 0 : (int) Math.ceil(vanillaCount * SIZE_MULTIPLIER);
     }
 
-    /** Vanilla {@code Raid#getNumGroups}: 3 / 5 / 7 waves by difficulty, none on Peaceful. */
     private static int groupsForDifficulty(net.minecraft.world.Difficulty difficulty) {
         return switch (difficulty) {
             case PEACEFUL -> 0;
@@ -85,8 +68,6 @@ public final class InfestedRaidManager {
     private static int tickCounter;
 
     private InfestedRaidManager() { }
-
-    // ────────── Tick ──────────
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
@@ -109,7 +90,6 @@ public final class InfestedRaidManager {
         }
     }
 
-    /** Players carrying the Infested Omen who walk into a village start a raid on the spot. */
     private static void tickOmenTriggers(ServerLevel level) {
         for (ServerPlayer player : new ArrayList<>(level.players())) {
             if (!player.hasEffect(ModEffects.INFESTED_OMEN.get())) continue;
@@ -122,10 +102,6 @@ public final class InfestedRaidManager {
         }
     }
 
-    /**
-     * Parasites that are not part of the raid still get a 2.5x acquisition range while a raid is running
-     * near them. They never join the waves or the raider count.
-     */
     private static void tickParasiteBoost(ServerLevel level) {
         Raid raid = RAIDS.get(level.dimension());
         if (raid == null) return;
@@ -133,7 +109,7 @@ public final class InfestedRaidManager {
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, area)) {
             if (entity instanceof ServerPlayer) continue;
             if (!(entity instanceof Mob mob)) continue;
-            if (!IParasite.isParasiteByTagOrInterface(entity)) continue;
+            if (!ParasiteEvents.isParasiteByTagOrInterface(entity)) continue;
             if (raid.isRaider(entity.getUUID())) continue;
             if (mob.getTarget() != null && mob.getTarget().isAlive()) continue;
             LivingEntity target = findTarget(mob, PARASITE_TARGET_RANGE);
@@ -144,11 +120,8 @@ public final class InfestedRaidManager {
         }
     }
 
-    // ────────── Raid lifecycle ──────────
-
     public static void startRaid(ServerLevel level, BlockPos center, int omenLevel, ServerPlayer trigger) {
-        // Vanilla wave count: one group per difficulty tier (3 / 5 / 7), plus one bonus wave at omen level
-        // II or higher. Peaceful never runs a raid at all.
+
         int groups = groupsForDifficulty(level.getDifficulty());
         if (groups <= 0) return;
         int totalWaves = groups + (omenLevel > 1 ? 1 : 0);
@@ -157,7 +130,7 @@ public final class InfestedRaidManager {
         raid.bar.setVisible(true);
         raid.bar.addPlayer(trigger);
         trigger.sendSystemMessage(Component.translatable("epca.raid.started"));
-        // The wave horn is played when each wave actually spawns (see spawnNextWave), like vanilla.
+
     }
 
     private static void playWaveHorn(ServerLevel level, BlockPos center) {
@@ -165,12 +138,10 @@ public final class InfestedRaidManager {
                 SoundEvents.RAID_HORN.value(), SoundSource.NEUTRAL, 1.0F, 0.62F);
     }
 
-    /** @return the raid running in this level, or {@code null}. */
     public static Raid activeRaid(ServerLevel level) {
         return RAIDS.get(level.dimension());
     }
 
-    /** Late joiners must see barriers that were created before they connected. */
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
@@ -180,9 +151,6 @@ public final class InfestedRaidManager {
         org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket.sendTo(player, data);
     }
 
-    // ────────── Targeting helpers ──────────
-
-    /** Non-nest-leader players and non-parasite creatures. */
     private static LivingEntity findTarget(Mob seeker, double range) {
         AABB box = seeker.getBoundingBox().inflate(range);
         LivingEntity best = null;
@@ -202,21 +170,19 @@ public final class InfestedRaidManager {
         if (candidate == seeker || !candidate.isAlive()) return false;
         if (candidate instanceof ServerPlayer player) {
             if (player.isCreative() || player.isSpectator()) return false;
-            // Nest leaders are parasites themselves: they are never a raid target.
+
             return !HiveLeaderManager.isHiveLeader(player.getUUID());
         }
-        if (IParasite.isParasiteByTagOrInterface(candidate)) return false;
+        if (ParasiteEvents.isParasiteByTagOrInterface(candidate)) return false;
         return candidate.getType() != seeker.getType();
     }
-
-    // ────────── Raid state ──────────
 
     public static final class Raid {
         private final ServerLevel level;
         private final BlockPos center;
-        /** Total waves of this raid (vanilla groups + the optional bonus wave). */
+
         private final int totalWaves;
-        /** Vanilla group count of the difficulty: the table index the bonus wave uses. */
+
         private final int numGroups;
         private final ServerBossEvent bar;
         private final List<UUID> raiders = new ArrayList<>();
@@ -224,9 +190,9 @@ public final class InfestedRaidManager {
         private int wave = 1;
         private int pendingSpawnTicks = 40;
         private boolean running = true;
-        /** Size of the wave currently spawned: used for the bar progress. */
+
         private int waveTotal = 1;
-        /** Omen level of the raid, used to decide whether the last wave is a bonus wave (vanilla rule). */
+
         private final int omenLevel;
 
         Raid(ServerLevel level, BlockPos center, int totalWaves, int numGroups, int omenLevel) {
@@ -261,7 +227,7 @@ public final class InfestedRaidManager {
                 } else if (this.wave >= this.totalWaves) {
                     victory();
                 } else {
-                    // Current wave cleared: announce and queue the next one.
+
                     this.wave++;
                     this.pendingSpawnTicks = WAVE_DELAY_TICKS;
                     updateBar();
@@ -290,7 +256,7 @@ public final class InfestedRaidManager {
         }
 
         private void spawnNextWave() {
-            // Vanilla plays the raid horn as every wave spawns; ours is the same horn pitched down.
+
             playWaveHorn(this.level, this.center);
             int pillagers = wavePillagers();
             int vindicators = waveVindicators();
@@ -316,9 +282,8 @@ public final class InfestedRaidManager {
             }
         }
 
-        /** Index into the vanilla per-wave tables, honouring the bonus-wave rule. */
         private int waveIndex() {
-            // Vanilla: the bonus wave (omen level > I) uses the numGroups row, normal waves use their own.
+
             boolean bonusWave = this.omenLevel > 1 && this.wave > this.numGroups;
             int index = bonusWave ? this.numGroups : this.wave;
             return Math.max(0, Math.min(index, PILLAGER_PER_WAVE.length - 1));
@@ -332,10 +297,6 @@ public final class InfestedRaidManager {
             return scaleToRaid(VINDICATOR_PER_WAVE[waveIndex()] + bonusRoll());
         }
 
-        /**
-         * Vanilla {@code Raid#getPotentialBonusSpawns} for PILLAGER/VINDICATOR:
-         * EASY and NORMAL roll 0..1, HARD rolls 0..2, PEACEFUL rolls nothing.
-         */
         private int bonusRoll() {
             int bonus = switch (this.level.getDifficulty()) {
                 case PEACEFUL -> 0;
@@ -361,7 +322,6 @@ public final class InfestedRaidManager {
             return this.center.above();
         }
 
-        /** Raiders chase non-nest-leader players and non-parasite creatures, and walk towards them. */
         private void assignTargets() {
             for (UUID id : this.raiders) {
                 if (!(this.level.getEntity(id) instanceof Mob mob)) continue;
@@ -393,14 +353,13 @@ public final class InfestedRaidManager {
             this.bar.removeAllPlayers();
             RAIDS.remove(this.level.dimension());
 
-            // The reward is the barrier itself: it purifies, shields and hands out the buffs.
             InfestedRaidBarrierData data = InfestedRaidBarrierData.get(this.level);
             data.add(InfestedRaidBarrierData.create(this.level.dimension().location(), this.center));
             org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket.sendAll(this.level, data);
 
             this.level.playSound(null, this.center.getX() + 0.5D, this.center.getY() + 0.5D, this.center.getZ() + 0.5D,
                     SoundEvents.RAID_HORN.value(), SoundSource.NEUTRAL, 1.0F, 1.15F);
-            // Victory is deliberately silent in chat: the barrier appearing is the feedback.
+
         }
 
         public ServerLevel level() {

@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block.entity;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,7 +17,6 @@ import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIIBeckon;
@@ -30,7 +30,6 @@ public class BeckonCoreBlockEntity extends BlockEntity
     private static final String GENERATION_TIMER_KEY = "generationTimer";
     private static final String IS_GENERATING_KEY = "isGenerating";
 
-    /** 5 minutes without a biomass gain degrades the core into a hive node. */
     private static final int IDLE_DEGRADE_TICKS = 5 * 60 * 20;
 
     private int biomassCount = 0;
@@ -38,12 +37,11 @@ public class BeckonCoreBlockEntity extends BlockEntity
     private int generationTimer = 0;
     private boolean isGenerating = false;
 
-    /** Upper bound on the biomass stored by the beckon core. */
     public static final int MAX_BIOMASS_COUNT = 128;
 
     private static final int REQUIRED_KILLS_STAGE_I = 30;
     private static final int REQUIRED_KILLS_STAGE_II = 55;
-    private static final int GENERATION_DELAY_TICKS = 30 * 20; 
+    private static final int GENERATION_DELAY_TICKS = 30 * 20;
     private static final int ATTRACT_RADIUS = 48;
     private static final int ABSORB_RADIUS = 2;
 
@@ -51,7 +49,6 @@ public class BeckonCoreBlockEntity extends BlockEntity
         super(ModBlockEntities.BECKON_CORE.get(), pos, state);
     }
 
-    
     public boolean isGenerating() {
         return isGenerating;
     }
@@ -88,11 +85,10 @@ public class BeckonCoreBlockEntity extends BlockEntity
         tag.putBoolean(IS_GENERATING_KEY, this.isGenerating);
     }
 
-    
     private void absorbKills(ServerLevel level) {
         AABB area = new AABB(this.worldPosition).inflate(ATTRACT_RADIUS);
         List<LivingEntity> parasites = level.getEntitiesOfClass(LivingEntity.class, area,
-                e -> IParasite.isParasiteByTagOrInterface(e) &&
+                e -> ParasiteEvents.isParasiteByTagOrInterface(e) &&
                         EntityBiomassCountManager.getCurrentBiomassCount(e) > 0 &&
                         e.isAlive());
 
@@ -119,13 +115,12 @@ public class BeckonCoreBlockEntity extends BlockEntity
             if (be.lastGainTick == Long.MIN_VALUE) {
                 be.lastGainTick = now;
             } else if (now - be.lastGainTick >= IDLE_DEGRADE_TICKS) {
-                // A core may only turn into a node when no hive structure is close enough to be
-                // joined, and when this chunk still has room for another natural node.
+
                 if (org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules
                         .hasHiveStructureNearby(server, pos)
                         || !org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules
                         .canCreateNaturalNode(server, pos)) {
-                    be.lastGainTick = now;              // try again after another idle period
+                    be.lastGainTick = now;
                 } else {
                     BlockState hiveState = org.tdddd.epca.impl.overworld.registry.ModBlocks.HIVE_NODE.get().defaultBlockState();
                     int carried = Math.min(be.biomassCount, org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.MAX_BIOMASS_COUNT);
@@ -142,28 +137,25 @@ public class BeckonCoreBlockEntity extends BlockEntity
         if (level.isClientSide) return;
         ServerLevel serverLevel = (ServerLevel) level;
 
-        
         be.absorbKills(serverLevel);
 
-        
         if (!be.isGenerating && be.biomassCount >= REQUIRED_KILLS_STAGE_I) {
             be.isGenerating = true;
             be.generationTimer = GENERATION_DELAY_TICKS;
             be.setChanged();
-            
+
             return;
         }
 
-        
         if (be.isGenerating) {
-            
+
             EvolutionManager evo = EvolutionManager.forDimension(serverLevel);
             int stage = evo.getStage();
             if (stage < 3) {
-                
+
                 return;
             }
-            
+
             be.generationTimer--;
             be.setChanged();
             if (be.generationTimer <= 0) {
@@ -172,7 +164,6 @@ public class BeckonCoreBlockEntity extends BlockEntity
         }
     }
 
-    
     private void spawnBeckon(ServerLevel level) {
         BlockPos above = this.worldPosition.above();
         if (!level.getBlockState(above).isAir()) return;
@@ -190,7 +181,7 @@ public class BeckonCoreBlockEntity extends BlockEntity
                 stageII.setRiseTarget(new Vec3(above.getX() + 0.5, above.getY(), above.getZ() + 0.5));
                 level.addFreshEntity(stageII);
                 beckon = stageII;
-                
+
                 for (ServerPlayer player : level.players()) {
                     if (player.level().dimension().equals(level.dimension())) {
                         level.playSound(null, player.getX(), player.getY(), player.getZ(),
@@ -213,53 +204,47 @@ public class BeckonCoreBlockEntity extends BlockEntity
             }
         }
 
-        
         if (beckon != null) {
             EntityBiomassCountManager.setBiomassCount(beckon, remainingKills);
         }
 
-        
         BlockConversionManager conversionManager = BlockConversionManager.getInstance();
         BlockPos center = this.worldPosition;
 
-        
-        final double RADIUS_HIGH = 4.5;   
-        final double RADIUS_LOW = 5.5;    
-        final double HIGH_SQR = RADIUS_HIGH * RADIUS_HIGH; 
-        final double LOW_SQR = RADIUS_LOW * RADIUS_LOW;     
-        final int MANHATTAN_FULL = 3;     
-        final float CHANCE_HIGH = 0.7f;   
-        final float CHANCE_LOW = 0.3f;    
+        final double RADIUS_HIGH = 4.5;
+        final double RADIUS_LOW = 5.5;
+        final double HIGH_SQR = RADIUS_HIGH * RADIUS_HIGH;
+        final double LOW_SQR = RADIUS_LOW * RADIUS_LOW;
+        final int MANHATTAN_FULL = 3;
+        final float CHANCE_HIGH = 0.7f;
+        final float CHANCE_LOW = 0.3f;
 
-        
         int maxRadius = (int) Math.ceil(RADIUS_LOW);
         for (int dx = -maxRadius; dx <= maxRadius; dx++) {
             for (int dy = -maxRadius; dy <= maxRadius; dy++) {
                 for (int dz = -maxRadius; dz <= maxRadius; dz++) {
-                    
+
                     if (dx == 0 && dy == 0 && dz == 0) continue;
 
                     BlockPos targetPos = center.offset(dx, dy, dz);
                     BlockState targetState = level.getBlockState(targetPos);
                     if (targetState.isAir()) continue;
 
-                    
                     int manhattanDist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);
                     double euclideanSqr = dx * dx + dy * dy + dz * dz;
 
                     boolean shouldConvert = false;
 
-                    
                     if (manhattanDist <= MANHATTAN_FULL) {
                         shouldConvert = true;
                     }
-                    
+
                     else if (euclideanSqr <= HIGH_SQR) {
                         if (level.random.nextFloat() < CHANCE_HIGH) {
                             shouldConvert = true;
                         }
                     }
-                    
+
                     else if (euclideanSqr <= LOW_SQR) {
                         if (level.random.nextFloat() < CHANCE_LOW) {
                             shouldConvert = true;
@@ -273,7 +258,6 @@ public class BeckonCoreBlockEntity extends BlockEntity
             }
         }
 
-        
         level.setBlock(this.worldPosition, ModBlocks.INFESTED_DIRT.get().defaultBlockState(), 3);
     }
 

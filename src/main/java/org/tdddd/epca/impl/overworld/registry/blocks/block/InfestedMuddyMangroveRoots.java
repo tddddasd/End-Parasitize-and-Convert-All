@@ -49,17 +49,17 @@ public class InfestedMuddyMangroveRoots extends Block implements InfestedBlockIn
     public SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
         return Blocks.MANGROVE_ROOTS.getSoundType(Blocks.MANGROVE_ROOTS.defaultBlockState(), level, pos, entity);
     }
-    
+
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 }

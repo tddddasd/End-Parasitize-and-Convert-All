@@ -26,11 +26,10 @@ public class FearEffectEventHandler {
             new ResourceLocation("minecraft", "lingering_potion")
     );
 
-    
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Player player = event.getEntity();
-        
+
         if (!player.hasEffect(ModEffects.FEAR.get())) return;
 
         int amplifier = player.getEffect(ModEffects.FEAR.get()).getAmplifier();
@@ -41,18 +40,15 @@ public class FearEffectEventHandler {
         }
     }
 
-    
     @SubscribeEvent
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         Player player = event.getEntity();
-        
+
         if (!player.hasEffect(ModEffects.FEAR.get())) return;
 
-        
         ItemStack stack = player.getItemInHand(event.getHand());
         ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
 
-        
         if (itemId != null && (THROWABLE_ITEMS.contains(itemId) || stack.getItem() instanceof ProjectileWeaponItem)) {
             return;
         }

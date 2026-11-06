@@ -66,7 +66,6 @@ public class EPCANoteTabData {
         }
     }
 
-    
     public static void reloadFromServerResources(MinecraftServer server) {
         ResourceManager resourceManager = server.getResourceManager();
         Map<ResourceLocation, Resource> resources =
@@ -84,7 +83,6 @@ public class EPCANoteTabData {
         Map<String, ParentTab> parentMap = new LinkedHashMap<>();
         List<ParentTab> baseOrder = new ArrayList<>();
 
-        
         for (var loc : sorted) {
             String fileName = loc.getPath().substring(loc.getPath().lastIndexOf('/') + 1);
             if (fileName.endsWith("_add.json")) continue;
@@ -104,7 +102,6 @@ public class EPCANoteTabData {
             } catch (Exception ignored) {}
         }
 
-        
         for (var loc : sorted) {
             String fileName = loc.getPath().substring(loc.getPath().lastIndexOf('/') + 1);
             if (!fileName.endsWith("_add.json")) continue;
@@ -126,7 +123,6 @@ public class EPCANoteTabData {
         currentParentTabs = Collections.unmodifiableList(baseOrder);
     }
 
-    
     public static void writeParentTabList(FriendlyByteBuf buf, List<ParentTab> list) {
         buf.writeInt(list.size());
         for (ParentTab pt : list) {
@@ -170,7 +166,6 @@ public class EPCANoteTabData {
         return list;
     }
 
-    
     public static List<ParentTab> getCurrentTabs() {
         return currentParentTabs;
     }
@@ -179,7 +174,6 @@ public class EPCANoteTabData {
         currentParentTabs = Collections.unmodifiableList(new ArrayList<>(tabs));
     }
 
-    
     @OnlyIn(Dist.CLIENT)
     public static List<ParentTab> getVisibleTabsForPlayer() {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -224,7 +218,6 @@ public class EPCANoteTabData {
         Advancement advancement = advancements.getAdvancements().get(id);
         if (advancement == null) return false;
 
-        
         try {
             Field field = ClientAdvancements.class.getDeclaredField("advancements");
             field.setAccessible(true);
@@ -232,7 +225,7 @@ public class EPCANoteTabData {
             AdvancementProgress progress = progressMap.get(advancement);
             return progress != null && progress.isDone();
         } catch (Exception e) {
-            
+
             return true;
         }
     }

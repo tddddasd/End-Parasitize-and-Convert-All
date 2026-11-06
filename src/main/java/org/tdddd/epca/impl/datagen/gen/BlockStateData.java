@@ -12,10 +12,8 @@ import org.tdddd.epca.impl.epca;
 import java.util.Objects;
 import java.util.Set;
 
-
 public class BlockStateData extends BlockStateProvider {
 
-    
     private static final Set<String> MANUAL_BLOCKS = Set.of(
             "infested_dirt", "infested_log", "infested_stone", "infested_heavy_stone","infested_wood", "infested_stripped_wood",
             "infested_snow", "infested_spider_web", "infested_spider_web_blood", "infested_cave_spider_web",
@@ -49,9 +47,8 @@ public class BlockStateData extends BlockStateProvider {
                 });
     }
 
-    
     private void generateBlock(Block block) {
-        
+
         if (block instanceof SlabBlock slab) {
             slabBlockWithItem(slab);
         } else if (block instanceof StairBlock stair) {
@@ -79,14 +76,11 @@ public class BlockStateData extends BlockStateProvider {
         } else if (block instanceof BushBlock) {
             crossBlockWithItem(block);
         } else {
-            
+
             simpleBlockWithItem(block);
         }
     }
 
-    
-
-    
     private Block findParentBlock(Block child, String... suffixes) {
         String childName = name(child);
         for (String suffix : suffixes) {
@@ -98,19 +92,15 @@ public class BlockStateData extends BlockStateProvider {
                 }
             }
         }
-        // fallback: use the child's own texture
+
         return child;
     }
 
-    
-
-    
     protected void simpleBlockWithItem(Block block) {
         simpleBlock(block);
         simpleBlockItem(block, cubeAll(block));
     }
 
-    
     private void slabBlockWithItem(SlabBlock slab) {
         Block fullBlock = findParentBlock(slab, "_slab");
         ResourceLocation tex = blockTexture(fullBlock);
@@ -118,7 +108,6 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(slab, models().slab(name(slab), tex, tex, tex));
     }
 
-    
     private void stairsBlockWithItem(StairBlock stair) {
         Block fullBlock = findParentBlock(stair, "_stairs");
         ResourceLocation tex = blockTexture(fullBlock);
@@ -126,7 +115,6 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(stair, models().stairs(name(stair), tex, tex, tex));
     }
 
-    
     private void wallBlockWithItem(WallBlock wall) {
         Block fullBlock = findParentBlock(wall, "_wall");
         ResourceLocation tex = blockTexture(fullBlock);
@@ -134,7 +122,6 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(wall, models().wallInventory(name(wall) + "_inventory", tex));
     }
 
-    
     private void fenceBlockWithItem(FenceBlock fence) {
         Block plank = findParentBlock(fence, "_fence");
         ResourceLocation tex = blockTexture(plank);
@@ -142,7 +129,6 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(fence, models().fenceInventory(name(fence) + "_inventory", tex));
     }
 
-    
     protected void logBlockWithItem(Block block) {
         logBlock((RotatedPillarBlock) block);
         simpleBlockItem(block, models().cubeColumn(
@@ -152,7 +138,6 @@ public class BlockStateData extends BlockStateProvider {
         ));
     }
 
-    
     private void leavesBlockWithItem(Block block) {
         ModelFile leavesModel = models().cubeAll(name(block), blockTexture(block))
                 .renderType("cutout");
@@ -160,14 +145,12 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(block, leavesModel);
     }
 
-    
     protected void crossBlockWithItem(Block block) {
         simpleBlock(block, models().cross(name(block), blockTexture(block)).renderType("cutout"));
         itemModels().withExistingParent(name(block), "item/generated")
                 .texture("layer0", blockTexture(block));
     }
 
-    
     private void fenceGateBlockWithItem(FenceGateBlock gate) {
         Block plank = findParentBlock(gate, "_fence_gate");
         ResourceLocation tex = blockTexture(plank);
@@ -175,7 +158,6 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(gate, models().fenceGate(name(gate), tex));
     }
 
-    
     private void doorBlockWithItem(DoorBlock door) {
         Block plank = findParentBlock(door, "_door");
         ResourceLocation tex = blockTexture(plank);
@@ -184,7 +166,6 @@ public class BlockStateData extends BlockStateProvider {
                 .texture("layer0", new ResourceLocation(epca.MODID, "item/" + name(door)));
     }
 
-    
     private void trapdoorBlockWithItem(TrapDoorBlock trapdoor) {
         Block plank = findParentBlock(trapdoor, "_trapdoor");
         ResourceLocation tex = blockTexture(plank);
@@ -192,7 +173,6 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(trapdoor, models().trapdoorBottom(name(trapdoor) + "_bottom", tex));
     }
 
-    
     private void buttonBlockWithItem(ButtonBlock button) {
         Block plank = findParentBlock(button, "_button");
         ResourceLocation tex = blockTexture(plank);
@@ -202,7 +182,6 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(button, models().buttonInventory(name(button) + "_inventory", tex));
     }
 
-    
     private void pressurePlateBlockWithItem(PressurePlateBlock plate) {
         Block plank = findParentBlock(plate, "_pressure_plate");
         ResourceLocation tex = blockTexture(plank);
@@ -212,7 +191,6 @@ public class BlockStateData extends BlockStateProvider {
         simpleBlockItem(plate, plateModel);
     }
 
-    
     private void paneBlockWithItem(IronBarsBlock pane) {
         Block glass = findParentBlock(pane, "_pane");
         ResourceLocation tex = blockTexture(glass);
@@ -220,8 +198,6 @@ public class BlockStateData extends BlockStateProvider {
         itemModels().withExistingParent(name(pane), "item/generated")
                 .texture("layer0", tex);
     }
-
-    
 
     protected String name(Block block) {
         return Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(block)).getPath();

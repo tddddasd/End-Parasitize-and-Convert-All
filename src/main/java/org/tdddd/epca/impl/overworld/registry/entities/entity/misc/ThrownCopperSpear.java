@@ -23,17 +23,17 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 
 public class ThrownCopperSpear extends AbstractArrow {
-    private static final float CUSTOM_GRAVITY = 0.04f; 
+    private static final float CUSTOM_GRAVITY = 0.04f;
     private ItemStack spearItem;
     private boolean dealtDamage = false;
     private int returnTimer = 0;
-    private final boolean wasCreativeThrower; 
+    private final boolean wasCreativeThrower;
 
     public ThrownCopperSpear(EntityType<? extends ThrownCopperSpear> type, Level level) {
         super(type, level);
         this.spearItem = new ItemStack(ModItems.COPPER_SPEAR.get());
-        this.setNoGravity(true); 
-        this.wasCreativeThrower = false;   
+        this.setNoGravity(true);
+        this.wasCreativeThrower = false;
     }
 
     public ThrownCopperSpear(Level level, LivingEntity shooter, ItemStack stack, boolean isCreative) {
@@ -41,26 +41,25 @@ public class ThrownCopperSpear extends AbstractArrow {
         this.spearItem = stack.copy();
         this.setNoGravity(true);
         this.wasCreativeThrower = isCreative;
-        
+
         int fireAspect = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, spearItem);
         if (fireAspect > 0) {
             this.setSecondsOnFire(100);
         }
     }
 
-    
     @Override
     public void tick() {
-        
+
         if (this.returnTimer > 0) {
             Entity owner = this.getOwner();
             if (owner instanceof Player player && !this.level().isClientSide) {
-                    
+
                     if (!this.wasCreativeThrower) {
                         if (!player.getInventory().add(this.spearItem)) {
                             player.drop(this.spearItem, false);
                         } else {
-                            
+
                             this.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                                     SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, 1.0F);
                         }
@@ -72,16 +71,15 @@ public class ThrownCopperSpear extends AbstractArrow {
             } else {
                 this.discard();
             }
-            return; 
+            return;
         }
         super.tick();
-        
+
         if (!this.isNoPhysics() && !this.inGround && this.returnTimer == 0) {
             Vec3 motion = this.getDeltaMovement();
             this.setDeltaMovement(motion.x, motion.y - CUSTOM_GRAVITY, motion.z);
         }
 
-        
         Vec3 motion = this.getDeltaMovement();
         if (!(motion.x == 0 && motion.z == 0 && motion.y == 0) && !this.inGround && this.returnTimer == 0) {
             float yaw = (float) (Math.atan2(motion.x, motion.z) * 180.0 / Math.PI);
@@ -93,12 +91,11 @@ public class ThrownCopperSpear extends AbstractArrow {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
-        if (this.returnTimer > 0) return; 
+        if (this.returnTimer > 0) return;
         Entity target = result.getEntity();
         Entity shooter = this.getOwner();
         float damage = 6.0f;
 
-        
         int sharpness = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SHARPNESS, spearItem);
         int smite = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SMITE, spearItem);
         int bane = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BANE_OF_ARTHROPODS, spearItem);
@@ -123,19 +120,18 @@ public class ThrownCopperSpear extends AbstractArrow {
             }
             this.dealtDamage = true;
 
-            
             int loyalty = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.LOYALTY, spearItem);
             if (loyalty > 0) {
-                
+
                 this.returnTimer = 1;
-                this.setNoPhysics(true);  
-                this.setNoGravity(true);  
+                this.setNoPhysics(true);
+                this.setNoGravity(true);
                 this.setDeltaMovement(Vec3.ZERO);
-                
+
                 this.inGround = false;
-                
+
             } else {
-                
+
                 this.setDeltaMovement(Vec3.ZERO);
                 this.setNoPhysics(false);
                 this.inGround = false;
@@ -144,14 +140,14 @@ public class ThrownCopperSpear extends AbstractArrow {
                 this.setPierceLevel((byte)0);
             }
         }
-        
+
     }
 
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        if (this.returnTimer > 0) return; 
-        super.onHitBlock(result); 
-        
+        if (this.returnTimer > 0) return;
+        super.onHitBlock(result);
+
         if (!wasCreativeThrower && !spearItem.isEmpty()) {
             Entity shooter = this.getOwner();
             if (shooter instanceof Player player) {
@@ -164,18 +160,17 @@ public class ThrownCopperSpear extends AbstractArrow {
                 return;
             }
         }
-        
+
         int loyalty = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.LOYALTY, spearItem);
         if (loyalty > 0 && !this.dealtDamage) {
             this.returnTimer = 1;
-            
-            this.setNoPhysics(true);  
-            this.setNoGravity(true);  
+
+            this.setNoPhysics(true);
+            this.setNoGravity(true);
             this.setDeltaMovement(Vec3.ZERO);
             this.inGround = false;
         } else {
-            
-            
+
             this.pickup = Pickup.ALLOWED;
         }
     }
@@ -188,7 +183,7 @@ public class ThrownCopperSpear extends AbstractArrow {
     @Override
     public void playerTouch(Player player) {
         if (this.returnTimer > 0) return;
-        
+
         if (!this.level().isClientSide && this.pickup == Pickup.ALLOWED) {
             if (this.wasCreativeThrower) return;
             if (player.getInventory().add(this.spearItem)) {
@@ -199,7 +194,6 @@ public class ThrownCopperSpear extends AbstractArrow {
         }
     }
 
-    
     @Override
     public boolean isNoPhysics() {
         return this.returnTimer > 0;

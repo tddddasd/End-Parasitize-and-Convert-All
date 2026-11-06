@@ -9,7 +9,6 @@ import net.minecraftforge.registries.RegistryObject;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 
-
 public class ParticleData extends ParticleDescriptionProvider {
 
     public ParticleData(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -18,7 +17,7 @@ public class ParticleData extends ParticleDescriptionProvider {
 
     @Override
     protected void addDescriptions() {
-        
+
         addParticle(ModParticles.SPLASHI, "splashi");
         addParticle(ModParticles.PARA_CURSE, "para_curse");
         addParticle(ModParticles.BLEEDING, "bleeding");

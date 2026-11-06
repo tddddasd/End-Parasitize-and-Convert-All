@@ -26,22 +26,18 @@ public class ThrownWoodenSpearRenderer extends EntityRenderer<ThrownWoodenSpear>
                        PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         poseStack.pushPose();
 
-        
         double motionX = entity.getDeltaMovement().x;
         double motionY = entity.getDeltaMovement().y;
         double motionZ = entity.getDeltaMovement().z;
 
-        
         float yaw = (float) (Math.atan2(motionX, motionZ) * (180.0 / Math.PI)) - 90;
-        
+
         float pitch = (float) (Math.atan2(motionY, Math.sqrt(motionX * motionX + motionZ * motionZ)) * (180.0 / Math.PI)) + 225.0F;
 
-        
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
         poseStack.mulPose(Axis.ZP.rotationDegrees(pitch));
         poseStack.translate(0, -0.4, 0);
 
-        
         poseStack.scale(4f, 4f, 4f);
         poseStack.translate(0.3D, -0.2D, 0.0D);
 

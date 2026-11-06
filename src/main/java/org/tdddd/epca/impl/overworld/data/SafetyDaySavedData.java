@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class SafetyDaySavedData extends SavedData {
     private static final String DATA_NAME = "epca_safety_day";
-    public long safetyDayEndTick = -1;      
-    private boolean hasTriggeredEffect = false; 
+    public long safetyDayEndTick = -1;
+    private boolean hasTriggeredEffect = false;
 
     public static SafetyDaySavedData get(Level level) {
         if (level.isClientSide) throw new IllegalStateException("Only server side");
@@ -55,7 +55,7 @@ public class SafetyDaySavedData extends SavedData {
         return hasTriggeredEffect;
     }
 
-    public void reset() {  
+    public void reset() {
         safetyDayEndTick = -1;
         hasTriggeredEffect = false;
         setDirty();

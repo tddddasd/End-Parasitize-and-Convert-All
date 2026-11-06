@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
 import net.minecraft.nbt.CompoundTag;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -19,7 +20,6 @@ import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
 import org.tdddd.epca.impl.overworld.data.EntityConversionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -35,7 +35,7 @@ public class ContemptInorganicEffect extends MobEffect {
 
     private static final String TAG_LAST_PARA_CURSE_TIME = "LastParaCurseTime";
     private static final String TAG_NEXT_SOUND_TIME = "NextSoundTime";
-    /** Erosion points granted when this effect converts a creature. */
+
     private static final int CONTEMPT_CONVERSION_POINTS = 4;
 
     private static final String TAG_CONVERTED_BY_CONTEMPT = "ConvertedByContemptInorganic";
@@ -59,13 +59,11 @@ public class ContemptInorganicEffect extends MobEffect {
         if (currentEffect == null) return;
         int duration = currentEffect.getDuration();
 
-        
         if (duration <= 1 && !(entity instanceof Player)) {
             entity.addEffect(new MobEffectInstance(this, BASE_DURATION, 0, false, false, true));
             return;
         }
 
-        
         long lastParaCurseTime = entity.getPersistentData().getLong(TAG_LAST_PARA_CURSE_TIME);
         if (lastParaCurseTime == 0) {
             lastParaCurseTime = gameTime - PARA_CURSE_INTERVAL;
@@ -76,7 +74,6 @@ public class ContemptInorganicEffect extends MobEffect {
             entity.getPersistentData().putLong(TAG_LAST_PARA_CURSE_TIME, gameTime);
         }
 
-        
         if (entity instanceof Player player) {
             long nextSoundTime = entity.getPersistentData().getLong(TAG_NEXT_SOUND_TIME);
             if (nextSoundTime == 0) {
@@ -92,20 +89,18 @@ public class ContemptInorganicEffect extends MobEffect {
             }
         }
 
-        
         if (!entity.getPersistentData().getBoolean(TAG_CONVERTED_BY_CONTEMPT)) {
             MobEffectInstance para_curse = entity.getEffect(ModEffects.PARA_CURSE.get());
             if (para_curse != null && entity.getHealth() <= entity.getMaxHealth() * 0.5f) {
-                
+
                 tryPerformConversion(entity);
             }
         }
     }
 
-    
     private void tryPerformConversion(LivingEntity entity) {
-        
-        if (entity instanceof Player || IParasite.isParasiteByTagOrInterface(entity)) {
+
+        if (entity instanceof Player || ParasiteEvents.isParasiteByTagOrInterface(entity)) {
             return;
         }
         if (ModConfig.isInConversionModImmunityWhitelist(entity)) {
@@ -125,45 +120,38 @@ public class ContemptInorganicEffect extends MobEffect {
                 try {
                     Entity newEntity = targetType.create(serverLevel);
                     if (newEntity != null) {
-                        
+
                         newEntity.setPos(entity.getX(), entity.getY(), entity.getZ());
                         newEntity.setYRot(entity.getYRot());
                         newEntity.setXRot(entity.getXRot());
 
-                        
                         playConversionEffects(entity);
 
-                        
                         entity.remove(Entity.RemovalReason.KILLED);
 
-                        
                         serverLevel.addFreshEntity(newEntity);
 
-                        // A creature converted by Contempt of the Inorganic is worth 4 erosion points.
                         var evolution = org.tdddd.epca.impl.overworld.data.EvolutionManager
                                 .forDimension(serverLevel);
                         if (evolution != null) {
                             evolution.addPoints(CONTEMPT_CONVERSION_POINTS);
                         }
 
-                        
                         if (newEntity instanceof LivingEntity livingNew) {
                             ModNetwork.sendToAllTracking(
                                     new ColorEffectPacket(livingNew, ParaCurseEffect.TYPE_CONVERSION_FADE, 6),
                                     livingNew);
                         }
 
-                        
                         entity.getPersistentData().putBoolean(TAG_CONVERTED_BY_CONTEMPT, true);
                     }
                 } catch (Exception e) {
-                    
+
                 }
             }
         }
     }
 
-    
     private void playConversionEffects(LivingEntity entity) {
         entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 SoundEvents.ZOMBIE_INFECT, SoundSource.HOSTILE, 0.8F, 1.2F);
@@ -171,7 +159,6 @@ public class ContemptInorganicEffect extends MobEffect {
         spawnConversionParticles(entity);
     }
 
-    
     private static void spawnConversionParticles(LivingEntity entity) {
         if (!(entity.level() instanceof ServerLevel serverLevel)) {
             return;

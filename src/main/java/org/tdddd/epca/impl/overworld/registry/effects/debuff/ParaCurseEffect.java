@@ -52,28 +52,25 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
     private static final int BASE_DURATION = 1200;
     private static final int SPREAD_INTERVAL = 10;
     private static final double SPREAD_RADIUS = 3.0;
-    private static final double SMALL_ENTITY_THRESHOLD = 0.517; 
+    private static final double SMALL_ENTITY_THRESHOLD = 0.517;
     private static final double LARGE_ENTITY_THRESHOLD = 2.48;
-    private static final int PARTICLE_SPAWN_INTERVAL = 10; 
-    private static final int MIN_PARTICLES = 3; 
+    private static final int PARTICLE_SPAWN_INTERVAL = 10;
+    private static final int MIN_PARTICLES = 3;
     private static final int MAX_PARTICLES = 5;
 
-    /** Maximum effect level (amplifier 4 shows as level V). */
     public static final int MAX_PARA_CURSE_LEVEL = 5;
 
-    /** Erosion points granted when a creature is converted by this effect. */
     private static final int CONVERSION_POINTS = 3;
-    /** Erosion points granted for each level the effect gains. */
-    private static final int PARA_CURSE_LEVEL_POINTS = 3; 
-    private static final double PARTICLE_AREA_SIZE = 5.0;
-    private static final int LEVEL3_SPREAD_INTERVAL = 20;    
-    private static final double LEVEL3_SPREAD_RADIUS = 2.5;  
-    private static final int LEVEL3_DURATION = 600;          
-    private static final int LEVEL3_AMPLIFIER = 2;           
 
-    
+    private static final int PARA_CURSE_LEVEL_POINTS = 3;
+    private static final double PARTICLE_AREA_SIZE = 5.0;
+    private static final int LEVEL3_SPREAD_INTERVAL = 20;
+    private static final double LEVEL3_SPREAD_RADIUS = 2.5;
+    private static final int LEVEL3_DURATION = 600;
+    private static final int LEVEL3_AMPLIFIER = 2;
+
     public static final int TYPE_CONVERSION = 2;
-    
+
     public static final int TYPE_CONVERSION_FADE = 3;
 
     public ParaCurseEffect() {
@@ -83,10 +80,10 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
     public static boolean canApplyInLevel(Level level) {
         return !(DifficultyEffects.isLegendary(level));
     }
-    
+
     public static boolean applyParaCurseEffect(LivingEntity target, int duration, int amplifier) {
         if (!canApplyInLevel(target.level())) return false;
-        // Level is capped: amplifier is zero based, so level 5 is amplifier 4.
+
         int cappedAmplifier = Math.min(amplifier, MAX_PARA_CURSE_LEVEL - 1);
         MobEffectInstance existing = target.getEffect(ModEffects.PARA_CURSE.get());
         int previousAmplifier = existing == null ? -1 : existing.getAmplifier();
@@ -98,7 +95,7 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         );
 
         boolean applied = EffectApplicationInterceptor.applyEffectSafely(target, effect);
-        // Every level the effect gains is worth 3 erosion points, for a rise of at most one step.
+
         if (applied && cappedAmplifier > previousAmplifier && previousAmplifier >= 0
                 && target.level() instanceof ServerLevel serverLevel) {
             var evolution = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(serverLevel);
@@ -112,17 +109,14 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
     public static boolean canApplyEffect(LivingEntity target, int newAmplifier) {
         MobEffectInstance existingEffect = target.getEffect(ModEffects.PARA_CURSE.get());
 
-        
         if (existingEffect == null) {
             return true;
         }
 
-        
         if (newAmplifier > existingEffect.getAmplifier()) {
             return true;
         }
 
-        
         return false;
     }
 
@@ -130,7 +124,6 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
     public void applyEffectTick(LivingEntity entity, int amplifier) {
         Level level = entity.level();
 
-        
         if (level.isClientSide) {
             if (level.getGameTime() % PARTICLE_SPAWN_INTERVAL == 0) {
                 spawnParaCurseParticles(entity);
@@ -165,18 +158,15 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
 
         int duration = effect.getDuration();
 
-        
         if (duration <= 1) {
             handleUpgrade(entity, amplifier);
             return;
         }
 
-        
         if (amplifier >= 1 && duration % SPREAD_INTERVAL == 0) {
             spreadEffect(entity, amplifier);
         }
 
-        
         if (amplifier >= 5 && !level.isClientSide) {
             long gameTime = level.getGameTime();
             if (gameTime % LEVEL3_SPREAD_INTERVAL == 0) {
@@ -184,7 +174,6 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             }
         }
 
-        
         if (amplifier >= 3) {
             CompoundTag tag = entity.getPersistentData();
             String key = "ParaCurseLevel4Triggered";
@@ -205,20 +194,17 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             }
         }
 
-        
         if (amplifier > 0) {
             tryConvertEntity(entity, amplifier, false);
         }
     }
 
-    
     private void spawnParaCurseParticles(LivingEntity entity) {
         Level level = entity.level();
         double centerX = entity.getX();
         double centerY = entity.getY() + entity.getBbHeight() / 2;
         double centerZ = entity.getZ();
 
-        
         ThreadLocalRandom random = ThreadLocalRandom.current();
         int particleCount = MIN_PARTICLES + random.nextInt(MAX_PARTICLES - MIN_PARTICLES + 1);
 
@@ -232,17 +218,15 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
 
     public static void tryConvertEntity(LivingEntity entity, int amplifier, boolean forceConversion) {
         if (ModConfig.isInConversionModImmunityWhitelist(entity)) {
-            return; 
+            return;
         }
 
-        
         if ((entity instanceof Player) || ParasiteHelper.isParasite(entity)) {
             return;
         }
 
-        
         if (amplifier >= 4 && entity.isAlive()) {
-            
+
             CompoundTag earlyNbt = entity.saveWithoutId(new CompoundTag());
             boolean earlySmall = entity.getBbWidth() < SMALL_ENTITY_THRESHOLD ||
                     entity.getBbHeight() < SMALL_ENTITY_THRESHOLD;
@@ -256,9 +240,7 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             entity.getPersistentData().remove("KilledByParasite");
             return;
         }
-        
 
-        
         CompoundTag persistentData = entity.getPersistentData();
         if (persistentData.getBoolean("BeingConvertedByGnat")) {
             return;
@@ -269,31 +251,30 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         boolean isLargeEntity = entity.getBbWidth() > LARGE_ENTITY_THRESHOLD ||
                 entity.getBbHeight() > LARGE_ENTITY_THRESHOLD;
 
-        
         CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
         EntityType<?> entityType = entity.getType();
         EntityConversionManager.EntityConversionRule rule = EntityConversionManager.getConversionRule(entityType, nbt);
 
         boolean isBaby = nbt.getInt("Age") < 0;
-        
+
         boolean canConvert = false;
 
         if (forceConversion) {
-            
+
             canConvert = entity.isAlive();
-        } else if (amplifier >= 3 && (entity.getBbWidth() < LARGE_ENTITY_THRESHOLD * 1.2 || entity.getBbHeight() < LARGE_ENTITY_THRESHOLD * 1.2)) {  
-            
+        } else if (amplifier >= 3 && (entity.getBbWidth() < LARGE_ENTITY_THRESHOLD * 1.2 || entity.getBbHeight() < LARGE_ENTITY_THRESHOLD * 1.2)) {
+
             canConvert = entity.isAlive();
         }
         else if (amplifier >= 2 && rule != null && hasNbtConditions(rule) && EntityConversionManager.checkNBTConditions(rule, nbt) && (entity.getBbWidth() <= LARGE_ENTITY_THRESHOLD || entity.getBbHeight() <= LARGE_ENTITY_THRESHOLD)) {
-            
+
             canConvert = entity.isAlive();
         } else if (amplifier >= 1 && rule != null && hasNbtConditions(rule) && EntityConversionManager.checkNBTConditions(rule, nbt) && isBaby) {
-            
+
             canConvert = entity.isAlive();
         }
         else {
-            
+
             float healthThreshold = 0.3f;
             if (entity.hasEffect(org.tdddd.epca.impl.overworld.registry.ModEffects.SYMBIOSIS_LIE.get())) {
                 healthThreshold = entity.hasEffect(org.tdddd.epca.impl.overworld.registry.ModEffects.CONTEMPT_INORGANIC.get())
@@ -305,21 +286,19 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
 
         if (canConvert) {
             ConversionPlan plan = planConversion(entity, rule, nbt, isSmallEntity, isLargeEntity);
-            
+
             scheduleOrExecute(entity, plan,
                     isConfiguredConversion(rule, plan) ? conversionDelayTicks(amplifier) : 0);
             persistentData.remove("KilledByParasite");
         }
     }
 
-    
     private static int conversionDelayTicks(int amplifier) {
         if (amplifier == 1) return 10;
         if (amplifier >= 2) return 4;
         return 0;
     }
 
-    
     private static void scheduleOrExecute(LivingEntity entity, ConversionPlan plan, int delayTicks) {
         if (delayTicks <= 0) {
             executePlan(entity, plan);
@@ -328,7 +307,6 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         }
     }
 
-    
     private static ConversionPlan planConversion(LivingEntity entity,
                                                  EntityConversionManager.EntityConversionRule rule,
                                                  CompoundTag nbt,
@@ -354,33 +332,20 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         return new ConversionPlan(null, true, isSmallEntity, isLargeEntity);
     }
 
-    
     public static void executePlan(LivingEntity entity, ConversionPlan plan) {
         if (plan == null || planIsEmpty(plan)) {
             return;
         }
 
-        // The data pack rule runs first: convertUsingDataPackRule places the new entity at the
-        // position the original still occupies, which the generic conversion would vacate first.
         if (plan.targetEntity != null && !plan.targetEntity.isEmpty()) {
             convertUsingDataPackRule(entity, plan.targetEntity);
         }
 
-        // A rule-less mob (no entity_conversions entry, e.g. a cat) plans target == null with
-        // generic == true; planIsEmpty() must not swallow it, so the default conversion still runs.
         if (plan.generic) {
             performGenericConversion(entity, plan.isSmallEntity, plan.isLargeEntity);
         }
     }
 
-    /**
-     * Rolls the spider variant for a conversion.
-     *
-     * <p>User spec: a converted {@code minecraft:cave_spider} is ALWAYS the cave form (100 %, no
-     * roll); a converted {@code minecraft:spider} is 30 % BLOOD, 15 % CAVE, otherwise DEFAULT
-     * (55 %). The roll uses the server level's own {@code RandomSource}, so it is authoritative on
-     * the server and independent of any other random stream.</p>
-     */
     private static InfestedSpider.Variant rollSpiderVariant(ServerLevel level, EntityType<?> sourceType) {
         if (sourceType == EntityType.CAVE_SPIDER) {
             return InfestedSpider.Variant.CAVE;
@@ -395,7 +360,6 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         return InfestedSpider.Variant.DEFAULT;
     }
 
-    
     public static final class ConversionPlan {
         public final String targetEntity;
         public final boolean generic;
@@ -411,8 +375,6 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         }
     }
 
-    
-    
     public static boolean isConfiguredConversion(
             EntityConversionManager.EntityConversionRule rule, ConversionPlan plan) {
         return rule != null && !planIsEmpty(plan);
@@ -438,23 +400,23 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             try {
                 Entity newEntity = entityType.create(serverLevel);
                 if (newEntity != null) {
-                    
+
                     newEntity.setPos(entity.getX(), entity.getY(), entity.getZ());
                     newEntity.setYRot(entity.getYRot());
                     newEntity.setXRot(entity.getXRot());
 
                     if (entity instanceof Wolf wolf && newEntity instanceof InfestedWolf infestedWolf) {
                         if (wolf.isTame()) {
-                            int collarColor = wolf.getCollarColor().getId(); 
+                            int collarColor = wolf.getCollarColor().getId();
                             infestedWolf.setCollarColor(collarColor);
                         }
                         if (wolf.getOwnerUUID() != null) {
                             infestedWolf.setOwnerUUID(wolf.getOwnerUUID());
                         }
-                        
+
                     }
                     if (entity instanceof Fox fox && newEntity instanceof InfestedFox infestedFox) {
-                        
+
                         Fox.Type foxVariant = fox.getVariant();
                         if (foxVariant == Fox.Type.SNOW) {
                             infestedFox.setVariant(InfestedFox.Variant.SNOW);
@@ -463,26 +425,16 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
                         }
                     }
                     if (entity instanceof Fox fox && newEntity instanceof WalkingFoxHead walkingFoxHead) {
-                        
+
                         Fox.Type foxVariant = fox.getVariant();
                         if (foxVariant == Fox.Type.SNOW) {
                             walkingFoxHead.setVariant(WalkingFoxHead.Variant.SNOW);
                         } else {
-                            
+
                             walkingFoxHead.setVariant(WalkingFoxHead.Variant.DEFAULT);
                         }
                     }
 
-                    // Spiders: both vanilla spiders collapse into one infested type, so the variant is
-                    // decided here by entity TYPE (no Spider class check) and the buffs the original
-                    // carried are copied over. README: every buff except invisibility is inherited,
-                    // by the converted spider and by its head.
-                    //
-                    // Variant rules (user spec):
-                    //   CaveSpider -> 100 % CAVE, no roll
-                    //   Spider     -> 30 % BLOOD, 15 % CAVE, else DEFAULT (55 %)
-                    // The roll uses the level's own RNG so it is server-authoritative and does not
-                    // perturb world generation or any other random stream.
                     boolean convertingSpider = entity.getType() == EntityType.SPIDER
                             || entity.getType() == EntityType.CAVE_SPIDER;
                     if (convertingSpider) {
@@ -496,7 +448,7 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
                             walkingHead.applyInheritedEffects(entity.getActiveEffects());
                         }
                     }
-                    
+
                     if (entity.getType() == EntityType.SKELETON &&
                             target.equals(new ResourceLocation("epca:infested_skeleton")) &&
                             newEntity instanceof InfestedSkeleton infestedSkeleton) {
@@ -517,14 +469,9 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
                     playConversionEffects(entity);
                     entity.remove(Entity.RemovalReason.KILLED);
 
-                    // /
-                    // create()  MAX_HEALTH  0
-                    //  0 0  = isDeadOrDying() = true
-                    // LivingEntity#aiStep  isImmobile
-                    // LivingEntity#hurt  isDeadOrDying  ConvertedEntitySupport
                     if (newEntity instanceof LivingEntity convertedLiving) {
                         ConvertedEntitySupport.initializeConvertedEntity(convertedLiving);
-        // A converted creature is worth 3 erosion points.
+
         if (entity.level() instanceof ServerLevel convertedLevel) {
             var evolution = org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(convertedLevel);
             if (evolution != null) {
@@ -535,7 +482,6 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
 
                     serverLevel.addFreshEntity(newEntity);
 
-                    
                     sendConversionFade(newEntity);
                 }
             } catch (Exception e) {
@@ -543,12 +489,10 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         }
     }
 
-    
     private static void performGenericConversion(LivingEntity entity, boolean isSmallEntity, boolean isLargeEntity) {
-        
+
         playConversionEffects(entity);
 
-        
         if (isSmallEntity) {
             if (entity.isInWater()) {
                 convertToContaminatedWater(entity);
@@ -561,16 +505,14 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             EntityConversionUtil.convertTo(entity, ModEntities.MEDIUM_INCOMPLETE_FORM.get());
         }
 
-        // Hardcoded generic results (small/medium/large incomplete forms) use poverty_conversion.
         if (entity.level() instanceof ServerLevel serverLevel) {
             org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel,
                     entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(), 3, 0xFFFFFF);
         }
     }
 
-    
     private static void playConversionEffects(LivingEntity entity) {
-        
+
         entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 SoundEvents.ZOMBIE_INFECT, SoundSource.HOSTILE, 1.0F, 1.0F);
 
@@ -579,7 +521,6 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         }
     }
 
-    
     private static boolean shouldSpawnMeatParticles(LivingEntity entity) {
         CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
         EntityConversionManager.EntityConversionRule rule =
@@ -596,12 +537,10 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         }
     }
 
-    
     public static void markKilledByParasite(LivingEntity entity) {
         entity.getPersistentData().putBoolean("KilledByParasite", true);
     }
 
-    
     private static boolean hasFinsNearby(LivingEntity entity) {
         AABB area = new AABB(
                 entity.getX() - 1.5, entity.getY() - 1.5, entity.getZ() - 1.5,
@@ -641,17 +580,15 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
 
         int newAmplifier = currentAmplifier;
 
-        
         if (currentAmplifier < 5) {
             int nextAmplifier = currentAmplifier + 1;
-            
+
             if (currentAmplifier == 2 && !ModConfig.isParaCurseLevel4Allowed()) {
-                nextAmplifier = 2; 
+                nextAmplifier = 2;
             }
             newAmplifier = nextAmplifier;
         }
 
-        
         if (newAmplifier == 2 && !isImmuneEntity(entity) && !ParasiteHelper.isParasite(entity)) {
             CompoundTag persistentData = entity.getPersistentData();
             String tagKey = "ParaCurseLevel3Triggered";
@@ -675,14 +612,13 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         ));
     }
 
-    
     private boolean isImmuneEntity(LivingEntity entity) {
         return ModConfig.isInConversionModImmunityWhitelist(entity);
     }
 
     private void spreadEffect(LivingEntity source, int amplifier) {
         if (source instanceof Player) return;
-        if (amplifier < 1) return; 
+        if (amplifier < 1) return;
 
         AABB area = new AABB(
                 source.getX() - SPREAD_RADIUS,
@@ -704,13 +640,12 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             target.addEffect(new MobEffectInstance(
                     ModEffects.PARA_CURSE.get(),
                     BASE_DURATION,
-                    0, 
+                    0,
                     false, false, true
             ));
         }
     }
 
-    
     private void spreadLevel3Effect(LivingEntity source) {
         if (source instanceof Player) return;
         AABB area = new AABB(
@@ -729,7 +664,7 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
                         !ParasiteHelper.isParasite(e) &&
                         (!ModConfig.isParasitePeaceful() || ModConfig.isInTargetWhitelist(e))
         )) {
-            
+
             target.addEffect(new MobEffectInstance(
                     ModEffects.PARA_CURSE.get(),
                     LEVEL3_DURATION,
@@ -739,61 +674,53 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         }
     }
 
-    
     private static void convertToContaminatedWater(LivingEntity entity) {
         if (entity.level() instanceof ServerLevel) {
             EntityType<?> entityType = ModEntities.CONTAMINATED_WATER.get();
-            
+
             if (LivingEntity.class.isAssignableFrom(entityType.getBaseClass())) {
-                
+
                 EntityConversionUtil.convertTo(entity, (EntityType<? extends LivingEntity>) entityType);
             } else {
-                
+
                 convertToNonLivingEntity(entity, entityType);
             }
         }
     }
 
-    
     private static void convertToNonLivingEntity(LivingEntity originalEntity, EntityType<?> targetType) {
         if (!(originalEntity.level() instanceof ServerLevel serverLevel)) {
             return;
         }
 
-        
         Entity newEntity = targetType.create(serverLevel);
         if (newEntity != null) {
-            
+
             newEntity.setPos(originalEntity.getX(), originalEntity.getY(), originalEntity.getZ());
             newEntity.setYRot(originalEntity.getYRot());
             newEntity.setXRot(originalEntity.getXRot());
 
             playConversionEffects(originalEntity);
 
-            
             originalEntity.remove(Entity.RemovalReason.KILLED);
 
-            
             serverLevel.addFreshEntity(newEntity);
 
-            // Hardcoded non-living result (contaminated water) uses the poverty variant.
             org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel, newEntity, 3, 0xFFFFFF);
 
-            
             sendConversionFade(newEntity);
         }
     }
 
-    
     public static void sendConversionFade(Entity newEntity) {
         if (newEntity instanceof LivingEntity livingNew) {
             if (livingNew.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                 int variant = 0;
-                if (livingNew instanceof org.tdddd.epca.impl.overworld.registry.entities.IInfested) variant = 1;
-                else if (livingNew instanceof org.tdddd.epca.impl.overworld.registry.entities.IOnesent) variant = 2;
-                else if (livingNew instanceof org.tdddd.epca.impl.overworld.registry.entities.IPoverty) variant = 3;
-                else if (livingNew instanceof org.tdddd.epca.impl.overworld.registry.entities.IReshape) variant = 4;
-                // Low-saturation deep green, used by the slime conversion data by default.
+                if (livingNew.getType().is(org.tdddd.epca.impl.overworld.registry.ModTags.INFESTED)) variant = 1;
+                else if (livingNew.getType().is(org.tdddd.epca.impl.overworld.registry.ModTags.ONESENT)) variant = 2;
+                else if (livingNew.getType().is(org.tdddd.epca.impl.overworld.registry.ModTags.POVERTY)) variant = 3;
+                else if (livingNew.getType().is(org.tdddd.epca.impl.overworld.registry.ModTags.RESHAPE)) variant = 4;
+
                 org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel, livingNew, variant, 0x3F5A2A);
             }
             ModNetwork.sendToAllTracking(
@@ -811,4 +738,3 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         return false;
     }
 }
-

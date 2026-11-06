@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -34,7 +35,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 import java.lang.reflect.Method;
@@ -42,10 +42,9 @@ import java.lang.reflect.Method;
 public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockInterface , SimpleWaterloggedBlock {
     private static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 1.0, 16.0);
 
-    
     private static boolean sanityAvailable = false;
     private static Method deductMethod = null;
-    
+
     static {
         try {
             Class<?> clazz = Class.forName("net.mcreator.caerulaarbor.procedures.DeductPlayerSanityProcedure");
@@ -56,9 +55,9 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
     }
 
     private static final String COOLDOWN_KEY = "InfestedNetherseaBrandCooldown";
-    
+
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedNetherseaBrandGrown(Properties properties) {
@@ -74,10 +73,10 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
 
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        
+
         BlockPos belowPos = pos.below();
         BlockState belowState = level.getBlockState(belowPos);
-        return !belowState.isAir() && belowState.isSolidRender(level, belowPos); 
+        return !belowState.isAir() && belowState.isSolidRender(level, belowPos);
     }
 
     @Override
@@ -119,9 +118,9 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
         super.neighborChanged(state, level, pos, block, fromPos, isMoving);
 
         if (!level.isClientSide) {
-            
+
             if (!state.canSurvive(level, pos)) {
-                level.destroyBlock(pos, false); 
+                level.destroyBlock(pos, false);
             }
         }
     }
@@ -131,18 +130,16 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
         return SHAPE;
     }
 
-    
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         super.entityInside(state, level, pos, entity);
 
         if (!level.isClientSide && entity instanceof LivingEntity living) {
-            
-            if (IParasite.isParasiteByTagOrInterface(living)) {
+
+            if (ParasiteEvents.isParasiteByTagOrInterface(living)) {
                 return;
             }
 
-            
             TagKey<EntityType<?>> OCEAN_OFFSPRING_TAG = TagKey.create(
                     Registries.ENTITY_TYPE,
                     new ResourceLocation("caerula_arbor", "oceanoffspring")
@@ -151,7 +148,6 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
                 return;
             }
 
-            
             living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 10, 0, false, false, false));
 
             long currentTick = level.getGameTime();
@@ -160,10 +156,8 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
             if (currentTick - lastTrigger >= 20) {
                 living.getPersistentData().putLong(COOLDOWN_KEY, currentTick);
 
-                
                 living.hurt(level.damageSources().magic(), 1.0F);
 
-                
                 if (sanityAvailable) {
                     try {
                         deductMethod.invoke(null, living, 5.0);
@@ -171,7 +165,6 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
                     }
                 }
 
-                
                 living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, 0));
             }
         }
@@ -182,17 +175,16 @@ public class InfestedNetherseaBrandGrown extends Block implements InfestedBlockI
         return Blocks.SCULK_VEIN.getSoundType(Blocks.SCULK_VEIN.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
                 return Shapes.empty();
             }
         }
-        
+
         return SHAPE;
     }
 }

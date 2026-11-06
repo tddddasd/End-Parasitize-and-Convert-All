@@ -32,7 +32,7 @@ public class RageEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
-        return true; 
+        return true;
     }
 
     @Override

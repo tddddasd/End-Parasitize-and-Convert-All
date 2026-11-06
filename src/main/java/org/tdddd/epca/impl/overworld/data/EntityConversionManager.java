@@ -27,12 +27,11 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         public String fins_to;
         public String mozzie_to;
         public boolean small_entity_priority = true;
-        public Map<String, Object> nbt_conditions; 
-        public int priority = 0; 
-        
+        public Map<String, Object> nbt_conditions;
+        public int priority = 0;
+
         public Boolean meat_particles;
 
-        
         public boolean shouldSpawnMeatParticles() {
             return meat_particles == null || meat_particles;
         }
@@ -47,14 +46,13 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
                     try (InputStream stream = resource.open()) {
                         EntityConversionRule rule = GSON.fromJson(new InputStreamReader(stream), EntityConversionRule.class);
                         ResourceLocation fromLocation = new ResourceLocation(rule.from);
-                        
+
                         CONVERSION_RULES.computeIfAbsent(fromLocation, k -> new ArrayList<>()).add(rule);
                     } catch (Exception e) {
-                        e.printStackTrace(); 
+                        e.printStackTrace();
                     }
                 });
 
-        
         for (List<EntityConversionRule> rules : CONVERSION_RULES.values()) {
             rules.sort(Comparator.comparingInt(rule -> rule.priority));
         }
@@ -63,7 +61,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
     public static EntityConversionRule getConversionRule(ResourceLocation entityType, CompoundTag nbt) {
         List<EntityConversionRule> rules = CONVERSION_RULES.get(entityType);
         if (rules != null) {
-            
+
             for (EntityConversionRule rule : rules) {
                 if (checkNBTConditions(rule, nbt)) {
                     return rule;
@@ -77,14 +75,13 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         return getConversionRule(ForgeRegistries.ENTITY_TYPES.getKey(entityType), nbt);
     }
 
-    
     public static boolean checkNBTConditions(EntityConversionRule rule, CompoundTag entityNBT) {
         if (rule.nbt_conditions == null || rule.nbt_conditions.isEmpty()) {
-            return true; 
+            return true;
         }
 
         if (entityNBT == null) {
-            return false; 
+            return false;
         }
 
         for (Map.Entry<String, Object> condition : rule.nbt_conditions.entrySet()) {
@@ -99,7 +96,6 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         return true;
     }
 
-    
     private static boolean checkNBTCondition(CompoundTag nbt, String path, Object expectedValue) {
         Tag actualTag = getTagAtPath(nbt, path);
         if (actualTag == null) {
@@ -115,7 +111,6 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         }
     }
 
-    
     private static Tag getTagAtPath(CompoundTag root, String path) {
         String[] parts = path.split("\\.");
         CompoundTag current = root;
@@ -123,7 +118,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
 
         for (String part : parts) {
             if (part.contains("[") && part.contains("]")) {
-                
+
                 String key = part.substring(0, part.indexOf('['));
                 int index = Integer.parseInt(part.substring(part.indexOf('[') + 1, part.indexOf(']')));
                 Tag listTag = current.get(key);
@@ -132,7 +127,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
                     if (result instanceof CompoundTag) {
                         current = (CompoundTag) result;
                     } else {
-                        
+
                         return result;
                     }
                 } else {
@@ -146,7 +141,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
                 if (result instanceof CompoundTag) {
                     current = (CompoundTag) result;
                 } else {
-                    
+
                     return result;
                 }
             }
@@ -154,20 +149,17 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         return result;
     }
 
-    
     private static boolean compareTagValue(Tag actualTag, Object expectedValue) {
         if (expectedValue == null) {
             return actualTag == null;
         }
 
-        
         if (expectedValue instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> conditionMap = (Map<String, Object>) expectedValue;
             return compareTagValueWithOperator(actualTag, conditionMap);
         }
 
-        
         switch (actualTag.getId()) {
             case Tag.TAG_BYTE:
                 if (expectedValue instanceof Number) {
@@ -207,17 +199,16 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
             case Tag.TAG_BYTE_ARRAY:
             case Tag.TAG_INT_ARRAY:
             case Tag.TAG_LONG_ARRAY:
-                
+
                 break;
             case Tag.TAG_COMPOUND:
-                
+
                 break;
         }
 
         return false;
     }
 
-    
     private static boolean compareTagValueWithOperator(Tag actualTag, Map<String, Object> conditionMap) {
         String operator = (String) conditionMap.get("operator");
         Object value = conditionMap.get("value");
@@ -226,7 +217,6 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
             return false;
         }
 
-        
         switch (operator) {
             case "==":
             case "!=":
@@ -234,7 +224,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
             case ">=":
             case "<":
             case "<=":
-                
+
                 switch (actualTag.getId()) {
                     case Tag.TAG_BYTE:
                         if (value instanceof Number) {
@@ -299,7 +289,6 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         }
     }
 
-    
     private static <T extends Comparable<T>> boolean compareWithOperator(T actual, T expected, String operator) {
         switch (operator) {
             case "==":
@@ -320,7 +309,6 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         }
     }
 
-    
     private static boolean checkContains(Tag actualTag, Object expected) {
         if (!(actualTag instanceof ListTag list)) {
             return false;
@@ -329,7 +317,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         for (int i = 0; i < list.size(); i++) {
             Tag element = list.get(i);
             if (expected instanceof Map) {
-                
+
                 @SuppressWarnings("unchecked")
                 Map<String, Object> expectedMap = (Map<String, Object>) expected;
                 if (element instanceof CompoundTag comp) {
@@ -344,7 +332,7 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
                     if (match) return true;
                 }
             } else {
-                
+
                 if (compareTagValue(element, expected)) {
                     return true;
                 }
@@ -353,26 +341,23 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         return false;
     }
 
-    
     public static String getConversionTarget(EntityConversionRule rule, CompoundTag entityNBT) {
         if (!checkNBTConditions(rule, entityNBT)) {
-            return null; 
+            return null;
         }
-        
+
         if (rule.to == null || rule.to.isEmpty()) {
             return null;
         }
-        
-        
-        return rule.to; 
+
+        return rule.to;
     }
 
-    
     public static String getFinsConversionTarget(EntityConversionRule rule, CompoundTag entityNBT) {
         if (!checkNBTConditions(rule, entityNBT)) {
             return null;
         }
-        
+
         if (rule.fins_to == null || rule.fins_to.isEmpty()) {
             return null;
         }
@@ -380,12 +365,11 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         return rule.fins_to;
     }
 
-    
     public static String getGnatConversionTarget(EntityConversionRule rule, CompoundTag entityNBT) {
         if (!checkNBTConditions(rule, entityNBT)) {
             return null;
         }
-        
+
         if (rule.mozzie_to == null || rule.mozzie_to.isEmpty()) {
             return null;
         }

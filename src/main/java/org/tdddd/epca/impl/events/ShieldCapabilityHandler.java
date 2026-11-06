@@ -19,5 +19,4 @@ public class ShieldCapabilityHandler {
         event.register(IShieldCapability.class);
     }
 
-    
 }

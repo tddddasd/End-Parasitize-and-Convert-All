@@ -9,17 +9,17 @@ import org.tdddd.epca.impl.epca;
 
 @OnlyIn(Dist.CLIENT)
 public class SplashiParticle extends TextureSheetParticle {
-    private final SpriteSet spriteSet; 
+    private final SpriteSet spriteSet;
 
     protected SplashiParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet spriteSet) {
         super(level, x, y, z, xd, yd, zd);
-        this.spriteSet = spriteSet; 
+        this.spriteSet = spriteSet;
         this.friction = 0.9F;
         this.gravity = 0.3F;
         this.speedUpWhenYMotionIsBlocked = true;
         this.quadSize = 0.18F;
-        this.lifetime = 40; 
-        this.setSpriteFromAge(spriteSet); 
+        this.lifetime = 40;
+        this.setSpriteFromAge(spriteSet);
     }
 
     @Override
@@ -30,10 +30,9 @@ public class SplashiParticle extends TextureSheetParticle {
     @Override
     public void tick() {
         super.tick();
-        this.setSpriteFromAge(this.spriteSet); 
+        this.setSpriteFromAge(this.spriteSet);
     }
 
-    
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet spriteSet;
 

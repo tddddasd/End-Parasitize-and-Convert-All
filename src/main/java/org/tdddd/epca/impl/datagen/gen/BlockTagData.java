@@ -47,7 +47,6 @@ public class BlockTagData extends BlockTagsProvider {
             if (!isModBlock(block)) continue;
             String name = entry.getKey().location().getPath();
 
-            
             if (block instanceof RotatedPillarBlock || block instanceof FenceBlock
                     || block instanceof FenceGateBlock || isWoodLike(name) ||
                     name.contains("pumpkin") || name.contains("carved_pumpkin") ||
@@ -61,15 +60,13 @@ public class BlockTagData extends BlockTagsProvider {
             } else if (block instanceof LeavesBlock || block instanceof BushBlock
                     || block instanceof MultifaceBlock || name.contains("nethersea_brand_grown")
                     || name.contains("residue")
-                    // Moss block and moss carpet are hoe blocks in vanilla. The "mossy_*" stone
-                    // variants are excluded because they are picked, not hoed, despite the name.
+
                     || (name.contains("moss") && !name.contains("mossy"))) {
                 tag(BlockTags.MINEABLE_WITH_HOE).add(block);
             } else if (!(block instanceof LiquidBlock)) {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block);
             }
 
-            
             if (isOre(name) && block.defaultDestroyTime() >= 3.0F) {
                 if (name.contains("iron") || name.contains("copper") || name.contains("lapis")) {
                     tag(BlockTags.NEEDS_STONE_TOOL).add(block);
@@ -79,7 +76,6 @@ public class BlockTagData extends BlockTagsProvider {
                 }
             }
 
-            
             if (block instanceof WallBlock) tag(BlockTags.WALLS).add(block);
             if (block instanceof FenceBlock) {
                 tag(BlockTags.FENCES).add(block);

@@ -11,7 +11,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.particles.ConversionParticleOptions;
 
-/** Same 10-frame conversion burst, but the quad always lies flat on the XZ plane. */
 public class HorizontalConversionParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
 
@@ -32,7 +31,7 @@ public class HorizontalConversionParticle extends TextureSheetParticle {
         super.tick();
         int frame = Mth.clamp((int) (this.age * 0.75F), 0, 9);
         this.setSprite(sprites.get(frame, 10));
-        // Opaque: no alpha fade-out (same treatment as the camera-facing conversion particle).
+
         this.alpha = 1.0F;
     }
 
@@ -49,12 +48,6 @@ public class HorizontalConversionParticle extends TextureSheetParticle {
         buffer.vertex(x + s, y, z - s).uv(this.getU0(), this.getV1()).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
     }
 
-    /**
-     * Fully opaque burst: the vertex alpha stays at 1.0 for the particle's whole life instead of
-     * fading out. The translucent sheet is kept on purpose - the convert_* sheet is a cut-out
-     * (its transparent texels carry black RGB and there is no partial alpha), so PARTICLE_SHEET_OPAQUE
-     * would draw those texels as a black box around the burst.
-     */
     @Override public ParticleRenderType getRenderType() { return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT; }
 
     public static class Provider implements ParticleProvider<ConversionParticleOptions> {

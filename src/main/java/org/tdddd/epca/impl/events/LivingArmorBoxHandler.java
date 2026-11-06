@@ -18,25 +18,23 @@ public class LivingArmorBoxHandler {
         Player player = event.getEntity();
         ItemStack heldStack = event.getItemStack();
 
-        
         if (heldStack.getItem() instanceof LivingArmorBox && player.isShiftKeyDown()) {
-            
+
             event.setCanceled(true);
 
             LivingArmorBox box = (LivingArmorBox) heldStack.getItem();
 
-            
             ItemStack offhandStack = player.getOffhandItem();
             if (!offhandStack.isEmpty() && offhandStack.getItem() instanceof ILivingArmorBoxStorable) {
-                
+
                 if (box.storeItem(heldStack, offhandStack)) {
                     offhandStack.shrink(1);
                 }
             } else if (offhandStack.isEmpty()) {
-                
+
                 int storedCount = box.getStoredItemCount(heldStack);
                 if (storedCount > 0) {
-                    
+
                     ItemStack retrieved = box.retrieveItem(heldStack, 0);
                     if (!retrieved.isEmpty()) {
                         player.addItem(retrieved);
@@ -52,12 +50,10 @@ public class LivingArmorBoxHandler {
             return;
         }
 
-        
         if (!player.level().isClientSide()) {
             for (ItemEntity itemEntity : player.level().getEntitiesOfClass(ItemEntity.class, player.getBoundingBox().inflate(8.0D))) {
                 ItemStack itemStack = itemEntity.getItem();
 
-                
                 if (itemStack.getItem() instanceof LivingArmorBox) {
                     setBoxStateClosed(itemStack);
                 }
@@ -65,7 +61,6 @@ public class LivingArmorBoxHandler {
         }
     }
 
-    
     private static void setBoxStateClosed(ItemStack boxStack) {
         if (boxStack.getItem() instanceof LivingArmorBox livingArmorBox) {
             livingArmorBox.setState(boxStack, false);

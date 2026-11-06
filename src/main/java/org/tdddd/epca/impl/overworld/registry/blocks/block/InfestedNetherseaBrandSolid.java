@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -28,17 +29,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 import java.lang.reflect.Method;
 
 public class InfestedNetherseaBrandSolid extends Block implements InfestedBlockInterface {
     private static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 15.0, 16.0);
-    
+
     private static boolean sanityAvailable = false;
     private static Method deductMethod = null;
-    
+
     static {
         try {
             Class<?> clazz = Class.forName("net.mcreator.caerulaarbor.procedures.DeductPlayerSanityProcedure");
@@ -49,7 +49,7 @@ public class InfestedNetherseaBrandSolid extends Block implements InfestedBlockI
     }
 
     private static final String COOLDOWN_KEY = "InfestedNetherseaBrandCooldown";
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedNetherseaBrandSolid(Properties properties) {
@@ -85,12 +85,11 @@ public class InfestedNetherseaBrandSolid extends Block implements InfestedBlockI
         super.entityInside(state, level, pos, entity);
 
         if (!level.isClientSide && entity instanceof LivingEntity living) {
-            
-            if (IParasite.isParasiteByTagOrInterface(living)) {
+
+            if (ParasiteEvents.isParasiteByTagOrInterface(living)) {
                 return;
             }
 
-            
             TagKey<EntityType<?>> OCEAN_OFFSPRING_TAG = TagKey.create(
                     Registries.ENTITY_TYPE,
                     new ResourceLocation("caerula_arbor", "oceanoffspring")
@@ -99,7 +98,6 @@ public class InfestedNetherseaBrandSolid extends Block implements InfestedBlockI
                 return;
             }
 
-            
             living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 10, 1, false, false, false));
 
             long currentTick = level.getGameTime();
@@ -108,10 +106,8 @@ public class InfestedNetherseaBrandSolid extends Block implements InfestedBlockI
             if (currentTick - lastTrigger >= 20) {
                 living.getPersistentData().putLong(COOLDOWN_KEY, currentTick);
 
-                
                 living.hurt(level.damageSources().magic(), 1.0F);
 
-                
                 if (sanityAvailable) {
                     try {
                         deductMethod.invoke(null, living, 5.0);
@@ -119,7 +115,6 @@ public class InfestedNetherseaBrandSolid extends Block implements InfestedBlockI
                     }
                 }
 
-                
                 living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 600, 0,false, false, true));
             }
         }
@@ -130,17 +125,16 @@ public class InfestedNetherseaBrandSolid extends Block implements InfestedBlockI
         return Blocks.SCULK_VEIN.getSoundType(Blocks.SCULK_VEIN.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
                 return Shapes.empty();
             }
         }
-        
+
         return SHAPE;
     }
 }

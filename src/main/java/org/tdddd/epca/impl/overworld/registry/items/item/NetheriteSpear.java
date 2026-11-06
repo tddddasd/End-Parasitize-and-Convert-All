@@ -28,20 +28,19 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.ThrownNetheri
 
 public class NetheriteSpear extends Item {
     private final Multimap<Attribute, AttributeModifier> defaultModifiers;
-    public static final int MAX_CHARGE = 12000; 
-    public static final int FULL_CHARGE_TICKS = 20; 
-    public static final float MAX_SPEED = 2.5F; 
-    public static final float MIN_SPEED = 1.2F; 
+    public static final int MAX_CHARGE = 12000;
+    public static final int FULL_CHARGE_TICKS = 20;
+    public static final float MAX_SPEED = 2.5F;
+    public static final float MIN_SPEED = 1.2F;
 
     public NetheriteSpear(Properties properties) {
         super(properties);
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        
-        
+
         builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", 9.0, AttributeModifier.Operation.ADDITION));
-        
+
         builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier", -2.5, AttributeModifier.Operation.ADDITION));
-        
+
         builder.put(ForgeMod.ENTITY_REACH.get(), new AttributeModifier("weapon_reach", 1.0, AttributeModifier.Operation.ADDITION));
         this.defaultModifiers = builder.build();
     }
@@ -58,7 +57,7 @@ public class NetheriteSpear extends Item {
 
     @Override
     public UseAnim getUseAnimation(ItemStack stack) {
-        return UseAnim.SPEAR; 
+        return UseAnim.SPEAR;
     }
 
     @Override
@@ -71,7 +70,7 @@ public class NetheriteSpear extends Item {
     public void releaseUsing(ItemStack stack, Level level, LivingEntity livingEntity, int timeCharged) {
         if (!(livingEntity instanceof Player player)) return;
         int charge = this.getUseDuration(stack) - timeCharged;
-        
+
         int effectiveCharge = Math.min(charge, FULL_CHARGE_TICKS);
         float chargePercent = (float) effectiveCharge / FULL_CHARGE_TICKS;
         float speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * chargePercent;
@@ -81,7 +80,7 @@ public class NetheriteSpear extends Item {
             boolean isCreative = player.getAbilities().instabuild;
             ThrownNetheriteSpear spear = new ThrownNetheriteSpear(level, player, stack, isCreative);
             spear.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, speed, 1.0F);
-            if (charge >= FULL_CHARGE_TICKS) { 
+            if (charge >= FULL_CHARGE_TICKS) {
                 spear.setCritArrow(true);
             }
             level.addFreshEntity(spear);
@@ -95,7 +94,6 @@ public class NetheriteSpear extends Item {
         }
     }
 
-    
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, net.minecraft.world.item.enchantment.Enchantment enchantment) {
         return enchantment == Enchantments.MENDING ||
@@ -107,20 +105,18 @@ public class NetheriteSpear extends Item {
                 enchantment == Enchantments.LOYALTY;
     }
 
-    
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker instanceof Player player && !player.getAbilities().instabuild) {
-            
+
             stack.hurtAndBreak(1, attacker, (entity) -> entity.broadcastBreakEvent(EquipmentSlot.MAINHAND));
         }
         return true;
     }
 
-    
     @Override
     public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity miningEntity) {
-        
+
         if (miningEntity instanceof Player player && !player.getAbilities().instabuild) {
             float hardness = state.getDestroySpeed(level, pos);
             if (hardness > 0.0F) {

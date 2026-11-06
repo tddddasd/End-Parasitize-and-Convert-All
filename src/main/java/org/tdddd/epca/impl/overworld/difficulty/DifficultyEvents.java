@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.difficulty;
 
 import net.minecraft.server.level.ServerLevel;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,7 +16,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +25,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class DifficultyEvents {
-    
+
     private static final Map<UUID, Long> lastApplyTick = new ConcurrentHashMap<>();
-    private static final int REFRESH_INTERVAL = 29 * 20; 
-    private static final int BUFF_DURATION = 30 * 20;    
-    
+    private static final int REFRESH_INTERVAL = 29 * 20;
+    private static final int BUFF_DURATION = 30 * 20;
+
     @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
-        if (IParasite.isParasiteByTagOrInterface(event.getEntity())) {
+        if (ParasiteEvents.isParasiteByTagOrInterface(event.getEntity())) {
             LivingEntity parasite = event.getEntity();
             ServerLevel level = (ServerLevel) parasite.level();
 
@@ -40,14 +40,13 @@ public class DifficultyEvents {
                 return;
             }
 
-            
             if (!DifficultyEffects.shouldDropLoot(level)) {
                 event.getDrops().clear();
                 return;
             }
 
             if (DifficultyEffects.isRewardEnabled(level)) {
-                
+
                 float extraChance = DifficultyEffects.getExtraLootChance(level);
                 if (extraChance > 0 && level.random.nextFloat() < extraChance) {
                     List<ItemEntity> extraDrops = new ArrayList<>();
@@ -60,7 +59,6 @@ public class DifficultyEvents {
                     event.getDrops().addAll(extraDrops);
                 }
 
-                
                 float multiplier = DifficultyEffects.getExtraLootMultiplier(level);
                 if (multiplier > 1.0f) {
                     for (ItemEntity drop : event.getDrops()) {
@@ -71,16 +69,13 @@ public class DifficultyEvents {
                 }
             }
         }
-        
+
         Level level = event.getEntity().level();
         if (!level.isClientSide && DifficultyEffects.isLegendary(level)) {
             LivingEntity entity = event.getEntity();
-            
-            if (entity instanceof Player) return;
-            
-            
 
-            
+            if (entity instanceof Player) return;
+
             List<ItemEntity> drops = (List<ItemEntity>) event.getDrops();
             List<ItemEntity> additionalDrops = new ArrayList<>();
             for (ItemEntity drop : drops) {
@@ -96,7 +91,6 @@ public class DifficultyEvents {
         }
     }
 
-    
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
@@ -115,9 +109,9 @@ public class DifficultyEvents {
     }
 
     private static void applyBuffs(Player player) {
-        
+
         player.addEffect(new MobEffectInstance(MobEffects.LUCK, BUFF_DURATION, 1, false, false, true));
-        
+
         player.addEffect(new MobEffectInstance(ModEffects.SOUL_PROTECTION.get(), BUFF_DURATION, 1, false, false, true));
     }
 }

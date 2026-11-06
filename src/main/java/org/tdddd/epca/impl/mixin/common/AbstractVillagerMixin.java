@@ -18,17 +18,17 @@ public class AbstractVillagerMixin {
             at = @At("HEAD")
     )
     private void onNotifyTrade(MerchantOffer offer, CallbackInfo ci) {
-        
-        if (offer instanceof MerchantOfferMixinAccess) { 
+
+        if (offer instanceof MerchantOfferMixinAccess) {
             MerchantOfferMixinAccess access = (MerchantOfferMixinAccess) offer;
             if (access.epca$hasUsedInfestedEmerald()) {
-                
+
                 var effectType = ModEffects.PARA_CURSE.get();
                 if (effectType != null) {
-                    MobEffectInstance effect = new MobEffectInstance(effectType, 1200, 2); 
+                    MobEffectInstance effect = new MobEffectInstance(effectType, 1200, 2);
                     ((AbstractVillager) (Object) this).addEffect(effect);
                 }
-                
+
                 access.epca$clearInfestedEmeraldFlag();
             }
         }

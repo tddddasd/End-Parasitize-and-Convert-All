@@ -34,7 +34,7 @@ public class SymbiosisDeathHandler {
         if (!(source.getEntity() instanceof net.minecraft.world.entity.LivingEntity attacker)) return;
         if (attacker == target || !attacker.hasEffect(ModEffects.SYMBIOSIS_LIE.get())) return;
         if (source.is(org.tdddd.yawning_neko_api.damages.ModDamageTypes.MINIMUM)) return;
-        // Only a same-kind victim that was actually hit (melee or projectile) can be hurt.
+
         if (target.getClass() != attacker.getClass()) return;
         if (attacker.level().isClientSide) return;
         if (attacker.level().random.nextFloat() < 0.25F) {
@@ -69,7 +69,6 @@ public class SymbiosisDeathHandler {
         } catch (Throwable ignored) {
         }
 
-        // Randomly infest blocks inside a 1.5x body-size cube around the death position.
         double radiusX = Math.max(1.0D, entity.getBbWidth() * 0.75D);
         double radiusY = Math.max(1.0D, entity.getBbHeight() * 0.75D);
         for (int i = 0; i < 24; i++) {

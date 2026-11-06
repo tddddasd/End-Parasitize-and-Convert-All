@@ -51,7 +51,6 @@ public class InfestedPumpkin extends Block implements InfestedBlockInterface {
         return Blocks.PUMPKIN.getSoundType(Blocks.PUMPKIN.defaultBlockState(), level, pos, entity);
     }
 
-
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 
@@ -67,11 +66,11 @@ public class InfestedPumpkin extends Block implements InfestedBlockInterface {
 
     @Override
     public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        // Silk touch keeps the block intact, so it never becomes a physics pumpkin.
+
         boolean silkTouch = net.minecraft.world.item.enchantment.EnchantmentHelper
                 .getItemEnchantmentLevel(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH,
                         player.getMainHandItem()) > 0;
-        // Physics only when a player mines it without silk touch, and only on the server.
+
         if (!silkTouch && !level.isClientSide
                 && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             org.tdddd.epca.impl.compat.vs.InfestedPumpkinShip.spawn(serverLevel, pos, state);
@@ -82,7 +81,7 @@ public class InfestedPumpkin extends Block implements InfestedBlockInterface {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!level.isClientSide && !state.is(newState.getBlock())) {
-            // Breaking a plain infested pumpkin spawns a physics carved pumpkin in its place.
+
             if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                 if (org.tdddd.epca.impl.compat.vs.InfestedPumpkinShip.isAvailable()) {
                     serverLevel.setBlock(pos,

@@ -7,7 +7,6 @@ import org.tdddd.epca.impl.client.ClientErosionData;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-
 public class EnderErosionSyncPacket {
     private final UUID playerUUID;
     private final float erosionValue;
@@ -43,7 +42,7 @@ public class EnderErosionSyncPacket {
     public static void handle(EnderErosionSyncPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            
+
             if (context.getDirection().getReceptionSide().isClient()) {
                 ClientErosionData.setErosionData(
                         packet.playerUUID,
@@ -57,7 +56,6 @@ public class EnderErosionSyncPacket {
         context.setPacketHandled(true);
     }
 
-    
     public UUID getPlayerUUID() { return playerUUID; }
     public float getErosionValue() { return erosionValue; }
     public int getEffectLevel() { return effectLevel; }

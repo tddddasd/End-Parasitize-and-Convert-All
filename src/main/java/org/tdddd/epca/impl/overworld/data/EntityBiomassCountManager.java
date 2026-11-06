@@ -17,10 +17,8 @@ import java.util.Map;
 public class EntityBiomassCountManager implements ResourceManagerReloadListener {
     private static final Gson GSON = new GsonBuilder().create();
 
-    
     private static final Map<String, Integer> MAX_BIOMASS_COUNTS = new HashMap<>();
 
-    
     private static final String BIOMASS_COUNT_KEY = "epca_kill_count";
 
     @Override
@@ -42,56 +40,46 @@ public class EntityBiomassCountManager implements ResourceManagerReloadListener 
                 });
     }
 
-    
     public static int getMaxBiomassCount(LivingEntity entity) {
         String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
         return MAX_BIOMASS_COUNTS.getOrDefault(entityId, 0);
     }
 
-    
     public static int getMaxBiomassCount(String entityId) {
         return MAX_BIOMASS_COUNTS.getOrDefault(entityId, 0);
     }
 
-    
     public static int getCurrentBiomassCount(LivingEntity entity) {
         CompoundTag nbt = entity.getPersistentData();
         return nbt.getInt(BIOMASS_COUNT_KEY);
     }
 
-    
     public static void setBiomassCount(LivingEntity entity, int count) {
         CompoundTag nbt = entity.getPersistentData();
         nbt.putInt(BIOMASS_COUNT_KEY, count);
     }
 
-    
     public static void incrementBiomassCount(LivingEntity entity) {
         int current = getCurrentBiomassCount(entity);
         setBiomassCount(entity, current + 1);
     }
 
-    
     public static boolean isBiomassCountMaxed(LivingEntity entity) {
         int max = getMaxBiomassCount(entity);
-        if (max == 0) return false; 
+        if (max == 0) return false;
 
         int current = getCurrentBiomassCount(entity);
         return current >= max;
     }
 
-    
     public static boolean hasBiomassCount(LivingEntity entity) {
         String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
         return MAX_BIOMASS_COUNTS.containsKey(entityId);
     }
 
-    
     public static Map<String, Integer> getAllMaxBiomassCounts() {
         return new HashMap<>(MAX_BIOMASS_COUNTS);
     }
-
-    // ---- unified access for every biomass carrier (creatures, blocks) ----
 
     public static int getCurrentBiomassCount(BiomassStorage storage) {
         return storage.getBiomassCount();
@@ -105,7 +93,6 @@ public class EntityBiomassCountManager implements ResourceManagerReloadListener 
         storage.setBiomassCount(count);
     }
 
-    /** Adds one biomass, never going past the carrier's own maximum. */
     public static void incrementBiomassCount(BiomassStorage storage) {
         addBiomassCount(storage, 1);
     }
@@ -115,7 +102,6 @@ public class EntityBiomassCountManager implements ResourceManagerReloadListener 
         storage.setBiomassCount(Math.max(next, 0));
     }
 
-    /** Removes one biomass, never going below zero. */
     public static void decrementBiomassCount(BiomassStorage storage) {
         addBiomassCount(storage, -1);
     }

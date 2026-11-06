@@ -11,17 +11,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Link: a parasite carrying it tends to patrol around a hive node.
- *
- * <p>Any living entity with the effect steers towards the nearest hive node within 16 blocks, so the
- * behaviour does not need to be wired into each mob's AI.</p>
- */
 public class LinkEffect extends MobEffect {
 
     private static final int NODE_RANGE = 16;
     private static final double SPEED = 1.0D;
-    /** A node search scans a 33^3 cube, so cache the result per entity instead of every effect tick. */
+
     private static final int CACHE_TICKS = 100;
     private static final Map<UUID, CachedNode> CACHE = new HashMap<>();
 

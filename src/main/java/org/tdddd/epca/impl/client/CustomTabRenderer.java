@@ -20,7 +20,6 @@ public class CustomTabRenderer {
             return;
         }
 
-        
         CreativeModeTab selectedTab = CreativeModeInventoryScreen.selectedTab;
         if (!(selectedTab instanceof CustomTab customTab)) {
             return;

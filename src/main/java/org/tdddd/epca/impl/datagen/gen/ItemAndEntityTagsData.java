@@ -21,10 +21,7 @@ import org.tdddd.epca.impl.overworld.registry.ModTags;
 
 import java.util.concurrent.CompletableFuture;
 
-
 public class ItemAndEntityTagsData {
-
-    
     public static class ItemTagsGen extends ItemTagsProvider {
         public ItemTagsGen(PackOutput output, CompletableFuture<HolderLookup.Provider> lp,
                            BlockTagsProvider blockTags, @javax.annotation.Nullable ExistingFileHelper efh) {
@@ -33,49 +30,43 @@ public class ItemAndEntityTagsData {
 
         @Override
         protected void addTags(HolderLookup.Provider provider) {
-            // piglin_loved
+
             tag(ItemTags.PIGLIN_LOVED).add(modItem("golden_spear"), modItem("infested_gold_ore")
             , modItem("infested_heavy_gold_ore"), modItem("infested_raw_gold"));
 
-            // forge:infested_flesh
             tag(TagKey.create(ForgeRegistries.ITEMS.getRegistryKey(),
                     new ResourceLocation("forge", "infested_flesh")))
                     .add(modItem("infested_flesh"), modItem("weird_minced_flesh"), modItem("diseased_heart"));
 
-            // forge:enchanting_fuels
             tag(TagKey.create(ForgeRegistries.ITEMS.getRegistryKey(),
                     new ResourceLocation("forge", "enchanting_fuels")))
                     .add(modItem("infested_lapis_lazuli"));
 
-            // epca:organ_part GUI
-            //  entity  data/epca/loot_tables/entities/*.json
-            //
-            // src/generated/resources/data/epca/tags/items/organ_part.json
             tag(ModTags.ORGAN_PART).add(
-                    //  infested_* / incomplete_form
+
                     modItem("infested_flesh"),
-                    // infested_cow/drowned/husk/pig/fox/pillager/sheep/villager/vindicator/wolf/zombie/zombie_villager
+
                     modItem("diseased_heart"),
-                    // infested_skeleton / medium_incomplete_form / large_incomplete_form
+
                     modItem("infested_bone"),
-                    // fins / mozzie / ripper
+
                     modItem("parasite_viscera"),
-                    // small / medium / large incomplete_form
+
                     modItem("weird_minced_flesh"),
-                    // infested_slime_size0
+
                     modItem("infested_slime_ball"),
-                    // reshape_longarms / reshape_yelloweye
+
                     modItem("reshape_flesh"),
                     modItem("twisted_bone"),
                     modItem("tight_tendons"),
                     modItem("gasbag_debris"),
                     modItem("reshape_shell"),
-                    //  / infested_enderman
+
                     modItem("infested_ender_pearl"),
                     modItem("ender_blade_scrap"),
-                    // fins
+
                     modItem("fins_fin"),
-                    // stage_i_beckon / stage_ii_beckon
+
                     modItem("beckon_membrane"));
         }
 
@@ -84,7 +75,6 @@ public class ItemAndEntityTagsData {
         }
     }
 
-    
     public static class EntityTagsGen extends EntityTypeTagsProvider {
         public EntityTagsGen(PackOutput output, CompletableFuture<HolderLookup.Provider> lp,
                               @javax.annotation.Nullable ExistingFileHelper efh) {
@@ -93,14 +83,68 @@ public class ItemAndEntityTagsData {
 
         @Override
         protected void addTags(HolderLookup.Provider provider) {
-            tag(TagKey.create(ForgeRegistries.ENTITY_TYPES.getRegistryKey(),
-                    new ResourceLocation(epca.MODID, "infested_undead")))
-                    .add(modEntity("infested_zombie"), modEntity("infested_husk"),
-                         modEntity("infested_drowned"), modEntity("infested_zombie_villager"),
-                         modEntity("infested_skeleton"),
-                         modEntity("walking_zombie_head"), modEntity("walking_husk_head"),
-                         modEntity("walking_drowned_head"), modEntity("walking_zombie_villager_head"),
-                         modEntity("walking_skeleton_head"));
+
+            tag(ModTags.INFESTED)
+                    .add(modEntity("infested_bat"), modEntity("infested_chicken"), modEntity("infested_cow"),
+                         modEntity("infested_drowned"), modEntity("infested_enderman"),
+                         modEntity("infested_endermite"), modEntity("infested_fox"), modEntity("infested_husk"),
+                         modEntity("infested_pig"), modEntity("infested_pillager"), modEntity("infested_sheep"),
+                         modEntity("infested_silverfish"), modEntity("infested_skeleton"),
+                         modEntity("infested_slime_size0"), modEntity("infested_slime_size1"),
+                         modEntity("infested_slime_size3"), modEntity("infested_spider"),
+                         modEntity("infested_villager"), modEntity("infested_vindicator"), modEntity("infested_wolf"),
+                         modEntity("infested_zombie"), modEntity("infested_zombie_villager"),
+                         modEntity("walking_chicken_head"), modEntity("walking_cow_head"),
+                         modEntity("walking_drowned_head"), modEntity("walking_enderman_head"),
+                         modEntity("walking_fox_head"), modEntity("walking_husk_head"), modEntity("walking_pig_head"),
+                         modEntity("walking_pillager_head"), modEntity("walking_sheep_head"),
+                         modEntity("walking_skeleton_head"), modEntity("walking_spider_head"),
+                         modEntity("walking_villager_head"), modEntity("walking_vindicator_head"),
+                         modEntity("walking_wolf_head"), modEntity("walking_zombie_head"),
+                         modEntity("walking_zombie_villager_head"));
+
+            tag(ModTags.ONESENT)
+                    .add(modEntity("curbug"), modEntity("fins"), modEntity("flying_carrier"),
+                         modEntity("light_carrier"), modEntity("mozzie"), modEntity("ripper"));
+
+            tag(ModTags.POVERTY)
+                    .add(modEntity("large_incomplete_form"), modEntity("living_flesh_size0"),
+                         modEntity("living_flesh_size1"), modEntity("living_flesh_size2"),
+                         modEntity("living_flesh_size3"), modEntity("living_flesh_size4"),
+                         modEntity("medium_incomplete_form"), modEntity("small_incomplete_form"));
+
+            tag(ModTags.RESHAPE)
+                    .add(modEntity("reshape_longarms"), modEntity("reshape_yelloweye"));
+
+            tag(ModTags.LINK)
+                    .add(modEntity("stage_i_beckon"), modEntity("stage_ii_beckon"));
+
+            tag(ModTags.PARASITE)
+                    .add(modEntity("bio_tort_incarnation"), modEntity("biomass_medium"), modEntity("biomass_small"),
+                         modEntity("curbug"), modEntity("fins"), modEntity("flying_carrier"),
+                         modEntity("infested_bat"), modEntity("infested_chicken"), modEntity("infested_cow"),
+                         modEntity("infested_drowned"), modEntity("infested_enderman"),
+                         modEntity("infested_endermite"), modEntity("infested_fox"), modEntity("infested_husk"),
+                         modEntity("infested_pig"), modEntity("infested_pillager"), modEntity("infested_sheep"),
+                         modEntity("infested_silverfish"), modEntity("infested_skeleton"),
+                         modEntity("infested_slime_size0"), modEntity("infested_slime_size1"),
+                         modEntity("infested_slime_size3"), modEntity("infested_spider"),
+                         modEntity("infested_villager"), modEntity("infested_vindicator"), modEntity("infested_wolf"),
+                         modEntity("infested_zombie"), modEntity("infested_zombie_villager"),
+                         modEntity("large_incomplete_form"), modEntity("light_carrier"),
+                         modEntity("living_flesh_size0"), modEntity("living_flesh_size1"),
+                         modEntity("living_flesh_size2"), modEntity("living_flesh_size3"),
+                         modEntity("living_flesh_size4"), modEntity("medium_incomplete_form"), modEntity("mozzie"),
+                         modEntity("reshape_longarms"), modEntity("reshape_yelloweye"), modEntity("ripper"),
+                         modEntity("small_incomplete_form"), modEntity("stage_i_beckon"), modEntity("stage_ii_beckon"),
+                         modEntity("walking_chicken_head"), modEntity("walking_cow_head"),
+                         modEntity("walking_drowned_head"), modEntity("walking_enderman_head"),
+                         modEntity("walking_fox_head"), modEntity("walking_husk_head"), modEntity("walking_pig_head"),
+                         modEntity("walking_pillager_head"), modEntity("walking_sheep_head"),
+                         modEntity("walking_skeleton_head"), modEntity("walking_spider_head"),
+                         modEntity("walking_villager_head"), modEntity("walking_vindicator_head"),
+                         modEntity("walking_wolf_head"), modEntity("walking_zombie_head"),
+                         modEntity("walking_zombie_villager_head"), modEntity("yawning_nya"));
         }
 
         @SuppressWarnings("unchecked")
@@ -109,4 +153,3 @@ public class ItemAndEntityTagsData {
         }
     }
 }
-

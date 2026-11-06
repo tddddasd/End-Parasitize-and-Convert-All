@@ -18,48 +18,9 @@ import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganSavedData;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary;
 import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
-/**
- * STAGE 3 SPEC C9  /  /
- *
- * <h2></h2>
- * <ul>
- *   <li><b></b>{@link #onHiveLeaderAttack}
- *       {@code OrganStatSummary#minimumDamage()}  YawningNekoAPI
- *        +  mixin
- *       {@code minimumDamageIntervalTicks()} 40 tick = 2
- *        PARA_CURSE / FEAR</li>
- *   <li><b></b>{@link #onHiveLeaderHurt} {@code LivingHurtEvent}
- *        {@link HiveLeaderOrganAdaptation#resolve}</li>
- * </ul>
- *
- * <h2></h2>
- * <p>YawningNekoAPI
- *  {@code MinimumDamageManager} <b></b>
- * {@code data/yawning_neko_api/minimum_damage/*.json}
- *   API  {@link ModDamageTypes#MINIMUM}
- * {@code yawning_neko_api:minimum}
- * {@code YawningNekoAPI/src/main/resources/data/yawning_neko_api/damage_type/minimum.json}
- *  {@link DamageSource}  {@code target.hurt(source, amount)}API
- * {@code LivingEntityMixin#onHurtMinimum}  {@code hurt}  HEAD  amount
- *  {@code BioTortIncarnation#applyMinimumDamage}
- * {@code new DamageSource(holder, attacker, directEntity)}</p>
- *
- * <h2></h2>
- * <p><b> + </b>
- * {@code HiveLeaderOrganMinDamage} {@code last_tick} + {@code target}
- * </p>
- * <p><b></b>
- * {@code HiveLeaderOrganSavedData}<b></b>
- *  2 </p>
- * <p>
- * {@code event.getAmount() < minimumDamage}
- * <b></b>
- * {@code event.setAmount(amount + 1.0f)} SPEC </p>
- */
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class HiveLeaderOrganDamageHandler {
 
-    /**  */
     private static final String MIN_DAMAGE_KEY = "HiveLeaderOrganMinDamage";
     private static final String TAG_LAST_TICK = "last_tick";
     private static final String TAG_TARGET = "target";
@@ -67,7 +28,6 @@ public final class HiveLeaderOrganDamageHandler {
     private HiveLeaderOrganDamageHandler() {
     }
 
-    /**  */
     @SubscribeEvent
     public static void onHiveLeaderAttack(LivingHurtEvent event) {
         if (!(event.getSource().getEntity() instanceof Player attacker)) return;
@@ -92,7 +52,6 @@ public final class HiveLeaderOrganDamageHandler {
         applyMinimumDamage(attacker, target, (float) minimumDamage, now);
     }
 
-    /**  + SPEC C9 / D6 */
     @SubscribeEvent
     public static void onHiveLeaderHurt(LivingHurtEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
@@ -107,30 +66,16 @@ public final class HiveLeaderOrganDamageHandler {
         }
     }
 
-    /**  /  UUID  */
     public static void clear(Player player) {
         HiveLeaderOrganEffects.clear(player);
         if (player == null) return;
         player.getPersistentData().remove(MIN_DAMAGE_KEY);
-        // STAGE B
-        // level.getGameTime()
-        // HiveLeaderOrganTeleportHandler
-        // //
-        // <b></b> "PlayerPersisted"
-        // ServerPlayer#restoreFrom  11541158 <b></b>
-        // =
-        //  HiveLeaderOrganSavedData
+
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             org.tdddd.epca.impl.network.packet.c2s.HiveLeaderOrganTeleportHandler.clear(serverPlayer);
         }
     }
 
-
-    /**
-     *  YawningNekoAPI
-     * {@link ModDamageTypes#MINIMUM} + {@code new DamageSource(holder, causing, direct)} + {@code hurt}
-     *
-     */
     private static void applyMinimumDamage(Player attacker, LivingEntity target, float amount, long now) {
         Registry<DamageType> registry = attacker.level().registryAccess()
                 .registryOrThrow(Registries.DAMAGE_TYPE);
@@ -144,13 +89,6 @@ public final class HiveLeaderOrganDamageHandler {
         attacker.getPersistentData().put(MIN_DAMAGE_KEY, tag);
     }
 
-    /**
-     *  {@code now - last >= interval}
-     *
-     * <p> true <b></b>
-     * {@link #applyMinimumDamage} /
-     * </p>
-     */
     private static boolean intervalElapsed(Player attacker, LivingEntity target, long now, int interval) {
         var tag = attacker.getPersistentData().getCompound(MIN_DAMAGE_KEY);
         if (!tag.hasUUID(TAG_TARGET) || !tag.contains(TAG_LAST_TICK)) return true;
@@ -158,4 +96,3 @@ public final class HiveLeaderOrganDamageHandler {
         return now - tag.getLong(TAG_LAST_TICK) >= interval;
     }
 }
-

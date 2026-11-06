@@ -24,7 +24,7 @@ public class SyncNoteTabsPacket {
 
     public static void handle(SyncNoteTabsPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
-            
+
             EPCANoteTabData.setClientTabs(msg.tabs);
         });
         ctx.get().setPacketHandled(true);

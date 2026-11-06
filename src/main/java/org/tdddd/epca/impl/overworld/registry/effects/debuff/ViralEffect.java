@@ -12,16 +12,15 @@ public class ViralEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
-        int interval = 1 << amplifier; 
+        int interval = 1 << amplifier;
         return interval > 0 ? duration % interval == 0 : true;
     }
 
     @Override
     public boolean isRemovable() {
-        return false; 
+        return false;
     }
 
-    
     public static float getDamageMultiplier(int amplifier) {
         return (amplifier + 1) * 0.1f;
     }

@@ -13,12 +13,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 
-/**
- * Infested short dry grass (虫染矮枯草丛). A single-block cross plant.
- *
- * <p>It only grows on infested sand (see {@link #mayPlaceOn}), which is also where
- * {@link InfestedSand} sows it during a random tick.
- */
 public class InfestedShortDryGrass extends BushBlock implements InfestedBlockInterface {
     protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
 

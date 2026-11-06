@@ -11,29 +11,25 @@ import org.joml.Vector3f;
 public class WaveSmallParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
     private int ageCounter = 0;
-    private final int totalLifetime = 21; 
-    private int currentFrameIndex = 0; 
-    private static final int FRAME_TIME = 3; 
-    private static final int[] FRAME_SEQUENCE = {0, 2, 3, 4, 5, 6, 7}; 
+    private final int totalLifetime = 21;
+    private int currentFrameIndex = 0;
+    private static final int FRAME_TIME = 3;
+    private static final int[] FRAME_SEQUENCE = {0, 2, 3, 4, 5, 6, 7};
 
     public WaveSmallParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet sprites) {
         super(level, x, y, z, xd, yd, zd);
         this.sprites = sprites;
         this.lifetime = totalLifetime;
 
-        
         this.xd = 0;
         this.yd = 0;
         this.zd = 0;
 
-        
         this.gravity = 0.0F;
 
-        
         this.quadSize = 2.5F;
         this.alpha = 0.9F;
 
-        
         this.currentFrameIndex = 0;
         this.setSprite(sprites.get(RandomSource.create(FRAME_SEQUENCE[0])));
     }
@@ -43,24 +39,21 @@ public class WaveSmallParticle extends TextureSheetParticle {
         super.tick();
         ageCounter++;
 
-        
         if (!this.removed) {
-            
+
             int targetFrameIndex = Math.min(ageCounter / FRAME_TIME, FRAME_SEQUENCE.length - 1);
 
-            
             if (targetFrameIndex != currentFrameIndex) {
                 currentFrameIndex = targetFrameIndex;
                 this.setSprite(sprites.get(RandomSource.create(FRAME_SEQUENCE[currentFrameIndex])));
             }
 
-            
             float ageRatio = (float) ageCounter / totalLifetime;
             if (ageRatio < 0.1f) {
-                
+
                 this.alpha = 0.9F * (ageRatio / 0.1f);
             } else if (ageRatio > 0.9f) {
-                
+
                 this.alpha = 0.9F * ((1.0f - ageRatio) / 0.1f);
             } else {
                 this.alpha = 0.9F;
@@ -70,16 +63,14 @@ public class WaveSmallParticle extends TextureSheetParticle {
 
     @Override
     public void render(VertexConsumer buffer, net.minecraft.client.Camera camera, float partialTick) {
-        
+
         var cameraPos = camera.getPosition();
         float x = (float)(net.minecraft.util.Mth.lerp(partialTick, this.xo, this.x) - cameraPos.x());
         float y = (float)(net.minecraft.util.Mth.lerp(partialTick, this.yo, this.y) - cameraPos.y());
         float z = (float)(net.minecraft.util.Mth.lerp(partialTick, this.zo, this.z) - cameraPos.z());
 
-        
         Quaternionf quaternion = new Quaternionf();
 
-        
         float angle = (float)Math.toRadians(90.0f);
         quaternion.rotationX(angle);
 
@@ -105,7 +96,6 @@ public class WaveSmallParticle extends TextureSheetParticle {
         float v1 = this.getV1();
         int light = this.getLightColor(partialTick);
 
-        
         buffer.vertex(vector3fs[0].x(), vector3fs[0].y(), vector3fs[0].z())
                 .uv(u1, v1)
                 .color(this.rCol, this.gCol, this.bCol, this.alpha)
@@ -130,11 +120,10 @@ public class WaveSmallParticle extends TextureSheetParticle {
 
     @Override
     public ParticleRenderType getRenderType() {
-        
+
         return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
-    
     public static class WaveSmallParticleProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 

@@ -25,11 +25,11 @@ public class AcidSolutionType extends FluidType {
                 .temperature(1300)
                 .viscosity(6000));
     }
-    
+
     @Override
     public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
         consumer.accept(new IClientFluidTypeExtensions() {
-            
+
             private static final ResourceLocation STILL_TEXTURE =
                     new ResourceLocation("epca", "block/acid");
             private static final ResourceLocation FLOWING_TEXTURE =

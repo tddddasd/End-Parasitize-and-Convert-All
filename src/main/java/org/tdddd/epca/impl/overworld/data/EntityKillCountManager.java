@@ -17,10 +17,8 @@ import java.util.Map;
 public class EntityKillCountManager implements ResourceManagerReloadListener {
     private static final Gson GSON = new GsonBuilder().create();
 
-    
     private static final Map<String, Integer> MAX_KILL_COUNTS = new HashMap<>();
 
-    
     private static final String KILL_COUNT_KEY = "epca_kill_count";
 
     @Override
@@ -42,51 +40,43 @@ public class EntityKillCountManager implements ResourceManagerReloadListener {
                 });
     }
 
-    
     public static int getMaxKillCount(LivingEntity entity) {
         String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
         return MAX_KILL_COUNTS.getOrDefault(entityId, 0);
     }
 
-    
     public static int getMaxKillCount(String entityId) {
         return MAX_KILL_COUNTS.getOrDefault(entityId, 0);
     }
 
-    
     public static int getCurrentKillCount(LivingEntity entity) {
         CompoundTag nbt = entity.getPersistentData();
         return nbt.getInt(KILL_COUNT_KEY);
     }
 
-    
     public static void setKillCount(LivingEntity entity, int count) {
         CompoundTag nbt = entity.getPersistentData();
         nbt.putInt(KILL_COUNT_KEY, count);
     }
 
-    
     public static void incrementKillCount(LivingEntity entity) {
         int current = getCurrentKillCount(entity);
         setKillCount(entity, current + 1);
     }
 
-    
     public static boolean isKillCountMaxed(LivingEntity entity) {
         int max = getMaxKillCount(entity);
-        if (max == 0) return false; 
+        if (max == 0) return false;
 
         int current = getCurrentKillCount(entity);
         return current >= max;
     }
 
-    
     public static boolean hasKillCount(LivingEntity entity) {
         String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
         return MAX_KILL_COUNTS.containsKey(entityId);
     }
 
-    
     public static Map<String, Integer> getAllMaxKillCounts() {
         return new HashMap<>(MAX_KILL_COUNTS);
     }

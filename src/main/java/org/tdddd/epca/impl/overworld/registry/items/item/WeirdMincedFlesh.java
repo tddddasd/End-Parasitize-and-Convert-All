@@ -12,15 +12,15 @@ public class WeirdMincedFlesh extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(6)  
-                .saturationMod(0.4F)  
+                .nutrition(6)
+                .saturationMod(0.4F)
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.PARA_CURSE.get(),  
-                        15 * 20,  
-                        0  
-                ), 0.3F)  
+                        ModEffects.PARA_CURSE.get(),
+                        15 * 20,
+                        0
+                ), 0.3F)
                 .build();
     }
 }

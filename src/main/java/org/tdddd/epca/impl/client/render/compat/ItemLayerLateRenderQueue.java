@@ -15,35 +15,6 @@ import org.tdddd.epca.impl.client.render.ItemShaderRenderHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- *
- * <h3></h3>
- *  {@link IrisShaderCompat}  GBuffer
- *  RottenRuinsSplendiding  {@code CosmicItemLateRenderQueue}
- *
- * <ol>
- *   <li><b></b>
- *       PoseStack  +  + ModelView + Projection +  + </li>
- *   <li>{@code GameRenderer.renderLevel()}
- *     <ul>
- *       <li><b>renderHand </b>{@link #renderNonFirstPerson()}
- *            /  /
- *            LEQUAL </li>
- *       <li><b>renderLevel </b>{@link #renderAll()}
- *            NO_DEPTH_TEST </li>
- *     </ul>
- *   </li>
- * </ol>
- *
- * <h3></h3>
- * <ul>
- *   <li> {@code mc.renderBuffers().bufferSource()} <b></b> buffer source
- *       </li>
- *   <li> flush   uniform </li>
- *   <li> PoseStack </li>
- * </ul>
- */
 public final class ItemLayerLateRenderQueue {
 
     private record Entry(ItemStack stack,
@@ -62,19 +33,14 @@ public final class ItemLayerLateRenderQueue {
     private ItemLayerLateRenderQueue() {
     }
 
-    /**  */
     public static boolean isEmpty() {
         return ENTRIES.isEmpty();
     }
 
-    /**  /  */
     public static void clear() {
         ENTRIES.clear();
     }
 
-    /**
-     *  ModelView/Projection
-     */
     public static void enqueue(ItemStack stack, ItemDisplayContext context, List<ItemLayerBinding> bindings,
                                PoseStack poseStack, int packedLight, int packedOverlay) {
         if (bindings == null || bindings.isEmpty()) {
@@ -94,12 +60,10 @@ public final class ItemLayerLateRenderQueue {
         ));
     }
 
-    /**  1 */
     public static void renderNonFirstPerson() {
         replay(false);
     }
 
-    /**  2 renderLevel  */
     public static void renderAll() {
         replay(true);
     }
@@ -158,7 +122,6 @@ public final class ItemLayerLateRenderQueue {
             ItemShaderRenderHelper.drawBinding(binding, entry.stack(), entry.context(), poseStack, buffers,
                     entry.packedLight(), entry.packedOverlay(), true);
 
-            //  flush
             buffers.endBatch(binding.layer().renderTypes().afterLevel());
             buffers.endBatch(binding.layer().renderTypes().handAfterLevel());
         }
@@ -169,4 +132,3 @@ public final class ItemLayerLateRenderQueue {
                 || context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND;
     }
 }
-

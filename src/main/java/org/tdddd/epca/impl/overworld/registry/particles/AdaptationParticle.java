@@ -16,7 +16,7 @@ public class AdaptationParticle extends TextureSheetParticle {
         this.xd = xSpeed;
         this.yd = ySpeed;
         this.zd = zSpeed;
-        
+
         this.quadSize = 0.2f;
         this.lifetime = 40;
         this.gravity = 0;
@@ -30,7 +30,7 @@ public class AdaptationParticle extends TextureSheetParticle {
 
     @Override
     public boolean shouldCull() {
-        
+
         return false;
     }
 }

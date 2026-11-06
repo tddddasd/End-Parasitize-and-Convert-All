@@ -16,19 +16,17 @@ public class ServerEvents {
 
     @SubscribeEvent
     public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
-        
+
         if (event.getLevel().isClientSide()) return;
 
         Level level = (Level) event.getLevel();
         BlockPos pos = event.getPos();
 
-        
         BlockState oldState = level.getBlockState(pos);
         if (oldState.getBlock() instanceof InfestedBlockInterface) {
             sendRemovePacket(level, pos);
         }
 
-        
         BlockState newState = event.getPlacedBlock();
         if (newState.getBlock() instanceof InfestedBlockInterface) {
             sendAddPacket(level, pos);
@@ -45,13 +43,11 @@ public class ServerEvents {
         }
     }
 
-    
     private static void sendAddPacket(Level level, BlockPos pos) {
         if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) return;
         org.tdddd.epca.impl.overworld.data.InfestedBlockManager.addInfestedBlock(serverLevel, pos);
     }
 
-    
     private static void sendRemovePacket(Level level, BlockPos pos) {
         if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) return;
         org.tdddd.epca.impl.overworld.data.InfestedBlockManager.removeInfestedBlock(serverLevel, pos);

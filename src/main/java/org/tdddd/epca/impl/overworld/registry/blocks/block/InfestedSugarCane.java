@@ -1,7 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
-
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -28,7 +28,6 @@ import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.WeakHashMap;
 
@@ -157,7 +156,7 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (level.isClientSide) return;
 
-        if (!(entity instanceof LivingEntity living) || living instanceof IParasite && living instanceof Player) {
+        if (!(entity instanceof LivingEntity living) || ParasiteEvents.isParasiteEntity(living) && living instanceof Player) {
             return;
         }
 

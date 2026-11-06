@@ -22,7 +22,7 @@ import org.tdddd.epca.impl.client.GuiTexture;
 public class CustomTab extends CreativeModeTab {
 
     public final ImmutableList<ITabEntry> entries;
-    
+
     public final Map<Integer, ITabEntry> renderedEntries;
 
     protected CustomTab(Builder builder) {
@@ -60,7 +60,6 @@ public class CustomTab extends CreativeModeTab {
             return this;
         };
 
-        
         @Override
         @Deprecated
         public Builder displayItems(DisplayItemsGenerator displayItemsGenerator) {
@@ -70,19 +69,17 @@ public class CustomTab extends CreativeModeTab {
     };
 
     public static interface ITabEntry {
-        
+
         public default void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {};
-        
+
         public default int getSize() {
             return 1;
         };
 
-        
         public default boolean newLine() {
             return false;
         };
 
-        
         public default void addItems(List<ItemStack> stacks, ItemDisplayParameters parameters, IntConsumer specialRenderLocation) {
             if (newLine()) stacks.addAll(Collections.nCopies(((9 - (stacks.size() % 9)) % 9), ItemStack.EMPTY));
             if (hasSpecialRendering()) specialRenderLocation.accept(stacks.size());
@@ -172,12 +169,10 @@ public class CustomTab extends CreativeModeTab {
             private final Component subheading;
             private final GuiTexture backgroundTexture;
 
-            
             public Subheading(Component subheading) {
                 this(subheading, GuiTexture.CREATIVE_MODE_TAB_BLANK_ROW);
             }
 
-            
             public Subheading(Component subheading, GuiTexture backgroundTexture) {
                 this.subheading = subheading;
                 this.backgroundTexture = backgroundTexture;
@@ -195,7 +190,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
+
                 graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -204,12 +199,10 @@ public class CustomTab extends CreativeModeTab {
             private final Component subheading;
             private final GuiTexture backgroundTexture;
 
-            
             public Subheading0(Component subheading) {
                 this(subheading, GuiTexture.CREATIVE_MODE_TAB_BLANK_ROW_MATERIALS);
             }
 
-            
             public Subheading0(Component subheading, GuiTexture backgroundTexture) {
                 this.subheading = subheading;
                 this.backgroundTexture = backgroundTexture;
@@ -227,7 +220,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
+
                 graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -236,12 +229,10 @@ public class CustomTab extends CreativeModeTab {
             private final Component subheading;
             private final GuiTexture backgroundTexture;
 
-            
             public Subheading1(Component subheading) {
                 this(subheading, GuiTexture.CREATIVE_MODE_TAB_BLANK_ROW_SPAWN);
             }
 
-            
             public Subheading1(Component subheading, GuiTexture backgroundTexture) {
                 this.subheading = subheading;
                 this.backgroundTexture = backgroundTexture;
@@ -259,7 +250,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
+
                 graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -268,12 +259,10 @@ public class CustomTab extends CreativeModeTab {
             private final Component subheading;
             private final GuiTexture backgroundTexture;
 
-            
             public Subheading2(Component subheading) {
                 this(subheading, GuiTexture.CREATIVE_MODE_TAB_BLANK_ROW_BLOCKS);
             }
 
-            
             public Subheading2(Component subheading, GuiTexture backgroundTexture) {
                 this.subheading = subheading;
                 this.backgroundTexture = backgroundTexture;
@@ -291,7 +280,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
+
                 graphics.drawString(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }

@@ -14,24 +14,24 @@ import java.util.function.Supplier;
 public class KeyPacket {
 
     public KeyPacket() {
-        
+
     }
 
     public KeyPacket(FriendlyByteBuf buf) {
-        
+
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        
+
     }
 
     public boolean handle(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
-            
+
             ServerPlayer player = context.getSender();
             if (player != null) {
-                
+
                 handleKeyAction(player);
             }
         });
@@ -39,11 +39,10 @@ public class KeyPacket {
     }
 
     private void handleKeyAction(ServerPlayer player) {
-        
+
         ItemStack mainHandItem = player.getMainHandItem();
         ItemStack offHandItem = player.getOffhandItem();
 
-        
         if (!mainHandItem.isEmpty() && (mainHandItem.isEdible() || mainHandItem.getItem() instanceof InfestedFlesh || mainHandItem.getItem() instanceof DiseasedHeart
                 || mainHandItem.getItem() instanceof ParasiteViscera) &&
                 offHandItem.getItem() instanceof LivingArmorBox) {
@@ -52,7 +51,6 @@ public class KeyPacket {
             box.handleLeftClickInGUI(player, offHandItem, mainHandItem);
         }
 
-        
         else if (!offHandItem.isEmpty() && (offHandItem.isEdible() || offHandItem.getItem() instanceof InfestedFlesh || offHandItem.getItem() instanceof DiseasedHeart
                 || offHandItem.getItem() instanceof ParasiteViscera) &&
                 mainHandItem.getItem() instanceof LivingArmorBox) {

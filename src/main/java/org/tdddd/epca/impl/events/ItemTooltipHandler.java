@@ -21,7 +21,7 @@ public class ItemTooltipHandler {
     private static final Map<RegistryObject<? extends Item>, String> TOOLTIP_MAP = new HashMap<>();
 
     static {
-        
+
         registerTooltip(ModItems.BUGLIN_SPAWN_EGG , "item.epca.category_onesent");
         registerTooltip(ModItems.RUPTER_SPAWN_EGG , "item.epca.category_onesent");
         registerTooltip(ModItems.FINS_SPAWN_EGG , "item.epca.category_onesent");
@@ -29,13 +29,11 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.FLYING_CARRIER_SPAWN_EGG , "item.epca.category_onesent");
         registerTooltip(ModItems.LIGHT_CARRIER_SPAWN_EGG , "item.epca.category_onesent");
 
-        
         registerTooltip(ModItems.SMALL_INCOMPLETE_FORM_SPAWN_EGG , "item.epca.category_poverty");
         registerTooltip(ModItems.MEDIUM_INCOMPLETE_FORM_SPAWN_EGG , "item.epca.category_poverty");
         registerTooltip(ModItems.LARGE_INCOMPLETE_FORM_SPAWN_EGG , "item.epca.category_poverty");
         registerTooltip(ModItems.LIVING_FLESH_SPAWN_EGG , "item.epca.category_poverty");
 
-        
         registerTooltip(ModItems.INFESTED_ZOMBIE_SPAWN_EGG , "item.epca.category_infested");
         registerTooltip(ModItems.WALKING_ZOMBIE_HEAD_SPAWN_EGG , "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_HUSK_SPAWN_EGG , "item.epca.category_infested");
@@ -70,19 +68,15 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.INFESTED_FOX_SPAWN_EGG , "item.epca.category_infested");
         registerTooltip(ModItems.WALKING_FOX_HEAD_SPAWN_EGG , "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_BAT_SPAWN_EGG , "item.epca.category_infested");
-        
+
         registerTooltip(ModItems.RESHAPE_LONGARMS_SPAWN_EGG, "item.epca.category_reshape");
         registerTooltip(ModItems.RESHAPE_YELLOWEYE_SPAWN_EGG, "item.epca.category_reshape");
-        
+
         registerTooltip(ModItems.STAGE_I_BECKON_SPAWN_EGG, "item.epca.category_link");
         registerTooltip(ModItems.STAGE_II_BECKON_SPAWN_EGG, "item.epca.category_link");
 
-        //blocks
-
-        //poverty
         registerTooltip(ModItems.SWALLOW_CYST, "item.epca.category_poverty");
 
-        //Infested
         registerTooltip(ModItems.INFESTED_REMAINS_SMALL, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_REMAINS_MEDIUM, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_REMAINS_LARGE, "item.epca.category_infested");
@@ -203,7 +197,6 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.INFESTED_SHORT_DRY_GRASS, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_TALL_DRY_GRASS, "item.epca.category_infested");
 
-        //link
         registerTooltip(ModItems.BECKON_CORE, "item.epca.category_link");
         registerTooltip(ModItems.HIVE_NODE, "item.epca.category_link");
     }

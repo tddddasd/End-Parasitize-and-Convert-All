@@ -1,14 +1,13 @@
 package org.tdddd.epca.impl.overworld.registry.effects.buff;
 
 import net.minecraft.world.effect.MobEffect;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
-/** Symbiosis Lie: spreads Para Curse to nearby non-parasites and darkens the regeneration colour. */
 public class SymbiosisLieEffect extends MobEffect {
     public SymbiosisLieEffect() { super(MobEffectCategory.BENEFICIAL, 0x5A1E3A); }
 
@@ -26,7 +25,7 @@ public class SymbiosisLieEffect extends MobEffect {
         }
         AABB area = entity.getBoundingBox().inflate(2.5D);
         for (LivingEntity target : entity.level().getEntitiesOfClass(LivingEntity.class, area)) {
-            if (target == entity || target instanceof IParasite) continue;
+            if (target == entity || ParasiteEvents.isParasiteEntity(target)) continue;
             target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 200, 0, false, true, true));
         }
     }

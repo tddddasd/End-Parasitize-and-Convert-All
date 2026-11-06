@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -21,11 +22,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedSnowBlock extends Block implements InfestedBlockInterface {
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedSnowBlock(Properties properties) {
@@ -51,24 +51,22 @@ public class InfestedSnowBlock extends Block implements InfestedBlockInterface {
         return Blocks.SNOW_BLOCK.getSoundType(Blocks.SNOW_BLOCK.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (!level.isClientSide && entity instanceof LivingEntity living) {
-            
-            if (!(IParasite.isParasiteByTagOrInterface(living))) {
-                
+
+            if (!(ParasiteEvents.isParasiteByTagOrInterface(living))) {
+
                 living.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-                        ModEffects.PARA_CURSE.get(),           
-                        1200,                         
-                        0                                 
+                        ModEffects.PARA_CURSE.get(),
+                        1200,
+                        0
                 ));
             }
         }
         super.entityInside(state, level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {

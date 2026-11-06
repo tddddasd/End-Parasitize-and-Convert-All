@@ -33,15 +33,6 @@ public class ClientHandlerI {
         }
     }
 
-    /**
-     *  GUI SPEC B1/B2
-     *
-     * <p> {@code ClientTickEvent} + {@code KeyMapping#consumeClick()}
-     *  {@code InputEvent.Key}  GLFW {@code consumeClick()} ""
-     *  - {@code KeyMapping}
-     *  {@code KeyboardHandler}  {@code KeyMapping.click(...)}
-     *  tick ""</p>
-     */
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) {
@@ -50,4 +41,3 @@ public class ClientHandlerI {
         HiveLeaderOrganClientInput.tick();
     }
 }
-

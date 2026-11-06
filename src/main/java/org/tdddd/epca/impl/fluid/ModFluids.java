@@ -21,13 +21,11 @@ public class ModFluids {
     public static final DeferredRegister<FluidType> FLUID_TYPES =
             DeferredRegister.create(ForgeRegistries.Keys.FLUID_TYPES, epca.MODID);
 
-    
     public static final RegistryObject<FluidType> ACID_SOLUTION_FLUID_TYPE = FLUID_TYPES.register(
             "acid_solution",
             AcidSolutionType::new
     );
 
-    
     public static final RegistryObject<FlowingFluid> ACID_SOLUTION = FLUIDS.register(
             "acid_solution",
             () -> new AcidSolutionFluid.Source(createAcidSolutionProperties())
@@ -38,7 +36,6 @@ public class ModFluids {
             () -> new AcidSolutionFluid.Flowing(createAcidSolutionProperties())
     );
 
-    
     private static final BlockBehaviour.Properties ACID_SOLUTION_BLOCK_PROPERTIES = BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_GREEN)
             .replaceable()
@@ -48,12 +45,10 @@ public class ModFluids {
             .noLootTable()
             .liquid();
 
-    
     private static final Item.Properties ACID_SOLUTION_BUCKET_PROPERTIES = new Item.Properties()
             .craftRemainder(net.minecraft.world.item.Items.BUCKET)
             .stacksTo(1);
 
-    
     private static ForgeFlowingFluid.Properties createAcidSolutionProperties() {
         return new ForgeFlowingFluid.Properties(
                 ACID_SOLUTION_FLUID_TYPE,

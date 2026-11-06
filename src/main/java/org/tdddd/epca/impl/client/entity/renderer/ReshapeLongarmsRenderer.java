@@ -11,13 +11,12 @@ import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 
 public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
 
-    
     private final ReshapeLongarmsModel model;
 
     public ReshapeLongarmsRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new ReshapeLongarmsModel());
         this.model = (ReshapeLongarmsModel) getGeoModel();
-        // Shader-rendered gas clouds for both the active jet skill and the passive back jet.
+
         addLayerProvider(GasCloudLayer.forLongarms());
     }
 
@@ -35,7 +34,6 @@ public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
-    
     private void setBoneHidden(String boneName, boolean hide) {
         CoreGeoBone bone = this.model.getAnimationProcessor().getBone(boneName);
         if (bone != null) {

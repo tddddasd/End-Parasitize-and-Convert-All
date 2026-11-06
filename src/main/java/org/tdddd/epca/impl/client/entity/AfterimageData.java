@@ -6,20 +6,11 @@ import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Immutable snapshot of an entity's render state at the moment an afterimage is spawned.
- * Records world position, yaw, and the full bone pose so the afterimage renders frozen
- * at its spawn moment regardless of subsequent animation.
- */
 public class AfterimageData {
     public final Vec3 position;
-    /** Frozen body yaw captured at spawn; drives the ghost's facing. */
+
     public final float yRot;
-    /**
-     * Frozen body/head yaw and their previous-tick values, captured alongside {@link #yRot}. These
-     * exist so a renderer that recomputes the head bone from the OWNER's gaze cannot make the ghost's
-     * head track the player - the ghost carries its own frozen values instead.
-     */
+
     public final float yBodyRot;
     public final float yHeadRot;
     public final float yRotO;
@@ -28,7 +19,6 @@ public class AfterimageData {
     public final int spawnTick;
     public final int lifetime;
 
-    /** Frozen bone transforms captured at spawn time. Key = bone name. */
     public final Map<String, BoneSnapshot> bonePose;
 
     public AfterimageData(Vec3 position, float yRot, float yBodyRot, float yHeadRot,
@@ -56,8 +46,6 @@ public class AfterimageData {
         int age = currentTick - spawnTick;
         return age >= 0 && age < lifetime;
     }
-
-    //  Bone snapshot  works with CoreGeoBone (GeckoLib interface)
 
     public static class BoneSnapshot {
         public final float rotX, rotY, rotZ;
@@ -89,7 +77,6 @@ public class AfterimageData {
         }
     }
 
-    /** Walk the bone tree recursively and capture every bone's current transform. */
     public static void captureRecursive(CoreGeoBone bone, Map<String, BoneSnapshot> out) {
         out.put(bone.getName(), new BoneSnapshot(bone));
         for (CoreGeoBone child : bone.getChildBones()) {
@@ -97,4 +84,3 @@ public class AfterimageData {
         }
     }
 }
-

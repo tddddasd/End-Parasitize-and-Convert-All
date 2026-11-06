@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.events;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -13,7 +14,6 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.fluid.AcidDamageSystem;
 import org.tdddd.epca.impl.fluid.AcidSolutionBlock;
 
@@ -21,9 +21,8 @@ import java.util.*;
 
 @Mod.EventBusSubscriber
 public class WaterInteractionHandler {
-    private static final int DAMAGE_INTERVAL = 10; 
+    private static final int DAMAGE_INTERVAL = 10;
 
-    
     private static final Map<UUID, Long> lastDamageTickMap = new HashMap<>();
 
     @SubscribeEvent
@@ -31,22 +30,18 @@ public class WaterInteractionHandler {
         LivingEntity entity = event.getEntity();
         Level level = entity.level();
 
-        
         if (level.isClientSide) return;
 
-        
         if (entity.isInWater()) {
             BlockPos entityPos = entity.blockPosition();
 
-            
             if (shouldSkipEntity(entity)) return;
 
-            
             if (AcidDamageSystem.hasAcidDamageAt(level, entityPos)) {
-                
+
                 AcidDamageSystem.applyAcidWaterDamage(entity, level, entityPos);
             } else if (AcidDamageSystem.isWaterInAcidRange(level, entityPos, 8)) {
-                
+
                 registerAcidWaterIfNeeded(level, entityPos);
             }
         }
@@ -57,7 +52,6 @@ public class WaterInteractionHandler {
         if (event.phase == TickEvent.Phase.END && !event.level.isClientSide()) {
             Level level = event.level;
 
-            
             if (level.getGameTime() % 600 == 0) {
                 AcidDamageSystem.cleanupOldData(level);
             }
@@ -65,10 +59,9 @@ public class WaterInteractionHandler {
     }
 
     private static boolean shouldSkipEntity(LivingEntity entity) {
-        
-        if (IParasite.isParasiteByTagOrInterface(entity)) return true;
 
-        
+        if (ParasiteEvents.isParasiteByTagOrInterface(entity)) return true;
+
         if (entity instanceof Player player) {
             return player.isCreative() || player.isSpectator();
         }
@@ -77,14 +70,13 @@ public class WaterInteractionHandler {
     }
 
     private static void registerAcidWaterIfNeeded(Level level, BlockPos waterPos) {
-        
+
         BlockPos nearestAcid = findNearestAcid(level, waterPos, 8);
         if (nearestAcid != null) {
             int distance = Math.abs(nearestAcid.getX() - waterPos.getX()) +
                     Math.abs(nearestAcid.getY() - waterPos.getY()) +
                     Math.abs(nearestAcid.getZ() - waterPos.getZ());
 
-            
             AcidDamageSystem.registerAcidDamageArea(
                     level,
                     nearestAcid,
@@ -118,14 +110,13 @@ public class WaterInteractionHandler {
     }
 
     private static boolean isWaterAcidified(Level level, BlockPos pos) {
-        
+
         FluidState fluidState = level.getFluidState(pos);
         if (fluidState.getType() != Fluids.WATER &&
                 fluidState.getType() != Fluids.FLOWING_WATER) {
             return false;
         }
 
-        
         for (int dx = -8; dx <= 8; dx++) {
             for (int dy = -8; dy <= 8; dy++) {
                 for (int dz = -8; dz <= 8; dz++) {
@@ -148,45 +139,38 @@ public class WaterInteractionHandler {
         UUID entityId = entity.getUUID();
         long currentTick = level.getGameTime();
 
-        
         Long lastDamageTick = lastDamageTickMap.get(entityId);
         if (lastDamageTick != null && currentTick - lastDamageTick < DAMAGE_INTERVAL) {
             return;
         }
 
-        
         lastDamageTickMap.put(entityId, currentTick);
 
-
-            
             entity.addEffect(new MobEffectInstance(
                     ModEffects.PARA_CURSE.get(),
-                    600, 
-                    0,    
+                    600,
+                    0,
                     false,
                     true
             ));
 
-            
             entity.addEffect(new MobEffectInstance(
                     ModEffects.CORROSIVE.get(),
-                    100, 
-                    0,   
+                    100,
+                    0,
                     false,
                     true
             ));
 
-            
             int viralLevel = 0;
             MobEffectInstance viralEffect = entity.getEffect(ModEffects.VIRAL.get());
             if (viralEffect != null) {
                 viralLevel = viralEffect.getAmplifier() + 1;
             }
 
-            
             float totalDamage = 0.1f + (viralLevel + 1) / 2.0f;
             float currentHealth = entity.getHealth();
-            
+
             entity.hurt(entity.damageSources().magic(), 1.0F);
 
             if (currentHealth <= totalDamage) {
@@ -197,7 +181,6 @@ public class WaterInteractionHandler {
             }
     }
 
-    
     public static Set<BlockPos> getAcidifiedWaterBlocks(Level level, BlockPos acidPos, int range) {
         Set<BlockPos> result = new HashSet<>();
 
@@ -220,7 +203,6 @@ public class WaterInteractionHandler {
         return result;
     }
 
-    
     public static boolean isPositionAcidified(Level level, BlockPos pos) {
         return isWaterAcidified(level, pos);
     }

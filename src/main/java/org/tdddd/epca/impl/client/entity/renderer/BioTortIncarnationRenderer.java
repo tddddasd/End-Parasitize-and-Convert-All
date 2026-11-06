@@ -9,22 +9,11 @@ import net.minecraft.resources.ResourceLocation;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BioTortIncarnation;
 import org.tdddd.epca.impl.epca;
 
-/**
- *  {@code YawningNyaRenderer}
- * {@code ModelLayers.PLAYER_SLIM}
- *
- * <p> {@code assets/epca/textures/entity/bio-tort_incarnation.png}
- *
- *  Yawning_Nya  {@code textures/entity/yawning_nya.png}
- * </p>
- */
 public class BioTortIncarnationRenderer extends HumanoidMobRenderer<BioTortIncarnation, PlayerModel<BioTortIncarnation>> {
 
-    /** assets/epca/textures/entity/bio-tort_incarnation.png */
     private static final ResourceLocation BIO_TORT_TEXTURE =
             new ResourceLocation(epca.MODID, "textures/entity/bio-tort_incarnation.png");
 
-    /**  Yawning_Nya  */
     private static final ResourceLocation PLACEHOLDER_TEXTURE =
             new ResourceLocation(epca.MODID, "textures/entity/yawning_nya.png");
 
@@ -38,7 +27,7 @@ public class BioTortIncarnationRenderer extends HumanoidMobRenderer<BioTortIncar
                     slim ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER
             ), slim);
         } catch (Exception e) {
-            //  YawningNyaRenderer
+
             System.err.println("Failed to create player model, using fallback: " + e.getMessage());
             return new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), false);
         }
@@ -47,7 +36,7 @@ public class BioTortIncarnationRenderer extends HumanoidMobRenderer<BioTortIncar
     @Override
     public ResourceLocation getTextureLocation(BioTortIncarnation entity) {
         try {
-            //  Yawning_Nya
+
             if (Minecraft.getInstance().getResourceManager().getResource(BIO_TORT_TEXTURE).isPresent()) {
                 return BIO_TORT_TEXTURE;
             }
@@ -56,4 +45,3 @@ public class BioTortIncarnationRenderer extends HumanoidMobRenderer<BioTortIncar
         return PLACEHOLDER_TEXTURE;
     }
 }
-

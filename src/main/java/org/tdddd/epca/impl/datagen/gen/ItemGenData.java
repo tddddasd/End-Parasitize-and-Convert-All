@@ -10,33 +10,28 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.Set;
 
-
 public class ItemGenData extends ItemModelProvider {
 
     public ItemGenData(PackOutput output, ExistingFileHelper efh) {
         super(output, epca.MODID, efh);
     }
 
-    
     private static final Set<String> MANUAL_WHITELIST = Set.of(
-            
+
             "wooden_spear", "stone_spear", "flint_spear", "copper_spear",
             "iron_spear", "golden_spear", "diamond_spear", "netherite_spear",
 
-            
             "erosion_clock",
             "biomass_count_icon",
             "epca_icon",
             "swallow_cyst",
 
-            
             "feeding_module_i", "flesh_armor_module_i",
             "netherite_module_i", "flight_module_i",
 
             "infested_carved_pumpkin"
     );
 
-    
     private static final Set<String> EXTRA_HANDHELD = Set.of(
             "endless_wand"
     );
@@ -47,10 +42,10 @@ public class ItemGenData extends ItemModelProvider {
             ResourceLocation loc = ForgeRegistries.ITEMS.getKey(item);
             if (loc != null && loc.getNamespace().equals(epca.MODID)) {
                 String path = loc.getPath();
-                
+
                 if (item instanceof BlockItem || MANUAL_WHITELIST.contains(path)) return;
                 try {
-                    
+
                     if (isHandheld(item) || EXTRA_HANDHELD.contains(path)) {
                         handheldItem(path);
                     } else {
@@ -64,7 +59,6 @@ public class ItemGenData extends ItemModelProvider {
         });
     }
 
-    
     private static final Set<String> MANUAL_WHITELIST_DYNAMIC = new java.util.HashSet<>();
 
     private boolean isHandheld(Item item) {

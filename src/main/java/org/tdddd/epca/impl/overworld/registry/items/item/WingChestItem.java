@@ -21,7 +21,7 @@ public abstract class WingChestItem extends ArmorItem {
     @Override
     public void onCraftedBy(ItemStack stack, Level level, Player player) {
         super.onCraftedBy(stack, level, player);
-        
+
         CompoundTag tag = stack.getOrCreateTag();
         if (!tag.contains("AdaptationCount")) {
             tag.putInt("AdaptationCount", 0);
@@ -35,7 +35,6 @@ public abstract class WingChestItem extends ArmorItem {
         Player player = event.player;
         ItemStack chestItem = player.getItemBySlot(EquipmentSlot.CHEST);
 
-        
         if (chestItem.getItem() == this &&
                 !WingChestManager.activeWingTypes.containsKey(player.getUUID())) {
             WingChestManager.registerWingPlayer(player, wingType);

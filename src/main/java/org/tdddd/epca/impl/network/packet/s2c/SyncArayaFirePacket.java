@@ -7,24 +7,8 @@ import org.tdddd.epca.impl.events.ArayaConstants;
 
 import java.util.function.Supplier;
 
-/**
- * Server -&gt; client batch sync of the render-only fire blocks the aura keeps alive.
- *
- * <p>The server decides where and when, exactly as the request asks (""): it rolls the fire
- * field around each holder, picks the positions, and reports each block's lifetime and height, which the
- * client only draws. The client never invents a position, never extends a lifetime and never spawns a
- * fire of its own, so a blocked or lagging client cannot drift from the server's picture.</p>
- *
- * <h2>Payload</h2>
- * <p>A count, the absolute game tick the whole field was rolled at, and then that many entries of
- * {@code (blockPos, lifetimeTicks, height)}. The roll tick is sent once per batch instead of per entry,
- * because a field is always rolled as a whole; it is what makes every client put the same fire out at
- * the same instant, even one that connects in the middle of a wave. The height travels as a byte in
- * 1/255-block steps, which is finer than a pixel at any sane distance and keeps the packet small.</p>
- */
 public class SyncArayaFirePacket {
 
-    /** Hard cap on how many fire blocks one batch may carry, on the sending and receiving side. */
     public static final int MAX_ENTRIES = 256;
 
     private final long rolledAtTick;
@@ -57,21 +41,19 @@ public class SyncArayaFirePacket {
         for (int i = 0; i < size; i++) {
             buf.writeBlockPos(new net.minecraft.core.BlockPos(this.xs[i], this.ys[i], this.zs[i]));
             buf.writeVarInt(Math.max(1, this.lifetimes[i]));
-            // 1/255-block steps: the client multiplies by the same factor.
+
             int height = Math.round(this.heights[i] * 255.0F);
             buf.writeByte(Math.max(0, Math.min(255, height)));
-            // Age of this entry relative to the batch tick: the fire field keeps overlapping waves, so
-            // every block carries its own birthday instead of sharing the wave's.
+
             buf.writeVarInt((int) Math.min(Integer.MAX_VALUE, Math.max(0L, this.bornAgoTicks[i])));
         }
     }
 
-    /** Height decode factor of the byte written by {@link #encode}. */
     public static final float HEIGHT_SCALE = 255.0F;
 
     public static SyncArayaFirePacket decode(FriendlyByteBuf buf) {
         int size = buf.readVarInt();
-        // Checked before the arrays are allocated, so a malformed count cannot blow up the client.
+
         if (size < 0 || size > MAX_ENTRIES) {
             throw new IllegalArgumentException(
                     "SyncArayaFirePacket: " + size + " entries exceeds " + MAX_ENTRIES);
@@ -101,4 +83,3 @@ public class SyncArayaFirePacket {
         ctx.get().setPacketHandled(true);
     }
 }
-

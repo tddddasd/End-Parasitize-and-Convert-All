@@ -32,7 +32,7 @@ public class EntityIntegrationEvents {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH = Paths.get("config", "E-PCA", "entity_check_namespaces.json");
-    private static Set<String> checkedNamespaces = new HashSet<>(Collections.singletonList("epca")); 
+    private static Set<String> checkedNamespaces = new HashSet<>(Collections.singletonList("epca"));
     private static long lastConfigLoadTime = -1;
     private static final long CONFIG_RELOAD_INTERVAL = 1200;
 
@@ -90,15 +90,6 @@ public class EntityIntegrationEvents {
         }
     }
 
-    /**
-     * Only epca's own mobs can take part in an integration rule, so the world wide scan is filtered to
-     * them before any rule work happens.
-     *
-     * <p>It used to collect <b>every</b> mob inside the world border every five ticks and then run every
-     * rule against each of them, and each rule that matched did its own {@code getEntitiesOfClass} area
-     * query. On a world with a few hundred mobs that is thousands of entity queries per five ticks, which
-     * showed up as server lag.</p>
-     */
     private static void checkWorldForIntegrations(ServerLevel level) {
         List<Mob> allEntities = level.getEntitiesOfClass(
                 Mob.class,
@@ -110,7 +101,6 @@ public class EntityIntegrationEvents {
         }
     }
 
-    /** True for mobs registered by epca, i.e. the only ones an integration rule can mention. */
     private static boolean isEpcaMob(Mob entity) {
         if (entity == null || !entity.isAlive()) {
             return false;
@@ -196,7 +186,7 @@ public class EntityIntegrationEvents {
         if (event.getEntity() instanceof Mob mob &&
                 mob.level() instanceof ServerLevel serverLevel) {
             String entityId = getEntityId(mob);
-            
+
             String namespace = entityId.contains(":") ? entityId.split(":")[0] : "";
             if (checkedNamespaces.contains(namespace)) {
                 if (serverLevel.getGameTime() % 5 == 0) {

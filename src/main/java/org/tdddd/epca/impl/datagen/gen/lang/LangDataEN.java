@@ -11,14 +11,12 @@ public class LangDataEN extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        // Item groups / basic UI
+
         add("itemGroup." + epca.MODID + ".main_tab", "E-PCA");
 
-        // Gamerules
         add("gamerule.epca_hardnessConversionBlock", "Convert blocks based on hardness");
         add("gamerule.epca_hardnessConversionBlock.description", "When a block doesn't have a transformation configuration mapping, is it allowed to convert it into Infested Residue, Rocklike, or Plankslike blocks based on its hardness");
 
-        // Tooltips
         add("tooltip.epca.max_damage_type", "Max Damage Type: %s (\u00d7%s)");
         add("tooltip.epca.min_kill_count", "Min Kill Count: %d");
         add("tooltip.epca.broken_adaptation_time", "Broken Adaptation: %.1fs");
@@ -33,15 +31,12 @@ public class LangDataEN extends LanguageProvider {
         add("tooltip.epca.negative", "Negative: %s");
         add("tooltip.epca.item_proficiency", "Proficiency: %d/%d [Damage Bonus +%s%%]");
 
-        // Jade plugins
         add("config.jade.plugin_epca.damage_adaptation_info", "Damage Adaptation Info");
         add("config.jade.plugin_epca.kill_count_info", "Kill Count Info");
         add("config.jade.plugin_epca.unknown_health", "Unknown Health");
 
-        // Jade health text for Bio-Tort Incarnation (fixed health, shown as "Unknown")
         add("jade.epca.unknown_health", "Unknown");
 
-        // Advancements
         add("advancements.epca.root.description", "The Beginning of the Apocalypse");
         add("advancements.epca.root.title", "Usual?");
         add("advancements.epca.sense_of_crisis.title", "Sense of crisis");
@@ -49,11 +44,9 @@ public class LangDataEN extends LanguageProvider {
         add("advancements.epca.master_difficulty.title", "Only dedicated to those who offer...");
         add("advancements.epca.master_difficulty.description", "Enter a world on hard mode - master difficulty without enabling cheats");
 
-        // Biomes
         add("biome.epca.parasite_biome", "Parasite Biome");
         add("generator.epca.cursed_world", "Cursed World");
 
-        // Creative tabs / categories
         add("item.epca.category.spawn_eggs", "\u00a7lSpawn Eggs");
         add("item.epca.category.materials_gear", "\u00a7lMaterials & Gear");
         add("item.epca.category.blocks", "\u00a7lBlocks");
@@ -63,14 +56,11 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.category_reshape", "Category: Reshape");
         add("item.epca.category_link", "Category: Link");
 
-        // Soul fire purification recipes shipped by this mod under the eej recipe type
         add("epca.soul_fire_purification.recipes", "Soul Fire Purification recipes (type eej:soul_fire_purification)");
 
-        // Bestiary
         add("epca.tab.parent.main_tab", "Parasite Bestiary");
         add("epca.tab.child.onesent", "Onesent");
 
-        // Entities
         add("entity.epca.yawning_nya.join", "\u00a7eYawning_Nya joined the world");
         add("entity.epca.yawning_nya", "Yawning_Nya");
         add("entity.epca.bio_tort_incarnation.join", "\u00a7eBio-Tort Incarnation joined the world");
@@ -139,11 +129,10 @@ public class LangDataEN extends LanguageProvider {
         add("entity.epca.infested_spider_web_blood_projectile", "Infested Blood Spider Web Projectile");
         add("entity.epca.infested_cave_spider_web_projectile", "Infested Cave Spider Web Projectile");
         add("entity.epca.infested_bat", "Infested Bat");
-        // Spiders: the blood and cave forms are variants of these two types, not separate entities.
+
         add("entity.epca.infested_spider", "Infested Spider");
         add("entity.epca.walking_spider_head", "Walking Spider Head");
 
-        // Thrown spears
         add("entity.epca.thrown_wooden_spear", "Wooden Spear");
         add("entity.epca.thrown_stone_spear", "Stone Spear");
         add("entity.epca.thrown_flint_spear", "Flint Spear");
@@ -153,7 +142,6 @@ public class LangDataEN extends LanguageProvider {
         add("entity.epca.thrown_diamond_spear", "Diamond Spear");
         add("entity.epca.thrown_netherite_spear", "Netherite Spear");
 
-        // Effects
         add("effect.epca.bleeding", "Bleeding");
         add("effect.epca.link", "Link");
         add("effect.epca.hyperplasia", "Hyperplasia");
@@ -173,17 +161,14 @@ public class LangDataEN extends LanguageProvider {
         add("effect.epca.soul_protection", "Soul Protection");
         add("effect.epca.fear.message", "You're in a state of panic!");
 
-        // Video settings sliders (gib burst)
         add("epca.option.gib_limit", "Mob gib pieces");
         add("epca.option.gib_limit.max", "Max");
         add("epca.option.gib_multiplier", "Gib multiplier (debug)");
 
-        // Infested raid
         add("effect.epca.infested_omen", "Infested Omen");
         add("epca.raid.bar", "Infested Raid - Wave %s/%s");
         add("epca.raid.started", "An infested raid has begun!");
 
-        // Items
         add("item.epca.wooden_spear", "Wooden Spear");
         add("item.epca.stone_spear", "Stone Spear");
         add("item.epca.flint_spear", "Flint Spear");
@@ -193,7 +178,6 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.diamond_spear", "Diamond Spear");
         add("item.epca.netherite_spear", "Netherite Spear");
 
-        // Spawn eggs
         add("item.epca.ripper_spawn_egg", "Ripper Spawn Egg");
         add("item.epca.curbug_spawn_egg", "Curbug Spawn Egg");
         add("item.epca.bio_tort_incarnation_spawn_egg", "Bio-Tort Incarnation Spawn Egg");
@@ -248,7 +232,6 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.walking_spider_head_spawn_egg", "Walking Spider Head Spawn Egg");
         add("item.epca.walking_cave_spider_head_spawn_egg", "Walking Cave Spider Head Spawn Egg");
 
-        // Materials & special items
         add("item.epca.copper_nugget", "Copper Nugget");
         add("item.epca.parasite_viscera", "Parasite Viscera");
         add("item.epca.infested_bone", "Infested Bone");
@@ -272,7 +255,6 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.living_armor_box_module", "Armor Box Module");
         add("item.epca.infested_sweet_berries", "Infested Sweet Berries");
 
-        // Living armor box tooltips
         add("item.epca.living_armor_box.tooltip.storage_info", "Storage Information:");
         add("item.epca.living_armor_box.tooltip.storage_space", "  %s/%s Items");
         add("item.epca.living_armor_box.tooltip.stored_items", "Stored Items:");
@@ -290,13 +272,11 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.living_armor_box.tooltip.state_equipped", "Equipped");
         add("item.epca.living_armor_box.tooltip.state_unequipped", "Unequipped");
 
-        // Living armor
         add("item.epca.living_helmet", "Living Helmet");
         add("item.epca.living_chestplate", "Living Chestplate");
         add("item.epca.living_leggings", "Living Leggings");
         add("item.epca.living_boots", "Living Boots");
 
-        // Other items
         add("item.epca.acid_bucket", "Acid Bucket");
         add("item.epca.infested_rubbish", "Infested Rubbish");
         add("item.epca.infested_stick", "Infested Stick");
@@ -316,7 +296,6 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.infested_ender_pearl", "Infested Ender Pearl");
         add("item.epca.ender_blade_scrap", "Ender Blade Scrap");
 
-        // Blocks
         add("block.epca.infested_dirt", "Infested Dirt");
         add("block.epca.hive_node", "Hive Node");
         add("block.epca.infested_sand", "Infested Sand");
@@ -442,7 +421,6 @@ public class LangDataEN extends LanguageProvider {
         add("block.epca.acid_solution", "Acid");
         add("fluid_type.epca.acid_solution", "Acid");
 
-        // Commands
         add("commands.negativedamage.damage.success", "Successfully dealt %s damage to %s using %s");
         add("commands.negativedamage.damage.success.unknown", "Successfully dealt %s damage to %s");
         add("commands.negativedamage.damage.success.simple", "Dealt %s damage to %s");
@@ -454,7 +432,6 @@ public class LangDataEN extends LanguageProvider {
         add("commands.negativedamage.heal.success.simple", "Dealt %s damage to %s");
         add("commands.negativedamage.no_entities", "No valid living entities found");
 
-        // World stages
         add("epca.stage.-2", "The world's barrier is intact and undamaged");
         add("epca.stage.-1", "The world's barrier is intact and undamaged");
         add("epca.stage.0", "The world's barrier has slightly loosened...");
@@ -472,7 +449,6 @@ public class LangDataEN extends LanguageProvider {
         add("epca.stage.12", "World Barrier Integrity <1%");
         add("epca.stage.13", "World Barrier Completely ruined...");
 
-        // Difficulty
         add("epca.difficulty.button", "Extra Difficulty - %s");
         add("epca.difficulty.easy", "Easy");
         add("epca.difficulty.normal", "Normal");
@@ -487,39 +463,28 @@ public class LangDataEN extends LanguageProvider {
         add("key.epca.follow_cancel", "Cancel Follow Parasite");
         add("key.categories.epca", "E-PCA");
         add("key.epca.open_organs", "Open Nest Leader Organ GUI");
-        // STAGE B
-        //  HiveLeaderOrganKeys#TELEPORT
+
         add("key.epca.organ_teleport", "Organ Teleport (Pearls)");
-        // Nest Leader skill "Decompose Parasite" key (default unbound,
-        // see HiveLeaderOrganKeys#DECOMPOSE_PARASITE).
+
         add("key.epca.decompose_parasite", "Decompose Parasite (aim at a parasite)");
         add("tag.epca.organ_part", "Organ Part");
 
-        //  Nest Leader organ GUI (HiveLeaderOrganScreen)
-        // Every user-visible string in the screen comes from one of these keys; the
-        // zh_cn and en_us key sets must stay identical.
         add("epca.organ_gui.title", "Nest Leader Organs");
 
-        // The biomass-point readout in the top-left corner of the panel (%s = current points).
         add("epca.organ_gui.biomass", "Biomass: %s");
 
-        // The hint line under the title: four segments plus a separator key (a locale
-        // may translate the separator to an empty string).
         add("epca.organ_gui.hint.drag", "Drag with the left button to rotate the model");
         add("epca.organ_gui.hint.quick_move", "Shift-click to quick-move");
         add("epca.organ_gui.hint.transfer", "Inventory and slots can be moved between");
         add("epca.organ_gui.hint.close", "ESC to close");
         add("epca.organ_gui.hint.separator", "  ·  ");
 
-        // Shown while the server-side slot data has not arrived / when there is no local player.
         add("epca.organ_gui.waiting_data", "Waiting for server slot data...");
         add("epca.organ_gui.model.none", "(no player model)");
 
-        // Inventory / hotbar headings.
         add("epca.organ_gui.inventory", "Inventory");
         add("epca.organ_gui.hotbar", "Hotbar");
 
-        // Slot group names (6 purple groups + the 2 red regions; grouping table is OrganSlotGroup).
         add("epca.organ_gui.group.head", "Head");
         add("epca.organ_gui.group.torso", "Torso");
         add("epca.organ_gui.group.left_arm", "Left Arm");
@@ -529,11 +494,6 @@ public class LangDataEN extends LanguageProvider {
         add("epca.organ_gui.group.torso_inner", "Torso Inner");
         add("epca.organ_gui.group.head_inner", "Head Inner");
 
-        // Non-numeric text of both readouts. Purple (bottom left): 9 attribute names plus
-        // 3 source names. Green (bottom right): 2 labels plus the percent unit (the numbers
-        // themselves are still formatted by OrganStatDefaults, at most 2 decimals).
-        // STAGE A: the attribute table grew from 7 to 9 (Armor Toughness / Swim Speed); the
-        // key set must stay identical to zh_cn.
         add("epca.organ_gui.attribute.health.name", "Max Health");
         add("epca.organ_gui.attribute.armor.name", "Armor");
         add("epca.organ_gui.attribute.armor_toughness.name", "Armor Toughness");
@@ -550,11 +510,9 @@ public class LangDataEN extends LanguageProvider {
         add("epca.organ_gui.readout.adaptation_reduction", "Adaptation damage reduction");
         add("epca.organ_gui.readout.percent", "%");
 
-        // Notes & messages
         add("epca.note.title", "E-PCA Note");
         add("epca.message.stage_too_low", "The erosion stage here is below level 3...");
 
-        // Bestiary contents (with images and formatting)
         add("epca.content.onesent", "§l§0Onesent§r\n$[page]$\n§0Curbug\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0The image above shows a Curbug.");
         add("epca.content.test3", "§0\n${img:epca:textures/gui/note_pic/yawning_neko.png,512}$\n§0Author\n${img:epca:textures/gui/note_pic/xiao_ku_kmc.png,512}$\n§0Artist\n${img:epca:textures/gui/note_pic/thomas_lovlin.png,512}$\n§0Sound Designer");
     }

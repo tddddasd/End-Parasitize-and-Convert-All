@@ -26,12 +26,11 @@ import org.tdddd.epca.impl.overworld.registry.particles.partices.*;
 public class ClientSetup {
     @SubscribeEvent
     public static void onClientSetup1(FMLClientSetupEvent event) {
-        //  shader
+
         EpcaRenderClient.onClientSetup(event);
-        
+
         event.enqueueWork(() -> {
-            // Load the saved gib sliders once and hand them to the bundled epca_dismemberment mod, so the
-            // very first death already uses them even if the player never opens Video Settings.
+
             EpcaClientSettings.syncToCompanion();
             MenuScreens.register(ModMenus.SWALLOW_CYST.get(), SwallowCystScreen::new);
             Item bloodyClock = ModItems.BLOODY_CLOCK.get();
@@ -39,33 +38,19 @@ public class ClientSetup {
                     (stack, level, entity, seed) -> {
                         Level world = level;
                         if (entity instanceof LivingEntity) world = entity.level();
-                        if (world == null) return 0f;   
+                        if (world == null) return 0f;
                         int stage = ClientEvolutionData.getStageForDimension(world);
-                        
+
                         return (float)(stage + 2);
                     });
         });
     }
 
-    /**
-     *  GUI SPEC  1  B1 <b>H</b> -
-     *
-     * <p> Forge  {@link RegisterKeyMappingsEvent}mod
-     * {@code ClientHandlerI}  {@code InputEvent.Key}  GLFW
-     *  SPEC " H"</p>
-     *
-     * <p> {@code key.categories.epca}lang
-     *  {@code LangDataCN}/{@code LangDataEN}</p>
-     *
-     * <p>STAGE B  {@link HiveLeaderOrganKeys#TELEPORT}
-     * SPEC  2 <b></b>
-     *  H  - </p>
-     */
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(HiveLeaderOrganKeys.OPEN_ORGANS);
         event.register(HiveLeaderOrganKeys.TELEPORT);
-        //  HiveLeaderOrganKeys#DECOMPOSE_PARASITE
+
         event.register(HiveLeaderOrganKeys.DECOMPOSE_PARASITE);
     }
 

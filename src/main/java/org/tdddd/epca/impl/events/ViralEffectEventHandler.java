@@ -16,16 +16,13 @@ public class ViralEffectEventHandler {
     public static void onLivingHurt(LivingHurtEvent event) {
         LivingEntity entity = event.getEntity();
 
-        
         MobEffectInstance viralEffect = entity.getEffect(ModEffects.VIRAL.get());
         if (viralEffect == null) return;
 
-        
         int amplifier = viralEffect.getAmplifier();
-        
+
         float damageMultiplier = ViralEffect.getDamageMultiplier(amplifier);
 
-        
         float originalDamage = event.getAmount();
         float finalDamage = originalDamage + damageMultiplier;
         event.setAmount(finalDamage);

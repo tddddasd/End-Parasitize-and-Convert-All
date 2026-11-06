@@ -23,29 +23,28 @@ import java.util.UUID;
 
 public class EnderErosionEffect extends MobEffect implements RemovableEffect {
 
-    
     private static final Map<UUID, Float> erosionValues = new HashMap<>();
-    
+
     private static final Map<UUID, Integer> erosionTimers = new HashMap<>();
 
     public EnderErosionEffect() {
-        super(MobEffectCategory.BENEFICIAL, 0x8B008B); 
-        
+        super(MobEffectCategory.BENEFICIAL, 0x8B008B);
+
         MinecraftForge.EVENT_BUS.register(this);
     }
 
     @Override
     public boolean isRemovable() {
-        return false; 
+        return false;
     }
 
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
         if (!entity.level().isClientSide) {
-            
+
             UUID uuid = entity.getUUID();
             float currentErosion = erosionValues.getOrDefault(uuid, 0f);
-            float newErosion = currentErosion + (amplifier + 1) * 0.5f; 
+            float newErosion = currentErosion + (amplifier + 1) * 0.5f;
             erosionValues.put(uuid, newErosion);
         }
         super.applyEffectTick(entity, amplifier);
@@ -53,7 +52,7 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
-        
+
         return duration % 10 == 0;
     }
 
@@ -62,10 +61,10 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
         if (event.phase == TickEvent.Phase.END && !event.player.level().isClientSide) {
             UUID uuid = event.player.getUUID();
             if (event.player.hasEffect(this)) {
-                
+
                 int timer = erosionTimers.getOrDefault(uuid, 0);
                 timer++;
-                if (timer >= 10) { 
+                if (timer >= 10) {
                     timer = 0;
                 }
                 erosionTimers.put(uuid, timer);
@@ -84,19 +83,17 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
 
             if (erosion > 0 && !entity.level().isClientSide) {
                 float minimumDamage = erosion * 0.25f;
-                
+
                 Registry<DamageType> registry = entity.level().registryAccess()
                         .registryOrThrow(Registries.DAMAGE_TYPE);
                 Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
                 DamageSource minimumSource = new DamageSource(holder);
                 entity.hurt(minimumSource, minimumDamage);
 
-                
                 float magicDamage = erosion * 0.75f;
                 entity.hurt(entity.damageSources().magic(), magicDamage);
             }
 
-            
             erosionValues.remove(uuid);
             erosionTimers.remove(uuid);
         }
@@ -106,7 +103,7 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
     public void onEffectAdded(MobEffectEvent.Added event) {
         MobEffectInstance effectInstance = event.getEffectInstance();
         if (effectInstance != null && effectInstance.getEffect() == this && event.getEntity() != null) {
-            
+
             UUID uuid = event.getEntity().getUUID();
             erosionValues.put(uuid, 0f);
             erosionTimers.put(uuid, 0);
@@ -123,7 +120,7 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
             float erosion = erosionValues.getOrDefault(uuid, 0f);
 
             if (erosion > 0 && !entity.level().isClientSide) {
-                
+
                 float setHealthDamage = erosion * 0.25f;
                 float currentHealth = entity.getHealth();
                 float newHealth = currentHealth - setHealthDamage;
@@ -135,12 +132,10 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
                     entity.setHealth(newHealth);
                 }
 
-                
                 float magicDamage = erosion * 0.75f;
                 entity.hurt(entity.damageSources().magic(), magicDamage);
             }
 
-            
             erosionValues.remove(uuid);
             erosionTimers.remove(uuid);
         }
@@ -149,7 +144,7 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
     @SubscribeEvent
     public void onEntityDeath(net.minecraftforge.event.entity.living.LivingDeathEvent event) {
         if (event.getEntity().hasEffect(this)) {
-            
+
             UUID uuid = event.getEntity().getUUID();
             erosionValues.remove(uuid);
             erosionTimers.remove(uuid);
@@ -159,7 +154,7 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
     @Override
     public void addAttributeModifiers(LivingEntity entity, AttributeMap attributeMap, int amplifier) {
         super.addAttributeModifiers(entity, attributeMap, amplifier);
-        
+
         if (!entity.level().isClientSide) {
             UUID uuid = entity.getUUID();
             erosionValues.put(uuid, 0f);
@@ -170,6 +165,6 @@ public class EnderErosionEffect extends MobEffect implements RemovableEffect {
     @Override
     public void removeAttributeModifiers(LivingEntity entity, AttributeMap attributeMap, int amplifier) {
         super.removeAttributeModifiers(entity, attributeMap, amplifier);
-        
+
     }
 }

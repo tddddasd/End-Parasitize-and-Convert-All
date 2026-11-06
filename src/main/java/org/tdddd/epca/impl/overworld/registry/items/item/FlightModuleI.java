@@ -33,4 +33,3 @@ public class FlightModuleI extends LivingArmorBoxModuleItem {
         return Component.translatable("tooltip.epca.negative", " ");
     }
 }
-

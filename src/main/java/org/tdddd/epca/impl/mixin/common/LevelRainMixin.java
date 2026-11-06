@@ -10,12 +10,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.overworld.data.LikeBiome;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 
-/**
- * Lets a like biome override rain at a position.
- *
- * <p>Verified signature (javap on the 1.20.1 mapped jar):
- * {@code public boolean isRainingAt(BlockPos)}.</p>
- */
 @Mixin(Level.class)
 public abstract class LevelRainMixin {
 

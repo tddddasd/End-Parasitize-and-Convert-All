@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class CarryConfigManager implements ResourceManagerReloadListener {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String FOLDER = "entity_carry"; 
+    private static final String FOLDER = "entity_carry";
 
     private Map<ResourceLocation, CarryConfig> configs = new HashMap<>();
 
@@ -26,11 +26,9 @@ public class CarryConfigManager implements ResourceManagerReloadListener {
     public void onResourceManagerReload(ResourceManager resourceManager) {
         Map<ResourceLocation, CarryConfig> newConfigs = new HashMap<>();
 
-        
         resourceManager.listResources(FOLDER, file -> file.getPath().endsWith(".json"))
                 .forEach((fileId, resource) -> {
-                    
-                    
+
                     String path = fileId.getPath();
                     String fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.'));
                     ResourceLocation entityId = new ResourceLocation(fileId.getNamespace(), fileName);
@@ -60,6 +58,5 @@ public class CarryConfigManager implements ResourceManagerReloadListener {
         return config.getCarryable().contains(ForgeRegistries.ENTITY_TYPES.getKey(targetType));
     }
 
-    
     public static final CarryConfigManager INSTANCE = new CarryConfigManager();
 }

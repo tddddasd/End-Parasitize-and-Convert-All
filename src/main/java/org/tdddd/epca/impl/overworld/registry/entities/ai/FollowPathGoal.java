@@ -27,9 +27,9 @@ public class FollowPathGoal extends Goal {
 
     @Override
     public void stop() {
-        
+
         if (mob.isPathFollower()) {
-            mob.followPathStep(); 
+            mob.followPathStep();
         }
     }
 }

@@ -48,7 +48,6 @@ public class InfestedChiseledDeepslate extends Block implements InfestedBlockInt
         return Blocks.DEEPSLATE.getSoundType(Blocks.DEEPSLATE.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {

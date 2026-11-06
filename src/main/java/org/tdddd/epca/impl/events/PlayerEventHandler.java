@@ -20,22 +20,20 @@ public class PlayerEventHandler {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        
+
         player.getServer().execute(() -> {
             checkAndGrantEvolutionProgress(player);
         });
     }
 
-    
     private static void checkAndGrantEvolutionProgress(ServerPlayer player) {
         try {
-            
+
             ServerLevel overworld = player.getServer().overworld();
             EvolutionManager evolutionManager = EvolutionManager.forOverworld(overworld);
 
             int currentStage = evolutionManager.getStage();
 
-            
             if (currentStage >= 5 && currentStage <= 10) {
                 grantSenseOfCrisisAdvancement(player);
             }
@@ -44,18 +42,17 @@ public class PlayerEventHandler {
         }
     }
 
-    
     private static void grantSenseOfCrisisAdvancement(ServerPlayer player) {
         try {
-            
+
             Advancement advancement = player.getServer().getAdvancements()
                     .getAdvancement(new ResourceLocation("epca", "sense_of_crisis"));
 
             if (advancement != null) {
-                
+
                 AdvancementProgress progress = player.getAdvancements().getOrStartProgress(advancement);
                 if (!progress.isDone()) {
-                    
+
                     player.getAdvancements().award(advancement, "unlock");
                 }
             }

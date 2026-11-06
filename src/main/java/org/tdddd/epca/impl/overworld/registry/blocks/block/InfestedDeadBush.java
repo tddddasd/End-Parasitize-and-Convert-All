@@ -34,7 +34,7 @@ public class InfestedDeadBush extends BushBlock implements InfestedBlockInterfac
 
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter world, BlockPos pos) {
-        
+
         Block block = state.getBlock();
         return block == ModBlocks.INFESTED_DIRT.get() ||
                 block == ModBlocks.INFESTED_SAND.get() ||
@@ -43,11 +43,11 @@ public class InfestedDeadBush extends BushBlock implements InfestedBlockInterfac
 
     @Override
     public int getFlammability(BlockState state, BlockGetter level, BlockPos pos, Direction face) {
-        return 100;  
+        return 100;
     }
 
     @Override
     public int getFireSpreadSpeed(BlockState state, BlockGetter level, BlockPos pos, Direction face) {
-        return 60;   
+        return 60;
     }
 }

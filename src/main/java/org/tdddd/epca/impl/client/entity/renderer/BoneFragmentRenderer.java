@@ -13,7 +13,7 @@ public class BoneFragmentRenderer<T extends Entity> extends EntityRenderer<T> {
     }
     @Override
     public void render(T entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-        
+
     }
     @Override
     public ResourceLocation getTextureLocation(T entity) {

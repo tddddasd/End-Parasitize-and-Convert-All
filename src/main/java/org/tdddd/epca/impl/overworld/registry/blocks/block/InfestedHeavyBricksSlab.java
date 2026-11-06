@@ -30,7 +30,7 @@ public class InfestedHeavyBricksSlab extends SlabBlock implements InfestedBlockI
 
     public InfestedHeavyBricksSlab(Properties properties) {
         super(properties);
-        
+
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(NATURAL_SPAWN, true)
                 .setValue(TYPE, SlabType.BOTTOM)
@@ -54,17 +54,16 @@ public class InfestedHeavyBricksSlab extends SlabBlock implements InfestedBlockI
         return Blocks.DEEPSLATE_BRICKS.getSoundType(Blocks.DEEPSLATE_BRICKS.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 }

@@ -16,21 +16,6 @@ import org.tdddd.epca.impl.events.render.ItemRenderRegistry;
 import org.tdddd.epca.impl.client.render.layer.CorruptionPulse;
 import org.tdddd.epca.impl.client.render.twitch.ITwitchItem;
 
-/**
- *  RottenRuinsSplendiding
- * {@code MixinItemRendererTwitch}
- *
- * <p> {@code ItemRenderer.render()}  HEAD
- *
- * </p>
- *
- * <h3></h3>
- * <ul>
- *   <li> {@link ITwitchItem}</li>
- *   <li> {@code ItemLayerConfig.twitch(true)} </li>
- * </ul>
- * GUI
- */
 @Mixin(ItemRenderer.class)
 public abstract class ItemRendererTwitchMixin {
 
@@ -76,4 +61,3 @@ public abstract class ItemRendererTwitchMixin {
         CorruptionPulse.applyTwitch(poseStack, stack, mc.level.getGameTime(), strength);
     }
 }
-

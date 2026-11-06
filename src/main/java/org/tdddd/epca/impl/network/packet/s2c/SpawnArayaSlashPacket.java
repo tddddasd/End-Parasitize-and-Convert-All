@@ -6,19 +6,6 @@ import org.tdddd.epca.impl.client.effect.ArayaSlashClientCache;
 
 import java.util.function.Supplier;
 
-/**
- * Server -&gt; client: one Alayavijnana slash was cut, draw it here.
- *
- * <p>Sent to every player that can see the victim, for every kill of another player by the named staff.
- * The slash is a pure visual, so it is not an entity: an entity would need a spawn packet, a tracker, an
- * update packet and a removal packet, and would tick on the server for something that only ever draws.
- * One of these packets instead carries the three things the renderer cannot derive - where the blade
- * goes, which way the cut came from (that is what fixes the 50-degree blade frame) and the world time it
- * started at, so growth, hold and fade run on the world clock on every client alike.</p>
- *
- * <p>The packet is deliberately fire-and-forget and has no lifetime field: the client drops the entry
- * after {@code SLASH_HOLD_TICKS + SLASH_FADE_TICKS}, and a client that joins later simply never saw it.</p>
- */
 public class SpawnArayaSlashPacket {
 
     private final double x;

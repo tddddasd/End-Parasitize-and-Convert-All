@@ -22,7 +22,7 @@ public abstract class AcidSolutionFluid extends ForgeFlowingFluid {
 
     @Override
     protected void beforeDestroyingBlock(LevelAccessor level, BlockPos pos, BlockState state) {
-        
+
         Block.dropResources(state, level, pos, state.hasBlockEntity() ? level.getBlockEntity(pos) : null);
     }
 
@@ -33,14 +33,14 @@ public abstract class AcidSolutionFluid extends ForgeFlowingFluid {
 
     @Override
     protected void spreadTo(LevelAccessor level, BlockPos pos, BlockState state, Direction direction, FluidState fluidState) {
-        
+
         if (direction != null) {
             BlockPos adjacentPos = pos.relative(direction);
             FluidState adjacentFluid = level.getFluidState(adjacentPos);
 
             if (adjacentFluid.getType().isSame(net.minecraft.world.level.material.Fluids.WATER) &&
                     (adjacentFluid.getType().isSame(Fluids.LAVA))) {
-                
+
                 return;
             }
         }
@@ -77,7 +77,7 @@ public abstract class AcidSolutionFluid extends ForgeFlowingFluid {
 
         @Override
         public int getAmount(FluidState state) {
-            return 7;   
+            return 7;
         }
 
         @Override

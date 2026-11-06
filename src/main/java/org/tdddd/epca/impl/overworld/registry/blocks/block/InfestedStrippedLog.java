@@ -28,12 +28,12 @@ import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedStrippedLog extends RotatedPillarBlock implements InfestedBlockInterface {
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedStrippedLog(Properties properties) {
         super(properties);
-        
+
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(AXIS, Direction.Axis.Y)
                 .setValue(NATURAL_SPAWN, true)
@@ -45,10 +45,9 @@ public class InfestedStrippedLog extends RotatedPillarBlock implements InfestedB
         builder.add(AXIS, NATURAL_SPAWN);
     }
 
-    
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        
+
         return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
     }
 
@@ -69,24 +68,22 @@ public class InfestedStrippedLog extends RotatedPillarBlock implements InfestedB
             super(block, properties);
         }
 
-        
         @Override
         public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
             return 300;
         }
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 

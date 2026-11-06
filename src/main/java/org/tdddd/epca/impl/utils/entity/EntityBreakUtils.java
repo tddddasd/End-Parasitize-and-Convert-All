@@ -10,9 +10,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * Utility methods for entity interactions with blocks - light source breaking, ground detection, etc.
- */
 public final class EntityBreakUtils {
 
     private EntityBreakUtils() {}
@@ -20,10 +17,6 @@ public final class EntityBreakUtils {
     private static final int LIGHT_BREAK_RANGE = 8;
     private static final int LIGHT_BREAK_COOLDOWN = 60;
 
-    /**
-     * Try to break nearby light sources (torches, lanterns, etc.) if brightness is too high.
-     * Returns the remaining cooldown.
-     */
     public static int tryBreakLightSources(LivingEntity entity, int currentCooldown) {
         if (currentCooldown > 0) return currentCooldown - 1;
 
@@ -48,9 +41,6 @@ public final class EntityBreakUtils {
         return 0;
     }
 
-    /**
-     * Get the ground height (first solid block top) at a position.
-     */
     public static double getGroundHeightAt(Level level, BlockPos pos, int maxSearchUp) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
         int startY = Math.min(pos.getY() + maxSearchUp, level.getMaxBuildHeight());
@@ -65,9 +55,6 @@ public final class EntityBreakUtils {
         return level.getMinBuildHeight();
     }
 
-    /**
-     * Check if there's a solid block at or below the given position, within maxDown range.
-     */
     public static boolean hasSolidGround(Level level, BlockPos pos, int maxDown) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
         for (int i = 0; i <= maxDown; i++) {

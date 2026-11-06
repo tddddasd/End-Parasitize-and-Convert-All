@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.mixin.common;
 
 import net.minecraft.nbt.CompoundTag;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.Mob;
@@ -13,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 @Mixin(Mob.class)
 public abstract class MobMixin {
@@ -31,7 +31,7 @@ public abstract class MobMixin {
             CompoundTag tag,
             CallbackInfoReturnable<SpawnGroupData> cir
     ) {
-        
+
         if (spawnType != MobSpawnType.NATURAL && spawnType != MobSpawnType.CHUNK_GENERATION) {
             return;
         }
@@ -42,7 +42,7 @@ public abstract class MobMixin {
         }
 
         Mob mob = (Mob) (Object) this;
-        if (!(mob instanceof IParasite)) {
+        if (!ParasiteEvents.isParasiteEntity(mob)) {
             mob.discard();
             cir.setReturnValue(null);
         }

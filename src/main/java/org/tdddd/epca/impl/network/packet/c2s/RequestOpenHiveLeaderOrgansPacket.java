@@ -12,30 +12,6 @@ import org.tdddd.epca.impl.network.packet.s2c.SyncHiveLeaderOrgansPacket;
 
 import java.util.function.Supplier;
 
-/**
- *  -&gt;  GUISPEC  2  1
- *
- * <h2></h2>
- * <p><b></b> GUI
- * {@code NetworkEvent.Context#getSender()}
- * </p>
- *
- * <h2></h2>
- * <ol>
- *   <li>{@code sender != null}/</li>
- *   <li>{@link HiveLeaderManager#isHiveLeader(java.util.UUID)}  true
- *
- *       {@code HiveLeaderHandler} /  /
- *       {@code IParasite#isParasiteByTagOrInterface}{@code BiomassEventHandler}
- *       <b></b></li>
- *   <li> {@link HiveLeaderOrganSavedData#readOrCreate} SPEC
- *        {@link HiveLeaderOrganGate#scan}
- *       {@link SyncHiveLeaderOrgansPacket}</li>
- * </ol>
- *
- * <p> GUI
- *  {@code HiveLeaderOrganScreen}</p>
- */
 public class RequestOpenHiveLeaderOrgansPacket {
 
     public RequestOpenHiveLeaderOrgansPacket() {
@@ -74,4 +50,3 @@ public class RequestOpenHiveLeaderOrgansPacket {
         context.setPacketHandled(true);
     }
 }
-

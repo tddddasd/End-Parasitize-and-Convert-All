@@ -6,7 +6,6 @@ import net.minecraftforge.eventbus.api.Cancelable;
 
 import java.util.UUID;
 
-
 @Cancelable
 public class ParasiteFollowEvent extends LivingEvent {
     private final UUID oldTarget;
@@ -18,27 +17,22 @@ public class ParasiteFollowEvent extends LivingEvent {
         this.newTarget = newTarget;
     }
 
-    
     public UUID getOldTarget() {
         return oldTarget;
     }
 
-    
     public UUID getNewTarget() {
         return newTarget;
     }
 
-    
     public boolean isStartFollow() {
         return oldTarget == null && newTarget != null;
     }
 
-    
     public boolean isStopFollow() {
         return oldTarget != null && newTarget == null;
     }
 
-    
     public boolean isSwitchTarget() {
         return oldTarget != null && newTarget != null && !oldTarget.equals(newTarget);
     }

@@ -25,10 +25,9 @@ import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedCoalOre extends Block implements InfestedBlockInterface {
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
-    /** Duration of the extra soul fire blindness, 5 seconds. */
     public static final int BLINDNESS_TICKS = 100;
 
     public InfestedCoalOre(Properties properties) {
@@ -52,17 +51,15 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
         super.neighborChanged(state, level, pos, block, fromPos, isMoving);
 
         if (!level.isClientSide) {
-            
+
             BlockState neighborState = level.getBlockState(fromPos);
             if (neighborState.is(Blocks.FIRE) || neighborState.is(Blocks.SOUL_FIRE)) {
-                // If any adjacent block is soul fire the explosion additionally blinds nearby
-                // creatures, matching the eej soul fire purification explosive path.
+
                 triggerExplosion(level, pos, hasSoulFireNeighbour(level, pos, fromPos, neighborState));
             }
         }
     }
 
-    /** True when a soul fire block touches this position; takes the already read neighbour first. */
     private static boolean hasSoulFireNeighbour(Level level, BlockPos pos, BlockPos fromPos, BlockState fromState) {
         if (fromState.is(Blocks.SOUL_FIRE)) {
             return true;
@@ -88,35 +85,31 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
         double x = pos.getX() + 0.5;
         double y = pos.getY() + 0.5;
         double z = pos.getZ() + 0.5;
-        float power = 4.0f; 
+        float power = 4.0f;
 
-        
-        
         level.explode(null, x, y, z, power, Level.ExplosionInteraction.TNT);
 
-        
-        double explosionRadius = power * 2.0; 
+        double explosionRadius = power * 2.0;
         AABB area = new AABB(pos).inflate(explosionRadius);
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, area)) {
             if (!entity.isAlive()) continue;
             double distance = Math.sqrt(entity.distanceToSqr(x, y, z));
             if (distance <= explosionRadius) {
-                // Soul fire adds Blindness I for 5 seconds (100 ticks) inside the radius.
+
                 if (soulFire) {
                     entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, BLINDNESS_TICKS, 0));
                 }
-                
+
                 float damage = (float) (14.0 * (1.0 - distance / explosionRadius));
                 if (damage > 0) {
                     entity.hurt(level.damageSources().explosion(null, null), damage);
-                    
+
                     applyKnockback(entity, x, y, z, distance, explosionRadius);
                 }
             }
         }
     }
 
-    
     private void applyKnockback(LivingEntity entity, double x, double y, double z, double distance, double maxRadius) {
         double dx = entity.getX() - x;
         double dz = entity.getZ() - z;
@@ -124,24 +117,23 @@ public class InfestedCoalOre extends Block implements InfestedBlockInterface {
         if (magnitude > 0) {
             dx /= magnitude;
             dz /= magnitude;
-            double knockbackStrength = (1.0 - distance / maxRadius) * 0.5; 
+            double knockbackStrength = (1.0 - distance / maxRadius) * 0.5;
             entity.setDeltaMovement(
                     entity.getDeltaMovement().add(dx * knockbackStrength, 0.3, dz * knockbackStrength)
             );
         }
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 }

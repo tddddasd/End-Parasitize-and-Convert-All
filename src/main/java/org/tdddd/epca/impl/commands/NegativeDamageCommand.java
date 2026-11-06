@@ -31,7 +31,7 @@ public class NegativeDamageCommand {
                                     return damage(context.getSource(),
                                             EntityArgument.getEntities(context, "targets"),
                                             FloatArgumentType.getFloat(context, "amount"),
-                                            "minecraft:generic",  
+                                            "minecraft:generic",
                                             null, null, null);
                                 })
                                 .then(Commands.argument("damageType", ResourceLocationArgument.id())
@@ -78,8 +78,6 @@ public class NegativeDamageCommand {
                 )
         );
 
-        
-        
     }
 
     private static int damage(CommandSourceStack source, Collection<? extends Entity> targets, float amount,
@@ -90,25 +88,19 @@ public class NegativeDamageCommand {
             if (entity instanceof LivingEntity) {
                 LivingEntity livingEntity = (LivingEntity) entity;
 
-                
                 DamageSource finalDamageSource = createDamageSource(source, damageType, position, directEntity, causingEntity);
 
-                
                 float oldHealth = livingEntity.getHealth();
 
-                
-                
                 boolean wasHurt = livingEntity.hurt(finalDamageSource, amount);
 
-                
                 float newHealth = livingEntity.getHealth();
                 float actualChange = newHealth - oldHealth;
 
-                
                 if (amount < 0) {
-                    
+
                     if (actualChange > 0) {
-                        
+
                         if (directEntity != null) {
                             source.sendSuccess(() -> Component.translatable("commands.negativedamage.heal.success",
                                     livingEntity.getDisplayName(),
@@ -121,7 +113,7 @@ public class NegativeDamageCommand {
                         }
                         successCount++;
                     } else {
-                        
+
                         if (directEntity != null) {
                             source.sendSuccess(() -> Component.translatable("commands.negativedamage.heal.failed",
                                     livingEntity.getDisplayName(),
@@ -132,7 +124,7 @@ public class NegativeDamageCommand {
                         }
                     }
                 } else {
-                    
+
                     if (wasHurt) {
                         if (directEntity != null) {
                             source.sendSuccess(() -> Component.translatable("commands.negativedamage.damage.success",
@@ -146,8 +138,7 @@ public class NegativeDamageCommand {
                         }
                         successCount++;
                     } else {
-                        
-                        
+
                         if (DamageAdaptation.isInvulnerable(livingEntity)) {
                             source.sendSuccess(() -> Component.translatable("commands.negativedamage.damage.invulnerable",
                                     livingEntity.getDisplayName()), true);
@@ -176,7 +167,6 @@ public class NegativeDamageCommand {
         var registry = source.getLevel().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
         ResourceLocation damageTypeId;
 
-        
         if (damageType.contains(":")) {
             damageTypeId = new ResourceLocation(damageType);
         } else {
@@ -186,11 +176,10 @@ public class NegativeDamageCommand {
         DamageType type = registry.get(damageTypeId);
 
         if (type == null) {
-            
+
             type = registry.get(new ResourceLocation("minecraft:generic"));
         }
 
-        
         DamageSource damageSource;
         if (directEntity != null && causingEntity != null) {
             damageSource = new DamageSource(registry.getHolderOrThrow(registry.getResourceKey(type).get()),

@@ -29,10 +29,9 @@ public class InfestedThrownEnderPearlRenderer extends EntityRenderer<InfestedThr
     public void render(InfestedThrownEnderPearl entity, float entityYaw, float partialTicks, PoseStack poseStack,
                        MultiBufferSource buffer, int packedLight) {
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(90F - entityYaw));   
-        poseStack.mulPose(Axis.XP.rotationDegrees(45F));               
+        poseStack.mulPose(Axis.YP.rotationDegrees(90F - entityYaw));
+        poseStack.mulPose(Axis.XP.rotationDegrees(45F));
 
-        
         ItemStack stack = new ItemStack(Items.ENDER_PEARL);
         this.itemRenderer.renderStatic(stack, ItemDisplayContext.GROUND, packedLight, OverlayTexture.NO_OVERLAY,
                 poseStack, buffer, entity.level(), entity.getId());
@@ -43,6 +42,6 @@ public class InfestedThrownEnderPearlRenderer extends EntityRenderer<InfestedThr
 
     @Override
     public ResourceLocation getTextureLocation(InfestedThrownEnderPearl entity) {
-        return TEXTURE; 
+        return TEXTURE;
     }
 }

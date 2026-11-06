@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 
 import net.minecraft.core.particles.ItemParticleOption;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
@@ -14,7 +15,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 
@@ -45,7 +45,6 @@ public class BoneFragment extends ThrowableProjectile {
     public void tick() {
         super.tick();
 
-        
         if (level().isClientSide) {
             ItemStack infestedBone = new ItemStack(ModItems.INFESTED_BONE.get());
             level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, infestedBone),
@@ -61,22 +60,20 @@ public class BoneFragment extends ThrowableProjectile {
     protected void onHitEntity(EntityHitResult result) {
         if (!level().isClientSide) {
             var target = result.getEntity();
-            
-            if (IParasite.isParasiteNoLivingByTagOrInterface(target)) {
-                
+
+            if (ParasiteEvents.isParasiteNoLivingByTagOrInterface(target)) {
+
                 return;
             }
-            
+
             boolean damageApplied = target.hurt(this.damageSources().generic(), 1.0F);
             if (damageApplied && target instanceof LivingEntity livingTarget) {
                 applyParaCurseEffect(livingTarget);
 
-                
                 if (this.random.nextFloat() < 0.1f) {
                     livingTarget.addEffect(new MobEffectInstance(ModEffects.BLEEDING.get(), 5 * 20, 0));
                 }
 
-                
                 if (target instanceof LivingEntity living && this.getPersistentData().getBoolean("InfestedFireArrow")) {
                     living.setRemainingFireTicks(160);
                 }
@@ -85,16 +82,14 @@ public class BoneFragment extends ThrowableProjectile {
         discardAndEffect();
     }
 
-    
     private void applyParaCurseEffect(LivingEntity target) {
         var existingEffect = target.getEffect(ModEffects.PARA_CURSE.get());
 
         if (existingEffect != null) {
-            
+
             target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 30 * 20, 0));
         }
     }
-
 
     @Override
     protected void onHitBlock(BlockHitResult result) {

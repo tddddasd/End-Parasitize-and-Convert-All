@@ -11,7 +11,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractEpcaEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.*;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIIBeckon;
@@ -28,21 +27,9 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Central entity type registration. All mob entities route through helper methods
- * that also register with {@link EpcaEntityManager} for:
- * <ul>
- *   <li>Automatic attribute creation (no manual event.put calls)</li>
- *   <li>Automatic renderer registration (no per-entity renderer code in ClientHandler)</li>
- * </ul>
- * Only entities with truly custom rendering (non-GeckoLib, special shaders, etc.)
- * stay on manual registration paths.
- */
 public class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, epca.MODID);
-
-    //  Resource helpers
 
     private static ResourceLocation modelLoc(String name) {
         return new ResourceLocation(epca.MODID, "geo/entity/" + name + ".geo.json");
@@ -56,31 +43,6 @@ public class ModEntities {
         return new ResourceLocation(epca.MODID, "animations/" + name + ".animation.json");
     }
 
-    /** Consumer for AbstractEpcaEntity subclasses that sets model/texture/animation on the entity. */
-    public static <T extends AbstractEpcaEntity> Consumer<T> defaultResources(String name) {
-        return entity -> {
-            entity.model = modelLoc(name);
-            entity.texture = texLoc(name);
-            entity.animation = animLoc(name);
-        };
-    }
-
-    //  Registration helpers
-
-    /** Full auto: AbstractEpcaEntity  attributes + auto-renderer (EpcaGeoRenderer). */
-    @SuppressWarnings("unchecked")
-    public static <T extends AbstractEpcaEntity> RegistryObject<EntityType<T>> registerMob(
-            String name, float width, float height,
-            EntityType.EntityFactory<T> factory,
-            Supplier<AttributeSupplier> attributes) {
-        return (RegistryObject) ENTITIES.register(name, () -> {
-            EntityType<T> type = EntityType.Builder.of(factory, MobCategory.MONSTER)
-                    .sized(width, height).clientTrackingRange(12).build(name);
-            return EpcaEntityManager.registerMob(type, attributes);
-        });
-    }
-
-    /** Existing entity (doesn't extend AbstractEpcaEntity)  attributes + auto-renderer via name. */
     public static <T extends LivingEntity> RegistryObject<EntityType<T>> registerMobWithRender(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -94,7 +56,6 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity  auto-renderer with separate model/texture/animation base names. */
     public static <T extends LivingEntity> RegistryObject<EntityType<T>> registerMobWithCustomModel(
             String name, String modelBase, String texBase, String animBase,
             float width, float height,
@@ -109,7 +70,6 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity with custom renderer  attributes only. */
     public static <T extends LivingEntity> RegistryObject<EntityType<T>> registerMobAttributes(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -122,7 +82,6 @@ public class ModEntities {
         });
     }
 
-    /** Misc entity, no attributes, custom renderer. */
     public static <T extends Entity> RegistryObject<EntityType<T>> registerMisc(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -132,7 +91,6 @@ public class ModEntities {
                         .sized(width, height).clientTrackingRange(12).build(name));
     }
 
-    /** Misc entity with extra config. */
     public static <T extends Entity> RegistryObject<EntityType<T>> registerMiscNoSummon(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory) {
@@ -153,10 +111,6 @@ public class ModEntities {
                         .build(name));
     }
 
-    //  Entity registrations
-    //  All mob entities use registerMobWithRender  auto-render via EpcaTypeGeoRenderer
-
-    // --- Onesent ---
     public static final RegistryObject<EntityType<Curbug>> CURBUG =
             registerMobWithRender("curbug", 0.5F, 0.4F, Curbug::new, MobCategory.MONSTER, 12, Curbug::setAttributes);
     public static final RegistryObject<EntityType<Ripper>> RIPPER =
@@ -170,7 +124,6 @@ public class ModEntities {
     public static final RegistryObject<EntityType<LightCarrier>> LIGHT_CARRIER =
             registerMobWithRender("light_carrier", 0.9F, 1.5F, LightCarrier::new, MobCategory.MONSTER, 12, LightCarrier::setAttributes);
 
-    // --- Poverty ---
     public static final RegistryObject<EntityType<SmallIncompleteForm>> SMALL_INCOMPLETE_FORM =
             registerMobWithRender("small_incomplete_form", 0.6F, 0.8F, SmallIncompleteForm::new, MobCategory.MONSTER, 12, SmallIncompleteForm::setAttributes);
     public static final RegistryObject<EntityType<MediumIncompleteForm>> MEDIUM_INCOMPLETE_FORM =
@@ -192,19 +145,16 @@ public class ModEntities {
     public static final RegistryObject<EntityType<LivingFleshSize4>> LIVING_FLESH_SIZE4 =
             registerMobWithCustomModel("living_flesh_size4", "living_flesh", "living_flesh", "living_flesh", 2.2F, 2.0F, LivingFleshSize4::new, MobCategory.MONSTER, 12, LivingFleshSize4::setAttributes);
 
-    // --- Link ---
     public static final RegistryObject<EntityType<StageIBeckon>> STAGE_I_BECKON =
             registerMobWithRender("stage_i_beckon", 0.6F, 2.2F, StageIBeckon::new, MobCategory.MONSTER, 12, StageIBeckon::setAttributes);
     public static final RegistryObject<EntityType<StageIIBeckon>> STAGE_II_BECKON =
             registerMobWithRender("stage_ii_beckon", 0.75F, 5.0F, StageIIBeckon::new, MobCategory.MONSTER, 12, StageIIBeckon::setAttributes);
 
-    // --- Reshape ---
     public static final RegistryObject<EntityType<ReshapeLongarms>> RESHAPE_LONGARMS =
             registerMobWithRender("reshape_longarms", 2.0F, 3.9F, ReshapeLongarms::new, MobCategory.MONSTER, 16, ReshapeLongarms::setAttributes);
     public static final RegistryObject<EntityType<ReshapeYelloweye>> RESHAPE_YELLOWEYE =
             registerMobWithRender("reshape_yelloweye", 2.75F, 3.5F, ReshapeYelloweye::new, MobCategory.MONSTER, 16, ReshapeYelloweye::setAttributes);
 
-    // --- Infested ---
     public static final RegistryObject<EntityType<InfestedZombie>> INFESTED_ZOMBIE =
             registerMobWithRender("infested_zombie", 0.7F, 1.8F, InfestedZombie::new, MobCategory.MONSTER, 12, InfestedZombie::setAttributes);
     public static final RegistryObject<EntityType<WalkingZombieHead>> WALKING_ZOMBIE_HEAD =
@@ -259,9 +209,7 @@ public class ModEntities {
             registerMobWithRender("infested_fox", 0.8F, 0.9F, InfestedFox::new, MobCategory.MONSTER, 12, InfestedFox::setAttributes);
     public static final RegistryObject<EntityType<WalkingFoxHead>> WALKING_FOX_HEAD =
             registerMobWithRender("walking_fox_head", 0.6F, 0.6F, WalkingFoxHead::new, MobCategory.MONSTER, 12, WalkingFoxHead::setAttributes);
-    // Phase 3 epca
-    // InfestedPumpkinBehaviour + epca_physics  SubLevelBehaviour API
-    // --- Slimes (createAttributes returns Builder) ---
+
     public static final RegistryObject<EntityType<InfestedSlimeSize0>> INFESTED_SLIME_SIZE0 =
             registerMobWithRender("infested_slime_size0", 0.5F, 0.5F, InfestedSlimeSize0::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize0.createAttributes().build());
     public static final RegistryObject<EntityType<InfestedSlimeSize1>> INFESTED_SLIME_SIZE1 =
@@ -270,8 +218,7 @@ public class ModEntities {
             registerMobWithRender("infested_slime_size3", 2.5F, 2.5F, InfestedSlimeSize3::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize3.createAttributes().build());
     public static final RegistryObject<EntityType<InfestedBat>> INFESTED_BAT =
             registerMobWithRender("infested_bat", 0.5F, 0.8F, InfestedBat::new, MobCategory.MONSTER, 12, InfestedBat::setAttributes);
-    // --- Spiders: one entity type per mob. The bleeding / cave forms are a synced Variant on the
-    // same type (the convention Ripper / InfestedFox already use), so no extra type is registered. ---
+
     public static final RegistryObject<EntityType<InfestedSpider>> INFESTED_SPIDER =
             registerMobWithRender("infested_spider", 1.4F, 0.9F, InfestedSpider::new, MobCategory.MONSTER, 12, InfestedSpider::setAttributes);
     public static final RegistryObject<EntityType<WalkingSpiderHead>> WALKING_SPIDER_HEAD =
@@ -279,14 +226,12 @@ public class ModEntities {
                     "walking_spider_head", 0.8F, 0.6F, WalkingSpiderHead::new, MobCategory.MONSTER, 12,
                     WalkingSpiderHead::setAttributes);
 
-    /** Misc entity with auto-renderer but no attributes. */
     public static <T extends Entity> RegistryObject<EntityType<T>> registerMiscWithRender(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory) {
         return registerMiscWithRender(name, name, width, height, factory);
     }
 
-    /** Misc entity with auto-renderer, using custom resource base name. */
     public static <T extends Entity> RegistryObject<EntityType<T>> registerMiscWithRender(
             String name, String resBase, float width, float height,
             EntityType.EntityFactory<T> factory) {
@@ -299,7 +244,6 @@ public class ModEntities {
         });
     }
 
-    // --- Entities with attributes + custom renderers (not auto-rendered) ---
     public static final RegistryObject<EntityType<InfestedVillager>> INFESTED_VILLAGER =
             registerMobWithRender("infested_villager", 0.7F, 1.8F, InfestedVillager::new, MobCategory.MONSTER, 12, InfestedVillager::setAttributes);
     public static final RegistryObject<EntityType<InfestedZombieVillager>> INFESTED_ZOMBIE_VILLAGER =
@@ -314,12 +258,10 @@ public class ModEntities {
             registerMobWithRender("nullthing", 0.9F, 0.9F, Nullthing::new, MobCategory.MONSTER, 12, Nullthing::setAttributes);
     public static final RegistryObject<EntityType<YawningNya>> YAWNING_NYA =
             registerMobAttributes("yawning_nya", 0.6F, 1.8F, YawningNya::new, MobCategory.AMBIENT, 8, YawningNya::createAttributes);
-    //  Yawning_Nya ///
-    //  ClientHandler HumanoidMobRenderer +
+
     public static final RegistryObject<EntityType<BioTortIncarnation>> BIO_TORT_INCARNATION =
             registerMobAttributes("bio_tort_incarnation", 0.6F, 1.8F, BioTortIncarnation::new, MobCategory.AMBIENT, 8, BioTortIncarnation::createAttributes);
 
-    // --- Misc entities (no attributes, custom renderers) ---
     public static final RegistryObject<EntityType<ContaminatedWater>> CONTAMINATED_WATER =
             registerMiscNoSummon("contaminated_water", 5.0F, 5.0F, ContaminatedWater::new);
     public static final RegistryObject<EntityType<SlimeProjectile>> SLIME_PROJECTILE =
@@ -345,12 +287,11 @@ public class ModEntities {
             ENTITIES.register("reshape_part",
                     () -> EntityType.Builder.<ReshapeLongarms.CustomPart>of(
                                     ReshapeLongarms.CustomPart::new, MobCategory.MISC)
-                            .sized(2.0F, 2.0F) 
-                            .clientTrackingRange(12) 
+                            .sized(2.0F, 2.0F)
+                            .clientTrackingRange(12)
                             .build("reshape_part")
             );
 
-    // --- Thrown Spears ---
     public static final RegistryObject<EntityType<ThrownWoodenSpear>> THROWN_WOODEN_SPEAR =
             registerMiscTracking("thrown_wooden_spear", 0.5F, 0.5F, ThrownWoodenSpear::new, 4, 20);
     public static final RegistryObject<EntityType<ThrownStoneSpear>> THROWN_STONE_SPEAR =

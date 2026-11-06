@@ -22,7 +22,6 @@ public abstract class EnchantmentMenuMixin {
         return ((EnchantmentMenuAccessor) (Object) this).epca$getEnchantSlots();
     }
 
-    
     @Inject(
             method = "clickMenuButton",
             at = @At(
@@ -35,7 +34,6 @@ public abstract class EnchantmentMenuMixin {
         ItemStack lapis = this.epca$slots().getItem(1);
         if (!(lapis.getItem() instanceof InfestedLapisLazuli)) return;
 
-        
         ItemStack enchantedItem = this.epca$slots().getItem(0);
         if (enchantedItem.isEmpty()) return;
 

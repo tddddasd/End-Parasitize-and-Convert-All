@@ -17,12 +17,12 @@ public class EPCANote extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (level.isClientSide) {
             try {
-                
+
                 Class<?> utilClass = Class.forName("org.tdddd.epca.impl.utils.ClientScreenUtil");
                 java.lang.reflect.Method method = utilClass.getMethod("openNoteScreen");
                 method.invoke(null);
             } catch (Exception e) {
-                
+
                 e.printStackTrace();
             }
         }

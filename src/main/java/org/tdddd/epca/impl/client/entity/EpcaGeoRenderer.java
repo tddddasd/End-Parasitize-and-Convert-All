@@ -25,16 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Single generic Geo renderer for ALL EPCA entities.
- *
- * <p>Custom per-entity behaviors are applied here via interfaces:</p>
- * <ul>
- *   <li>{@link IMotionAligned}  rotate to face velocity direction (projectiles)</li>
- *   <li>{@link IOverlayRenderable}  translucent overlay layer (villager plains, wolf collar)</li>
- *   <li>{@link IHeadRotatable}  handled in {@link EpcaGeoModel#setCustomAnimations}</li>
- * </ul>
- */
 public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntityRenderer<T> {
 
     private final List<IGeoLayerProvider> layerProviders = new ArrayList<>();
@@ -49,15 +39,9 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         addRenderLayer(new OuterLayerDelegate());
     }
 
-    /**
-     * Register an additional layer provider. Called from subclass constructors
-     * to attach per-entity-type layer rendering (afterimages, wool, etc.).
-     */
     public void addLayerProvider(IGeoLayerProvider provider) {
         layerProviders.add(provider);
     }
-
-    //  Color effects
 
     @Override
     public void actuallyRender(PoseStack poseStack, T animatable, BakedGeoModel model, RenderType renderType,
@@ -87,8 +71,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return RenderType.entityTranslucent(texture);
     }
 
-    //  Rotation: April Fools billboard  /  motion-aligned projectiles
-
     @Override
     protected void applyRotations(T entity, PoseStack poseStack, float rotationYaw,
                                    float partialTicks, float ageInTicks) {
@@ -114,8 +96,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
     private static boolean isAprilFoolsDay() {
         return LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
     }
-
-    //  Overlay rendering  (IOverlayRenderable)
 
     @Override
     public void render(T entity, float entityYaw, float partialTick,
@@ -155,14 +135,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return OverlayTexture.NO_OVERLAY;
     }
 
-    //  Public helper for external renderers (afterimages, layers, etc.)
-
-    /**
-     * Renders the model with explicit color/alpha using a specific RenderType.
-     * Public wrapper around {@link #actuallyRender} for use by subclasses and
-     * external callers that need to draw the model with custom transparency
-     * (e.g. afterimage ghost layers).
-     */
     public void renderModelWithAlpha(PoseStack poseStack, T entity, BakedGeoModel model,
                                       RenderType renderType, MultiBufferSource bufferSource,
                                       VertexConsumer buffer, float partialTick,
@@ -174,15 +146,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
                 false, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
     }
 
-    /**
-     * GHOST entry point: renders the model with explicit alpha AND a FROZEN bone pose.
-     *
-     * <p>The afterimage layer calls this. It marks the pass via {@link FrozenGhostRender} so that (a)
-     * {@code EpcaGeoModel#setCustomAnimations} skips its head-rotation block - which otherwise
-     * recomputes the head bone from the OWNER's live {@code yBodyRot} - and (b) {@link #preRender}
-     * re-applies {@code frozenPose} AFTER GeckoLib's animation pass, so the captured pose is what gets
-     * drawn. The flag is restored in a {@code finally}, so non-ghost rendering is untouched.</p>
-     */
     public void renderModelWithAlphaFrozenPose(PoseStack poseStack, T entity, BakedGeoModel model,
                                                 RenderType renderType, MultiBufferSource bufferSource,
                                                 VertexConsumer buffer, float partialTick,
@@ -198,11 +161,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         }
     }
 
-    /**
-     * GeckoLib calls this AFTER {@code setCustomAnimations} and BEFORE geometry, which is the one
-     * window where the captured pose can be re-applied over the live animation pass. No-op unless a
-     * ghost pass is active (see {@link FrozenGhostRender}).
-     */
     @Override
     public void preRender(PoseStack poseStack, T animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
@@ -215,13 +173,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         }
     }
 
-    //  GeckoLib render layer  delegates to registered IGeoLayerProviders
-
-    /**
-     * A GeckoLib {@link GeoRenderLayer} that dispatches to all
-     * registered {@link IGeoLayerProvider} instances for this renderer.
-     * Mirrors the {@code UniversalDelegateLayer} pattern from OpenSRP.
-     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     private class OuterLayerDelegate extends GeoRenderLayer<T> {
 
@@ -245,4 +196,3 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         }
     }
 }
-

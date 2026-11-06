@@ -27,14 +27,13 @@ public class InfestedSourcePacket {
 
         public void handle(Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
-                
+
                 WaterColorEffectsManager.addInfestedSource(pos);
             });
             ctx.get().setPacketHandled(true);
         }
     }
 
-    
     public static class RemoveInfestedSourcePacket {
         private final BlockPos pos;
 
@@ -51,7 +50,7 @@ public class InfestedSourcePacket {
 
         public void handle(Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
-                
+
                 WaterColorEffectsManager.removeInfestedSource(pos);
             });
             ctx.get().setPacketHandled(true);
@@ -60,7 +59,7 @@ public class InfestedSourcePacket {
 
     public static class RequestAllInfestedSourcesPacket {
         public void encode(FriendlyByteBuf buf) {
-            
+
         }
 
         public static RequestAllInfestedSourcesPacket decode(FriendlyByteBuf buf) {
@@ -78,13 +77,6 @@ public class InfestedSourcePacket {
         }
     }
 
-    /**
-     * Many adds and removes in one packet.
-     *
-     * <p>Mass infestation (a beckon converting a whole area, or a hive node spreading) used to send one
-     * {@link AddInfestedSourcePacket} per block to every player on the server. Batching turns thousands of
-     * packets into one per tick.</p>
-     */
     public static class BatchInfestedSourcePacket {
         private final java.util.List<BlockPos> added;
         private final java.util.List<BlockPos> removed;

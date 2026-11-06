@@ -64,8 +64,7 @@ public class ModConfig {
 
         PARASITE_MOD_PEACEFUL_PAIRS = BUILDER
                 .comment(" ",
-                        "List of mod creatures that don’t attack each other, format: [\"mod1:mod2\", \"mod3:mod4\"], you need to fill in the mod IDs",
-                        "模组生物互不攻击列表，格式：[\"mod1:mod2\", \"mod3:mod4\"]，需填入模组ID")
+                        "List of mod creatures that don’t attack each other, format: [\"mod1:mod2\", \"mod3:mod4\"], you need to fill in the mod IDs")
                 .defineList("parasiteModPeacefulPairs", Collections.emptyList(),
                         entry -> entry instanceof String);
 
@@ -86,8 +85,7 @@ public class ModConfig {
                 .define("safetyDayEnabled", false);
 
         BECKON_CORE_DEGRADE = BUILDER
-                .comment("If true, a beckon core that gained no biomass for 5 minutes degrades into a hive node. Default: true",
-                        "\u5982\u679c\u4e3a true\uff0c\u53ec\u5524\u67f1\u6838\u5fc3\u5728 5 \u5206\u949f\u5185\u6ca1\u6709\u83b7\u5f97\u751f\u7269\u8d28\u65f6\u4f1a\u9000\u5316\u4e3a\u866b\u5de2\u8282\u70b9\u3002\u9ed8\u8ba4\uff1atrue")
+                .comment("If true, a beckon core that gained no biomass for 5 minutes degrades into a hive node. Default: true")
                 .define("beckonCoreDegrade", true);
 
         SAFETY_DAY_DURATION_TICKS = BUILDER

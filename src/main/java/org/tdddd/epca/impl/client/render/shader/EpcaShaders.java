@@ -10,29 +10,6 @@ import org.tdddd.epca.impl.epca;
 
 import java.io.IOException;
 
-/**
- * EPCA  shader  uniform
- *
- * <h3>shader </h3>
- * <pre>
- * assets/epca/shaders/core/
- *   corruption.json    blend / attributes / samplers / uniforms
- *   corruption.vsh
- *   corruption.fsh
- * </pre>
- *
- * <h3> shader uniform</h3>
- * <table>
- *   <tr><th>uniform</th><th></th><th></th></tr>
- *   <tr><td>{@code time}</td><td>float</td><td></td></tr>
- *   <tr><td>{@code intensity}</td><td>float</td><td> 01</td></tr>
- *   <tr><td>{@code tint}</td><td>vec3</td><td></td></tr>
- *   <tr><td>{@code splitStrength}</td><td>float</td><td>RGB </td></tr>
- * </table>
- *
- * <p>GLSL  uniform {@code getUniform()}
- * {@code null}</p>
- */
 public final class EpcaShaders {
 
     public static ShaderInstance corruptionShader;
@@ -42,17 +19,12 @@ public final class EpcaShaders {
     public static Uniform corruptionTintUniform;
     public static Uniform corruptionSplitUniform;
 
-    /**  RenderType /  /  */
     public static final ItemShaderRenderTypes CORRUPTION_TYPES =
             ItemShaderRenderTypes.create("corruption", () -> corruptionShader, true);
 
     private EpcaShaders() {
     }
 
-    /**
-     *  shader {@link org.tdddd.epca.impl.client.render.EpcaRenderClient}
-     *  mod  {@link RegisterShadersEvent}
-     */
     public static void onRegisterShaders(RegisterShadersEvent event) {
         try {
             event.registerShader(
@@ -77,9 +49,7 @@ public final class EpcaShaders {
         }
     }
 
-    /**  sprite */
     public static void invalidateCaches() {
         org.tdddd.epca.impl.client.render.ItemShaderBakery.invalidate();
     }
 }
-

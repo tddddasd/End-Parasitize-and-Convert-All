@@ -23,10 +23,9 @@ public class AcidBlockListener {
         BlockState state = event.getPlacedBlock();
 
         if (state.getBlock() instanceof AcidSolutionBlock) {
-            
+
             Set<BlockPos> affectedWaters = WaterInteractionHandler.getAcidifiedWaterBlocks(level, pos, 8);
 
-            
             AcidDamageSystem.registerAcidDamageArea(level, pos, affectedWaters);
         }
     }
@@ -40,10 +39,9 @@ public class AcidBlockListener {
         BlockState state = event.getState();
 
         if (state.getBlock() instanceof AcidSolutionBlock) {
-            
+
             Set<BlockPos> affectedWaters = WaterInteractionHandler.getAcidifiedWaterBlocks(level, pos, 8);
 
-            
             AcidDamageSystem.removeAcidDamageArea(level, pos, affectedWaters);
         }
     }

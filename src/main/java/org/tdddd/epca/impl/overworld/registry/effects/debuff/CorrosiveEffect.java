@@ -13,26 +13,24 @@ public class CorrosiveEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
-        
-        int effectLevel = amplifier + 1;
-        int damagePerSecond = effectLevel * 3; 
 
-        
+        int effectLevel = amplifier + 1;
+        int damagePerSecond = effectLevel * 3;
+
         if (entity.tickCount % 20 == 0) {
-            
+
             for (ItemStack armor : entity.getArmorSlots()) {
-                
+
                 if (armor.isEmpty() || !armor.isDamageableItem()) {
                     continue;
                 }
 
-                
                 if (entity.getRandom().nextFloat() < 1.0f) {
-                    
+
                     armor.hurtAndBreak(
                             damagePerSecond,
                             entity,
-                            e -> {} 
+                            e -> {}
                     );
                 }
             }
@@ -41,12 +39,12 @@ public class CorrosiveEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
-        
+
         return true;
     }
 
     @Override
     public boolean isRemovable() {
-        return false; 
+        return false;
     }
 }

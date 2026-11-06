@@ -6,18 +6,10 @@ import software.bernie.geckolib.model.GeoModel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Client-side handler for IHeadRotatable entity head rotation.
- *
- * <p>Call from {@link EpcaGeoModel#setCustomAnimations}. Each entity gets a
- * persistent {@link HeadState} that tracks the smoothed yaw. When the entity
- * has no look target or stops moving, the yaw gradually returns to 0.</p>
- */
 public class HeadRotationHandler {
 
     private static final Map<Integer, HeadState> STATES = new ConcurrentHashMap<>();
 
-    /** How many ticks of no rotation target before starting to reset to centre. */
     private static final float RESET_DELAY = 5f;
 
     public static void applyHeadRotation(
@@ -31,10 +23,9 @@ public class HeadRotationHandler {
 
             float target = rotatable.getHeadYawTarget(partialTick);
             if (target == Float.MAX_VALUE) {
-                s.idleTicks = RESET_DELAY; // trigger reset
+                s.idleTicks = RESET_DELAY;
             } else {
-                // target is an absolute world-space yaw (same convention as entity yaw)
-                // Convert to head rotation relative to the entity's body
+
                 float desired = Mth.clamp(
                         Mth.wrapDegrees(target - bodyYaw),
                         -rotatable.getMaxHeadYaw(), rotatable.getMaxHeadYaw());
@@ -48,7 +39,6 @@ public class HeadRotationHandler {
         float speed = rotatable.getHeadRotationSpeed();
         float step = speed * dt;
 
-        // When we've been idle long enough, ease back to centre; otherwise chase target
         float goal = (s.idleTicks >= RESET_DELAY) ? 0f : s.yawTarget;
         float diff = Mth.wrapDegrees(goal - s.yaw);
         s.yaw += Mth.clamp(diff, -step, step);

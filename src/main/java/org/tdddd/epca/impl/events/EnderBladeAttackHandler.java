@@ -36,10 +36,10 @@ public class EnderBladeAttackHandler {
 
         ItemStack weapon = player.getMainHandItem();
         if (weapon.isEmpty()) return;
-        
+
         CompoundTag tag = weapon.getTag();
         if (tag == null || !tag.getBoolean("epca:ender_blade")) return;
-        
+
         float baseAttack = getWeaponAttackDamage(weapon);
         float extra = (baseAttack + 1) * 0.25f;
 

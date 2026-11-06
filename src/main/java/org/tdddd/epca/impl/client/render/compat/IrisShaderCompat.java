@@ -5,29 +5,8 @@ import net.minecraftforge.fml.ModList;
 
 import java.lang.reflect.Method;
 
-/**
- * Iris / Oculus
- *
- * <h3></h3>
- * OculusIris  Forge  <b></b>
- * GBuffer albedo / normal / depth / specular
- * composite pass
- *
- * <p> {@code ItemRenderer.render()}  shader  quad
- *  quad <b> GBuffer</b>
- * </p>
- *
- * <h3></h3>
- *
- * {@link ItemLayerLateRenderQueue} {@code GameRenderer.renderLevel()}
- *  {@code mainRenderTarget}  framebuffer GBuffer
- *
- * <p><b> Iris/Oculus </b>
- * </p>
- */
 public final class IrisShaderCompat {
 
-    /**  oculusForge irisFabric  */
     private static final boolean IRIS_LOADED = detectIrisLoaded();
 
     private static volatile boolean resolved;
@@ -46,18 +25,10 @@ public final class IrisShaderCompat {
         }
     }
 
-    /**  Iris/Oculus */
     public static boolean isIrisLoaded() {
         return IRIS_LOADED;
     }
 
-    /**
-     *
-     *
-     * <p> {@code IrisApi.getInstance().isShaderPackInUse()}
-     * API  {@code false}
-     * </p>
-     */
     public static boolean isShaderPackActive() {
         if (!IRIS_LOADED) {
             return false;
@@ -88,7 +59,7 @@ public final class IrisShaderCompat {
                 apiInstance = instance;
                 isShaderPackInUseMethod = method;
             } catch (Throwable ignored) {
-                // API  null false
+
                 apiInstance = null;
                 isShaderPackInUseMethod = null;
             }
@@ -96,13 +67,6 @@ public final class IrisShaderCompat {
         }
     }
 
-    /**
-     *  shader
-     *
-     * <p>GUI tooltip  framebuffer
-     * /
-     * </p>
-     */
     public static boolean shouldDeferItemLayer(ItemDisplayContext context) {
         if (context == ItemDisplayContext.GUI) {
             return false;
@@ -110,4 +74,3 @@ public final class IrisShaderCompat {
         return isShaderPackActive();
     }
 }
-

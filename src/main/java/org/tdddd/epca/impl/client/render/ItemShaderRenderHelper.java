@@ -15,22 +15,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.events.render.ItemRenderRegistry;
 
-/**
- *  {@link ItemLayerBinding}
- *
- * <p> {@code endBatch()}
- * {@code EQUAL} </p>
- */
 public final class ItemShaderRenderHelper {
 
     private ItemShaderRenderHelper() {
     }
 
-    /**
-     *
-     *
-     * @param lateRender {@code true}  after_level RenderType
-     */
     public static void drawBinding(ItemLayerBinding binding, ItemStack stack, ItemDisplayContext ctx,
                                    PoseStack poseStack, MultiBufferSource buffer,
                                    int packedLight, int packedOverlay, boolean lateRender) {
@@ -42,7 +31,7 @@ public final class ItemShaderRenderHelper {
 
         ShaderInstance shader = layer.shader();
         if (shader == null) {
-            // shader
+
             return;
         }
 
@@ -69,29 +58,22 @@ public final class ItemShaderRenderHelper {
                 stack, packedLight, packedOverlay);
 
         if (!lateRender && buffer instanceof MultiBufferSource.BufferSource bufferSource) {
-            //  flush uniform
+
             bufferSource.endBatch(renderType);
         }
     }
 
-    /**
-     *  uniform uniform
-     */
     private static void applyCustomUniforms(ItemLayerConfig config, ItemStack stack, ShaderInstance shader) {
         var shaper = config.uniformShaper();
         if (shaper != null) {
             try {
                 shaper.accept(stack, shader);
             } catch (Exception ignored) {
-                //  uniform
+
             }
         }
     }
 
-    /**
-     *
-     *  {@link org.tdddd.epca.impl.events.render.ItemRenderRegistry#defaultMaskFor}
-     */
     public static ResourceLocation itemTexture(ItemStack stack) {
         ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
         if (itemId == null) {
@@ -100,4 +82,3 @@ public final class ItemShaderRenderHelper {
         return new ResourceLocation(itemId.getNamespace(), "item/" + itemId.getPath());
     }
 }
-

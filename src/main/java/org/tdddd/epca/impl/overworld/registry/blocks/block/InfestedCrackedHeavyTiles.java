@@ -48,7 +48,6 @@ public class InfestedCrackedHeavyTiles extends Block implements InfestedBlockInt
         return Blocks.DEEPSLATE_TILES.getSoundType(Blocks.DEEPSLATE_TILES.defaultBlockState(), level, pos, entity);
     }
 
-
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {

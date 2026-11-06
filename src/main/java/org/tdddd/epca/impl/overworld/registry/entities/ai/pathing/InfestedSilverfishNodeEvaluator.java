@@ -7,15 +7,6 @@ import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 
-/**
- * Node evaluator for the infested silverfish.
- *
- * <p>Infested blocks already exempt this mob from collision (their {@code getCollisionShape} returns
- * {@link net.minecraft.world.phys.shapes.Shapes#empty()} for an infested silverfish), but the
- * pathfinder evaluates blocks with an empty collision context and therefore still saw full solid
- * cubes. Reporting {@link BlockPathTypes#OPEN} here gives the pathfinder the same view the collision
- * system already has, for this mob only.</p>
- */
 public class InfestedSilverfishNodeEvaluator extends WalkNodeEvaluator {
 
     private final BlockPos.MutableBlockPos epcaScratch = new BlockPos.MutableBlockPos();

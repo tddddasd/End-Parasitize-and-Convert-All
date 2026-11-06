@@ -8,7 +8,6 @@ import org.tdddd.epca.impl.datagen.gen.*;
 import org.tdddd.epca.impl.datagen.gen.lang.LangDataCN;
 import org.tdddd.epca.impl.datagen.gen.lang.LangDataEN;
 
-
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class DataGenEvent {
     @SubscribeEvent
@@ -17,7 +16,6 @@ public class DataGenEvent {
         PackOutput out = event.getGenerator().getPackOutput();
         var lp = event.getLookupProvider();
 
-        
         var blockState = new BlockStateData(out, efh);
         event.getGenerator().addProvider(event.includeClient(), blockState);
         event.getGenerator().addProvider(event.includeClient(), new ItemGenData(out, efh));
@@ -27,7 +25,6 @@ public class DataGenEvent {
         event.getGenerator().addProvider(event.includeClient(), new ParticleData(out, efh));
         event.getGenerator().addProvider(event.includeClient(), new EffectSpriteData(out, efh));
 
-        
         var blockTags = new BlockTagData(out, lp, efh);
         event.getGenerator().addProvider(event.includeServer(), blockTags);
         event.getGenerator().addProvider(event.includeServer(),
@@ -37,7 +34,6 @@ public class DataGenEvent {
         event.getGenerator().addProvider(event.includeServer(), new RecipeProviderData(out));
         event.getGenerator().addProvider(event.includeServer(), new HallWorldGenData(out, lp));
 
-        
         event.getGenerator().addProvider(event.includeServer(),
                 new CustomDataProviders.EntityConversionDataProvider(out));
         event.getGenerator().addProvider(event.includeServer(),

@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-
 public class ClientErosionData {
     private static final Map<UUID, ErosionData> erosionDataMap = new HashMap<>();
 
@@ -27,7 +26,7 @@ public class ClientErosionData {
         }
 
         public boolean isExpired() {
-            return System.currentTimeMillis() - timestamp > 5000; 
+            return System.currentTimeMillis() - timestamp > 5000;
         }
     }
 

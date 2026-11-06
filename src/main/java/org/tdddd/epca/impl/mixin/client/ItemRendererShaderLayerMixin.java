@@ -20,33 +20,6 @@ import org.tdddd.epca.impl.client.render.compat.ItemLayerLateRenderQueue;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *  shader    RottenRuinsSplendiding
- * {@code MixinItemRendererCosmic}
- *
- * <h3></h3>
- * {@code ItemRenderer.render()} <b></b> {@code popPose()}
- *
- * <ul>
- *   <li>   EQUAL </li>
- *   <li> popPose   PoseStack </li>
- * </ul>
- *
- * <p><b> {@code ordinal = 1}</b>
- * 1.20.1  {@code ItemRenderer.render} <b></b> {@code popPose()}
- * offset 385 /{@code hasAnimatedTexture && hasFoil}
- *  push/pop offset 475
- * Mixin  {@code @At(INVOKE)} <b></b>
- *  N+1
- *  2 </p>
- *
- * <h3></h3>
- * <ul>
- *   <li><b> / GUI</b>  EQUAL </li>
- *   <li><b></b>   {@code GameRenderer.renderLevel()}
- *        framebuffer {@link ItemLayerLateRenderQueue}</li>
- * </ul>
- */
 @Mixin(ItemRenderer.class)
 public abstract class ItemRendererShaderLayerMixin {
 
@@ -68,8 +41,6 @@ public abstract class ItemRendererShaderLayerMixin {
             return;
         }
 
-        //  GeckoLib  quad
-        // EQUAL    draw
         if (model.isCustomRenderer()) {
             return;
         }
@@ -79,12 +50,10 @@ public abstract class ItemRendererShaderLayerMixin {
             return;
         }
 
-        //  flush  GPU
         if (buffer instanceof MultiBufferSource.BufferSource bufferSource) {
             bufferSource.endBatch();
         }
 
-        //    GBuffer
         if (IrisShaderCompat.shouldDeferItemLayer(context)) {
             List<ItemLayerBinding> deferrable = new ArrayList<>(bindings.size());
             for (ItemLayerBinding binding : bindings) {
@@ -104,4 +73,3 @@ public abstract class ItemRendererShaderLayerMixin {
         }
     }
 }
-

@@ -9,46 +9,6 @@ import org.tdddd.epca.impl.client.organ.HiveLeaderOrganClientData;
 
 import java.util.function.Supplier;
 
-/**
- *  -&gt;  GUI  /  /
- * SPEC  2  1{@code S2C  + }
- *
- * <h2></h2>
- * <p> {@link HiveLeaderOrganData}  {@code writeNbt}
- *  {@code Items}52  {@code ItemStack#save}
- * {@code Unlocked}52 52 " + 52 "
- *  27  {@code FriendlyByteBuf#readNbt()}  2 MiB
- * </p>
- *
- * <p> {@link HiveLeaderOrganGate.Gates} <b></b>
- * 39 / 33 STAGE 2
- *
- * {@code StageIBeckon}/{@code StageIIBeckon} </p>
- *
- * <h2>STAGE 2 {@code openScreen}</h2>
- * <p>STAGE 2 <b></b>
- *  {@code setScreen(new HiveLeaderOrganScreen())}
- * </p>
- * <ul>
- *   <li>{@code openScreen = true}STAGE 1 ""
- *        + </li>
- *   <li>{@code openScreen = false}STAGE 2
- *       //</li>
- * </ul>
- * <p>{@code ModNetwork#PROTOCOL_VERSION}
- * </p>
- *
- * <h2></h2>
- * <ol>
- *   <li></li>
- *   <li>{@code openScreen}  true  {@code HiveLeaderOrganScreen}</li>
- * </ol>
- * <p> {@code org.tdddd.epca.impl.client.organ.HiveLeaderOrganClientData}
- *  {@code handle}  {@code enqueueWork} lambda <b></b>
- *  {@code SyncHotbarMarkPacket} / {@code ScreenCorruptionPacket}
- *  {@code BioTortClientState}
- * </p>
- */
 public class SyncHiveLeaderOrgansPacket {
 
     private final CompoundTag organData;
@@ -56,7 +16,6 @@ public class SyncHiveLeaderOrgansPacket {
     private final boolean headInnerOpen;
     private final boolean openScreen;
 
-    /** STAGE 1  */
     public SyncHiveLeaderOrgansPacket(HiveLeaderOrganData data, HiveLeaderOrganGate.Gates gates) {
         this(data, gates, true);
     }
@@ -105,8 +64,7 @@ public class SyncHiveLeaderOrgansPacket {
     public static void handle(SyncHiveLeaderOrgansPacket msg, Supplier<NetworkEvent.Context> ctx) {
         NetworkEvent.Context context = ctx.get();
         context.enqueueWork(() -> {
-            // =  STAGE 1
-            //  setScreen
+
             boolean screenAlreadyOpen = HiveLeaderOrganClientData.isScreenOpen();
             HiveLeaderOrganClientData.onSync(msg.organData, msg.torsoInnerOpen, msg.headInnerOpen,
                     screenAlreadyOpen);
@@ -117,4 +75,3 @@ public class SyncHiveLeaderOrgansPacket {
         context.setPacketHandled(true);
     }
 }
-

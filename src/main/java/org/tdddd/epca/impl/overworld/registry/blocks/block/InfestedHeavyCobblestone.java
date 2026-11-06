@@ -48,7 +48,6 @@ public class InfestedHeavyCobblestone extends Block implements InfestedBlockInte
         return Blocks.DEEPSLATE.getSoundType(Blocks.DEEPSLATE.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {

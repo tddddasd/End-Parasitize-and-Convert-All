@@ -20,13 +20,11 @@ public class SpearAttackHandler {
 
     @SubscribeEvent
     public static void onPlayerAttackEntity(AttackEntityEvent event) {
-        
+
         if (!(event.getEntity().level().isClientSide)) return;
 
-        
         if (!(event.getEntity() instanceof AbstractClientPlayer player)) return;
 
-        
         ItemStack mainHand = player.getMainHandItem();
         boolean isSpear = mainHand.getItem() == ModItems.WOODEN_SPEAR.get() ||
                 mainHand.getItem() == ModItems.STONE_SPEAR.get() ||
@@ -37,18 +35,16 @@ public class SpearAttackHandler {
                 mainHand.getItem() == ModItems.DIAMOND_SPEAR.get() ||
                 mainHand.getItem() == ModItems.NETHERITE_SPEAR.get();
 
-        
         boolean isLiving = event.getTarget() instanceof LivingEntity;
 
-        
         if (isSpear && isLiving) {
-            
+
             ModifierLayer<IAnimation> animation = (ModifierLayer<IAnimation>) PlayerAnimationAccess
                     .getPlayerAssociatedData(player)
                     .get(new ResourceLocation(epca.MODID, "stab"));
 
             if (animation != null) {
-                
+
                 var keyframe = PlayerAnimationRegistry.getAnimation(new ResourceLocation(epca.MODID, "stab"));
                 if (keyframe != null) {
                     animation.setAnimation(new KeyframeAnimationPlayer(keyframe));

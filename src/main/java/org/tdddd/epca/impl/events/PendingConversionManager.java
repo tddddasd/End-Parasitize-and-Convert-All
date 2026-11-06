@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
 public final class PendingConversionManager {
 
     private static final List<Pending> PENDING = new ArrayList<>();
@@ -26,7 +25,7 @@ public final class PendingConversionManager {
         final ParaCurseEffect.ConversionPlan plan;
         int remainingTicks;
         final int totalTicks;
-        
+
         final boolean wasInvulnerable;
         final boolean wasNoAi;
 
@@ -41,7 +40,6 @@ public final class PendingConversionManager {
         }
     }
 
-    
     public static void schedule(LivingEntity entity, ParaCurseEffect.ConversionPlan plan, int delayTicks) {
         if (entity == null || plan == null || delayTicks <= 0) {
             if (entity != null && plan != null) {
@@ -56,10 +54,6 @@ public final class PendingConversionManager {
             }
         }
 
-        // /
-        // holdAlivenoAi + invulnerable tick()
-        // !isAlive()
-        //  1  hold
         if (!entity.isAlive() || entity.isRemoved()) {
             ParaCurseEffect.executePlan(entity, plan);
             return;
@@ -75,7 +69,6 @@ public final class PendingConversionManager {
         PENDING.add(pending);
     }
 
-    
     private static boolean isNoAi(LivingEntity entity) {
         if (entity instanceof Mob mob) {
             return mob.isNoAi();
@@ -89,11 +82,8 @@ public final class PendingConversionManager {
         }
     }
 
-    
-    
     private static void holdAlive(LivingEntity entity, boolean wasInvulnerable) {
-        // / setNoAi(true) + setInvulnerable(true)
-        //  schedule()
+
         if (!entity.isAlive() || entity.isRemoved()) {
             return;
         }
@@ -111,7 +101,7 @@ public final class PendingConversionManager {
             entity.setInvulnerable(true);
         }
     }
-    
+
     private static void releaseAfterPending(LivingEntity entity, boolean wasInvulnerable, boolean wasNoAi) {
         setNoAi(entity, wasNoAi);
         if (!wasInvulnerable) {
@@ -119,8 +109,6 @@ public final class PendingConversionManager {
         }
     }
 
-    
-    
     public static boolean isPending(LivingEntity entity) {
         if (entity == null || PENDING.isEmpty()) {
             return false;
@@ -151,10 +139,6 @@ public final class PendingConversionManager {
             if (!e.isAlive()) {
                 it.remove();
 
-                //  hold  noAi + invulnerable holdAlive
-                //  invulnerable/
-                //  continue +
-                //  1.20.1  20 tick
                 if (ParaCurseEffect.planIsEmpty(p.plan)) {
                     releaseAfterPending(e, p.wasInvulnerable, p.wasNoAi);
                 } else {
@@ -163,7 +147,6 @@ public final class PendingConversionManager {
                 continue;
             }
 
-            //  5%
             holdAlive(e, p.wasInvulnerable);
             if (!e.isOnFire()) {
                 float min = e.getMaxHealth() * MIN_HEALTH_FRACTION;
@@ -183,9 +166,7 @@ public final class PendingConversionManager {
         }
     }
 
-    
     public static void clear() {
         PENDING.clear();
     }
 }
-

@@ -14,12 +14,10 @@ import java.util.List;
 public class ParaCurseEffectTickHandler {
     private static final List<EffectRemovalRequest> removalRequests = new ArrayList<>();
 
-    
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
-        
         if (!removalRequests.isEmpty()) {
             List<EffectRemovalRequest> toRemove = new ArrayList<>(removalRequests);
             removalRequests.clear();
@@ -30,17 +28,14 @@ public class ParaCurseEffectTickHandler {
         }
     }
 
-    
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
         LivingEntity player = event.player;
 
-        
         if (player.level().isClientSide) return;
 
-        
         if (player.getPersistentData().getBoolean("ShouldRemoveParaCurseEffect")) {
             player.getPersistentData().remove("ShouldRemoveParaCurseEffect");
             int amplifierToRemove = player.getPersistentData().getInt("ParaCurseEffectToRemoveAmplifier");
@@ -48,34 +43,25 @@ public class ParaCurseEffectTickHandler {
 
             MobEffectInstance para_curseEffect = player.getEffect(ModEffects.PARA_CURSE.get());
 
-            
             if (para_curseEffect != null && para_curseEffect.getAmplifier() == amplifierToRemove) {
                 player.removeEffect(ModEffects.PARA_CURSE.get());
 
-                
-                
             }
         }
 
-        
         checkAndFixEffectLevels(player);
     }
 
-    
     private static void checkAndFixEffectLevels(LivingEntity entity) {
         MobEffectInstance currentParaCurse = entity.getEffect(ModEffects.PARA_CURSE.get());
         if (currentParaCurse == null) return;
 
-        
-        
     }
 
-    
     public static void scheduleEffectRemoval(LivingEntity entity, int amplifier) {
         removalRequests.add(new EffectRemovalRequest(entity, amplifier));
     }
 
-    
     private static class EffectRemovalRequest {
         private final LivingEntity entity;
         private final int amplifier;
@@ -89,7 +75,7 @@ public class ParaCurseEffectTickHandler {
             if (!entity.isAlive()) return;
 
             MobEffectInstance para_curseEffect = entity.getEffect(ModEffects.PARA_CURSE.get());
-            
+
             if (para_curseEffect != null && para_curseEffect.getAmplifier() == amplifier) {
                 entity.removeEffect(ModEffects.PARA_CURSE.get());
             }

@@ -13,80 +13,29 @@ import org.tdddd.epca.impl.client.render.araya.ArayaSceneCopy;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BioTortSkillConstants;
 
-/**
- *  2  2 "4 "
- *
- * <h2>""</h2>
- * <p> 1.20.1  grep </p>
- * <ul>
- *   <li><b></b> {@code shaders/post/*.json}  post chain
- *       {@code PostChain} / {@code PostPass} / {@code EffectInstance}
- *       1.20.1  {@code GameRenderer#postEffect}/ PostChain
- *       private  {@code shaders/post/*.json}
- *       {@code RegisterShadersEvent} {@code EpcaShaders} / {@code SkyRuptureShaders}
- *       / {@code ArayaSlashShaders} <b>core shader</b>
- *       ""</li>
- *   <li><b></b>
- *       <ol>
- *         <li>Forge  GUI {@code EnderErosionOverlay}
- *             {@code RegisterGuiOverlaysEvent#registerBelowAll} + {@link IGuiOverlay}
- *              {@code textures/gui/ender_erosion.png}
- *             ""</li>
- *         <li>{@link ArayaSceneCopy} {@code glCopyTexSubImage2D}
- *              {@code ArayaSlashRenderer}
- *             ""</li>
- *       </ol>
- *   </li>
- * </ul>
- * <p>"GUI  + "
- * {@link ArayaSceneCopy} //
- * ""GL Iris
- *  {@link ArayaSceneCopy#isReady()}  false
- * {@code fill} </p>
- *
- * <h2> {@link BioTortClientState} </h2>
- * <pre>
- *   [0, 3) s      +  +  +
- *   [3, 4) s
- *   [4, 5.5) s
- * </pre>
- *
- * <p> {@code registerBelowAll} HUD 1
- *  {@code EnderErosionOverlay} </p>
- */
 @Mod.EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ScreenCorruptionOverlay implements IGuiOverlay {
 
-    /**  */
     private static final int BAND_COUNT = 14;
 
-    /** "" 90 / */
     private static final long STUTTER_MILLIS = 90L;
 
-    /**  */
     private static final float BAND_MAX_SHIFT = 0.030F;
 
-    /**  */
     private static final float BAND_MAX_VERTICAL_SHIFT = 3.0F;
 
-    /**  */
     private static final float LINE_MAX_SHIFT = 0.060F;
 
-    /**  */
     private static final int NOISE_MAX_COUNT = 150;
 
-    /**  */
     private static final int BLUR_REGION_COUNT = 3;
 
-    /**  */
     private static final int[][] BLUR_TAPS = {
             {0, 0}, {-2, 0}, {2, 0}, {0, -2}, {0, 2}
     };
 
-    /**  */
     private static final float RED_PEAK_ALPHA = 0.62F;
 
-    /**  */
     private static final int RED_RGB = 0x8E0B0B;
 
     @Override
@@ -94,21 +43,17 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
         if (!BioTortClientState.corruptionActive() || screenWidth <= 0 || screenHeight <= 0) {
             return;
         }
-        //  shader  EnderErosionOverlay
-        // 0.9  alpha
+
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         try {
             renderCorruption(graphics, screenWidth, screenHeight);
         } catch (Throwable throwable) {
-            //  "Rendering overlay"
-            // GL
-            // ""
+
             BioTortClientState.stopCorruption();
             epca.LOGGER.warn("[epca-bio-tort] 屏幕崩坏渲染失败，已本地关闭这次演出", throwable);
         }
     }
 
-    /**  {@link #render}  */
     private static void renderCorruption(GuiGraphics graphics, int screenWidth, int screenHeight) {
         float elapsed = BioTortClientState.corruptionElapsedSeconds();
         float decay = decayEnvelope(elapsed);
@@ -117,22 +62,20 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
         }
 
         float window = Math.max(0.05F, BioTortClientState.corruptionWindowSeconds());
-        // 0 -> 1 0-3
+
         float strength = smooth01(elapsed / window) * decay;
-        //  3  4
+
         float redStart = BioTortSkillConstants.CORRUPTION_RED_START_TICKS / 20.0F;
         float redRamp = Math.max(0.05F,
                 (BioTortSkillConstants.CORRUPTION_TICKS - BioTortSkillConstants.CORRUPTION_RED_START_TICKS) / 20.0F);
         float red = Mth.clamp((elapsed - redStart) / redRamp, 0.0F, 1.0F) * RED_PEAK_ALPHA * decay;
 
-        //  0 /
         if (strength <= 0.002F && red <= 0.01F) {
             return;
         }
 
-        // //
         boolean haveFrame = captureScene(screenWidth, screenHeight);
-        // "" step  step
+
         long step = (long) (elapsed * 1000.0F / STUTTER_MILLIS);
 
         if (haveFrame) {
@@ -142,7 +85,7 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
             drawHorizontalLines(graphics, screenWidth, screenHeight, scaleY, strength, step);
             drawBlurRegions(graphics, screenWidth, screenHeight, scaleX, scaleY, strength, step);
         } else {
-            // GL  /
+
             drawFallbackBands(graphics, screenWidth, screenHeight, strength, step);
         }
 
@@ -155,35 +98,17 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
         }
     }
 
-    // ===============================================================================================
-    // ===============================================================================================
-
-    /**
-     *  {@link ArayaSceneCopy}
-     *
-     * <p> {@code registerBelowAll}"
-     * HUD "
-     * </p>
-     *
-     * @return
-     */
     private static boolean captureScene(int screenWidth, int screenHeight) {
         try {
             ArayaSceneCopy.captureFrame(BioTortClientState.nextFrameToken());
         } catch (Throwable throwable) {
-            //  GL
+
             epca.LOGGER.debug("[epca-bio-tort] 场景拷贝失败，屏幕崩坏退化为覆盖层", throwable);
             return false;
         }
         return ArayaSceneCopy.isReady() && ArayaSceneCopy.width() > 0 && ArayaSceneCopy.height() > 0;
     }
 
-    /**
-     * " step /"
-     *
-     * <p>" +
-     * " {@code strength}  0-3 </p>
-     */
     private static void drawDisplacedBands(GuiGraphics graphics, int screenWidth, int screenHeight,
                                            float scaleY, float strength, long step) {
         float bandHeight = (float) screenHeight / BAND_COUNT;
@@ -203,7 +128,6 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
         }
     }
 
-    /** /"" */
     private static void drawHorizontalLines(GuiGraphics graphics, int screenWidth, int screenHeight,
                                             float scaleY, float strength, long step) {
         int lineCount = 2 + Math.round(strength * 4.0F);
@@ -222,10 +146,6 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
         }
     }
 
-    /**
-     *  5  0.3
-     *  {@link GuiGraphics#setColor}
-     */
     private static void drawBlurRegions(GuiGraphics graphics, int screenWidth, int screenHeight,
                                         float scaleX, float scaleY, float strength, long step) {
         float alpha = Mth.clamp(strength * 0.30F, 0.0F, 0.5F);
@@ -253,15 +173,11 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
                 graphics.blit(ArayaSceneCopy.TEXTURE_ID, tapX, tapY, baseX * scaleX, baseY * scaleY,
                         width, height, ArayaSceneCopy.width(), ArayaSceneCopy.height());
             }
-            // setColor  shader /
+
             graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 
-    /**
-     *  {@code fill}  alpha
-     *
-     */
     private static void drawNoise(GuiGraphics graphics, int screenWidth, int screenHeight,
                                  float strength, long step) {
         int count = Math.round(NOISE_MAX_COUNT * Mth.clamp(strength, 0.0F, 1.0F));
@@ -283,7 +199,6 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
         }
     }
 
-    /** "" */
     private static void drawFallbackBands(GuiGraphics graphics, int screenWidth, int screenHeight,
                                           float strength, long step) {
         float bandHeight = (float) screenHeight / BAND_COUNT;
@@ -301,7 +216,6 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
         }
     }
 
-    /**  GUI */
     private static void drawFrameSlice(GuiGraphics graphics, int destX, int destY, int sourceY,
                                        int width, int height, float scaleY) {
         if (width <= 0 || height <= 0) {
@@ -312,10 +226,6 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
                 width, height, ArayaSceneCopy.width(), ArayaSceneCopy.height());
     }
 
-    // ===============================================================================================
-    // ===============================================================================================
-
-    /**  1 0"" */
     private static float decayEnvelope(float elapsed) {
         float window = BioTortClientState.corruptionWindowSeconds();
         float decay = Math.max(0.001F, BioTortClientState.corruptionDecaySeconds());
@@ -330,12 +240,6 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
         return x * x * (3.0F - 2.0F * x);
     }
 
-    /**
-     *  {@code (step, index)}  {@code [0,1)}
-     *
-     * <p> {@code ArayaConstants#positionHash}
-     * ""</p>
-     */
     private static float hash01(long value) {
         long h = value * 0x9E3779B97F4A7C15L;
         h ^= h >>> 29;
@@ -346,8 +250,7 @@ public class ScreenCorruptionOverlay implements IGuiOverlay {
 
     @SubscribeEvent
     public static void registerOverlays(RegisterGuiOverlaysEvent event) {
-        //  EnderErosionOverlay  HUD //
+
         event.registerBelowAll("bio_tort_screen_corruption", new ScreenCorruptionOverlay());
     }
 }
-

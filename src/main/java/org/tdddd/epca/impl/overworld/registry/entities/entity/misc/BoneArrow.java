@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 
 import net.minecraft.util.Mth;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.IMotionAligned;
 import net.minecraft.network.protocol.Packet;
@@ -14,7 +15,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.network.NetworkHooks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -27,19 +27,19 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private int age = 0;
-    private final int MAX_AGE = 30 * 20; 
-    private static final Random RANDOM = new Random(); 
+    private final int MAX_AGE = 30 * 20;
+    private static final Random RANDOM = new Random();
 
     public BoneArrow(EntityType<? extends AbstractArrow> type, Level level) {
         super(type, level);
         this.setNoGravity(false);
-        this.setBaseDamage(8.0F); 
+        this.setBaseDamage(8.0F);
     }
 
     public BoneArrow(Level level, LivingEntity shooter) {
         super(ModEntities.BONE_ARROW.get(), shooter, level);
         this.setNoGravity(false);
-        this.setBaseDamage(8.0F); 
+        this.setBaseDamage(8.0F);
     }
 
     @Override
@@ -62,60 +62,54 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
 
     @Override
     protected void onHitEntity(EntityHitResult hitResult) {
-        
+
         if (this.level().isClientSide) {
             return;
         }
 
-        
         LivingEntity shooter = this.getOwner() instanceof LivingEntity ? (LivingEntity) this.getOwner() : null;
         var target = hitResult.getEntity();
 
-        
-        if (IParasite.isParasiteByTagOrInterface(shooter) && IParasite.isParasiteNoLivingByTagOrInterface(target)) {
-            
+        if (ParasiteEvents.isParasiteByTagOrInterface(shooter) && ParasiteEvents.isParasiteNoLivingByTagOrInterface(target)) {
+
             return;
         }
 
-        
         boolean damageApplied = target.hurt(this.damageSources().arrow(this, shooter), 8.0F);
 
-        
         if (damageApplied && target instanceof LivingEntity livingTarget) {
             applyParaCurseEffect(livingTarget);
 
             if (target instanceof LivingEntity living && this.getPersistentData().getBoolean("InfestedFireArrow")) {
-                living.setRemainingFireTicks(160);  
+                living.setRemainingFireTicks(160);
             }
         }
 
-        
         this.discard();
     }
 
-    
     private void applyParaCurseEffect(LivingEntity target) {
         var existingEffect = target.getEffect(ModEffects.PARA_CURSE.get());
 
         if (existingEffect != null) {
-            
-            int currentAmplifier = existingEffect.getAmplifier(); 
+
+            int currentAmplifier = existingEffect.getAmplifier();
             int newAmplifier = currentAmplifier;
             if (RANDOM.nextFloat() < 0.7f) {
-                
+
                 newAmplifier = Math.min(currentAmplifier + 1, 2);
             }
-            
+
             target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 15 * 20, newAmplifier));
         } else {
-            
+
             target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 15 * 20, 0));
         }
     }
 
     @Override
     protected ItemStack getPickupItem() {
-        
+
         return ItemStack.EMPTY;
     }
 
@@ -124,10 +118,9 @@ public class BoneArrow extends AbstractArrow implements GeoEntity, IMotionAligne
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        
+
     }
 
     @Override

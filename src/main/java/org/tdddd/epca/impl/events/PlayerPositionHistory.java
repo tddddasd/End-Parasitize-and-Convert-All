@@ -16,31 +16,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- *
- *
- * <h2></h2>
- * <p> 2 " 3  5 "
- * {@code BioTortIncarnation} ""
- *  tick //
- * {@link BioTortSkillConstants#POSITION_HISTORY_TICKS} tick8  5
- * " tick "</p>
- *
- * <h2></h2>
- * <ul>
- *   <li> 5
- *       {@link ServerLevel}{@code ServerPlayer#teleportTo(ServerLevel, x, y, z, yRot, xRot)}
- *       ""</li>
- *   <li>" tick " 5
- *        {@code null}</li>
- *   <li> {@link ServerLevel}
- *       </li>
- * </ul>
- */
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class PlayerPositionHistory {
 
-    /**  */
     public static final class Sample {
         public final ServerLevel level;
         public final double x;
@@ -48,7 +26,7 @@ public final class PlayerPositionHistory {
         public final double z;
         public final float yRot;
         public final float xRot;
-        /**  {@code level.getGameTime()} */
+
         public final long tick;
 
         Sample(ServerLevel level, double x, double y, double z, float yRot, float xRot, long tick) {
@@ -94,11 +72,6 @@ public final class PlayerPositionHistory {
         HISTORY.clear();
     }
 
-    /**
-     *  {@code targetTick}
-     *
-     * @return  {@code null}
-     */
     public static Sample sampleAt(UUID playerId, long targetTick) {
         Deque<Sample> samples = HISTORY.get(playerId);
         if (samples == null || samples.isEmpty()) {
@@ -116,4 +89,3 @@ public final class PlayerPositionHistory {
         return best;
     }
 }
-

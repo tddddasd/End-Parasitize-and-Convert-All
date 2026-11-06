@@ -167,7 +167,6 @@ public class KillStick extends Item {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
     }
 
-    
     private static boolean isHoldingKillStick(Player player) {
         return player.getMainHandItem().getItem() instanceof KillStick;
     }
@@ -177,7 +176,6 @@ public class KillStick extends Item {
         if (!player.level().isClientSide) {
 
             boolean isNamed = isAlayavijnana(stack);
-
 
             if (isNamed && player.level() instanceof ServerLevel serverLevel) {
 
@@ -192,10 +190,6 @@ public class KillStick extends Item {
                     serverLevel.sendParticles(particle, x, y, z, 1, 0, 0, 0, 0.1);
                 }
 
-                // The renamed staff's own hit: 444 points of the mod's MINIMUM damage type on the target
-                // of this click, so the kill (and therefore the trident sound and the  counter in
-                // ArayaSyncHandler) has one unambiguous source. The source carries the player as its
-                // causing entity, which is what makes LivingDeathEvent able to name the killer.
                 if (entity instanceof LivingEntity livingTarget) {
                     Holder<DamageType> holder = serverLevel.registryAccess()
                             .registryOrThrow(Registries.DAMAGE_TYPE)
@@ -203,13 +197,9 @@ public class KillStick extends Item {
                     livingTarget.hurt(new DamageSource(holder, player, player),
                             ArayaConstants.DAMAGE);
 
-                    // Every left click of the renamed staff on a living entity cuts, mob or player and
-                    // whatever the outcome of the hit. Sent before the victim is removed and moved to
-                    // the void below, so the blade keeps the position the hit happened at.
                     ArayaSyncHandler.broadcastSlash(serverLevel, player, livingTarget);
                 }
             }
-
 
             if (entity instanceof Player) {
                 return false;
@@ -226,7 +216,6 @@ public class KillStick extends Item {
                 livingEntity.setDeltaMovement(Vec3.ZERO);
             }
 
-
             if (isNamed) {
 
                 double maxHealth = player.getMaxHealth();
@@ -239,7 +228,6 @@ public class KillStick extends Item {
                 }
 
                 player.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMax);
-
 
                 if (player.getHealth() > newMax) {
                     player.setHealth((float) newMax);

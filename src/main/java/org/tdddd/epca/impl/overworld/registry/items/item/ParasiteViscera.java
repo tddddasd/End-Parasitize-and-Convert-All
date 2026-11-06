@@ -11,20 +11,20 @@ public class ParasiteViscera extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(1)  
-                .saturationMod(0.0F)  
+                .nutrition(1)
+                .saturationMod(0.0F)
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.PARA_CURSE.get(),  
-                        30 * 20,  
-                        0  
-                ), 0.95F)  
+                        ModEffects.PARA_CURSE.get(),
+                        30 * 20,
+                        0
+                ), 0.95F)
                 .effect(() -> new MobEffectInstance(
-                        ModEffects.VIRAL.get(),  
-                        5 * 20,  
-                        0  
-                ), 0.2F)  
+                        ModEffects.VIRAL.get(),
+                        5 * 20,
+                        0
+                ), 0.2F)
                 .build();
     }
 }

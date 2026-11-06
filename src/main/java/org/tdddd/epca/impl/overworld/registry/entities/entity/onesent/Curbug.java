@@ -1,46 +1,73 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.onesent;
 
+
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
+import org.tdddd.epca.impl.client.entity.IAutoRenderableEntity;
+import org.tdddd.epca.impl.client.entity.IHeadRotatable;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
+import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
+import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
+import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractOnesentEntity;
+import org.tdddd.epca.impl.utils.EntityHealthUtils;
+import org.tdddd.epca.impl.utils.entity.EntityBreakUtils;
+import org.tdddd.epca.impl.utils.entity.EntityMovementUtils;
+import org.tdddd.yawning_neko_api.data.DamageAdaptation;
+import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
-public class Curbug extends AbstractOnesentEntity {
+public class Curbug extends PathfinderMob implements IAutoRenderableEntity, IHeadRotatable, Enemy {
 
     private final Map<Integer, Integer> touchingEntities = new HashMap<>();
     private static final int TOUCH_THRESHOLD = 2;
@@ -52,8 +79,48 @@ public class Curbug extends AbstractOnesentEntity {
     private static final int HIDE_DURATION = 200;
     private int hideSearchCooldown = 0;
 
+    public ResourceLocation model, texture, animation;
+    protected static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    protected static final RawAnimation ANIM_WALK = RawAnimation.begin().thenLoop("walk");
+    protected static final RawAnimation ANIM_RUN  = RawAnimation.begin().thenLoop("run");
+    protected static final RawAnimation ANIM_DIE  = RawAnimation.begin().thenPlay("die");
+
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+
+    protected static final EntityDataAccessor<Boolean> DATA_IS_RUNNING =
+            SynchedEntityData.defineId(Curbug.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Boolean> DATA_IS_WALKING =
+            SynchedEntityData.defineId(Curbug.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH =
+            SynchedEntityData.defineId(Curbug.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Boolean> DATA_IS_INVULNERABLE =
+            SynchedEntityData.defineId(Curbug.class, EntityDataSerializers.BOOLEAN);
+
+    protected double baseMoveSpeed = 0.25D;
+    protected double chaseMoveSpeed = 0.38D;
+
+    protected boolean fakeDeathEnabled = false;
+    protected int fakeDeathChance = 40;
+    protected int fakeDeathDuration = 30;
+    protected float fakeDeathHealth = 0.02F;
+
+    protected final EntityMovementUtils.FloatingState floatingState = new EntityMovementUtils.FloatingState();
+
+    protected int breakCooldown = 0;
+    protected int jumpCooldown = 0;
+
+    protected int ambientSoundTime;
+    protected int minAmbientSoundDelay = 12 * 20;
+    protected int maxAmbientSoundDelay = 16 * 20;
+
     public Curbug(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
+
+        EpcaEntityManager.track(this);
+        this.ambientSoundTime = this.random.nextInt(minAmbientSoundDelay, maxAmbientSoundDelay);
+        this.setMaxUpStep(0.5F);
+        this.setMaxUpStep(0.5F);
+
         this.xpReward = 2;
         if (!level.isClientSide) {
             this.growTimer = this.random.nextInt(1200) + 1200;
@@ -72,7 +139,7 @@ public class Curbug extends AbstractOnesentEntity {
 
     @Override
     protected void registerGoals() {
-        super.registerGoals();
+        epcaRegisterGoals();
         this.goalSelector.addGoal(0, new FleeFromTargetersGoal(this, 16.0F, 1.2D, 1.4D));
         this.goalSelector.addGoal(3, new FloatGoal(this));
         this.goalSelector.addGoal(1, new AvoidEntityGoal<Player>(this, Player.class, 7.0F, 1.0D, 1.2D) {
@@ -103,9 +170,15 @@ public class Curbug extends AbstractOnesentEntity {
         this.goalSelector.addGoal(4, new RandomSoundGoal(this, ModSoundEvents.CURBUG_SAY.get()));
     }
 
+    protected void epcaRegisterGoals() {
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+    }
+
     @Override
     public void tick() {
-        super.tick();
+        epcaTick();
 
         if (spawnAnimationTimer > 0) spawnAnimationTimer--;
 
@@ -127,6 +200,37 @@ public class Curbug extends AbstractOnesentEntity {
                         if (this.isInWater()) growIntoFins();
                         else growIntoRupter();
                     }
+                }
+            }
+        }
+    }
+
+    protected void epcaTick() {
+        super.tick();
+
+        if (!this.level().isClientSide) {
+            boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
+            boolean hasTarget = this.getTarget() != null;
+            setRunning(isMoving && hasTarget);
+            setWalking(isMoving && !hasTarget);
+            if (!isMoving) { setRunning(false); setWalking(false); }
+
+            if (this.getTarget() == null && --this.ambientSoundTime <= 0) {
+                this.ambientSoundTime = this.random.nextInt(minAmbientSoundDelay, maxAmbientSoundDelay);
+                SoundEvent ambient = getAmbientSound();
+                if (ambient != null) this.playSound(ambient, 1.0F, 1.0F);
+            }
+
+            breakCooldown = EntityBreakUtils.tryBreakLightSources(this, breakCooldown);
+
+            EntityMovementUtils.updateWaterFloating(this, floatingState);
+        }
+
+        if (isFakingDeath()) {
+            if (!this.level().isClientSide) {
+                fakeDeathTimer--;
+                if (fakeDeathTimer <= 0) {
+                    onFakeDeathEnd();
                 }
             }
         }
@@ -186,19 +290,244 @@ public class Curbug extends AbstractOnesentEntity {
 
     @Override
     public void die(DamageSource source) {
-        super.die(source);
-        this.onDeath(source);
+        epcaDie(source);
     }
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        boolean result = super.hurt(source, amount);
+        boolean result = epcaHurt(source, amount);
         if (result && !this.level().isClientSide && this.isHiding) {
             this.isHiding = false;
             this.hideTimer = 0;
             this.hidingPos = null;
         }
         return result;
+    }
+
+    @Override public ResourceLocation model()     { return this.model; }
+    @Override public ResourceLocation texture()   { return this.texture; }
+    @Override public ResourceLocation animation() { return this.animation; }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
+    }
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_IS_RUNNING, false);
+        this.entityData.define(DATA_IS_WALKING, false);
+        this.entityData.define(DATA_IS_FAKING_DEATH, false);
+        this.entityData.define(DATA_IS_INVULNERABLE, false);
+    }
+
+    public boolean isRunning() { return this.entityData.get(DATA_IS_RUNNING); }
+    public void setRunning(boolean running) { this.entityData.set(DATA_IS_RUNNING, running); }
+
+    public boolean isWalking() { return this.entityData.get(DATA_IS_WALKING); }
+    public void setWalking(boolean walking) { this.entityData.set(DATA_IS_WALKING, walking); }
+
+    public boolean isFakingDeath() { return this.entityData.get(DATA_IS_FAKING_DEATH); }
+    protected void setFakingDeath(boolean faking) { this.entityData.set(DATA_IS_FAKING_DEATH, faking); }
+
+    public boolean isInvulnerable() { return this.entityData.get(DATA_IS_INVULNERABLE); }
+    public void setInvulnerable(boolean invulnerable) { this.entityData.set(DATA_IS_INVULNERABLE, invulnerable); }
+
+    public static AttributeSupplier.Builder createBaseAttributes() {
+        return Mob.createMobAttributes()
+                .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.25D)
+                .add(Attributes.ATTACK_DAMAGE, 2.0D)
+                .add(Attributes.FOLLOW_RANGE, 16.0D);
+    }
+
+    protected int fakeDeathTimer = 0;
+    protected BlockPos deathPosition;
+
+    protected boolean tryFakeDeath() {
+        if (!fakeDeathEnabled || isFakingDeath()) return false;
+        if (fakeDeathChance > 0 && this.getRandom().nextInt(100) >= fakeDeathChance) return false;
+        startFakeDeath();
+        return true;
+    }
+
+    protected void startFakeDeath() {
+        if (isFakingDeath()) return;
+        setFakingDeath(true);
+        setInvulnerable(true);
+        fakeDeathTimer = fakeDeathDuration;
+        deathPosition = this.blockPosition();
+        this.setBurstHealth(fakeDeathHealth);
+        this.setNoAi(true);
+        this.setTarget(null);
+        this.setPose(Pose.DYING);
+    }
+
+    protected void setBurstHealth(float requested) {
+        this.setHealth(EntityHealthUtils.burstHealth(this, requested));
+    }
+
+    protected void onFakeDeathEnd() {
+        setFakingDeath(false);
+        if (!this.level().isClientSide) {
+            onFakeDeathBurst();
+        }
+        triggerDismemberment();
+        this.discard();
+    }
+
+    protected void onFakeDeathBurst() {
+
+    }
+
+    public BlockPos getDeathPosition() { return deathPosition; }
+
+    protected boolean epcaHurt(DamageSource source, float amount) {
+        if (isFakingDeath()) return false;
+
+        if (source.getEntity() instanceof LivingEntity attacker) {
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) return false;
+        }
+
+        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+            ParasiteEvents.onAttacked(this, attacker);
+        }
+
+        return super.hurt(source, amount);
+    }
+
+    protected void epcaDie(DamageSource source) {
+        if (isFakingDeath()) {
+            super.die(source);
+            return;
+        }
+        if (!this.level().isClientSide && tryFakeDeath()) {
+            return;
+        }
+        super.die(source);
+    }
+
+        public boolean canPassThroughInfestedLeaves() { return true; }
+
+    @Override
+    public boolean startRiding(Entity vehicle, boolean force) {
+        if (vehicle instanceof Boat || vehicle instanceof Minecart) return false;
+        return super.startRiding(vehicle, force);
+    }
+
+    @Override
+    protected boolean canRide(Entity entity) {
+        if (entity instanceof Boat || entity instanceof Minecart) return false;
+        return super.canRide(entity);
+    }
+
+    @Override
+    public void travel(Vec3 travelVector) {
+        if (this.isEffectiveAi() && this.isInWater()) {
+            EntityMovementUtils.applyWaterTravel(this, travelVector);
+        } else {
+            super.travel(travelVector);
+        }
+    }
+
+    @Override
+    protected boolean isAffectedByFluids() { return true; }
+
+    @Override
+    public boolean canStandOnFluid(net.minecraft.world.level.material.FluidState fluid) { return false; }
+
+    protected void applyMovementSpeed() {
+        var attr = this.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (attr != null) {
+            double target = this.getTarget() != null ? chaseMoveSpeed : baseMoveSpeed;
+            if (attr.getBaseValue() != target) attr.setBaseValue(target);
+        }
+    }
+
+    protected int stepSoundDelay = 0;
+
+    protected void tickStepSounds(SoundEvent stepSound, int minDelay, int maxDelay, float volume) {
+        if (!this.level().isClientSide && this.onGround() && isMoving()) {
+            if (this.stepSoundDelay <= 0) {
+                this.playSound(stepSound, volume, 1.0F);
+                this.stepSoundDelay = minDelay + this.random.nextInt(maxDelay - minDelay + 1);
+            } else {
+                this.stepSoundDelay--;
+            }
+        } else {
+            if (this.stepSoundDelay > 0) this.stepSoundDelay--;
+        }
+    }
+
+    protected boolean tickStepSounds(SoundEvent stepSound) {
+        if (!this.level().isClientSide && this.onGround() && isMoving()) {
+            if (this.stepSoundDelay <= 0) {
+                this.playSound(stepSound, 0.8F, 1.0F);
+                this.stepSoundDelay = 10 + this.random.nextInt(6);
+                return true;
+            } else {
+                this.stepSoundDelay--;
+            }
+        } else {
+            if (this.stepSoundDelay > 0) this.stepSoundDelay--;
+        }
+        return false;
+    }
+
+    protected boolean isMoving() {
+        return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6;
+    }
+
+    @Override public boolean removeWhenFarAway(double d) { return false; }
+
+    protected SoundEvent getAmbientSound() { return null; }
+
+    private void triggerDismemberment() {
+        try {
+            Class.forName("me.ichun.mods.mobdismemberment.common.MobDismemberment")
+                    .getMethod("trigger", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, this);
+        } catch (Throwable ignored) {
+
+        }
+    }
+
+    protected int getEvolutionStage() {
+        if (this.level() instanceof ServerLevel serverLevel) {
+            return EvolutionManager.getStageForDimension(serverLevel);
+        }
+        return 0;
+    }
+
+    protected static class RandomSoundGoal extends Goal {
+        private final Mob entity;
+        private final SoundEvent sound;
+        private int nextSoundTick;
+
+        public RandomSoundGoal(Mob entity, SoundEvent sound) {
+            this.entity = entity;
+            this.sound = sound;
+            this.setFlags(EnumSet.noneOf(Flag.class));
+        }
+
+        @Override
+        public boolean canUse() {
+            return entity.isAlive() && !entity.isAggressive();
+        }
+
+        @Override
+        public void start() {
+            this.nextSoundTick = entity.getRandom().nextInt(120) + 80;
+        }
+
+        @Override
+        public void tick() {
+            if (this.nextSoundTick-- <= 0) {
+                entity.playSound(sound, 1.0F, 1.0F);
+                this.nextSoundTick = entity.getRandom().nextInt(120) + 80;
+            }
+        }
     }
 
     private void handleEntityContact() {
@@ -209,7 +538,7 @@ public class Curbug extends AbstractOnesentEntity {
         });
 
         for (Entity entity : this.level().getEntities(this, this.getBoundingBox())) {
-            if (entity instanceof LivingEntity living && entity.isAlive() && !IParasite.isParasiteByTagOrInterface(living)) {
+            if (entity instanceof LivingEntity living && entity.isAlive() && !ParasiteEvents.isParasiteByTagOrInterface(living)) {
                 int entityId = entity.getId();
                 int touchTime = touchingEntities.getOrDefault(entityId, 0) + 1;
                 touchingEntities.put(entityId, touchTime);
@@ -248,7 +577,7 @@ public class Curbug extends AbstractOnesentEntity {
             serverLevel.addFreshEntity(rupter);
             serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
-            org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel,
+            ModParticles.spawnConversion(serverLevel,
                     this.getX(), this.getY() + 0.5, this.getZ(), 2, 0xFFFFFF);
             this.discard();
         }

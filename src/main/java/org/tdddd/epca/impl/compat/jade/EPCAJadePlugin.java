@@ -33,16 +33,15 @@ public class EPCAJadePlugin implements IWailaPlugin {
     public static final ResourceLocation UNKNOWN_HEALTH_INFO =
             new ResourceLocation(epca.MODID, "unknown_health");
 
-    
     private static final ItemStack ICON_STACK = new ItemStack(ModItems.BIOMASS_COUNT_ICON.get());
 
     @Override
     public void register(IWailaCommonRegistration registration) {
-        
+
         registration.registerEntityDataProvider(DamageAdaptationEntityProvider.INSTANCE, LivingEntity.class);
-        
+
         registration.registerEntityDataProvider(BiomassCountEntityProvider.INSTANCE, LivingEntity.class);
-        
+
         registration.registerBlockDataProvider(BiomassCountBlockProvider.INSTANCE, BeckonCoreBlockEntity.class);
         registration.registerBlockDataProvider(HiveNodeBiomassCountProvider.INSTANCE,
                 org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity.class);
@@ -50,20 +49,16 @@ public class EPCAJadePlugin implements IWailaPlugin {
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
-        
+
         registration.registerEntityComponent(DamageAdaptationEntityProvider.INSTANCE, LivingEntity.class);
         registration.registerEntityComponent(BiomassCountEntityProvider.INSTANCE, LivingEntity.class);
 
-        
         registration.registerBlockComponent(BiomassCountBlockProvider.INSTANCE, BeckonCore.class);
         registration.registerBlockComponent(HiveNodeBiomassCountProvider.INSTANCE,
                 org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode.class);
 
-        // /Unknown
         registration.registerEntityComponent(UnknownHealthEntityProvider.INSTANCE, BioTortIncarnation.class);
 
-        
-        // Config keys may already be registered by yawningapi
         try {
             registration.addConfig(BIOMASS_COUNT_INFO, true);
         } catch (IllegalArgumentException ignored) {
@@ -78,9 +73,6 @@ public class EPCAJadePlugin implements IWailaPlugin {
         }
     }
 
-    
-
-    /** Shows the stored biomass of a hive node, with the same icon and format as the beckon core. */
     public static class HiveNodeBiomassCountProvider
             implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
         public static final HiveNodeBiomassCountProvider INSTANCE = new HiveNodeBiomassCountProvider();
@@ -123,7 +115,7 @@ public class EPCAJadePlugin implements IWailaPlugin {
             if (count <= 0) return;
 
             IElementHelper helper = tooltip.getElementHelper();
-            
+
             tooltip.add(helper.smallItem(ICON_STACK));
             tooltip.append(Component.literal(" " + count));
         }
@@ -144,7 +136,6 @@ public class EPCAJadePlugin implements IWailaPlugin {
         }
     }
 
-    
     public static class BiomassCountBlockProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
         public static final BiomassCountBlockProvider INSTANCE = new BiomassCountBlockProvider();
 
@@ -180,13 +171,6 @@ public class EPCAJadePlugin implements IWailaPlugin {
         }
     }
 
-    /**
-     *  Jade en_us: "Unknown"
-     *
-     * <p>{@code setHealth}/{@code setMaxHealth}
-     * {@code getHealth()}/{@code getMaxHealth()}
-     *  {@code jade.epca.unknown_health} </p>
-     */
     public static class UnknownHealthEntityProvider implements IEntityComponentProvider {
         public static final UnknownHealthEntityProvider INSTANCE = new UnknownHealthEntityProvider();
 
@@ -197,7 +181,7 @@ public class EPCAJadePlugin implements IWailaPlugin {
             if (!(entity instanceof BioTortIncarnation incarnation)) return;
 
             tooltip.add(Component.translatable("jade.epca.unknown_health"));
-            //  2 " 2"
+
             if (incarnation.isPhaseTwo()) {
                 tooltip.add(Component.translatable("entity.epca.bio_tort_incarnation.phase_two"));
             }
@@ -240,9 +224,8 @@ public class EPCAJadePlugin implements IWailaPlugin {
                 int minBiomassCount = data.getInt("MinBiomassCount");
                 int maxMinBiomassCount = data.contains("MaxMinBiomassCount")
                         ? data.getInt("MaxMinBiomassCount") : minBiomassCount;
-                if (false) { // minimum kill count removed
-                    // A JSON value of n > 0 means the creature needs 1 + n kills, so it survives n
-                    // fake deaths. The tooltip shows how many are still left.
+                if (false) {
+
                     int shown = minBiomassCount;
                     int deaths = data.contains("BiomassDeaths") ? data.getInt("BiomassDeaths") : 0;
                     int remaining = Math.max(shown - deaths, 0);
@@ -292,7 +275,6 @@ public class EPCAJadePlugin implements IWailaPlugin {
 
             CompoundTag epcaData = new CompoundTag();
 
-            
             Map<Object, Float> multipliers = config.getDamageMultipliers();
             Object maxDamageType = null;
             float maxMultiplier = 0;
@@ -311,14 +293,12 @@ public class EPCAJadePlugin implements IWailaPlugin {
                 epcaData.putFloat("MaxMultiplier", maxMultiplier);
             }
 
-            
             int minBiomassCount = 0;
-            if (false) { // minimum kill count removed
+            if (false) {
                 epcaData.putInt("MinBiomassCount", minBiomassCount);
                 epcaData.putInt("BiomassDeaths", 0);
                                             }
 
-            
             int currentAdaptLevel = 0;
             int maxAdaptLevel = config.getMaxAdaptations();
             IAdaptationData adaptationData = livingEntity.getCapability(IAdaptationData.CAPABILITY).orElse(null);
@@ -333,13 +313,11 @@ public class EPCAJadePlugin implements IWailaPlugin {
                 epcaData.putInt("MaxAdaptLevel", maxAdaptLevel);
             }
 
-            
             if (DamageAdaptation.isInBrokenAdaptation(livingEntity)) {
                 float remainingTime = DamageAdaptation.getRemainingBrokenAdaptationTime(livingEntity);
                 epcaData.putFloat("BrokenAdaptationTime", remainingTime);
             }
 
-            
             CompoundTag persistentData = livingEntity.getPersistentData();
             if (persistentData.contains("EPCA_LastDamageType")) {
                 String lastDamageTypeStr = persistentData.getString("EPCA_LastDamageType");
@@ -372,7 +350,6 @@ public class EPCAJadePlugin implements IWailaPlugin {
         }
     }
 
-    
     private static String formatDamageType(String damageTypeStr) {
         if (damageTypeStr.startsWith("minecraft:")) {
             String path = damageTypeStr.substring(10);

@@ -14,12 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- * Sends the whole like biome table of one dimension to its clients.
- *
- * <p>The table only changes when an operator runs {@code /epca_biome_like}, so sending it as a whole is
- * cheaper than tracking per section deltas.</p>
- */
 public class SyncLikeBiomesPacket {
 
     private final Map<Long, LikeBiome> entries;

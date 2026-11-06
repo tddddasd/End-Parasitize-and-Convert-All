@@ -15,12 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-/**
- * Server to client: replace the client's whole set of raid barriers.
- *
- * <p>A full state replace (rather than add/remove deltas) keeps the client in sync after a restart, a
- * dimension change or an expiry without needing sequence numbers.</p>
- */
 public class RaidBarrierS2CPacket {
     private final List<InfestedRaidBarrierData.Barrier> barriers;
 
@@ -28,13 +22,11 @@ public class RaidBarrierS2CPacket {
         this.barriers = List.copyOf(barriers);
     }
 
-    /** Pushes the current barrier set of one level to everyone in it. */
     public static void sendAll(ServerLevel level, InfestedRaidBarrierData data) {
         ModNetwork.INSTANCE.send(PacketDistributor.DIMENSION.with(level::dimension),
                 new RaidBarrierS2CPacket(data.all()));
     }
 
-    /** Pushes the current barrier set to a single player (used on login). */
     public static void sendTo(ServerPlayer player, InfestedRaidBarrierData data) {
         ModNetwork.sendToPlayer(player, new RaidBarrierS2CPacket(data.all()));
     }

@@ -11,6 +11,6 @@ public class InfestedStick extends Item {
     }
     @Override
     public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
-        return 60; 
+        return 60;
     }
 }

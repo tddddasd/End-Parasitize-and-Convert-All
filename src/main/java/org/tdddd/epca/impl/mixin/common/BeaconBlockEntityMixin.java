@@ -1,6 +1,7 @@
 package org.tdddd.epca.impl.mixin.common;
 
 import net.minecraft.core.BlockPos;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +22,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.items.item.InfestedDiamond;
 import org.tdddd.epca.impl.overworld.registry.items.item.InfestedEmerald;
 import org.tdddd.epca.impl.utils.IBeaconMixin;
@@ -133,7 +133,7 @@ public abstract class BeaconBlockEntityMixin implements IBeaconMixin {
             long last = mixin.getLastParasiteEffectTime();
             if (last == -1 || now - last >= 600) {
                 for (LivingEntity entity : entities) {
-                    if (entity instanceof IParasite) {
+                    if (ParasiteEvents.isParasiteEntity(entity)) {
                         if (payment instanceof InfestedEmerald) {
                             entity.addEffect(new MobEffectInstance(ModEffects.CAMOUFLAGE.get(), 300, 0, false, true));
                         } else if (payment instanceof InfestedDiamond) {
@@ -146,18 +146,17 @@ public abstract class BeaconBlockEntityMixin implements IBeaconMixin {
         }
 
         for (LivingEntity entity : entities) {
-            if (!(entity instanceof IParasite)) {
+            if (!ParasiteEvents.isParasiteEntity(entity)) {
                 entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE.get(), 2400, 0, false, true));
             }
         }
-
 
         if (!(entities instanceof Player)) {
             long now = level.getGameTime();
             long last = mixin.getLastParasiteEffectTime();
             if (last == -1 || now - last >= 600) {
                 for (LivingEntity entity : entities) {
-                    if (entity instanceof IParasite) {
+                    if (ParasiteEvents.isParasiteEntity(entity)) {
                         if (payment instanceof InfestedEmerald) {
                             entity.addEffect(new MobEffectInstance(ModEffects.CAMOUFLAGE.get(), 300, 0, false, true));
                         } else if (payment instanceof InfestedDiamond) {

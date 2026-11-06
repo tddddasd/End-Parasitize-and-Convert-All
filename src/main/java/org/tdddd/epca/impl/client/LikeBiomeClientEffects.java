@@ -17,26 +17,12 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeClientCache;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-/**
- * Applies the colour part of a like biome on the client.
- *
- * <p>Fog is handled here: it is a per frame camera colour, so it can be replaced without touching any
- * block or chunk data, which is exactly what "layer a biome on top" means. Water and grass colours go
- * through the biome colour hooks. The sky colour, the rain override and the spawn mode overrides are not
- * applied yet: they all need a mixin whose target signature has to be verified against the exact
- * obfuscated name set first, and a wrong signature crashes the game, so they stay out until that is
- * confirmed.</p>
- *
- * <p>Nothing happens when the layer has {@code overrideColors} off or when the biome id no longer exists
- * in the client registry.</p>
- */
 @Mod.EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class LikeBiomeClientEffects {
 
     private LikeBiomeClientEffects() {
     }
 
-    /** The like biome in force at the camera position, or {@code null}. */
     @Nullable
     public static Biome activeBiome(BlockPos pos) {
         ResourceLocation id = LikeBiomeClientCache.biomeId(pos);
@@ -63,7 +49,6 @@ public final class LikeBiomeClientEffects {
         return activeBiome(pos);
     }
 
-    /** Fog colour follows the like biome. */
     @SubscribeEvent
     public static void onFogColor(ViewportEvent.ComputeFogColor event) {
         Biome biome = activeAtCamera(event);
@@ -76,26 +61,21 @@ public final class LikeBiomeClientEffects {
         event.setBlue((color & 0xFF) / 255.0F);
     }
 
-
-    /** Water colour of the like biome at {@code pos}, or {@code null} when it should not be applied. */
     public static Integer waterColor(BlockPos pos) {
         Biome biome = activeBiome(pos);
         return biome == null ? null : biome.getWaterColor();
     }
 
-    /** Grass colour of the like biome at {@code pos}, or {@code null}. */
     public static Integer grassColor(BlockPos pos) {
         Biome biome = activeBiome(pos);
         return biome == null ? null : biome.getGrassColor(0.5D, 64.0D);
     }
 
-    /** Foliage colour of the like biome at {@code pos}, or {@code null}. */
     public static Integer foliageColor(BlockPos pos) {
         Biome biome = activeBiome(pos);
         return biome == null ? null : biome.getFoliageColor();
     }
 
-    /** Sky colour of the like biome at {@code pos}, or {@code null}. */
     public static Integer skyColor(BlockPos pos) {
         Biome biome = activeBiome(pos);
         return biome == null ? null : biome.getSkyColor();

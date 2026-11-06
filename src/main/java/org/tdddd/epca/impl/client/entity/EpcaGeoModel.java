@@ -9,18 +9,6 @@ import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
-/**
- * Single generic GeoModel for all EPCA entities.
- *
- * <p>Resource resolution priority:
- * <ol>
- *   <li>Entity implements {@link IAutoRenderableEntity}  use entity.model/texture/animation()</li>
- *   <li>Otherwise  lookup from {@link EpcaEntityManager} by entity type</li>
- * </ol>
- *
- * <p>Per-entity custom logic (head rotation, layer rendering, etc.) is handled via
- * interfaces ({@link IHeadRotatable}) in client events, NOT by subclassing this model.</p>
- */
 public class EpcaGeoModel<T extends Entity & GeoAnimatable> extends GeoModel<T> {
 
     @Override
@@ -54,10 +42,6 @@ public class EpcaGeoModel<T extends Entity & GeoAnimatable> extends GeoModel<T> 
     public void setCustomAnimations(T animatable, long instanceId, AnimationState<T> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
-        // Head rotation via interface  only for LivingEntity (needs yBodyRot).
-        // SKIPPED during an afterimage ghost pass: this block recomputes the head bone from the OWNER's
-        // LIVE yBodyRot, which would overwrite the ghost's captured pose. Gated on FrozenGhostRender so
-        // every normal render is unchanged.
         if (!FrozenGhostRender.isActive()
                 && animatable instanceof LivingEntity living
                 && animatable instanceof IHeadRotatable rotatable) {
@@ -69,4 +53,3 @@ public class EpcaGeoModel<T extends Entity & GeoAnimatable> extends GeoModel<T> 
         }
     }
 }
-

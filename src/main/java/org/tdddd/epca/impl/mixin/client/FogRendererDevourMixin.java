@@ -8,20 +8,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.tdddd.epca.impl.client.render.sky.DarknessDevourEffect;
 
-/**
- *
- *
- * <p>{@code FogRenderer.setupFog}  {@code RenderSystem}
- *  {@code VertexBuffer.drawWithShader} {@code LevelRenderer}
- * / TAIL
- * ""
- * </p>
- *
- * <p> {@code priority = 1200}TAIL
- * </p>
- *
- * <p> {@code static} {@code static}</p>
- */
 @Mixin(value = FogRenderer.class, priority = 1200)
 public abstract class FogRendererDevourMixin {
 
@@ -31,4 +17,3 @@ public abstract class FogRendererDevourMixin {
         DarknessDevourEffect.applyFog(renderDistance);
     }
 }
-

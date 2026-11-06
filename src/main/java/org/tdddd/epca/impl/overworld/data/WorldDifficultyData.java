@@ -9,9 +9,8 @@ public class WorldDifficultyData extends SavedData {
     private static final String DATA_NAME = "epca_world_difficulty";
     private DifficultyLevel difficulty = DifficultyLevel.NORMAL;
 
-    
     private DifficultyLevel customBaseDifficulty = DifficultyLevel.NORMAL;
-    private float customSpawnRate = 1.0f;      
+    private float customSpawnRate = 1.0f;
     private boolean customRewardEnabled = true;
 
     public DifficultyLevel getDifficulty() { return difficulty; }
@@ -21,7 +20,6 @@ public class WorldDifficultyData extends SavedData {
         setDirty();
     }
 
-    
     public DifficultyLevel getCustomBaseDifficulty() { return customBaseDifficulty; }
     public void setCustomBaseDifficulty(DifficultyLevel baseDifficulty) {
         this.customBaseDifficulty = baseDifficulty;

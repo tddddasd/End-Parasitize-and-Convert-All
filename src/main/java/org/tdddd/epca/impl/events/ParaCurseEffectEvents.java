@@ -15,13 +15,12 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 @Mod.EventBusSubscriber
 public class ParaCurseEffectEvents {
     @SubscribeEvent
     public static void onEffectApplicable(MobEffectEvent.Applicable event) {
-        
+
         if (event.getEffectInstance().getEffect() != ModEffects.PARA_CURSE.get()) {
             return;
         }
@@ -32,7 +31,6 @@ public class ParaCurseEffectEvents {
 
         MobEffectInstance existingEffect = entity.getEffect(ModEffects.PARA_CURSE.get());
 
-        
         if (existingEffect != null && newAmplifier <= existingEffect.getAmplifier()) {
             event.setResult(Event.Result.DENY);
         }

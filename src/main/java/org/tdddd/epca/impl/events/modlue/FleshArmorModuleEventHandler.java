@@ -23,10 +23,8 @@ public class FleshArmorModuleEventHandler {
     private static final UUID FLESH_ARMOR_HEALTH_MODIFIER_ID = UUID.fromString("a1b2c3dd-e5f6-7890-abcd-ef1234567890");
     private static final String MODIFIER_NAME = "FleshArmorHealthBonus";
 
-    
     private static final int CHECK_INTERVAL = 10;
 
-    
     private static final Map<UUID, Double> playerArmorStatsCache = new HashMap<>();
 
     @SubscribeEvent
@@ -37,24 +35,20 @@ public class FleshArmorModuleEventHandler {
 
         Player player = event.player;
 
-        
         if (player.level().isClientSide()) {
             return;
         }
 
-        
         if (player.tickCount % CHECK_INTERVAL != 0) {
             return;
         }
 
-        
         if (!isWearingFullLivingArmor(player)) {
             removeHealthModifier(player);
             playerArmorStatsCache.remove(player.getUUID());
             return;
         }
 
-        
         ItemStack boxStack = findLivingArmorBox(player);
         if (boxStack.isEmpty()) {
             removeHealthModifier(player);
@@ -64,38 +58,31 @@ public class FleshArmorModuleEventHandler {
 
         LivingArmorBox boxItem = (LivingArmorBox) boxStack.getItem();
 
-        
         if (!boxItem.getState(boxStack)) {
             removeHealthModifier(player);
             playerArmorStatsCache.remove(player.getUUID());
             return;
         }
 
-        
         if (!hasFleshArmorModuleI(boxStack)) {
             removeHealthModifier(player);
             playerArmorStatsCache.remove(player.getUUID());
             return;
         }
 
-        
         double currentTotalStats = calculateTotalArmorStats(player);
 
-        
         UUID playerUUID = player.getUUID();
         Double previousTotalStats = playerArmorStatsCache.get(playerUUID);
 
-        
         if (previousTotalStats == null || Math.abs(currentTotalStats - previousTotalStats) > 0.01) {
-            
+
             playerArmorStatsCache.put(playerUUID, currentTotalStats);
 
-            
             applyHealthModifier(player, currentTotalStats);
         }
     }
 
-    
     private static boolean isWearingFullLivingArmor(Player player) {
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
         ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
@@ -108,14 +95,12 @@ public class FleshArmorModuleEventHandler {
                 isLivingArmor(boots);
     }
 
-    
     private static boolean isLivingArmor(ItemStack stack) {
         return stack.getItem() instanceof LivingArmorItem;
     }
 
-    
     private static ItemStack findLivingArmorBox(Player player) {
-        
+
         ItemStack mainHand = player.getMainHandItem();
         ItemStack offHand = player.getOffhandItem();
 
@@ -126,7 +111,6 @@ public class FleshArmorModuleEventHandler {
             return offHand;
         }
 
-        
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() instanceof LivingArmorBox) {
@@ -137,7 +121,6 @@ public class FleshArmorModuleEventHandler {
         return ItemStack.EMPTY;
     }
 
-    
     private static boolean hasFleshArmorModuleI(ItemStack boxStack) {
         if (!(boxStack.getItem() instanceof LivingArmorBox)) {
             return false;
@@ -155,32 +138,25 @@ public class FleshArmorModuleEventHandler {
         return false;
     }
 
-    
     private static double calculateTotalArmorStats(Player player) {
-        
+
         double totalArmor = player.getAttributeValue(Attributes.ARMOR);
 
-        
         double totalToughness = player.getAttributeValue(Attributes.ARMOR_TOUGHNESS);
 
-        
         return totalArmor + totalToughness;
     }
 
-    
     private static void applyHealthModifier(Player player, double totalStats) {
-        
+
         float currentHealth = player.getHealth();
         float maxHealthBefore = player.getMaxHealth();
         float healthRatio = currentHealth / maxHealthBefore;
 
-        
         double healthBonus = totalStats / 2.0;
 
-        
         removeHealthModifier(player);
 
-        
         if (healthBonus > 0) {
             AttributeModifier healthModifier = new AttributeModifier(
                     FLESH_ARMOR_HEALTH_MODIFIER_ID,
@@ -192,36 +168,28 @@ public class FleshArmorModuleEventHandler {
             if (!player.getAttribute(Attributes.MAX_HEALTH).hasModifier(healthModifier)) {
                 player.getAttribute(Attributes.MAX_HEALTH).addTransientModifier(healthModifier);
 
-                
                 float maxHealthAfter = player.getMaxHealth();
 
-                
                 float newHealth = Math.min(healthRatio * maxHealthAfter, maxHealthAfter);
 
-                
                 player.setHealth(newHealth);
             }
         }
     }
 
-    
     private static void removeHealthModifier(Player player) {
         if (player.getAttribute(Attributes.MAX_HEALTH).getModifier(FLESH_ARMOR_HEALTH_MODIFIER_ID) != null) {
-            
+
             float currentHealth = player.getHealth();
             float maxHealthBefore = player.getMaxHealth();
             float healthRatio = currentHealth / maxHealthBefore;
 
-            
             player.getAttribute(Attributes.MAX_HEALTH).removeModifier(FLESH_ARMOR_HEALTH_MODIFIER_ID);
 
-            
             float maxHealthAfter = player.getMaxHealth();
 
-            
             float newHealth = Math.min(healthRatio * maxHealthAfter, maxHealthAfter);
 
-            
             player.setHealth(newHealth);
         }
     }

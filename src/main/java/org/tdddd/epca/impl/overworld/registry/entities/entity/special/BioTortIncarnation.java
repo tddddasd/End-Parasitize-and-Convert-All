@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.special;
 
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -36,7 +37,6 @@ import org.tdddd.epca.impl.events.PlayerPositionHistory;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.ScreenCorruptionPacket;
 import org.tdddd.epca.impl.network.packet.s2c.SyncHotbarMarkPacket;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
 import java.util.ArrayList;
@@ -48,49 +48,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- *  / Bio-Tort Incarnation
- *
- * <p> {@link YawningNya} AI
- *  Yawning_Nya </p>
- * <ul>
- *   <li><b></b>{@link #hurt}  {@link #doHurtTarget}
- *
- *       {@code HurtByTargetGoal} + {@code MeleeAttackGoal}
- *       {@code DATA_HAS_REVENGE} / 100 tick  1
- *       </li>
- *   <li><b></b>{@link #setHealth(float)}
- *       {@link #FIXED_HEALTH}1.20.1  {@code LivingEntity#getMaxHealth()}
- *       {@code final} {@code MAX_HEALTH}  {@code setMaxHealth()}
- *        {@link #lockMaxHealthAttribute()}  tick
- *       {@code MAX_HEALTH}  +
- *       /</li>
- *   <li><b></b>44 {@link #MAGIC_DAMAGE}
- *       + 46  YawningNekoAPI  API  MinimumDamageEventHandler
- *       {@code data/yawning_neko_api/minimum_damage/epca_entities.json}
- *       {@code "epca:bio_tort_incarnation": {"min_damage": 46}} </li>
- * </ul>
- *
- * <h3> {@link BioTortSkillConstants}</h3>
- * <ol>
- *   <li><b> 1</b> 20  3
- *        {@code SyncHotbarMarkPacket}
- *       ""<b></b>
- *        2  5  {@code yawning_neko_api:minimum}
- *        V
- *       {@code epca:needler} {@link BioTortMarkHandler} </li>
- *   <li><b> 2 2 + 4 </b> 14  2
- *        + NBT  {@link #DATA_PHASE_TWO} 4
- *        {@code ScreenCorruptionPacket}
- *        3  5 </li>
- * </ol>
- */
-public class BioTortIncarnation extends PathfinderMob implements IParasite {
+public class BioTortIncarnation extends PathfinderMob  {
 
-    /**  setHealth  */
     public static final float FIXED_HEALTH = 20.0F;
 
-    /** 46  YawningNekoAPI  minimum_damage  */
     public static final float MAGIC_DAMAGE = 44.0F;
 
     private static final EntityDataAccessor<Boolean> DATA_HAS_REVENGE =
@@ -98,10 +59,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
     private static final EntityDataAccessor<Boolean> DATA_HAS_SHOWN_JOIN_MESSAGE =
             SynchedEntityData.defineId(BioTortIncarnation.class, EntityDataSerializers.BOOLEAN);
 
-    /**
-     *  2
-     *  NBT/
-     */
     private static final EntityDataAccessor<Boolean> DATA_PHASE_TWO =
             SynchedEntityData.defineId(BioTortIncarnation.class, EntityDataSerializers.BOOLEAN);
 
@@ -109,30 +66,22 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
     private int revengeCooldown = 0;
     private int attackStrengthTicker;
 
-    //   1 /  2
-
-    /**  2 {@code PHASE2_ATTACK_THRESHOLD}  2 */
     private final Map<UUID, Integer> attackCounts = new HashMap<>();
 
-    /**  2  4  */
     private final Map<UUID, Integer> phaseTwoAttackCounts = new HashMap<>();
 
-    /** UUID ->  /  /  */
     private final Map<UUID, HotbarMark> hotbarMarks = new HashMap<>();
 
-    /**  = "" */
     private final List<CorruptionEffect> corruptionEffects = new ArrayList<>();
 
-    /**  tick */
     private int markCycleTicker;
 
-    /**  */
     private static final class HotbarMark {
-        /** 9  */
+
         private final int slotMask;
-        /**  */
+
         private final long expireTick;
-        /** "" */
+
         private long nextDamageTick;
 
         private HotbarMark(int slotMask, long expireTick, long nextDamageTick) {
@@ -146,16 +95,15 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         }
     }
 
-    /**  */
     private static final class CorruptionEffect {
-        /**  */
+
         private final ServerPlayer player;
-        /**  3  null */
+
         @Nullable
         private final PlayerPositionHistory.Sample teleportTarget;
-        /**  tick  */
+
         private int elapsedTicks;
-        /**  */
+
         private boolean teleported;
 
         private CorruptionEffect(ServerPlayer player, @Nullable PlayerPositionHistory.Sample teleportTarget) {
@@ -167,17 +115,13 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
     public BioTortIncarnation(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
 
-        //  Yawning_Nya
         this.navigation = new GroundPathNavigation(this, level);
 
-        //  setHealth
-        // getHealth()  FIXED_HEALTH/
         super.setHealth(FIXED_HEALTH);
     }
 
-    @Override
-    public boolean canPassThroughInfestedLeaves() {
-        return true;  //  Yawning_Nya
+        public boolean canPassThroughInfestedLeaves() {
+        return true;
     }
 
     @Override
@@ -188,7 +132,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         this.entityData.define(DATA_PHASE_TWO, false);
     }
 
-    //  Yawning_Nya  20 0.3 1.0 16
     public static AttributeSupplier createAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
@@ -196,11 +139,10 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
                 .add(Attributes.ATTACK_DAMAGE, 1.0D)
                 .add(Attributes.FOLLOW_RANGE, 16.0D)
                 .add(Attributes.ARMOR, 0.0D)
-                .add(Attributes.ATTACK_SPEED, 4.0D)  //  Yawning_Nya
+                .add(Attributes.ATTACK_SPEED, 4.0D)
                 .build();
     }
 
-    // AI  Yawning_Nya
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(5, new FloatGoal(this));
@@ -209,7 +151,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
 
-        //  Yawning_Nya
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
     }
 
@@ -217,29 +158,19 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
     public void tick() {
         super.tick();
 
-        // 1.20.1  LivingEntity#getMaxHealth()  final
-        // MAX_HEALTH  1.20.1  setMaxHealth()
-        //  tick  super.tick()
-        //  tick // MAX_HEALTH
         if (!this.level().isClientSide) {
             this.lockMaxHealthAttribute();
         }
 
-        //  1 2
-        // isImmobile aiStep  super.tick()
-        // / tick  tick
-        //  AI
         if (!this.level().isClientSide) {
             this.tickBioTortSkills();
         }
 
-        //  Yawning_Nya
         if (!this.level().isClientSide && !this.entityData.get(DATA_HAS_SHOWN_JOIN_MESSAGE)) {
             this.showJoinMessage();
             this.entityData.set(DATA_HAS_SHOWN_JOIN_MESSAGE, true);
         }
 
-        //  Yawning_Nya
         if (this.attackStrengthTicker > 0) {
             --this.attackStrengthTicker;
         }
@@ -255,7 +186,7 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
 
     private void showJoinMessage() {
         if (this.level() instanceof ServerLevel serverLevel) {
-            //  Yawning_Nya
+
             Component joinMessage = Component.translatable("entity.epca.bio_tort_incarnation.join");
 
             serverLevel.getServer().getPlayerList().broadcastSystemMessage(joinMessage, false);
@@ -268,27 +199,19 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
             return false;
         }
 
-        //  HurtByTargetGoal  MeleeAttackGoal
-        // doHurtTarget Yawning_Nya
-        // 44 + 46
         Entity attacker = source.getEntity();
         if (attacker instanceof LivingEntity && attacker != this && revengeCooldown <= 0) {
             this.lastAttacker = attacker.getUUID();
             this.entityData.set(DATA_HAS_REVENGE, true);
-            this.revengeCooldown = 100;  //  Yawning_Nya  100 tick
+            this.revengeCooldown = 100;
 
-            // "" doHurtTarget
             if (attacker instanceof LivingEntity livingAttacker) {
                 this.setLastHurtByMob(livingAttacker);
             }
         }
 
-        // / setHealth
         boolean registered = super.hurt(source, amount);
 
-        //  2 ""super.hurt  true
-        //  super.hurt
-        // ""
         if (registered && attacker instanceof ServerPlayer serverPlayer) {
             this.onPlayerAttack(serverPlayer);
         }
@@ -296,28 +219,15 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return registered;
     }
 
-    /**
-     * 44
-     *
-     * <p>46  YawningNekoAPI
-     * {@code MinimumDamageEventHandler} LivingAttackEvent
-     * {@code data/yawning_neko_api/minimum_damage/epca_entities.json}
-     * {@code "epca:bio_tort_incarnation": {"min_damage": 46}} </p>
-     *
-     * <p> {@code indirectMagic(this, this)}
-     *  {@code damageSources().magic()}API  {@code source.getEntity()}
-     *  46
-     * {@code EvokerFangs#doDamage} </p>
-     */
     @Override
     public boolean doHurtTarget(Entity target) {
-        //  Yawning_Nya
+
         this.playSound(SoundEvents.PLAYER_ATTACK_WEAK, 1.0F, 1.0F);
 
         boolean attacked = target.hurt(this.damageSources().indirectMagic(this, this), MAGIC_DAMAGE);
 
         if (attacked) {
-            //  Yawning_Nya
+
             this.setLastHurtMob(target);
             this.attackStrengthTicker = 20;
         }
@@ -325,7 +235,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return attacked;
     }
 
-    //  Yawning_Nya
     private float getWeaponAttackDamage(ItemStack stack) {
         double attackDamage = stack.getAttributeModifiers(EquipmentSlot.MAINHAND)
                 .get(Attributes.ATTACK_DAMAGE)
@@ -336,7 +245,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return (float) attackDamage;
     }
 
-    //  Yawning_Nya
     public float getAttackDamage() {
         ItemStack mainHandItem = this.getMainHandItem();
         float baseDamage = (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
@@ -349,7 +257,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return baseDamage * (0.2F + cooldownPercent * cooldownPercent * 0.8F);
     }
 
-    //  Yawning_Nya
     public float getAttackStrengthScale(float adjustTicks) {
         float attackStrength = (float) this.attackStrengthTicker - adjustTicks;
         if (attackStrength < 0.0F) {
@@ -359,7 +266,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return attackStrength / 20.0F;
     }
 
-    //  Yawning_Nya
     @Override
     public ItemStack getMainHandItem() {
         return this.getItemInHand(InteractionHand.MAIN_HAND);
@@ -393,8 +299,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
             compound.putUUID("LastAttacker", this.lastAttacker);
         }
 
-        //  2  2  +
-        // /" 13 "
         compound.putBoolean("PhaseTwo", this.entityData.get(DATA_PHASE_TWO));
         compound.putInt("MarkCycleTicker", this.markCycleTicker);
         compound.put("AttackCounts", writeCountMap(this.attackCounts));
@@ -420,26 +324,23 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         readCountMap(compound.getCompound("PhaseTwoAttackCounts"), this.phaseTwoAttackCounts);
     }
 
-    /**  -> NBTkey  UUID  */
     private static CompoundTag writeCountMap(Map<UUID, Integer> counts) {
         CompoundTag tag = new CompoundTag();
         counts.forEach((uuid, value) -> tag.putInt(uuid.toString(), value));
         return tag;
     }
 
-    /** NBT ->  key  */
     private static void readCountMap(CompoundTag tag, Map<UUID, Integer> counts) {
         counts.clear();
         for (String key : tag.getAllKeys()) {
             try {
                 counts.put(UUID.fromString(key), tag.getInt(key));
             } catch (IllegalArgumentException ignored) {
-                //  UUID
+
             }
         }
     }
 
-    //  Yawning_Nya
     @Override
     public boolean canHoldItem(ItemStack stack) {
         return true;
@@ -454,7 +355,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHit) {
         super.dropCustomDeathLoot(source, looting, recentlyHit);
 
-        //  Yawning_Nya
         if (!this.getMainHandItem().isEmpty()) {
             this.spawnAtLocation(this.getMainHandItem().copy());
         }
@@ -470,7 +370,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return false;
     }
 
-    //  Yawning_Nya
     @Override
     public boolean isAffectedByPotions() {
         return true;
@@ -491,39 +390,24 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return HumanoidArm.RIGHT;
     }
 
-    //   1
-    //   2 2 + 4
-    //   BioTortSkillConstants
-
-    /**  2 Jade  */
     public boolean isPhaseTwo() {
         return this.entityData.get(DATA_PHASE_TWO);
     }
 
-    /**
-     *  tick
-     *
-     * <p>
-     * /"2 "" 3 "</p>
-     */
     private void tickBioTortSkills() {
         long now = this.level().getGameTime();
         this.tickCorruptionEffects();
         this.tickHotbarMarks(now);
     }
 
-    //   1
-
     private void tickHotbarMarks(long now) {
-        // 1)  20  3
+
         if (++this.markCycleTicker >= BioTortSkillConstants.MARK_INTERVAL_TICKS) {
             this.markCycleTicker = 0;
             this.startNewMarkCycle(now);
             BioTortMarkHandler.pruneExpired(now);
         }
 
-        // 2)  64
-        //    ""
         Iterator<Map.Entry<UUID, HotbarMark>> markIterator = this.hotbarMarks.entrySet().iterator();
         while (markIterator.hasNext()) {
             Map.Entry<UUID, HotbarMark> entry = markIterator.next();
@@ -536,7 +420,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
             }
         }
 
-        // 3)  ->  2  5
         for (Map.Entry<UUID, HotbarMark> entry : this.hotbarMarks.entrySet()) {
             ServerPlayer player = this.findServerPlayer(entry.getKey());
             if (player == null) {
@@ -544,7 +427,7 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
             }
             HotbarMark mark = entry.getValue();
             int selected = player.getInventory().selected;
-            // "" 2
+
             if (mark.isSlotMarked(selected) && now >= mark.nextDamageTick) {
                 this.applyMinimumDamage(player, BioTortSkillConstants.SELECTED_SLOT_DAMAGE);
                 mark.nextDamageTick = now + BioTortSkillConstants.SELECTED_SLOT_DAMAGE_INTERVAL_TICKS;
@@ -552,7 +435,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         }
     }
 
-    /**  */
     private void startNewMarkCycle(long now) {
         Map<UUID, HotbarMark> next = new HashMap<>();
         Set<UUID> markedPlayers = new HashSet<>();
@@ -562,17 +444,16 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
                 int mask = this.rollHotbarMask();
                 next.put(player.getUUID(), new HotbarMark(mask, now + BioTortSkillConstants.MARK_DURATION_TICKS, now));
                 markedPlayers.add(player.getUUID());
-                // /
+
                 ModNetwork.sendToPlayer(player, SyncHotbarMarkPacket.mark(mask,
                         BioTortSkillConstants.MARK_DURATION_TICKS));
             } else {
-                //  BioTortMarkHandler
+
                 BioTortMarkHandler.markCreature(victim.getUUID(), now,
                         BioTortSkillConstants.MARK_DURATION_TICKS);
             }
         }
 
-        //  /  /
         for (UUID previous : this.hotbarMarks.keySet()) {
             if (!markedPlayers.contains(previous)) {
                 ServerPlayer player = this.findServerPlayer(previous);
@@ -586,7 +467,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         this.hotbarMarks.putAll(next);
     }
 
-    /**  3 0..8 9  */
     private int rollHotbarMask() {
         int mask = 0;
         int wanted = Math.min(BioTortSkillConstants.MARKED_SLOT_COUNT,
@@ -600,14 +480,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return mask;
     }
 
-    /**
-     *  =
-     *
-     * <p> Yawning_Nya  {@code HurtByTargetGoal}
-     *  {@link #getTarget()} {@link #lastAttacker}{@code DATA_HAS_REVENGE}
-     * ""
-     *  {@link BioTortSkillConstants#VICTIM_RANGE} /</p>
-     */
     private List<LivingEntity> collectMarkVictims() {
         List<LivingEntity> victims = new ArrayList<>(2);
 
@@ -645,20 +517,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return this.distanceToSqr(living) <= range * range;
     }
 
-    /**
-     * 5 "" YawningNekoAPI
-     *
-     * <p> API  {@link ModDamageTypes#MINIMUM}
-     * {@code yawning_neko_api:minimum} {@link DamageSource}
-     *  {@code target.hurt(source, amount)}API  {@code LivingEntityMixin}
-     * {@code hurt}  HEAD  {@code amount}
-     * //"
-     * 5 "</p>
-     *
-     * <p> {@code epca_entities.json}  46
-     * "" 46" 5 "
-     *  +  mixin </p>
-     */
     private void applyMinimumDamage(LivingEntity target, float amount) {
         Registry<DamageType> registry = this.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
         Holder<DamageType> holder = registry.getHolderOrThrow(ModDamageTypes.MINIMUM);
@@ -675,19 +533,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return null;
     }
 
-    //   2
-
-    /**
-     *
-     *
-     * <p>14  ->  2 + NBT 2  4
-     *
-     * " 3 "</p>
-     *
-     * <p><b></b> 14  2
-     * " 4 "<b></b> spec
-     * " 2"</p>
-     */
     private void onPlayerAttack(ServerPlayer player) {
         UUID playerId = player.getUUID();
         int total = this.attackCounts.merge(playerId, 1, Integer::sum);
@@ -709,7 +554,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         }
     }
 
-    /**  2 NBT */
     private void enterPhaseTwo() {
         this.entityData.set(DATA_PHASE_TWO, true);
         if (this.level() instanceof ServerLevel serverLevel) {
@@ -727,13 +571,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         return false;
     }
 
-    /**
-     *
-     *
-     * <p>"5 "{@link PlayerPositionHistory}
-     * 3  5
-     *  {@code teleportTarget}  null</p>
-     */
     private void startCorruptionEffect(ServerPlayer player) {
         long now = this.level().getGameTime();
         PlayerPositionHistory.Sample target = PlayerPositionHistory.sampleAt(player.getUUID(),
@@ -741,17 +578,16 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         this.corruptionEffects.add(new CorruptionEffect(player, target));
         ModNetwork.sendToPlayer(player, ScreenCorruptionPacket.start(
                 BioTortSkillConstants.CORRUPTION_TICKS, BioTortSkillConstants.CORRUPTION_DECAY_TICKS));
-        //  isImmobile
+
         this.getNavigation().stop();
         this.setDeltaMovement(Vec3.ZERO);
     }
 
-    /**  3  4 + 1.5  */
     private void tickCorruptionEffects() {
         if (this.corruptionEffects.isEmpty()) {
             return;
         }
-        // AI  isImmobile
+
         this.getNavigation().stop();
         this.setDeltaMovement(Vec3.ZERO);
 
@@ -781,7 +617,6 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         }
     }
 
-    /**  */
     private void teleportBack(ServerPlayer player, @Nullable PlayerPositionHistory.Sample target) {
         if (target == null) {
             return;
@@ -789,23 +624,11 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         player.teleportTo(target.level, target.x, target.y, target.z, target.yRot, target.xRot);
     }
 
-    /**
-     * ""
-     *
-     * <p> {@link LivingEntity#aiStep()}  {@code isImmobile()}
-     *  {@code jumping/xxa/zza} <b> {@code serverAiStep()}</b>
-     * "AI "
-     *  goal  disable  false{@code corruptionEffects}
-     * </p>
-     */
     @Override
     protected boolean isImmobile() {
         return super.isImmobile() || !this.corruptionEffects.isEmpty();
     }
 
-    /**
-     *  /  / discard
-     */
     @Override
     public void remove(Entity.RemovalReason reason) {
         if (!this.level().isClientSide) {
@@ -826,36 +649,10 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
         super.remove(reason);
     }
 
-
-    /**
-     *  {@link #FIXED_HEALTH}
-     *
-     * <p> {@link LivingEntity#hurt} / {@code actuallyHurt}
-     * {@code setHealth(getHealth() - amount)}
-     *  {@code hurt}
-     *  {@code super.setHealth(...)}
-     *  {@link #getHealth()}
-     * {@link #FIXED_HEALTH} 0/NaN hurt </p>
-     */
     @Override
     public void setHealth(float health) {
     }
 
-    /**
-     *
-     *
-     * <p>1.20.1  {@code LivingEntity#getMaxHealth()}  {@code public final}
-     *  {@code LivingEntity.java:1655} {@code getAttributeValue(MAX_HEALTH)}
-     *  1.20.1  {@code LivingEntity}  {@code setMaxHealth()}
-     *  {@code Attributes.MAX_HEALTH}
-     * {@code /attribute} </p>
-     *
-     * <p> tick {@code MAX_HEALTH}
-     * {@link #FIXED_HEALTH}  {@code getMaxHealth()}
-     * final  {@code getMaxHealth()}
-     *  tick  1 tick
-     * </p>
-     */
     private void lockMaxHealthAttribute() {
         AttributeInstance maxHealth = this.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealth == null) {
@@ -872,26 +669,24 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
 
     @Override
     public void die(DamageSource damageSource) {
-        //  Yawning_Nya
-        // YawningNekoAPI  MinimumDamageEventHandler / LivingEntityMixin
-        //  0  target.die(source)
+
     }
 
     @Override
     public boolean isDeadOrDying() {
-        //  Yawning_Nya
+
         return false;
     }
 
     @Override
     public boolean isAlive() {
-        //  Yawning_Nya
+
         return true;
     }
 
     @Override
     public void kill() {
-        //  Yawning_Nya /kill
+
     }
 
     public static boolean checkBioTortSpawnRules(
@@ -901,8 +696,7 @@ public class BioTortIncarnation extends PathfinderMob implements IParasite {
             BlockPos pos,
             RandomSource random
     ) {
-        //  Yawning_Nya
+
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
 }
-

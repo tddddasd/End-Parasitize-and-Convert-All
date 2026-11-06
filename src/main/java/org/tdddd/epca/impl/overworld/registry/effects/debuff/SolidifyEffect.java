@@ -23,33 +23,28 @@ public class SolidifyEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
-        
+
         if (isImmune(entity)) {
             entity.removeEffect(this);
             return;
         }
 
-        
         MobEffectInstance effectInstance = entity.getEffect(this);
         if (effectInstance == null) return;
 
         int duration = effectInstance.getDuration();
 
-        
-        
         if (duration > 0 && duration % 20 == 0) {
-            
+
             if (entity.isAlive()) {
                 entity.hurt(entity.damageSources().inWall(), 2.0F);
             }
 
-            
             if (entity.isAlive()) {
                 entity.hurt(entity.damageSources().magic(), 2.0F);
             }
         }
 
-        
         if (shouldRemoveEffect(entity)) {
             entity.removeEffect(this);
         }
@@ -57,17 +52,15 @@ public class SolidifyEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
-        
+
         return true;
     }
 
-    
     private boolean shouldRemoveEffect(LivingEntity entity) {
-        
+
         return entity.isOnFire();
     }
 
-    
     private boolean isImmune(LivingEntity entity) {
                return entity instanceof Slime ||
                 entity instanceof MagmaCube ||

@@ -1,4 +1,4 @@
-package org.tdddd.epca.impl.overworld.registry.entities;
+package org.tdddd.epca.impl.utils.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,15 +13,15 @@ import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public interface IInfested {
-    
-    
-    default int getBreakCooldown() {
+public final class InfestedUtils {
+
+    private InfestedUtils() { }
+
+    public static int getBreakCooldown() {
         return 25;
     }
 
-    
-    default boolean isIncompleteLightSource(BlockState state) {
+    public static boolean isIncompleteLightSource(BlockState state) {
         Block block = state.getBlock();
         return block == Blocks.SOUL_FIRE ||
                 block == Blocks.FIRE ||
@@ -80,17 +80,13 @@ public interface IInfested {
                 block == Blocks.BAMBOO_DOOR;
     }
 
-
-    
-    default int tryBreakLightSources(Mob mob, int currentCooldown) {
+    public static int tryBreakLightSources(Mob mob, int currentCooldown) {
         if (currentCooldown > 0) {
             return currentCooldown - 1;
         }
 
-        
         AABB originalBox = mob.getBoundingBox();
 
-        
         List<BlockPos> blockPositions = BlockPos.betweenClosedStream(originalBox)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toList());
@@ -108,35 +104,27 @@ public interface IInfested {
         return 0;
     }
 
-    
-    default int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
+    public static int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         if (currentCooldown > 0) {
             return currentCooldown - 1;
         }
 
-        
         Vec3 mobPos = mob.position();
         AABB effectArea = new AABB(
-                mobPos.x - 3,
-                mobPos.y - 3,
-                mobPos.z - 3,
-                mobPos.x + 3,
-                mobPos.y + 3,
-                mobPos.z + 3
+                mobPos.x - 3, mobPos.y - 3, mobPos.z - 3,
+                mobPos.x + 3, mobPos.y + 3, mobPos.z + 3
         );
 
-        
         List<LivingEntity> nearbyEntities = mob.level().getEntitiesOfClass(
                 LivingEntity.class,
                 effectArea,
-                entity -> entity != mob 
+                entity -> entity != mob
         );
 
-        
         for (LivingEntity entity : nearbyEntities) {
             ParaCurseEffect.applyParaCurseEffect(entity, 3600, 0);
         }
 
-        return 100; 
+        return 100;
     }
 }

@@ -17,14 +17,12 @@ public class ParasiteFriendlyHandler {
         LivingEntity entity = event.getEntity();
         LivingEntity target = event.getNewTarget();
 
-        
         if (!ParasiteHelper.isParasite(entity)) {
             return;
         }
 
-        
         if (target != null && ModConfig.isInImmunityWhitelist(target)) {
-            
+
             if (entity instanceof Mob) {
                 ((Mob) entity).setTarget(null);
             }
@@ -32,9 +30,8 @@ public class ParasiteFriendlyHandler {
             return;
         }
 
-        
         if (ModConfig.isParasitePeaceful()) {
-            
+
             if (target != null && !ModConfig.isInTargetWhitelist(target)) {
                 if (entity instanceof Mob) {
                     ((Mob) entity).setTarget(null);
