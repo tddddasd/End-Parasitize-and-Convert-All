@@ -31,10 +31,10 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.ThrownWoodenS
 
 public class WoodenSpear extends Item {
     private final ItemAttributeModifiers defaultModifiers;
-    public static final int MAX_CHARGE = 12000; 
-    public static final int FULL_CHARGE_TICKS = 20; 
-    public static final float MAX_SPEED = 2.5F; 
-    public static final float MIN_SPEED = 1.2F; 
+    public static final int MAX_CHARGE = 12000;
+    public static final int FULL_CHARGE_TICKS = 20;
+    public static final float MAX_SPEED = 2.5F;
+    public static final float MIN_SPEED = 1.2F;
 
     public WoodenSpear(Properties properties) {
         super(properties);
@@ -64,16 +64,8 @@ public class WoodenSpear extends Item {
 
     @Override
     public ItemUseAnimation getUseAnimation(ItemStack stack) {
-        // 26.1.2: the charge/hold pose comes from vanilla. AvatarRenderer#getArmPose maps
-        // ItemUseAnimation.TRIDENT to ArmPose.THROW_TRIDENT (the trident charge pose) and
-        // ItemInHandRenderer draws the matching first-person pull-back; nothing here touches
-        // the arm itself. The mod's old HumanoidModelMixin (which forced an extra 180 degree
-        
-        
-        
-        
-        
-        return ItemUseAnimation.TRIDENT; 
+
+        return ItemUseAnimation.TRIDENT;
     }
 
     @Override
@@ -86,7 +78,7 @@ public class WoodenSpear extends Item {
     public boolean releaseUsing(ItemStack stack, Level level, LivingEntity livingEntity, int timeCharged) {
         if (!(livingEntity instanceof Player player)) return false;
         int charge = this.getUseDuration(stack, livingEntity) - timeCharged;
-        
+
         int effectiveCharge = Math.min(charge, FULL_CHARGE_TICKS);
         float chargePercent = (float) effectiveCharge / FULL_CHARGE_TICKS;
         float speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * chargePercent;
@@ -96,7 +88,7 @@ public class WoodenSpear extends Item {
             boolean isCreative = player.getAbilities().instabuild;
             ThrownWoodenSpear spear = new ThrownWoodenSpear(level, player, stack, isCreative);
             spear.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, speed, 1.0F);
-            if (charge >= FULL_CHARGE_TICKS) { 
+            if (charge >= FULL_CHARGE_TICKS) {
                 spear.setCritArrow(true);
             }
             level.addFreshEntity(spear);
@@ -111,10 +103,6 @@ public class WoodenSpear extends Item {
         return true;
     }
 
-    
-    // 26.1.2: enchantments are data driven; "which enchantments may be put on this
-    // item" is expressed through this NeoForge hook instead of the removed
-    // Item#canApplyAtEnchantingTable.
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
         return stack.is(Items.ENCHANTED_BOOK) ||
@@ -127,19 +115,17 @@ public class WoodenSpear extends Item {
                 enchantment.is(Enchantments.LOYALTY);
     }
 
-    
     @Override
     public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker instanceof Player player && !player.getAbilities().instabuild) {
-            
+
             stack.hurtAndBreak(1, attacker, EquipmentSlot.MAINHAND);
         }
     }
 
-    
     @Override
     public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity miningEntity) {
-        
+
         if (miningEntity instanceof Player player && !player.getAbilities().instabuild) {
             float hardness = state.getDestroySpeed(level, pos);
             if (hardness > 0.0F) {
@@ -149,10 +135,9 @@ public class WoodenSpear extends Item {
         return true;
     }
 
-
     @Override
     public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType, FuelValues fuelValues) {
-        return 200; 
+        return 200;
     }
 
 }

@@ -29,7 +29,6 @@ public class AcidDamageSystem {
         }
     }
 
-    
     public static void registerAcidDamageArea(Level level, BlockPos acidPos, Set<BlockPos> waterPositions) {
         if (level.isClientSide()) return;
 
@@ -43,7 +42,6 @@ public class AcidDamageSystem {
         }
     }
 
-    
     public static void removeAcidDamageArea(Level level, BlockPos acidPos, Set<BlockPos> waterPositions) {
         if (level.isClientSide()) return;
 
@@ -54,13 +52,11 @@ public class AcidDamageSystem {
             damageMap.remove(waterPos);
         }
 
-        
         if (damageMap.isEmpty()) {
             levelDamageData.remove(level);
         }
     }
 
-    
     public static boolean hasAcidDamageAt(Level level, BlockPos pos) {
         Map<BlockPos, AcidDamageData> damageMap = levelDamageData.get(level);
         if (damageMap == null) return false;
@@ -68,7 +64,6 @@ public class AcidDamageSystem {
         return damageMap.containsKey(pos);
     }
 
-    
     public static AcidDamageData getDamageDataAt(Level level, BlockPos pos) {
         Map<BlockPos, AcidDamageData> damageMap = levelDamageData.get(level);
         if (damageMap == null) return null;
@@ -76,19 +71,16 @@ public class AcidDamageSystem {
         return damageMap.get(pos);
     }
 
-    
     public static void applyAcidWaterDamage(LivingEntity entity, Level level, BlockPos pos) {
         AcidDamageData data = getDamageDataAt(level, pos);
         if (data == null) return;
 
         long currentTick = level.getGameTime();
 
-        
         if (currentTick % 11 == 0) {
-            
+
             float distanceFactor = 0.1f * (Math.min(data.distance, 8) / 8.0f);
 
-            
             entity.hurt(entity.damageSources().magic(), 1.0F);
 
             Registry<DamageType> registry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
@@ -96,19 +88,16 @@ public class AcidDamageSystem {
             DamageSource minimumSource = new DamageSource(holder);
             entity.hurt(minimumSource, 0.5F + distanceFactor);
 
-            
             addAcidWaterEffects(entity, data.distance);
         }
     }
 
-    
     private static void addAcidWaterEffects(LivingEntity entity, int distance) {
-        
-        
+
         entity.addEffect(new MobEffectInstance(
                 ModEffects.CORROSIVE,
-                100, 
-                0,   
+                100,
+                0,
                 false,
                 true
         ));
@@ -116,50 +105,45 @@ public class AcidDamageSystem {
         if (distance <= 4) {
             entity.addEffect(new MobEffectInstance(
                     ModEffects.PARA_CURSE,
-                    600, 
-                    1,   
+                    600,
+                    1,
                     false,
                     true
             ));
         } else {
             entity.addEffect(new MobEffectInstance(
                     ModEffects.PARA_CURSE,
-                    600, 
-                    0,  
+                    600,
+                    0,
                     false,
                     true
             ));
         }
     }
 
-    
     public static void cleanupOldData(Level level) {
         Map<BlockPos, AcidDamageData> damageMap = levelDamageData.get(level);
         if (damageMap == null) return;
 
         long currentTick = level.getGameTime();
-        long threshold = currentTick - 6000; 
+        long threshold = currentTick - 6000;
 
-        
         damageMap.entrySet().removeIf(entry -> {
             long createdTick = entry.getValue().createdTick;
             return createdTick < threshold;
         });
 
-        
         if (damageMap.isEmpty()) {
             levelDamageData.remove(level);
         }
     }
 
-    
     private static int calculateDistance(BlockPos pos1, BlockPos pos2) {
         return Math.abs(pos1.getX() - pos2.getX()) +
                 Math.abs(pos1.getY() - pos2.getY()) +
                 Math.abs(pos1.getZ() - pos2.getZ());
     }
 
-    
     public static Set<BlockPos> getAllDamagePositions(Level level) {
         Map<BlockPos, AcidDamageData> damageMap = levelDamageData.get(level);
         if (damageMap == null) return Collections.emptySet();
@@ -167,9 +151,8 @@ public class AcidDamageSystem {
         return damageMap.keySet();
     }
 
-    
     public static boolean isWaterInAcidRange(Level level, BlockPos waterPos, int range) {
-        
+
         for (int dx = -range; dx <= range; dx++) {
             for (int dy = -range; dy <= range; dy++) {
                 for (int dz = -range; dz <= range; dz++) {

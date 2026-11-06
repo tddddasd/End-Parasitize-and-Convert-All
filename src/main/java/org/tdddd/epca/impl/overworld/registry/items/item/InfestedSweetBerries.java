@@ -34,7 +34,7 @@ public class InfestedSweetBerries extends Item {
                         0
                 ), 1.0F))
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        MobEffects.NAUSEA, // 26.1.2 rename of CONFUSION
+                        MobEffects.NAUSEA,
                         10 * 20,
                         0
                 ), 1.0F))

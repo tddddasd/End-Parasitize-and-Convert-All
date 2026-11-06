@@ -13,16 +13,8 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Reverse of the parasite conversion: maps every "虫染种" (infested) entity to the vanilla creature it was
- * converted from, and performs the actual purification swap used by the raid barrier.
- */
 public final class InfestedPurification {
-    /**
-     * Built lazily on first use rather than in a static initialiser: resolving the registry objects at
-     * class-load time crashes if this class ever gets loaded before the registries are bound (the same
-     * failure mode that aborted mod construction once already).
-     */
+
     private static volatile Map<EntityType<?>, EntityType<?>> toOriginal;
 
     private static Map<EntityType<?>, EntityType<?>> table() {
@@ -61,7 +53,6 @@ public final class InfestedPurification {
 
     private InfestedPurification() { }
 
-    /** @return the vanilla creature this infested entity converts back to, or {@code null} if unmapped. */
     public static @Nullable EntityType<?> originalOf(EntityType<?> infested) {
         return table().get(infested);
     }
@@ -70,7 +61,6 @@ public final class InfestedPurification {
         return table().containsKey(type);
     }
 
-    /** @return true when the given entity was swapped for its original form. */
     public static boolean purify(LivingEntity entity) {
         if (!(entity.level() instanceof ServerLevel level)) return false;
         EntityType<?> original = originalOf(entity.getType());
@@ -78,7 +68,7 @@ public final class InfestedPurification {
         if (!(original.create(level, EntitySpawnReason.MOB_SUMMONED) instanceof LivingEntity fresh)) return false;
 
         fresh.snapTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
-        // Keep the relative health so a nearly dead mob does not come back at full health.
+
         float ratio = entity.getMaxHealth() <= 0.0F ? 1.0F : entity.getHealth() / entity.getMaxHealth();
         fresh.setHealth(Math.max(1.0F, fresh.getMaxHealth() * ratio));
         if (fresh instanceof Mob mob) {
@@ -89,12 +79,10 @@ public final class InfestedPurification {
         return true;
     }
 
-    /** Debug helper: the infested -> original table size. */
     public static int size() {
         return table().size();
     }
 
-    /** Identifier of the original form, for logging. */
     public static String originalId(LivingEntity entity) {
         EntityType<?> original = originalOf(entity.getType());
         return original == null ? "none" : String.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(original));

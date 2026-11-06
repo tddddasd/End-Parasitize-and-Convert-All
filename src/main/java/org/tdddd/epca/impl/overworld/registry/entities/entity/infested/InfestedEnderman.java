@@ -1,4 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+
+import net.minecraft.world.entity.LivingEntity;
+import org.tdddd.epca.impl.utils.entity.InfestedUtils;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -50,8 +54,6 @@ import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.data.CarryConfigManager;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
@@ -73,7 +75,7 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
-public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable, IGlowRenderable {
+public class InfestedEnderman extends PathfinderMob implements GeoEntity, Enemy , IHeadRotatable, IGlowRenderable {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int arayaBuffTimer = 0;
     private int damageIncreaseTimer = 0;
@@ -93,7 +95,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private static final int TELEPORT_COOLDOWN_MIN = 160;
     private static final int TELEPORT_COOLDOWN_MAX = 200;
     private int teleportCooldown = 0;
-    // UNSTABLE-only preemptive attack dodge + blink barrage tuning.
+
     private static final int DODGE_COOLDOWN_TICKS = 160;
     private static final int DODGE_ATTEMPTS = 32;
     private static final float BLINK_CHANCE = 0.05F;
@@ -103,7 +105,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private static final int BLINK_ATTEMPTS = 16;
     private static final double BLINK_RADIUS_FALLBACK = 16.0D;
     private static final double BLINK_RADIUS_MAX = 32.0D;
-    // Blink barrage state (UNSTABLE only).
+
     private LivingEntity blinkTarget;
     private int blinkRemaining = 0;
     private int blinkTicks = 0;
@@ -119,38 +121,32 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     private double baseSpeed = 0.35D;
     private double chaseSpeed = 0.45D;
     private int floatingTime;
-    private Entity carriedEntity; 
+    private Entity carriedEntity;
     private static final EntityDataAccessor<Integer> DATA_CARRIED_ENTITY_ID = SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.INT);
 
     public boolean isArayaMode = false;
-    /**
-     * Client-visible mirror of {@link #isArayaMode}: a plain field is server-only, so without a synced
-     * copy the client's entity always reads "not in Araya mode" and the naming-egg BGM can never start.
-     */
+
     private static final EntityDataAccessor<Boolean> DATA_IS_ARAYA_MODE =
             SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.BOOLEAN);
-    /**
-     * Tracks whether WE raised the vanilla shift flag for the grab escape, so it is only ever cleared
-     * when we were the ones who set it and it cannot leak a permanent "sneaking" state.
-     */
+
     private boolean arayaShiftHeld = false;
-    /** Ticks between two shift pulses of the grab escape: 38 + 1 press tick + 1 release tick = 40 ticks = exactly 2.000 s press-to-press at 20 tps. */
+
     private static final int ARAYA_SHIFT_PULSE_TICKS = 38;
-    /** Ticks left before the next pulse; 0 means "press on the next tick". */
+
     private int arayaShiftCooldown = 0;
-    private int summoningTicks = 0;               
-    private int summonsRemaining = 0;              
-    private LivingEntity summonTarget;             
-    public boolean isArayaMinion = false;         
-    private int minionLife = 0;                    
-    private Vec3 minionVelocity = Vec3.ZERO;       
-    public boolean isStationaryMinion = false;   
-    private boolean isCharging = false;              
-    private int chargeRemainingTicks = 0;            
-    private Vec3 chargeDirection = Vec3.ZERO;         
-    private double chargeDistanceCovered = 0;         
-    private int chargeCooldown = 0;                   
-    private long lastSuccessfulAttackTime = 0;        
+    private int summoningTicks = 0;
+    private int summonsRemaining = 0;
+    private LivingEntity summonTarget;
+    public boolean isArayaMinion = false;
+    private int minionLife = 0;
+    private Vec3 minionVelocity = Vec3.ZERO;
+    public boolean isStationaryMinion = false;
+    private boolean isCharging = false;
+    private int chargeRemainingTicks = 0;
+    private Vec3 chargeDirection = Vec3.ZERO;
+    private double chargeDistanceCovered = 0;
+    private int chargeCooldown = 0;
+    private long lastSuccessfulAttackTime = 0;
     private static final EntityDataAccessor<Boolean> DATA_IS_STATIONARY_MINION =
             SynchedEntityData.defineId(InfestedEnderman.class, EntityDataSerializers.BOOLEAN);
     public InfestedEnderman(EntityType<? extends PathfinderMob> type, Level level) {
@@ -159,9 +155,9 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         if (!level.isClientSide()) {
             int roll = this.random.nextInt(100);
             if (roll < 70) {
-                this.setVariant(InfestedEnderman.Variant.DEFAULT);  
+                this.setVariant(InfestedEnderman.Variant.DEFAULT);
             } else {
-                this.setVariant(InfestedEnderman.Variant.UNSTABLE);    
+                this.setVariant(InfestedEnderman.Variant.UNSTABLE);
             }
         }
         if (!level().isClientSide()) {
@@ -184,10 +180,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         UNSTABLE
     }
     public InfestedEnderman.Variant getVariant() {
-        
+
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
         if (variantOrdinal == null) {
-            
+
             return InfestedEnderman.Variant.DEFAULT;
         }
         int index = Mth.clamp(variantOrdinal, 0, InfestedEnderman.Variant.values().length - 1);
@@ -197,11 +193,10 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     public void setVariant(InfestedEnderman.Variant variant) {
         this.entityData.set(DATA_VARIANT, variant.ordinal());
         if (!this.level().isClientSide()) {
-            applyVariantAttributes(); 
+            applyVariantAttributes();
         }
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
         return true;
     }
@@ -210,7 +205,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     protected void customServerAiStep(ServerLevel level) {
         super.customServerAiStep(level);
         if (!this.level().isClientSide()) {
-            breakCooldown = tryBreakLightSources(this, breakCooldown);
+            breakCooldown = InfestedUtils.tryBreakLightSources(this, breakCooldown);
         }
     }
 
@@ -225,7 +220,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (StackTraceElement element : stackTrace) {
             String className = element.getClassName();
-            
+
             if (className.startsWith("net.minecraft.commands.") ||
                     className.startsWith("net.minecraft.server.commands.") ||
                     className.startsWith("net.minecraft.server.players.") ||
@@ -241,7 +236,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
 
     @Override
     public void teleportTo(double x, double y, double z) {
-        
+
         if (!this.level().isClientSide() && this.getCarriedEntity() != null && isTeleportFromExternalSource()) {
             releaseCarriedEntity();
         }
@@ -250,7 +245,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
 
     @Override
     public boolean randomTeleport(double x, double y, double z, boolean particleEffects) {
-        
+
         return super.randomTeleport(x, y, z, particleEffects);
     }
     public boolean isFakingDeath() {
@@ -274,8 +269,8 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(0, new PickUpParasiteGoal());       
-        this.goalSelector.addGoal(1, new PlacePassengerGoal());       
+        this.goalSelector.addGoal(0, new PickUpParasiteGoal());
+        this.goalSelector.addGoal(1, new PlacePassengerGoal());
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -290,16 +285,16 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
     @Override
     public void tick() {
         super.tick();
-        
+
         if (!level().isClientSide()) {
             if (isCharging) {
-                handleCharge();      
-                return;              
+                handleCharge();
+                return;
             }
             if (chargeCooldown > 0) chargeCooldown--;
             if (getVariant() == Variant.UNSTABLE && chargeCooldown <= 0 && getTarget() != null && getTarget().isAlive()) {
-                
-                boolean yAligned = Math.abs(getY() - getTarget().getY()) < 1.5; 
+
+                boolean yAligned = Math.abs(getY() - getTarget().getY()) < 1.5;
                 double horizDist = distanceTo(getTarget());
                 if (yAligned && horizDist < 8.5 && chargeCooldown <= 0) {
                     long now = level().getGameTime();
@@ -322,15 +317,15 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             if (minionLife > 0) {
                 minionLife--;
                 if (!isStationaryMinion) {
-                    
+
                     this.move(MoverType.SELF, minionVelocity);
                     checkMinionCollision();
                 }
-                
+
             } else {
                 this.discard();
             }
-            return; 
+            return;
         }
 
         if (isArayaMode && !level().isClientSide()) {
@@ -339,7 +334,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             if (arayaBuffTimer >= 60 * 20) {
                 arayaBuffTimer = 0;
                 this.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 120, 1, false, false));
-                damageIncreaseTimer = 120; 
+                damageIncreaseTimer = 120;
             }
             if (damageIncreaseTimer > 0) damageIncreaseTimer--;
 
@@ -353,7 +348,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             if (stage != lastResistanceStage) {
                 this.removeEffect(MobEffects.RESISTANCE);
                 if (stage != -1) {
-                    int amplifier = (stage == 0) ? 3 : (stage == 1 ? 2 : 1); // IV=3, III=2, II=1
+                    int amplifier = (stage == 0) ? 3 : (stage == 1 ? 2 : 1);
                     this.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 400, amplifier, false, false));
                 }
                 lastResistanceStage = stage;
@@ -374,7 +369,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
                 }
             }
         }
-        
+
         if (!this.level().isClientSide()) {
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
             boolean hasTarget = this.getTarget() != null;
@@ -396,7 +391,7 @@ public class InfestedEnderman extends PathfinderMob implements GeoEntity, IParas
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
                 if (!this.level().isClientSide()) {
-                    
+
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
@@ -459,9 +454,9 @@ this.discard();
         if (!this.level().isClientSide()) {
             Entity carried = this.getCarriedEntity();
             if (carried != null) {
-                
+
                 updateCarriedEntityPosition(carried);
-                
+
                 if (this.isOnFire()) {
                     carried.igniteForSeconds(5);
                 } else {
@@ -470,7 +465,7 @@ this.discard();
                 if (this.isInWater()) {
                     carried.clearFire();
                 }
-                
+
                 if (!this.isAlive()) {
                     releaseCarriedEntity();
                 }
@@ -484,7 +479,7 @@ this.discard();
             }
             if (isArayaMode && summoningTicks > 0) {
                 if (summonTarget == null || !summonTarget.isAlive()) {
-                    summoningTicks = 0; 
+                    summoningTicks = 0;
                 } else {
                     summoningTicks--;
                     if (summoningTicks % 10 == 0 && summonsRemaining > 0) {
@@ -554,10 +549,10 @@ this.discard();
         }
         setPos(newPos.x, newPos.y, newPos.z);
         chargeDistanceCovered += step;
-        
+
         AABB aabb = getBoundingBox();
         List<LivingEntity> entities = level().getEntitiesOfClass(LivingEntity.class, aabb,
-                e -> e != this && e.isAlive() && !IParasite.isParasiteByTagOrInterface(e));
+                e -> e != this && e.isAlive() && !ParasiteEvents.isParasiteByTagOrInterface(e));
         for (LivingEntity entity : entities) {
             entity.addEffect(new MobEffectInstance(ModEffects.ENDER_EROSION, 60, 5, false, false));
             entity.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 0, false, false));
@@ -595,18 +590,18 @@ this.discard();
         chargeDistanceCovered = 0;
         chargedTargets.clear();
     }
-    
+
     private boolean attemptTeleportAndPlace(LivingEntity target) {
         if (target == null || getCarriedEntity() == null) return false;
-        
+
         RandomSource rand = random;
         for (int i = 0; i < 16; i++) {
             double x = target.getX() + (rand.nextDouble() - 0.5) * 8.0;
             double y = target.getY() + rand.nextInt(3) - 1;
             double z = target.getZ() + (rand.nextDouble() - 0.5) * 8.0;
             if (randomTeleport(x, y, z, true)) {
-                teleportCooldown = TELEPORT_COOLDOWN_MAX; 
-                
+                teleportCooldown = TELEPORT_COOLDOWN_MAX;
+
                 return attemptPlaceCarried();
             }
         }
@@ -618,7 +613,7 @@ this.discard();
 
         BlockPos basePos = blockPosition();
         RandomSource rand = random;
-        int placeRange = 6; 
+        int placeRange = 6;
 
         for (int attempt = 0; attempt < 10; attempt++) {
             int dx = rand.nextInt(placeRange + 1) - placeRange / 2;
@@ -630,7 +625,7 @@ this.discard();
                 BlockPos below = placePos.below();
                 BlockState belowState = level().getBlockState(below);
                 if (belowState.isFaceSturdy(level(), below, Direction.UP)) {
-                    
+
                     releaseCarriedEntity();
                     passenger.setPos(placePos.getX() + 0.5, placePos.getY(), placePos.getZ() + 0.5);
                     if (passenger instanceof Mob) {
@@ -645,54 +640,21 @@ this.discard();
     }
 
     private void applyVariantAttributes() {
-        if (this.level().isClientSide()) return; 
+        if (this.level().isClientSide()) return;
         AttributeInstance followRange = this.getAttribute(Attributes.FOLLOW_RANGE);
         if (followRange != null) {
             double base = 32.0D;
             if (this.getVariant() == Variant.UNSTABLE) {
-                base = 32.0D * 1.25; 
+                base = 32.0D * 1.25;
             }
             followRange.setBaseValue(base);
         }
     }
 
-    /**
-     * Lets the Araya easter egg "press Shift" while ANOTHER mod's grab is holding it, so the grab's own
-     * logic releases it the same way it releases a player.
-     *
-     * <p><b>Why the vanilla shift state.</b> A player's Shift press sets {@code Entity}'s shift-down flag,
-     * and that flag is the only thing a third-party grab can consult through vanilla API - so matching it
-     * is exactly "doing what a player does", with no dependency on any other mod's classes (which this
-     * mod must never have).</p>
-     *
-     * <p><b>Pulsed, not held.</b> The flag is raised for a single tick every
-     * {@link #ARAYA_SHIFT_PULSE_TICKS} ticks instead of being held down: a grab that watches for a press
-     * edge (or a one-shot input) needs an actual press, and a permanently raised flag would also change
-     * this mob's own movement and step behaviour. One pulse is: press on one tick, release on the next,
-     * then wait out the cooldown. The counter is re-armed the moment the entity is no longer carried, so
-     * the next grab presses immediately instead of waiting out the previous window.</p>
-     *
-     * <p><b>Set only while actually held.</b> The pulse runs only when this entity is a
-     * <b>passenger</b> ({@link #isPassenger()}), i.e. something is carrying it. Note this is the opposite
-     * direction from this class's own {@code carriedEntity}, which is what the enderman holds - being
-     * the grabber must not press the flag.</p>
-     *
-     * <p><b>Never forces a release.</b> {@code stopRiding()} is deliberately NOT called: the user's
-     * escapes come from <i>some</i> mobs' grabs, and forcing a dismount would free the enderman from
-     * things it should not escape. Only the input is provided; the grab decides.</p>
-     *
-     * <p><b>Cleared as soon as it is not held</b>, so the mob is neither left permanently sneaking nor
-     * left with a flag this class did not raise.</p>
-     *
-     * <p><b>Server side</b>, from the entity's own {@code tick()}, where its state is authoritative - the
-     * flag is part of the entity's synced/movement state and a client-only set would not be what a grab
-     * on the server reads.</p>
-     */
     private void applyArayaGrabEscape() {
-        // One clean PRESS per window, never a held state: a grab that looks for a press edge (or a
-        // one-shot input) sees an actual press, and nothing is left raised between pulses.
+
         if (!this.isPassenger()) {
-            // Not carried any more: drop a flag WE raised and re-arm, so the next grab presses at once.
+
             if (this.arayaShiftHeld) {
                 this.setShiftKeyDown(false);
                 this.arayaShiftHeld = false;
@@ -701,7 +663,7 @@ this.discard();
             return;
         }
         if (this.arayaShiftHeld) {
-            // Second tick of the pulse: release, leaving a clean press edge behind.
+
             this.setShiftKeyDown(false);
             this.arayaShiftHeld = false;
             return;
@@ -710,7 +672,7 @@ this.discard();
             this.arayaShiftCooldown--;
             return;
         }
-        // Press for this one tick; the next tick releases it, then the cooldown runs down.
+
         this.setShiftKeyDown(true);
         this.arayaShiftHeld = true;
         this.arayaShiftCooldown = ARAYA_SHIFT_PULSE_TICKS;
@@ -718,17 +680,17 @@ this.discard();
 
     private void enterArayaMode() {
         isArayaMode = true;
-        // Tell the client, or its copy of this entity keeps isArayaMode() false and nobody hears the BGM.
+
         this.entityData.set(DATA_IS_ARAYA_MODE, true);
-        
+
         AttributeInstance maxHealth = this.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealth != null) {
             maxHealth.setBaseValue(1918.0);
         }
         this.setHealth(1918.0f);
-        
+
         releaseCarriedEntity();
-        
+
         summoningTicks = 0;
         summonsRemaining = 0;
         arayaBuffTimer = 0;
@@ -741,15 +703,13 @@ this.discard();
     private void exitArayaMode() {
         isArayaMode = false;
         this.entityData.set(DATA_IS_ARAYA_MODE, false);
-        // Leaving Araya mode must not leave the shift flag raised or a pulse half-scheduled: the escape
-        // only applies while the easter egg is active, so both are reset here rather than leaking into
-        // normal behaviour.
+
         if (this.arayaShiftHeld) {
             this.setShiftKeyDown(false);
             this.arayaShiftHeld = false;
         }
         this.arayaShiftCooldown = 0;
-        
+
         AttributeInstance maxHealth = this.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealth != null) {
             maxHealth.setBaseValue(32.0);
@@ -757,7 +717,7 @@ this.discard();
         if (this.getHealth() > 32.0f) {
             this.setHealth(32.0f);
         }
-        
+
         summoningTicks = 0;
         summonsRemaining = 0;
     }
@@ -814,7 +774,6 @@ this.discard();
         }
     }
 
-    // 5% chance, UNSTABLE only: blink around the victim a few times, one hop every few ticks.
     private void tryStartBlinkBarrage(LivingEntity victim) {
         if (victim == null) return;
         if (this.level().isClientSide()) return;
@@ -834,11 +793,11 @@ this.discard();
     }
 
     private void startSummoning(LivingEntity target) {
-        int count = random.nextInt(2) + 2; 
-        spawnArayaMinion(target); 
+        int count = random.nextInt(2) + 2;
+        spawnArayaMinion(target);
         if (count > 1) {
             summonsRemaining = count - 1;
-            summoningTicks = summonsRemaining * 10; 
+            summoningTicks = summonsRemaining * 10;
         } else {
             summoningTicks = 0;
         }
@@ -851,13 +810,13 @@ this.discard();
         minion.setVariant(Variant.UNSTABLE);
         minion.setPos(this.getX(), this.getY(), this.getZ());
         minion.isArayaMinion = true;
-        minion.minionLife = 10; 
-        minion.setInvulnerable(true);  
-        minion.noPhysics = true;       
-        minion.setNoGravity(true);     
-        minion.setNoAi(true);          
+        minion.minionLife = 10;
+        minion.setInvulnerable(true);
+        minion.noPhysics = true;
+        minion.setNoGravity(true);
+        minion.setNoAi(true);
         Vec3 dir = new Vec3(target.getX() - this.getX(), 0, target.getZ() - this.getZ()).normalize();
-        minion.minionVelocity = dir.scale(0.25); 
+        minion.minionVelocity = dir.scale(0.25);
 
         this.level().addFreshEntity(minion);
     }
@@ -867,9 +826,9 @@ this.discard();
         List<LivingEntity> list = this.level().getEntitiesOfClass(LivingEntity.class, aabb,
                 e -> e != this && e.isAlive());
         for (LivingEntity target : list) {
-            if (!IParasite.isParasiteByTagOrInterface(target)) { 
+            if (!ParasiteEvents.isParasiteByTagOrInterface(target)) {
                 target.hurtOrSimulate(this.level().damageSources().magic(), 9.0F);
-                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 0)); 
+                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 0));
             }
         }
     }
@@ -879,7 +838,7 @@ this.discard();
         super.aiStep();
         if (!this.level().isClientSide() && isArayaMode && summoningTicks > 0) {
             this.getNavigation().stop();
-            this.setDeltaMovement(0, this.getDeltaMovement().y, 0); 
+            this.setDeltaMovement(0, this.getDeltaMovement().y, 0);
         }
         if (!this.level().isClientSide()) {
             tickBlinkBarrage();
@@ -908,7 +867,7 @@ this.discard();
 
     private void updateCarriedEntityPosition(Entity passenger) {
         if (passenger == null) return;
-        
+
         double yOffset;
         if (passenger.getBbHeight() < 1.25) {
             yOffset = passenger.getBbHeight() / 2.0;
@@ -974,7 +933,7 @@ this.discard();
             try {
                 this.setVariant(InfestedEnderman.Variant.valueOf(variantName));
             } catch (IllegalArgumentException e) {
-                
+
                 this.setVariant(InfestedEnderman.Variant.DEFAULT);
             }
         }
@@ -1007,17 +966,16 @@ this.discard();
     @Override protected SoundEvent getDeathSound() { return ModSoundEvents.INFESTED_ENDERMAN_DEATH.get(); }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         if (isCharging) return false;
 
         if (source.getEntity() instanceof LivingEntity attacker) {
-            if (shouldIgnoreDamageFrom(attacker)) return false;
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) return false;
         }
         if (isFakingDeath() || isInvulnerable()) return false;
 
         if (!this.level().isClientSide() && source.getDirectEntity() instanceof Projectile projectile) {
-            // UNSTABLE uses the vanilla-style dart away before the hit lands, so this branch only
-            // handles the non-UNSTABLE deflection/rebound behaviour.
+
             if (getVariant() != Variant.UNSTABLE) {
                 if (tryForcedTeleport()) {
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -1028,7 +986,6 @@ this.discard();
             }
         }
 
-        // UNSTABLE darts away the moment the attack is made, so the swing misses entirely.
         if (getVariant() == Variant.UNSTABLE && !this.level().isClientSide() && this.teleportCooldown <= 0) {
             boolean attackerSource = source.getEntity() instanceof LivingEntity
                     || source.getDirectEntity() instanceof Projectile;
@@ -1038,11 +995,10 @@ this.discard();
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
 
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, amount);
 
         if (!this.level().isClientSide() && result && this.teleportCooldown <= 0
                 && getVariant() != Variant.UNSTABLE) {
@@ -1054,8 +1010,6 @@ this.discard();
         return result;
     }
 
-    // Non-UNSTABLE keeps the mod's custom portal sound. UNSTABLE is normally handled by the
-    // dart-away above, but its other teleport paths use the vanilla teleport sound.
     private void playPostDamageTeleportSound() {
         if (getVariant() == Variant.UNSTABLE) {
             this.level().playSound(null, this.xo, this.yo, this.zo,
@@ -1124,7 +1078,6 @@ this.discard();
         return false;
     }
 
-    // Blink barrage destinations need a loaded chunk, a solid floor, two free blocks and no liquid.
     private boolean isBlinkDestinationUsable(double x, double y, double z) {
         BlockPos pos = BlockPos.containing(x, y, z);
         if (!this.level().hasChunkAt(pos) || this.level().isOutsideBuildHeight(pos)) return false;
@@ -1163,25 +1116,24 @@ this.discard();
         projectile.setDeltaMovement(vec3.scale(-1.0));
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
         if (!this.level().isClientSide()) {
-            IParasite.super.onKillEntity(killedEntity);
+            ParasiteEvents.onKillEntity(this, killedEntity);
             this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0, false, false, true));
         }
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        
+
         AnimationController<InfestedEnderman> normalController = new AnimationController<>("normal_controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::normalAnimationPredicate);
-        
+
         AnimationController<InfestedEnderman> stationaryController = new AnimationController<>("stationary_controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::stationaryAnimationPredicate);
         controllers.add(normalController, stationaryController);
     }
 
     private PlayState normalAnimationPredicate(com.geckolib.animation.state.AnimationTest<InfestedEnderman> event) {
-        
+
         if (event.animatable().isStationaryMinion()) {
             return PlayState.STOP;
         }
@@ -1219,11 +1171,11 @@ this.discard();
     }
 
     private PlayState stationaryAnimationPredicate(AnimationTest<InfestedEnderman> event) {
-        
+
         if (!event.animatable().isStationaryMinion()) {
             return PlayState.STOP;
         }
-        
+
         event.setAnimation(RawAnimation.begin().thenLoop("idle2"));
         return PlayState.CONTINUE;
     }
@@ -1234,7 +1186,7 @@ this.discard();
             double offsetX = (rand.nextDouble() - 0.5) * 3.0;
             double offsetZ = (rand.nextDouble() - 0.5) * 3.0;
             double x = target.getX() + offsetX;
-            double y = target.getY() + rand.nextInt(2) - 1; 
+            double y = target.getY() + rand.nextInt(2) - 1;
             double z = target.getZ() + offsetZ;
             if (randomTeleport(x, y, z, true)) {
                 teleportCooldown = TELEPORT_COOLDOWN_MAX;
@@ -1248,9 +1200,9 @@ this.discard();
         private LivingEntity carryTarget;
         private int cooldown = 0;
         private boolean isCarriedByOther(LivingEntity target) {
-            
+
             return !InfestedEnderman.this.level().getEntitiesOfClass(InfestedEnderman.class,
-                            target.getBoundingBox().inflate(32), 
+                            target.getBoundingBox().inflate(32),
                             e -> e != InfestedEnderman.this && e.getCarriedEntity() == target)
                     .isEmpty();
         }
@@ -1281,7 +1233,7 @@ this.discard();
         }
 
         private boolean isCarryableTarget(LivingEntity target) {
-            
+
             EntityType<?> carrierType = InfestedEnderman.this.getType();
             EntityType<?> targetType = target.getType();
 
@@ -1318,26 +1270,26 @@ this.discard();
                     InfestedEnderman.this.getNavigation().stop();
                     LivingEntity target = InfestedEnderman.this.getTarget();
                     if (target != null && InfestedEnderman.this.attemptTeleportAndPlace(target)) {
-                        
+
                         carryTarget = null;
                         cooldown = 40;
                         return;
                     }
-                    
+
                     carryTarget = null;
                     cooldown = 40;
                     return;
                 }
             }
             if (distSq <= 1.2 * 1.2) {
-                
+
                 if (InfestedEnderman.this.getCarriedEntity() == null) {
                     InfestedEnderman.this.setCarriedEntity(carryTarget);
                     InfestedEnderman.this.playPostDamageTeleportSound();
                     InfestedEnderman.this.getNavigation().stop();
                     LivingEntity target = InfestedEnderman.this.getTarget();
                     if (target != null && InfestedEnderman.this.attemptTeleportAndPlace(target)) {
-                        
+
                         carryTarget = null;
                         cooldown = 40;
                         return;
@@ -1400,7 +1352,7 @@ this.discard();
             if (target == null) return;
             if (InfestedEnderman.this.teleportCooldown <= 0) {
                 if (tryTeleportToTarget(target)) {
-                    
+
                     attemptPlacePassenger(target);
                     return;
                 }
@@ -1462,7 +1414,7 @@ this.discard();
 
     @Override
     public void die(DamageSource source) {
-        releaseCarriedEntity(); 
+        releaseCarriedEntity();
         if (isFakingDeath()) {
             super.die(source);
             return;
@@ -1473,7 +1425,7 @@ this.discard();
             int minKills = 0;
             if (minKills > 0) {
                 int currentDeaths = 0;
-                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
+                if (false) {
                     ;
                     this.setHealth(this.getMaxHealth());
                     return;
@@ -1482,18 +1434,15 @@ this.discard();
         }
 
         if (this.isOnFire()) {
-            
+
             super.die(source);
-            this.onDeath(source);
             return;
         }
 
         if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
-            this.onDeath(source);
         } else {
             super.die(source);
-            this.onDeath(source);
             if (!this.level().isClientSide()) {
                 if (this.random.nextFloat() < 0.3f) {
                     WalkingEndermanHead head = ModEntities.WALKING_ENDERMAN_HEAD.get().create(this.level(), EntitySpawnReason.MOB_SUMMONED);
@@ -1601,7 +1550,7 @@ this.discard();
 
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -1610,7 +1559,7 @@ this.discard();
 
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -1627,10 +1576,6 @@ this.discard();
         return false;
     }
 
-    /**
-     * Current Araya state. The client has no access to the server's plain field, so it reads the synced
-     * mirror instead; the server keeps using the authoritative field, so its own logic is untouched.
-     */
     public boolean isArayaMode() {
         if (this.level().isClientSide()) {
             return this.entityData.get(DATA_IS_ARAYA_MODE);
@@ -1647,10 +1592,9 @@ this.discard();
         LivingEntity victim = event.getEntity();
         if (victim == null) return;
 
-        
         int scar = victim.getPersistentData().getIntOr("SwordScar", 0);
         if (scar > 0) {
-            
+
             if (!(victim instanceof InfestedEnderman && ((InfestedEnderman) victim).isArayaMode())) {
                 int bonus = (scar / 10) * 10;
                 if (bonus > 50) bonus = 50;

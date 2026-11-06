@@ -7,10 +7,6 @@ import net.minecraft.world.level.pathfinder.NodeEvaluator;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.level.pathfinder.PathType;
 
-/**
- * Ground navigation for the infested silverfish: ordinary ground walking, but with infested blocks
- * reported as {@link PathType#OPEN} so the mob can path into and inside them.
- */
 public class InfestedSilverfishNavigation extends GroundPathNavigation {
 
     public InfestedSilverfishNavigation(Mob mob, Level level) {

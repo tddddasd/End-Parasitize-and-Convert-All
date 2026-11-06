@@ -24,9 +24,6 @@ public class ModCreativeTabs {
                         .icon(() -> new ItemStack(ModItems.PARASITE_VISCERA.get()))
                         .title(Component.translatable("itemGroup.epca.main_tab"));
 
-                
-                
-                
                 builder.add(i(ModItems.PARASITE_VISCERA));
                 builder.add(i(ModItems.FINS_FIN));
                 builder.add(i(ModItems.DISEASED_HEART));
@@ -72,7 +69,6 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.KILL_STICK));
                 builder.add(i(ModItems.EPCA_NOTE));
 
-                
                 builder.add(new CustomTab.ITabEntry.Subheading1(
                         Component.translatable(" ")));
                 builder.add(i(ModItems.BUGLIN_SPAWN_EGG));
@@ -128,7 +124,6 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.STAGE_I_BECKON_SPAWN_EGG));
                 builder.add(i(ModItems.STAGE_II_BECKON_SPAWN_EGG));
 
-                
                 builder.add(new CustomTab.ITabEntry.Subheading2(
                         Component.translatable(" ")));
                 builder.add(i(ModItems.INFESTED_DIRT));
@@ -259,7 +254,6 @@ public class ModCreativeTabs {
             }
     );
 
-    
     public static CustomTab.ITabEntry e() {
         return CustomTab.ITabEntry.EMPTY;
     }
@@ -268,22 +262,18 @@ public class ModCreativeTabs {
         return CustomTab.ITabEntry.LINE_BREAK;
     }
 
-    
     private static CustomTab.ITabEntry.Item i(Supplier<? extends Item> itemSupplier) {
         return new CustomTab.ITabEntry.Item(() -> new ItemStack(itemSupplier.get()));
     }
 
-    
     public static CustomTab.ITabEntry.Item iStack(Supplier<ItemStack> itemStackSupplier) {
         return new CustomTab.ITabEntry.Item(itemStackSupplier);
     }
 
-    
     public static CustomTab.ITabEntry.ConditionalItem c(Supplier<? extends Item> itemSupplier, Supplier<Boolean> condition) {
         return new CustomTab.ITabEntry.ConditionalItem(() -> new ItemStack(itemSupplier.get()), condition);
     }
 
-    
     private static CustomTab.ITabEntry.DuplicateItem r(Supplier<? extends Item> itemSupplier) {
         return new CustomTab.ITabEntry.DuplicateItem(() -> new ItemStack(itemSupplier.get()));
     }

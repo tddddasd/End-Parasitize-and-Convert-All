@@ -19,34 +19,33 @@ public class InfestedThrownEnderPearl extends ThrownEnderpearl {
         super(type, level);
     }
 
-    
     public InfestedThrownEnderPearl(Level level, LivingEntity shooter) {
-        // 26.1.2: ThrownEnderpearl(Level, LivingEntity) is gone; the item stack is explicit now.
+
         super(level, shooter, new ItemStack(Items.ENDER_PEARL));
     }
 
     @Override
     protected void onHit(HitResult result) {
-        
+
         if (!this.level().isClientSide()) {
-            
+
             for (int i = 0; i < 32; ++i) {
                 this.level().addParticle(ParticleTypes.PORTAL, this.getX(), this.getY() + this.random.nextDouble() * 2.0D, this.getZ(),
                         this.random.nextGaussian(), 0.0D, this.random.nextGaussian());
             }
-            
+
             Entity owner = this.getOwner();
             if (owner instanceof Player player) {
-                
+
                 if (!player.isSpectator()) {
                     player.teleportTo(this.getX(), this.getY(), this.getZ());
-                    player.hurt(this.damageSources().fall(), 5.0F); 
+                    player.hurt(this.damageSources().fall(), 5.0F);
                 }
             }
-            
+
             this.discard();
         }
-        
+
         if (!this.level().isClientSide()) {
             Vec3 hitPos = result.getLocation();
             InfestedEndermite endermite = new InfestedEndermite(ModEntities.INFESTED_ENDERMITE.get(), this.level());

@@ -16,17 +16,6 @@ import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationManager;
 import net.minecraft.core.registries.BuiltInRegistries;
 
-/**
- * Player side behaviour of a hive leader.
- *
- * <p>Players are no longer {@code IParasite} instances. Everything a hive leader gets is decided by
- * {@link HiveLeaderManager} (world saved data) and applied from the event handlers that call these
- * helpers, so nothing about the player has to be an interface implementation any more.</p>
- *
- * <p>The damage adaptation keeps its player specific behaviour: a hive leader still picks up the
- * {@code yawning_neko_api} adaptation config of a player entity type and the fake-death handling that
- * comes with it.</p>
- */
 public final class HiveLeaderPlayerHooks {
 
     private static final String LAST_RAGE_TRIGGER_KEY = "lastRageTrigger";
@@ -34,12 +23,10 @@ public final class HiveLeaderPlayerHooks {
     private HiveLeaderPlayerHooks() {
     }
 
-    /** True when this player is a hive leader according to the world saved data. */
     public static boolean isHiveLeader(Player player) {
         return player != null && HiveLeaderManager.isHiveLeader(player.getUUID());
     }
 
-    /** Awarded on a kill: one evolution point, plus a short regeneration for the leader. */
     public static void onKill(Player player, LivingEntity killed) {
         if (!isHiveLeader(player)) return;
         Level level = player.level();
@@ -49,7 +36,6 @@ public final class HiveLeaderPlayerHooks {
         player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0));
     }
 
-    /** Fire damage can make a leader angry; everything else passes through unchanged. */
     public static float onHurt(Player player, DamageSource source, float amount) {
         if (!isHiveLeader(player)) return amount;
         Level level = player.level();
@@ -66,8 +52,6 @@ public final class HiveLeaderPlayerHooks {
         return amount;
     }
 
-    // ---- damage adaptation: player specific logic is kept here ----
-
     public static boolean hasDamageAdaptationConfig(Player player) {
         if (!isHiveLeader(player)) return false;
         return DamageAdaptationManager.hasConfig(BuiltInRegistries.ENTITY_TYPE.getKey(player.getType()));
@@ -82,7 +66,6 @@ public final class HiveLeaderPlayerHooks {
         return isHiveLeader(player) && DamageAdaptation.isInvulnerable(player);
     }
 
-    /** Applies the difficulty stat multipliers to a leader, once. */
     public static void applyDifficultyStatModifiers(Player player) {
         if (!isHiveLeader(player)) return;
         float multiplier = org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects

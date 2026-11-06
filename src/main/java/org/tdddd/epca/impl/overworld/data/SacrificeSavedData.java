@@ -19,16 +19,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.LongStream;
 
-
 public class SacrificeSavedData extends SavedData {
 
-    
     private static final Identifier DATA_ID = Identifier.fromNamespaceAndPath("epca", "sacrifice_ritual");
 
-    
     private static final int AXIS_BITS = 21;
     private static final long AXIS_MASK = (1L << AXIS_BITS) - 1L;
-    
+
     private static final int AXIS_LIMIT = (1 << (AXIS_BITS - 1)) - 1;
 
     private static final Codec<BlockPos> BLOCK_POS_CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -37,17 +34,14 @@ public class SacrificeSavedData extends SavedData {
             Codec.INT.fieldOf("z").forGetter(BlockPos::getZ)
     ).apply(i, BlockPos::new));
 
-    
     private static final Codec<long[]> POSITIONS_CODEC = Codec.LONG_STREAM
             .comapFlatMap(stream -> DataResult.success(stream.toArray()), LongStream::of);
 
     private static final Codec<ResourceKey<Level>> DIMENSION_CODEC = ResourceKey.codec(Registries.DIMENSION);
 
-    
     public record SacrificeEntry(ResourceKey<Level> dimension, BlockPos center, UUID playerId,
                                  long[] positions, int nextIndex) {}
 
-    
     private record StoredEntry(Optional<ResourceKey<Level>> dimension, Optional<BlockPos> center,
                                Optional<String> playerId, long[] positions, int nextIndex) {
         private static final Codec<StoredEntry> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -59,7 +53,6 @@ public class SacrificeSavedData extends SavedData {
         ).apply(i, StoredEntry::new));
     }
 
-    
     public static final Codec<SacrificeSavedData> CODEC = RecordCodecBuilder.create(i -> i.group(
             StoredEntry.CODEC.listOf().optionalFieldOf("Tasks", List.of())
                     .flatXmap(SacrificeSavedData::decodeTasks, SacrificeSavedData::encodeTasks)
@@ -73,12 +66,10 @@ public class SacrificeSavedData extends SavedData {
 
     public SacrificeSavedData() {}
 
-    
     private SacrificeSavedData(List<SacrificeEntry> entries) {
         tasks.addAll(entries);
     }
 
-    
     public static SacrificeSavedData get(net.minecraft.server.level.ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(TYPE);
     }
@@ -87,7 +78,6 @@ public class SacrificeSavedData extends SavedData {
         return new ArrayList<>(tasks);
     }
 
-    
     public List<SacrificeEntry> getTasks() {
         return new ArrayList<>(tasks);
     }
@@ -101,14 +91,12 @@ public class SacrificeSavedData extends SavedData {
         setDirty();
     }
 
-    
     public void setTasksForDimension(ResourceKey<Level> dimension, List<SacrificeEntry> entries) {
         tasks.removeIf(entry -> entry.dimension().equals(dimension));
         tasks.addAll(entries);
         setDirty();
     }
 
-    
     public void updateProgress(ResourceKey<Level> dimension, BlockPos center, int nextIndex) {
         for (int i = 0; i < tasks.size(); i++) {
             SacrificeEntry entry = tasks.get(i);
@@ -121,7 +109,6 @@ public class SacrificeSavedData extends SavedData {
         }
     }
 
-    
     public boolean removeTasksAt(ResourceKey<Level> dimension, BlockPos center) {
         boolean removed = tasks.removeIf(entry ->
                 entry.dimension().equals(dimension) && entry.center().equals(center));
@@ -129,7 +116,6 @@ public class SacrificeSavedData extends SavedData {
         return removed;
     }
 
-    
     public boolean removeTasksForPlayer(ResourceKey<Level> dimension, UUID playerId) {
         boolean removed = tasks.removeIf(entry ->
                 entry.dimension().equals(dimension) && entry.playerId().equals(playerId));
@@ -137,9 +123,6 @@ public class SacrificeSavedData extends SavedData {
         return removed;
     }
 
-    
-
-    
     public static long encodeOffset(int dx, int dy, int dz) {
         return ((long) dx & AXIS_MASK) | (((long) dy & AXIS_MASK) << AXIS_BITS)
                 | (((long) dz & AXIS_MASK) << (AXIS_BITS * 2));
@@ -147,11 +130,10 @@ public class SacrificeSavedData extends SavedData {
 
     private static int decodeSigned(long packed, int shift) {
         int value = (int) ((packed >>> shift) & AXIS_MASK);
-        
+
         return (value << (32 - AXIS_BITS)) >> (32 - AXIS_BITS);
     }
 
-    
     public static BlockPos[] decodePositions(long[] packed, BlockPos center) {
         BlockPos[] result = new BlockPos[packed.length];
         for (int i = 0; i < packed.length; i++) {
@@ -163,12 +145,9 @@ public class SacrificeSavedData extends SavedData {
         return result;
     }
 
-    
     public static boolean isEncodableOffset(int dx, int dy, int dz) {
         return Math.abs(dx) <= AXIS_LIMIT && Math.abs(dy) <= AXIS_LIMIT && Math.abs(dz) <= AXIS_LIMIT;
     }
-
-    
 
     private static DataResult<List<SacrificeEntry>> decodeTasks(List<StoredEntry> stored) {
         List<SacrificeEntry> result = new ArrayList<>(stored.size());
@@ -185,7 +164,6 @@ public class SacrificeSavedData extends SavedData {
         return DataResult.success(result);
     }
 
-    
     private static DataResult<List<StoredEntry>> encodeTasks(List<SacrificeEntry> entries) {
         List<StoredEntry> result = new ArrayList<>(entries.size());
         for (SacrificeEntry entry : entries) {
@@ -202,7 +180,7 @@ public class SacrificeSavedData extends SavedData {
         try {
             return UUID.fromString(value);
         } catch (IllegalArgumentException e) {
-            
+
             epca.LOGGER.warn("Invalid UUID in SacrificeSavedData: {}", value);
             return null;
         }

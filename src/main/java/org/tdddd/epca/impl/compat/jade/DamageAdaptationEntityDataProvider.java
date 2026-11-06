@@ -14,7 +14,6 @@ import org.tdddd.yawning_neko_api.events.CapabilityEventHandler;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IServerDataProvider;
 
-
 public class DamageAdaptationEntityDataProvider implements IServerDataProvider<EntityAccessor> {
 
     public static final DamageAdaptationEntityDataProvider INSTANCE = new DamageAdaptationEntityDataProvider();
@@ -46,7 +45,7 @@ public class DamageAdaptationEntityDataProvider implements IServerDataProvider<E
             epcaData.putFloat("MaxMultiplier", maxMultiplier);
         }
         int minBiomassCount = 0;
-        if (false) { // minimum kill count removed
+        if (false) {
             epcaData.putInt("MinBiomassCount", minBiomassCount);
                                         }
         int currentAdaptLevel = 0;

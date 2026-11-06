@@ -26,94 +26,40 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * GeckoLib render layer that draws the shader-rendered gas clouds owned by one entity.
- *
- * <p>Registered through {@code EpcaGeoRenderer#addLayerProvider(IGeoLayerProvider)} on the
- * longarms and yelloweye renderers, so it runs after the main model pass with a {@link PoseStack}
- * that has already been positioned by the entity render dispatcher. Every cloud position is
- * therefore converted with {@code cloudPos - renderedEntityPos}.</p>
- *
- * <p>Sub-quads are camera-facing billboards: the pose is first reset to the pass's pre-render
- * matrix (world aligned, no GeckoLib entity rotation), translated to the cloud, and rotated by the
- * camera orientation. Each sub-quad then applies its own fixed yaw/pitch/roll plus a slow spin,
- * scales by the current cloud scale and its own 0.6-1.6 multiplier, and is offset by its random
- * local position scaled by the cloud's outward spread factor (the "slowly spreading outward"
- * dissipation used by the yelloweye clouds).</p>
- *
- * <h2>26.1.2</h2>
- * <p>GeckoLib 5 split rendering into a render-state extraction phase and a submission phase, and
- * the entity render pipeline turned immediate drawing into {@code SubmitNodeCollector} submissions.
- * The layer therefore no longer receives a {@code MultiBufferSource} or a live {@code VertexConsumer};
- * it submits geometry through
- * {@link SubmitNodeCollector#submitCustomGeometry(PoseStack, RenderType, SubmitNodeCollector.CustomGeometryRenderer)}
- * with {@link GasCloudRenderType}'s custom pipeline. The per-draw uniforms of the 1.20.1 shader are
- * replaced by vertex data (fade in the colour alpha, per-cloud noise seed in the {@code UV1} slot),
- * as documented on {@link GasCloudRenderType}.</p>
- */
 public final class GasCloudLayer implements IGeoLayerProvider {
 
-    /** Minimum wall-clock gap between two diagnostics for the same entity. */
     private static final long DEBUG_REPEAT_MS = 1000L;
 
-    /** Per-entity last diagnostics wall-clock, so the submit path logs at most once per second. */
     private static final Map<Integer, Long> DEBUG_LAST_LOG = new HashMap<>();
 
-    /** Set once the pipeline has been observed missing, so the warning is not repeated every frame. */
     private static boolean debugPipelineWarned;
 
-    /** Latches the single "geometry reached the collector" line so it prints once per session. */
     private static boolean debugFirstFlushLogged;
 
-    /** Per-owner wall clock of the last numeric space probe line. */
     private static final Map<Integer, Long> DEBUG_LAST_PROBE = new HashMap<>();
 
-    /** Per-owner wall clock of the last green positive-control quad. */
     private static final Map<Integer, Long> DEBUG_LAST_CONTROL = new HashMap<>();
 
-    /** Half extent of the green positive-control quad, in blocks (0.75 => a 1.5 block square). */
     private static final float DEBUG_CONTROL_HALF_EXTENT = 0.75F;
 
-    /**
-     * Positive control #2 switch (one solid green quad through the built-in
-     * {@code RenderTypes.debugQuads()} at the first cloud's world position).
-     *
-     * <p>It was switched on for one test round together with the shader's opaque control and proved
-     * the space, the built-in submission path and the flush are all correct. It is <b>off</b> for
-     * normal runs so no green square is ever submitted; flip it to true only while re-running that
-     * control. Same name as the 1.20.1 twin so the two trees stay diff-able.</p>
-     */
     private static final boolean DEBUG_SUBMIT_GREEN_CONTROL_QUAD = false;
 
-    /**
-     * Entity ids already reported as "reachable but no clouds tracked". Logged once per entity
-     * instead of once per second: an idle mob legitimately has no clouds for minutes on end.
-     */
     private static final Set<Integer> DEBUG_NO_CLOUD_REPORTED = new HashSet<>();
 
-    /**
-     * Shared instance for the longarms renderer. It is gated on
-     * {@link ModEntities#RESHAPE_LONGARMS} so the renderer cannot accidentally draw clouds for a
-     * different entity type.
-     */
     private static final GasCloudLayer LONGARMS = new GasCloudLayer(ModEntities.RESHAPE_LONGARMS.get());
 
-    /** Shared instance for the yelloweye renderer. */
     private static final GasCloudLayer YELLOWEYE = new GasCloudLayer(ModEntities.RESHAPE_YELLOWEYE.get());
 
-    /** The entity type this layer instance is allowed to draw for. */
     private final EntityType<?> ownerType;
 
     private GasCloudLayer(EntityType<?> ownerType) {
         this.ownerType = ownerType;
     }
 
-    /** The layer instance owned by the longarms renderer. */
     public static GasCloudLayer forLongarms() {
         return LONGARMS;
     }
 
-    /** The layer instance owned by the yelloweye renderer. */
     public static GasCloudLayer forYelloweye() {
         return YELLOWEYE;
     }
@@ -123,8 +69,7 @@ public final class GasCloudLayer implements IGeoLayerProvider {
     public void submitLayer(RenderPassInfo passInfo, SubmitNodeCollector collector) {
         Entity entity = EpcaGeoModel.entityOf(passInfo.renderState());
         if (!(entity instanceof LivingEntity living) || living.getType() != this.ownerType) {
-            // Only warn when this really is a reshape mob attached to the wrong layer instance; every
-            // other entity type flowing through the shared renderer is expected and not interesting.
+
             if (entity instanceof ReshapeLongarms || entity instanceof ReshapeYelloweye) {
                 debugSkipped(entity.getId(), "owner-type mismatch: entity=" + entity.getType()
                         + " expected=" + this.ownerType);
@@ -137,7 +82,7 @@ public final class GasCloudLayer implements IGeoLayerProvider {
             return;
         }
         if (!GasCloudRenderType.isPipelineRegistered()) {
-            // The custom pipeline is required; never draw a fallback.
+
             if (GasCloudManager.DEBUG && !debugPipelineWarned) {
                 debugPipelineWarned = true;
                 epca.LOGGER.warn("[gascloud] layer: PIPELINE NOT REGISTERED - the gas cloud geometry is "
@@ -160,20 +105,15 @@ public final class GasCloudLayer implements IGeoLayerProvider {
         PoseStack poseStack = passInfo.poseStack();
 
         if (GasCloudManager.DEBUG) {
-            // Numeric space probe: settles whether the pose basis really is the camera-relative
-            // entity transform, and where the applied offset lands the cloud.
+
             debugTransformProbe(living, state, clouds.get(0), partialTick, passInfo);
-            // Positive control: a built-in POSITION_COLOR pipeline submitted through the very same
-            // submitCustomGeometry entry point, so it separates "our custom RenderType is broken"
-            // from "this submission path is broken". Off by default: it is a visible green square.
+
             if (DEBUG_SUBMIT_GREEN_CONTROL_QUAD) {
                 debugSubmitPositiveControl(living, collector, poseStack, state, clouds.get(0), partialTick,
                         passInfo);
             }
         }
 
-        // The camera-relative billboard math and the submission live in GasCloudRenderer, shared
-        // with ContaminatedWaterRenderer so both go through the same proven pipeline path.
         GasCloudRenderer.Stats stats = GasCloudRenderer.submit(collector, poseStack,
                 passInfo.getPreRenderMatrixPose(), state.x, state.y, state.z, partialTick, clouds);
 
@@ -182,7 +122,7 @@ public final class GasCloudLayer implements IGeoLayerProvider {
             debugSubmitted(living, clouds.size(), stats.submitted, stats.minAlpha, stats.maxAlpha,
                     stats.quads);
             if (stats.submitted > 0 && !debugFirstFlushLogged) {
-                // One-shot proof that the render type really reached the collector with geometry.
+
                 debugFirstFlushLogged = true;
                 epca.LOGGER.info("[gascloud] layer: FIRST FLUSH entityId={} ({}) clouds={} quads={} "
                                 + "renderType={} shaderReady={} {}",
@@ -193,11 +133,6 @@ public final class GasCloudLayer implements IGeoLayerProvider {
         }
     }
 
-    /**
-     * Prints one line per second per owner: how many clouds the layer actually submitted, their
-     * alpha range and the shader state. The whole block is dead code unless
-     * {@link GasCloudManager#DEBUG} is on.
-     */
     private static void debugSubmitted(LivingEntity entity, int tracked, int drawn,
                                        float minAlpha, float maxAlpha, int quads) {
         int ownerId = entity.getId();
@@ -207,7 +142,7 @@ public final class GasCloudLayer implements IGeoLayerProvider {
             return;
         }
         if (DEBUG_LAST_LOG.size() > 256) {
-            // Never let the throttle map grow with every entity id a session ever saw.
+
             DEBUG_LAST_LOG.clear();
         }
         DEBUG_LAST_LOG.put(ownerId, now);
@@ -216,7 +151,6 @@ public final class GasCloudLayer implements IGeoLayerProvider {
                 drawn == 0 ? 0.0F : minAlpha, maxAlpha);
     }
 
-    /** Logs why the layer drew nothing, at most once per second per entity id. */
     private static void debugSkipped(int entityId, String reason) {
         if (!GasCloudManager.DEBUG) {
             return;
@@ -230,18 +164,6 @@ public final class GasCloudLayer implements IGeoLayerProvider {
         epca.LOGGER.info("[gascloud] layer: SKIP entityId={} {}", entityId, reason);
     }
 
-    /**
-     * Numeric space probe (diagnostics only), at most once per second per owner.
-     *
-     * <p>26.1.2 semantics this checks: {@code EntityRenderState.x/y/z} are ABSOLUTE interpolated
-     * world coordinates ({@code EntityRenderer.extractRenderState} writes them from
-     * {@code entity.xOld}/{@code entity.getX()}), while {@code LevelRenderer.submitEntities} passes
-     * {@code state.x - camX} to {@code EntityRenderDispatcher.submit}, so the pose basis should be
-     * the camera-relative entity transform and {@code cloudPos - state} should be the entity-local
-     * offset that lands the cloud on {@code cloudPos - camera}. If
-     * {@code basisMinus(entityAbs-camera)} is not ~0, the pose basis is not what the offset math
-     * assumes and the basis has to be rebuilt from the camera instead.</p>
-     */
     @SuppressWarnings("rawtypes")
     private static void debugTransformProbe(LivingEntity entity, EntityRenderState state, GasCloud cloud,
                                             float partialTick, RenderPassInfo passInfo) {
@@ -256,7 +178,6 @@ public final class GasCloudLayer implements IGeoLayerProvider {
         }
         DEBUG_LAST_PROBE.put(ownerId, now);
 
-        // Translation of the pose the layer resets to: passInfo.getPreRenderMatrixPose().
         Matrix4f basis = passInfo.getPreRenderMatrixPose().pose();
         Vec3 basisTranslation = new Vec3(basis.m30(), basis.m31(), basis.m32());
         Vec3 entityAbs = entity.getPosition(partialTick);
@@ -281,19 +202,6 @@ public final class GasCloudLayer implements IGeoLayerProvider {
                 fmt(basisTranslation.z - basisExpected.z));
     }
 
-    /**
-     * Positive control (diagnostics only), at most once per second per owner: submits one large
-     * solid-green quad through {@code RenderTypes.debugQuads()} at the first cloud's world position,
-     * using the same pose basis/offset/billboard rotation as the gas clouds.
-     *
-     * <p>That render type is {@code RenderPipelines.DEBUG_QUADS} over
-     * {@code DefaultVertexFormat.POSITION_COLOR} ({@code Position}, {@code Color}), QUADS,
-     * {@code BlendFunction.TRANSLUCENT}, depth {@code LESS_THAN_OR_EQUAL} without write and
-     * {@code cull = false}, with no sampler - a built-in pipeline that needs no mod-side
-     * registration. A visible green square proves geometry, space and the
-     * {@code submitCustomGeometry} path are fine, which leaves the custom pipeline/RenderType or the
-     * shader output as the fault; an invisible one proves the space or the submission path.</p>
-     */
     @SuppressWarnings("rawtypes")
     private static void debugSubmitPositiveControl(LivingEntity entity, SubmitNodeCollector collector,
                                                    PoseStack poseStack, EntityRenderState state,
@@ -333,7 +241,6 @@ public final class GasCloudLayer implements IGeoLayerProvider {
                 RenderTypes.debugQuads());
     }
 
-    /** Short numeric formatter for the diagnostics. */
     private static String fmt(double value) {
         return String.valueOf(Math.round(value * 100.0D) / 100.0D);
     }

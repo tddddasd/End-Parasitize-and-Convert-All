@@ -7,7 +7,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.overworld.data.BiomassClientData;
 
-
 public class BiomassSyncPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<BiomassSyncPacket> TYPE =

@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class CarryConfigManager implements ResourceManagerReloadListener {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String FOLDER = "entity_carry"; 
+    private static final String FOLDER = "entity_carry";
 
     private Map<Identifier, CarryConfig> configs = new HashMap<>();
 
@@ -26,20 +26,16 @@ public class CarryConfigManager implements ResourceManagerReloadListener {
     public void onResourceManagerReload(ResourceManager resourceManager) {
         Map<Identifier, CarryConfig> newConfigs = new HashMap<>();
 
-        
         resourceManager.listResources(FOLDER, file -> file.getPath().endsWith(".json"))
                 .forEach((fileId, resource) -> {
-                    
-                    
+
                     String path = fileId.getPath();
                     String fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.'));
                     Identifier entityId = Identifier.fromNamespaceAndPath(fileId.getNamespace(), fileName);
 
                     try (InputStream stream = resource.open()) {
                         JsonElement json = JsonParser.parseReader(new InputStreamReader(stream));
-                        // 26.1.2 ships DataFixerUpper 9, which removed the two-argument
-                        // getOrThrow(boolean, Consumer). The no-argument form throws instead, and the
-                        // catch below logs the offending file and skips it rather than storing null.
+
                         CarryConfig config = CarryConfig.CODEC.parse(JsonOps.INSTANCE, json)
                                 .getOrThrow();
                         newConfigs.put(entityId, config);
@@ -63,6 +59,5 @@ public class CarryConfigManager implements ResourceManagerReloadListener {
         return config.getCarryable().contains(BuiltInRegistries.ENTITY_TYPE.getKey(targetType));
     }
 
-    
     public static final CarryConfigManager INSTANCE = new CarryConfigManager();
 }

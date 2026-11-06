@@ -9,16 +9,6 @@ import net.minecraft.resources.Identifier;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya;
 import org.tdddd.epca.impl.epca;
 
-/**
- * 26.1.2: humanoid renderers now carry three type parameters {@code <T entity, S render state, M model>} and
- * {@code PlayerModel} is no longer generic  it is fixed to {@link AvatarRenderState}.
- *
- * <p>1.20.1 was {@code HumanoidMobRenderer<YawningNya, PlayerModel<YawningNya>>}; the 26.1.2 equivalent is
- * {@code HumanoidMobRenderer<YawningNya, AvatarRenderState, PlayerModel>}. {@code AvatarRenderState} is the state
- * type {@code PlayerModel#setupAnim} consumes, so it is the only state the player model can render. Keeping
- * {@code HumanoidMobRenderer} (instead of a bespoke LivingEntityRenderer) also keeps the vanilla humanoid layer
- * set (custom head / wings / held item) that the old renderer inherited.
- */
 public class YawningNyaRenderer extends HumanoidMobRenderer<YawningNya, AvatarRenderState, PlayerModel> {
 
     private static final Identifier YAWNING_NYA_TEXTURE =
@@ -34,7 +24,7 @@ public class YawningNyaRenderer extends HumanoidMobRenderer<YawningNya, AvatarRe
                     slim ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER
             ), slim);
         } catch (Exception e) {
-            
+
             System.err.println("Failed to create player model, using fallback: " + e.getMessage());
             return new PlayerModel(context.bakeLayer(ModelLayers.PLAYER), false);
         }

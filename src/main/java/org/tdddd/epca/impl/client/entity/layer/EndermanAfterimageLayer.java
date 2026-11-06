@@ -25,58 +25,6 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingEn
 
 import java.util.*;
 
-/**
- * Layer provider that renders fading afterimage ghosts behind a moving entity.
- * Each afterimage records the entity's <b>rendered</b> position/yaw at spawn time and is drawn at
- * that exact world position for its whole lifetime, so the ghost stays where it appeared instead of
- * following the entity.
- *
- * <p>Movement detection uses the per-tick position delta ({@code getX() - xo}),
- * which is reliable on the client side. Spawning is throttled to once per game tick.</p>
- *
- * <h2>Frozen position  the 26.1.2 transform chain</h2>
- * <p>Vanilla's {@code EntityRenderDispatcher} translates the pose stack by the entity's
- * <i>interpolated</i> render position ({@code EntityRenderState.x/y/z}) and GeckoLib's
- * {@code GeoEntityRenderer.applyRotations} then post-multiplies its own rotation, so at layer time
- * the stack is</p>
- * <pre>  T(renderPos)  R(180 - bodyYaw) [ living extras]</pre>
- * <p>A plain {@code translate(delta)} from there is applied <b>inside the entity's rotated frame</b>:
- * the offset gets rotated by the entity's current yaw, which makes the ghost drift sideways and
- * appear to follow the entity. The layer therefore resets the current pose to the pass's
- * <i>pre-render</i> matrix ({@link RenderPassInfo#getPreRenderMatrixPose()}, captured in
- * {@code RenderPassInfo}'s constructor <b>before</b> GeckoLib's rotation) and rebuilds the ghost's
- * own transform from world axes:</p>
- * <pre>  T(renderPos)  T(spawnPos - renderPos)  R(180 - spawnYaw)</pre>
- * <p>which puts the ghost exactly at its spawn position, facing its spawn direction, for every
- * frame of its fade  regardless of where the entity has moved or turned since.</p>
- *
- * <h2>Yaw cancellation</h2>
- * <p>{@code getPreRenderMatrixPose()} is captured before {@code adjustRenderPose}, but the model a
- * layer re-submits is drawn through the full render path, so the entity's own LIVE yaw is applied
- * once more downstream of whatever the layer sets. The ghost's facing was therefore
- * {@code (LIVE yaw) + (layer term)} - a live additive term that made the ghost track its owner no
- * matter what the frozen record held.</p>
- * <p>So the live term is cancelled first, and only then is the FROZEN one applied:</p>
- * <ol>
- *   <li>{@code mulPose(Axis.YP.rotationDegrees(-liveYaw))} cancels the base transform, where
- *       {@code liveYaw = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot())};</li>
- *   <li>{@code mulPose(Axis.YP.rotationDegrees(180.0F + data.yRot))} applies the frozen facing,
- *       with the handedness the user asked for.</li>
- * </ol>
- * <p>Net world facing = {@code 180 + data.yRot}: only the FROZEN contribution survives. This mirrors
- * the 1.20.1 layer exactly, where the same cancellation is needed for the same reason.</p>
- *
- * <h2>GeckoLib 4  5.5.2  pose freeze (documented behaviour change)</h2>
- * <p>GeckoLib 4's layer received the live {@code BakedGeoModel} and could read and write each
- * {@code CoreGeoBone} transform, so afterimages replayed a <b>frozen per-bone pose</b>.
- * GeckoLib 5 no longer exposes a mutable bone transform at submission time: the animated pose
- * only exists inside the render pass's compiled bone snapshots, and re-submitting the model
- * for an afterimage necessarily uses the <i>current</i> frame's snapshots. The pose freeze is
- * therefore not reproducible through the public GeckoLib 5 API and afterimages now replay the
- * spawn-time <b>position, yaw, texture and alpha fade</b> but keep the current animation pose.
- * Everything else (spawn throttling, movement gate, lifetime, max count, fade curve) is
- * unchanged.</p>
- */
 public class EndermanAfterimageLayer implements IGeoLayerProvider {
 
     private static final float SPAWN_CHANCE = 0.30F;
@@ -87,16 +35,13 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     private static final Map<UUID, List<AfterimageData>> AFTERIMAGES = new HashMap<>();
     private static final Map<UUID, Integer> LAST_SPAWN_TICK = new HashMap<>();
 
-    /** Cache: base texture  afterimage texture. */
     private static final Map<Identifier, Identifier> TEX_CACHE = new HashMap<>();
 
-    /** Derive afterimage texture from the entity type's registry key. */
     private static Identifier getAfterimageTexture(LivingEntity entity) {
         Identifier key = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
 
         if (key == null) return Identifier.fromNamespaceAndPath("epca", "textures/entity/none.png");
 
-        
         boolean isUnstable = false;
         if (entity instanceof InfestedEndermite endermite) {
             isUnstable = endermite.getVariant() == InfestedEndermite.Variant.UNSTABLE;
@@ -108,7 +53,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
             isUnstable = endermanHead.getVariant() == WalkingEndermanHead.Variant.UNSTABLE;
         }
 
-        
         Identifier cacheKey = isUnstable ?
                 Identifier.fromNamespaceAndPath(key.getNamespace(), key.getPath() + "_unstable") :
                 key;
@@ -117,13 +61,11 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         return TEX_CACHE.computeIfAbsent(cacheKey, k -> {
             String namespace = key.getNamespace();
             String path = key.getPath();
-            
+
             String suffix = finalIsUnstable ? "_unstable_afterimage" : "_afterimage";
             return Identifier.fromNamespaceAndPath(namespace, "textures/entity/" + path + suffix + ".png");
         });
     }
-
-    //  Extraction phase  spawn / prune
 
     @Override
     public void addLayerData(GeoRenderState renderState, float partialTick) {
@@ -138,8 +80,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
             afterimages.removeIf(data -> !data.isAlive(currentTick));
         }
     }
-
-    //  Submission phase  draw every live afterimage
 
     @Override
     @SuppressWarnings("rawtypes")
@@ -156,9 +96,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         Identifier afterimageTex = getAfterimageTexture(living);
         RenderType afterimageRenderType = RenderTypes.entityTranslucent(afterimageTex);
 
-        // The live base yaw, interpolated exactly as vanilla interpolates the entity transform. See
-        // the class javadoc: the re-submitted model picks the entity's live yaw up again downstream,
-        // so it has to be cancelled before the frozen one is applied.
         float partialTick = passInfo.renderState().getPartialTick();
         float liveYaw = Mth.rotLerp(partialTick, living.yRotO, living.getYRot());
 
@@ -170,8 +107,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
 
             poseStack.pushPose();
 
-            // See the class javadoc: the live pose already contains GeckoLib's entity rotation, so
-            // translate from the pass's pre-render matrix (T(renderPos), world-aligned) instead.
             poseStack.last().set(passInfo.getPreRenderMatrixPose());
 
             Vec3 afterPos = data.position;
@@ -180,8 +115,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
                     afterPos.y - renderedState.y + 0.02,
                     afterPos.z - renderedState.z
             );
-            // (a) cancel the live base yaw, (b) apply the frozen facing. Net world facing is
-            // 180 + data.yRot, so only the FROZEN contribution survives.
+
             poseStack.mulPose(Axis.YP.rotationDegrees(-liveYaw));
             poseStack.mulPose(Axis.YP.rotationDegrees(data.yRot));
 
@@ -191,18 +125,14 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         }
     }
 
-    //  Spawning
-
     private static void trySpawn(LivingEntity entity, GeoRenderState renderState, int currentTick) {
         if (!(renderState instanceof EntityRenderState state)) return;
         UUID id = entity.getUUID();
 
-        // Throttle: only once per game tick
         Integer lastTick = LAST_SPAWN_TICK.get(id);
         if (lastTick != null && lastTick == currentTick) return;
         LAST_SPAWN_TICK.put(id, currentTick);
 
-        // Movement check via per-tick position delta
         double dx = entity.getX() - entity.xo;
         double dy = entity.getY() - entity.yo;
         double dz = entity.getZ() - entity.zo;
@@ -212,15 +142,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         list.removeIf(data -> !data.isAlive(currentTick));
 
         if (list.size() < MAX_AFTERIMAGES && entity.getRandom().nextFloat() < SPAWN_CHANCE) {
-            // Record the *rendered* transform, not the raw entity transform: EntityRenderState.x/y/z
-            // are the interpolated position the dispatcher translated the pose stack to, so using the
-            // same basis keeps the ghost exactly on the spot the entity occupied that frame (no
-            // sub-tick drift).
-            //
-            // The six yaw values are the complete frozen record, copied field-for-field from the
-            // 1.20.1 layer: yRot (the facing the ghost is rebuilt from), the body/head yaws and the
-            // three previous-tick values. All six are captured ONCE here and never recomputed, which
-            // is what freezes the ghost's facing.
+
             list.add(new AfterimageData(
                     new Vec3(state.x, state.y, state.z),
                     entity.getYRot(),
@@ -235,8 +157,6 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
             ));
         }
     }
-
-    //  Global cleanup
 
     public static void cleanupOrphaned() {
         Minecraft mc = Minecraft.getInstance();

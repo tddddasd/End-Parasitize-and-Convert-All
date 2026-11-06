@@ -8,9 +8,11 @@ import com.geckolib.renderer.GeoEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -25,16 +27,31 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.bus.api.SubscribeEvent;
+import org.joml.Vector3fc;
 import org.tdddd.epca.impl.client.EpcaClientSettings;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-/** Render-only dismemberment pieces, mirroring the 1.20.1 epca_dismemberment behaviour. */
 public final class EpcaGibRenderer {
     private static final List<Piece> PIECES = new ArrayList<>();
+
+    private static final Map<Identifier, RenderType> RENDER_TYPES = new HashMap<>();
+
+    private static final double MIN_PIXEL_SIZE = 0.35D;
+
+    private static RenderType renderTypeFor(Identifier texture) {
+        RenderType type = RENDER_TYPES.get(texture);
+        if (type == null) {
+            type = RenderTypes.entityTranslucent(texture);
+            RENDER_TYPES.put(texture, type);
+        }
+        return type;
+    }
 
     public static void add(String typeId, double x, double y, double z,
                            float yaw, float pitch, float width, float height) {
@@ -68,9 +85,6 @@ public final class EpcaGibRenderer {
         }
         if (candidates.isEmpty()) return;
 
-        // Piece count comes from the Video Settings sliders instead of a hard-coded 7. The limit slider
-        // never asks for more parts than the model has; the debug multiplier may overshoot it, in which
-        // case the shuffled parts are repeated to reach the requested amount.
         int count = EpcaClientSettings.resolvePieceCount(candidates.size());
         if (count <= 0) return;
         java.util.Collections.shuffle(candidates, new java.util.Random(level.getRandom().nextLong()));
@@ -131,14 +145,31 @@ public final class EpcaGibRenderer {
         if (PIECES.isEmpty()) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
+
         PoseStack poseStack = event.getPoseStack();
-        Vec3 cam = mc.gameRenderer.getMainCamera().position();
+        Camera camera = mc.gameRenderer.getMainCamera();
+        Vec3 cam = camera.position();
+        Vector3fc forward = camera.forwardVector();
+        float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        double pxPerUnit = pixelScalePerUnit(mc, camera.getFov());
+
         MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
         poseStack.pushPose();
         poseStack.translate(-cam.x, -cam.y, -cam.z);
-        for (Piece piece : PIECES) piece.render(poseStack, buffer, event.getLevelRenderState().gameTime);
+        for (int i = 0, size = PIECES.size(); i < size; i++) {
+            Piece piece = PIECES.get(i);
+            if (!piece.isVisible(cam, forward, pxPerUnit, partial)) continue;
+            piece.render(poseStack, buffer, partial);
+        }
         poseStack.popPose();
         buffer.endBatch();
+    }
+
+    private static double pixelScalePerUnit(Minecraft mc, float fovDegrees) {
+        float fov = Mth.clamp(fovDegrees, 20.0F, 150.0F);
+        double tanHalf = Math.tan(Math.toRadians(fov) * 0.5D);
+        if (tanHalf <= 1.0E-4D) return 1000.0D;
+        return mc.getWindow().getHeight() / (2.0D * tanHalf);
     }
 
     private static final class Piece {
@@ -153,6 +184,8 @@ public final class EpcaGibRenderer {
         int age, fadeStart;
         float alpha = 1.0F;
 
+        int argb = 0xFFFFFFFF;
+
         Piece(List<GeoCube> cubes, Identifier texture, float cx, float cy, float cz,
               float hx, float hy, float hz, float sx, float sy, float sz) {
             this.cubes = cubes; this.texture = texture;
@@ -162,7 +195,6 @@ public final class EpcaGibRenderer {
             this.fadeStart = 40 + (int) (Math.random() * 20);
         }
 
-        /** Fresh piece with the same geometry but its own motion/fade state (used when the multiplier repeats a part). */
         Piece duplicate() {
             return new Piece(this.cubes, this.texture, this.centerX, this.centerY, this.centerZ,
                     this.halfX, this.halfY, this.halfZ, this.spawnX, this.spawnY, this.spawnZ);
@@ -195,19 +227,37 @@ public final class EpcaGibRenderer {
             }
             my *= 0.98; mx *= 0.91; mz *= 0.91;
             if (age > fadeStart) alpha = 1.0F - (age - fadeStart) / 20.0F;
+            argb = ((int) (Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F) << 24) | 0xFFFFFF;
             return alpha > 0;
         }
 
-        void render(PoseStack poseStack, MultiBufferSource buffer, long gameTime) {
-            float partial = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        boolean isVisible(Vec3 cam, Vector3fc forward, double pxPerUnit, float partial) {
+            float px = (float) (xo + (x - xo) * partial);
+            float py = (float) (yo + (y - yo) * partial);
+            float pz = (float) (zo + (z - zo) * partial);
+            double dx = px - cam.x;
+            double dy = py - cam.y;
+            double dz = pz - cam.z;
+
+            float radius = Math.max(halfX, Math.max(halfY, halfZ)) + 0.05F;
+            if (!Float.isFinite(radius) || alpha <= 0.0F) return false;
+
+            double along = dx * forward.x() + dy * forward.y() + dz * forward.z();
+            if (along < -radius) return false;
+
+            double distSq = dx * dx + dy * dy + dz * dz;
+            if (distSq < 1.0E-6D) return true;
+            return radius * pxPerUnit / Math.sqrt(distSq) >= MIN_PIXEL_SIZE;
+        }
+
+        void render(PoseStack poseStack, MultiBufferSource buffer, float partial) {
             poseStack.pushPose();
             poseStack.translate(xo + (x - xo) * partial, yo + (y - yo) * partial, zo + (z - zo) * partial);
             poseStack.translate(-centerX / 16.0F, -centerY / 16.0F, -centerZ / 16.0F);
             poseStack.mulPose(Axis.YP.rotationDegrees(-Mth.lerp(partial, yawO, yaw)));
             poseStack.mulPose(Axis.XP.rotationDegrees(Mth.lerp(partial, pitchO, pitch)));
-            VertexConsumer consumer = buffer.getBuffer(RenderTypes.entityTranslucent(texture));
-            int color = ((int) (alpha * 255.0F) << 24) | 0xFFFFFF;
-            for (GeoCube cube : cubes) cube.render(poseStack, consumer, 0xF000F0, OverlayTexture.NO_OVERLAY, color);
+            VertexConsumer consumer = buffer.getBuffer(renderTypeFor(texture));
+            for (GeoCube cube : cubes) cube.render(poseStack, consumer, 0xF000F0, OverlayTexture.NO_OVERLAY, argb);
             poseStack.popPose();
         }
     }

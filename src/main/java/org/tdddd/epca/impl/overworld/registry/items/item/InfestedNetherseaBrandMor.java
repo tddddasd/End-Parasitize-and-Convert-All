@@ -20,19 +20,19 @@ public class InfestedNetherseaBrandMor extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(1)  
+                .nutrition(1)
                 .build();
     }
 
     private static Consumable createConsumable() {
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.PARA_CURSE,  
-                        30 * 20,  
-                        0  
-                ), 0.7F))  
+                        ModEffects.PARA_CURSE,
+                        30 * 20,
+                        0
+                ), 0.7F))
                 .build();
     }
 }

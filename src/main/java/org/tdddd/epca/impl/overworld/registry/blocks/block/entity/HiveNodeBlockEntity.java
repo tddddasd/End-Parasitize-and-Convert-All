@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block.entity;
 
+import org.tdddd.epca.impl.overworld.registry.ModTags;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -22,17 +24,10 @@ import org.tdddd.epca.impl.overworld.registry.blocks.BlockConversionManager;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode;
-import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.Curbug;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.Ripper;
 
-/**
- * Stores the hive node's biomass and keeps the block state's texture band in sync.
- *
- * <p>26.1.2 notes: block entities serialise through ValueInput/ValueOutput instead of CompoundTag, and
- * entities have no persistent data any more, so the "born from a node" marker is an entity tag.</p>
- */
-public class HiveNodeBlockEntity extends BlockEntity 
+public class HiveNodeBlockEntity extends BlockEntity
         implements org.tdddd.epca.impl.overworld.data.BiomassStorage {
 
     public static final int MAX_BIOMASS_COUNT = 64;
@@ -43,7 +38,7 @@ public class HiveNodeBlockEntity extends BlockEntity
     private static final int GROWTH_MIN_TICKS = 15 * 20;
     private static final int GROWTH_MAX_TICKS = 30 * 20;
     private static final String GROWTH_TAG_PREFIX = "epca:hive_growth:";
-    /** Last game tick at which any hive node advanced this bug's growth; limits the speed-up to one step per second. */
+
     private static final String GROWTH_ACCEL_TAG_PREFIX = "epca:hive_growth_accel:";
     private static final double CAPTIVE_RADIUS = 8.0D;
     private static final int INFEST_RADIUS = 8;
@@ -55,7 +50,6 @@ public class HiveNodeBlockEntity extends BlockEntity
 
     private int biomassCount = 0;
 
-    /** True when the parasite ecology created this node rather than a player placing it. */
     private boolean natural = false;
     private int biomassTimer = 0;
     private int spawnTimer = 0;
@@ -80,16 +74,12 @@ public class HiveNodeBlockEntity extends BlockEntity
     private int linkTimer = 0;
     private int feedTimer = 0;
     private int structureTimer = 0;
-    /**
-     * The structure scan walks a 49x49x49 cube (117,649 block lookups), so it only runs every
-     * {@link #STRUCTURE_SCAN_EVERY}th structure check. The flag it recomputes changes over minutes, so
-     * the coarser cadence is not observable in game but removes about 90% of the scan cost.
-     */
+
     private int structureScanTimer = 0;
     private static final int STRUCTURE_SCAN_EVERY = 10;
     private boolean inStructure = false;
     private int knownStructureSize = 0;
-    /** True once this node has paid out the structure bonus, so it is only granted once. */
+
     private boolean structureRewarded = false;
 
     public HiveNodeBlockEntity(BlockPos pos, BlockState state) {
@@ -123,12 +113,10 @@ public class HiveNodeBlockEntity extends BlockEntity
         return this.biomassCount < MAX_BIOMASS_COUNT;
     }
 
-    /** True when this node appeared from the parasite ecology instead of a player placing it. */
     public boolean isNatural() {
         return this.natural;
     }
 
-    /** Marks this node as naturally created; the flag is persisted with the block entity. */
     public void setNatural(boolean natural) {
         if (this.natural == natural) {
             return;
@@ -235,7 +223,7 @@ public class HiveNodeBlockEntity extends BlockEntity
     }
 
     private boolean spawnCurbug(ServerLevel level) {
-        // A full block directly above the node blocks the spawn point.
+
         net.minecraft.core.BlockPos above = this.worldPosition.above();
         if (level.getBlockState(above).isCollisionShapeFullBlock(level, above)) {
             return false;
@@ -253,7 +241,6 @@ public class HiveNodeBlockEntity extends BlockEntity
         return true;
     }
 
-    /** True once this node is part of a hive structure (three or more linked nodes). */
     public boolean isInStructure() {
         return this.inStructure;
     }
@@ -285,8 +272,7 @@ public class HiveNodeBlockEntity extends BlockEntity
             }
         }
         boolean now = reached.size() >= STRUCTURE_MIN_NODES;
-        // A second hive structure may not appear within eight chunks of an existing one. Nodes of
-        // this group are excluded, because they are the structure that is being detected.
+
         if (now && !this.inStructure
                 && org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules.hasHiveStructureWithinChunks(
                         level, this.worldPosition,
@@ -319,12 +305,11 @@ public class HiveNodeBlockEntity extends BlockEntity
         }
     }
 
-    /** Only node-born curbugs and nearby onesent parasites get Link. */
     private void applyLink(ServerLevel level) {
         AABB area = new AABB(this.worldPosition).inflate(LINK_RADIUS);
         for (LivingEntity living : level.getEntitiesOfClass(LivingEntity.class, area)) {
             boolean nodeBorn = growthLeft(living) >= 0;
-            boolean onesent = living instanceof IOnesent;
+            boolean onesent = BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(living.getType()).is(org.tdddd.epca.impl.overworld.registry.ModTags.ONESENT);
             if (!nodeBorn && !onesent) {
                 continue;
             }
@@ -334,14 +319,13 @@ public class HiveNodeBlockEntity extends BlockEntity
         }
     }
 
-    /** Draws parasites in from 32 blocks and lets them feed; fed ones walk away afterwards. */
     private void attractFeeders(ServerLevel level) {
         AABB area = new AABB(this.worldPosition).inflate(FEED_ATTRACT_RADIUS);
         for (Mob mob : level.getEntitiesOfClass(Mob.class, area)) {
             if (!mob.isAlive()) {
                 continue;
             }
-            // Only parasites that carry biomass of their own bother approaching a hive node.
+
             int ownBiomass = org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager.getCurrentBiomassCount(mob);
             if (ownBiomass <= 0) {
                 continue;
@@ -349,9 +333,9 @@ public class HiveNodeBlockEntity extends BlockEntity
             double distance = Math.sqrt(mob.blockPosition().distSqr(this.worldPosition));
             if (distance <= FEED_RADIUS) {
                 if (growthLeft(mob) >= 0) {
-                    continue;                       // node children are not feeders
+                    continue;
                 }
-                // Feeding transfers the feeder's own biomass: a parasite with no kill count gives nothing.
+
                 if (ownBiomass > 0 && this.hasRoom()) {
                     org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager.setBiomassCount(mob, ownBiomass - 1);
                     this.addBiomassCount(1);
@@ -392,7 +376,6 @@ public class HiveNodeBlockEntity extends BlockEntity
         }
     }
 
-    /** The game tick at which a hive node last advanced this bug's growth (0 when never). */
     private static long lastGrowthAccel(Entity entity) {
         for (String tag : entity.entityTags()) {
             if (tag.startsWith(GROWTH_ACCEL_TAG_PREFIX)) {
@@ -426,8 +409,7 @@ public class HiveNodeBlockEntity extends BlockEntity
             if (left < 0) {
                 continue;
             }
-            // Several nodes can cover the same bug. Only the first one in each growth step may
-            // advance it, so overlapping nodes do not stack their acceleration.
+
             if (now - lastGrowthAccel(bug) < GROWTH_CHECK_TICKS) {
                 continue;
             }
@@ -447,8 +429,7 @@ public class HiveNodeBlockEntity extends BlockEntity
                 ripper.absSnapTo(x, y, z, yaw, pitch);
                 level.addFreshEntity(ripper);
             }
-            // The same feedback as a natural curbub-to-ripper transformation, plus the explosion
-            // particle burst used when two creatures fuse.
+
             level.playSound(null, x, y, z,
                     org.tdddd.epca.impl.overworld.registry.ModSoundEvents.CURBUG_EVOLVE.get(),
                     source, 1.0F, 1.0F);
@@ -468,7 +449,7 @@ public class HiveNodeBlockEntity extends BlockEntity
             BlockPos target = ripper.blockPosition();
             if (!org.tdddd.epca.impl.overworld.registry.blocks.HiveNodeRules
                     .canCreateNaturalNode(level, target)) {
-                return;                             // this chunk already holds its natural-node quota
+                return;
             }
             this.setBiomassCount(this.biomassCount - RIPPER_GROWTH_COST);
             ripper.discard();

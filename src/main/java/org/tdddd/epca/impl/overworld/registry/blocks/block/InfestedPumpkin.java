@@ -51,7 +51,6 @@ public class InfestedPumpkin extends Block implements InfestedBlockInterface {
         return Blocks.PUMPKIN.getSoundType(Blocks.PUMPKIN.defaultBlockState(), level, pos, entity);
     }
 
-
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 
@@ -65,26 +64,6 @@ public class InfestedPumpkin extends Block implements InfestedBlockInterface {
         return super.getCollisionShape(state, level, pos, context);
     }
 
-    /**
-     * 26.1.2: {@code onRemove(state, level, pos, newState, moved)} was replaced by
-     * {@code affectNeighborsAfterRemoval(BlockState,ServerLevel,BlockPos,boolean)}. The old
-     * {@code playerDestroy} override is gone with that method, so this is now the removal hook.
-     *
-     * <p>Kit 4: kit 2 had used this hook to roll a 1/2 chance of spawning the
-     * {@code ModEntities.INFESTED_PUMPKIN_HEAD} mob, gated on a silk-touch marker that
-     * {@code playerWillDestroy} had stashed in a static set.  Both the roll and the marker are
-     * removed together with that entity and its renderer, so destroying an infested pumpkin now
-     * only runs the vanilla removal path below: the block disappears, the loot table
-     * {@code data/epca/loot_table/blocks/infested_pumpkin.json} decides the drop (the block
-     * itself, with any tool), and the PUMPKIN break sound/particles play.  No entity is spawned,
-     * and nothing else those blocks did is affected: placement still clears {@code natural_spawn},
-     * the collision shape still lets {@code InfestedSilverfish} pass, and
-     * flammability / fire spread are unchanged.</p>
-     *
-     * <p>The statement above about the old {@code onRemove} /
-     * {@code affectNeighborsAfterRemoval} migration is history; the method body is now
-     * deliberately trivial.</p>
-     */
     @Override
     public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
         super.affectNeighborsAfterRemoval(state, level, pos, moved);

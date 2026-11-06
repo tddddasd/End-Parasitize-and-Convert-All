@@ -16,28 +16,24 @@ import java.util.List;
 @EventBusSubscriber
 public class AutomaticFeedingModuleEventHandler {
 
-    private static final int FEEDING_INTERVAL = 5; 
+    private static final int FEEDING_INTERVAL = 5;
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
 
-        
         if (player.level().isClientSide()) {
             return;
         }
 
-        
         if (player.tickCount % FEEDING_INTERVAL != 0) {
             return;
         }
 
-        
         if (!isWearingFullLivingArmor(player)) {
             return;
         }
 
-        
         ItemStack boxStack = findLivingArmorBox(player);
         if (boxStack.isEmpty()) {
             return;
@@ -45,39 +41,34 @@ public class AutomaticFeedingModuleEventHandler {
 
         LivingArmorBox boxItem = (LivingArmorBox) boxStack.getItem();
 
-        
         if (!boxItem.getState(boxStack)) {
             return;
         }
 
-        
         if (!hasAutomaticFeedingModuleI(boxStack)) {
             return;
         }
 
-        
         FoodData foodData = player.getFoodData();
         int foodLevel = foodData.getFoodLevel();
         float saturationLevel = foodData.getSaturationLevel();
 
-        
         if (foodLevel < 20 || saturationLevel < 20.0f) {
-            
+
             int consumed = boxItem.consumeBiomass(boxStack, 1);
 
             if (consumed > 0) {
                 if (foodLevel < 20) {
-                    
+
                     foodData.eat(1, 0.0f);
                 } else if (saturationLevel < 20.0f) {
-                    
+
                     foodData.setSaturation(foodData.getSaturationLevel() + 1.0f);
                 }
             }
         }
     }
 
-    
     private static boolean isWearingFullLivingArmor(Player player) {
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
         ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
@@ -90,14 +81,12 @@ public class AutomaticFeedingModuleEventHandler {
                 isLivingArmor(boots);
     }
 
-    
     private static boolean isLivingArmor(ItemStack stack) {
         return stack.getItem() instanceof LivingArmorItem;
     }
 
-    
     private static ItemStack findLivingArmorBox(Player player) {
-        
+
         ItemStack mainHand = player.getMainHandItem();
         ItemStack offHand = player.getOffhandItem();
 
@@ -108,7 +97,6 @@ public class AutomaticFeedingModuleEventHandler {
             return offHand;
         }
 
-        
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() instanceof LivingArmorBox) {
@@ -119,7 +107,6 @@ public class AutomaticFeedingModuleEventHandler {
         return ItemStack.EMPTY;
     }
 
-    
     private static boolean hasAutomaticFeedingModuleI(ItemStack boxStack) {
         if (!(boxStack.getItem() instanceof LivingArmorBox)) {
             return false;

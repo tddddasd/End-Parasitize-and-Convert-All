@@ -6,7 +6,6 @@ import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
 import java.util.UUID;
 
-
 public class ParasiteFollowEvent extends LivingEvent implements ICancellableEvent {
     private final UUID oldTarget;
     private final UUID newTarget;
@@ -17,27 +16,22 @@ public class ParasiteFollowEvent extends LivingEvent implements ICancellableEven
         this.newTarget = newTarget;
     }
 
-    
     public UUID getOldTarget() {
         return oldTarget;
     }
 
-    
     public UUID getNewTarget() {
         return newTarget;
     }
 
-    
     public boolean isStartFollow() {
         return oldTarget == null && newTarget != null;
     }
 
-    
     public boolean isStopFollow() {
         return oldTarget != null && newTarget == null;
     }
 
-    
     public boolean isSwitchTarget() {
         return oldTarget != null && newTarget != null && !oldTarget.equals(newTarget);
     }

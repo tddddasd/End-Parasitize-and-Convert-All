@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 
-/** Finds the nearest hive node block, used by the Link effect and the hive structure test. */
 public final class HiveNodeLocator {
 
     private HiveNodeLocator() {

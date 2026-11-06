@@ -18,7 +18,6 @@ public class SwallowCystMenu extends AbstractContainerMenu {
         this.blockEntity = be;
         this.playerInventory = inv;
 
-        
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 this.addSlot(new SlotItemHandler(be.getInventory(), col + row * 9, 8 + col * 18, 18 + row * 18) {
@@ -31,13 +30,12 @@ public class SwallowCystMenu extends AbstractContainerMenu {
             }
         }
 
-        
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 this.addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
             }
         }
-        
+
         for (int col = 0; col < 9; col++) {
             this.addSlot(new Slot(inv, col, 8 + col * 18, 142));
         }
@@ -55,11 +53,11 @@ public class SwallowCystMenu extends AbstractContainerMenu {
         if (slot != null && slot.hasItem()) {
             ItemStack slotStack = slot.getItem();
             stack = slotStack.copy();
-            if (index < 27) { 
+            if (index < 27) {
                 if (!this.moveItemStackTo(slotStack, 27, 63, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else { 
+            } else {
                 if (!this.moveItemStackTo(slotStack, 0, 27, false)) {
                     return ItemStack.EMPTY;
                 }

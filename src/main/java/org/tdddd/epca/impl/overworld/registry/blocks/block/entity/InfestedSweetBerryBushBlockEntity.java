@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block.entity;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -17,7 +18,6 @@ import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedSweetBerryBush;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,19 +30,17 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
     }
 
     private UUID targetUUID;
-    private int attractCooldown = 0; 
+    private int attractCooldown = 0;
 
     public static void tick(Level level, BlockPos pos, BlockState state, InfestedSweetBerryBushBlockEntity entity) {
         if (level.isClientSide()) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
 
-        
         if (state.getValue(InfestedSweetBerryBush.AGE) < 3) {
             entity.targetUUID = null;
             return;
         }
 
-        
         if (entity.targetUUID != null) {
             Entity target = serverLevel.getEntity(entity.targetUUID);
             if (target == null || !target.isAlive() || !(target instanceof Animal)) {
@@ -51,31 +49,29 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
             }
 
             double dist = target.distanceToSqr(Vec3.atCenterOf(pos));
-            if (dist <= 1.5 * 1.5) { 
-                
+            if (dist <= 1.5 * 1.5) {
+
                 serverLevel.setBlock(pos, state.setValue(InfestedSweetBerryBush.AGE, 0), 3);
                 serverLevel.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (target instanceof LivingEntity living) {
-                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 200, 0)); 
+                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 200, 0));
                 }
                 entity.targetUUID = null;
                 return;
-            } else if (dist > 24 * 24) { 
+            } else if (dist > 24 * 24) {
                 entity.targetUUID = null;
             }
             return;
         }
 
-        
         if (entity.attractCooldown > 0) {
             entity.attractCooldown--;
             return;
         }
 
-        
         AABB box = new AABB(pos).inflate(12.0);
         List<Animal> animals = serverLevel.getEntitiesOfClass(Animal.class, box,
-                animal -> !(animal instanceof IParasite) && animal.isAlive());
+                animal -> !ParasiteEvents.isParasiteEntity(animal) && animal.isAlive());
         if (!animals.isEmpty()) {
             Animal chosen = null;
             double minDist = Double.MAX_VALUE;
@@ -87,18 +83,16 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
                 }
             }
             if (chosen != null) {
-                
+
                 chosen.getNavigation().moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1.0);
                 entity.targetUUID = chosen.getUUID();
-                entity.attractCooldown = 20; 
+                entity.attractCooldown = 20;
             }
         } else {
-            entity.attractCooldown = 40; 
+            entity.attractCooldown = 40;
         }
     }
 
-    
-    /** 26.1.2: {@code BlockEntity#load(CompoundTag)} became {@code loadAdditional(ValueInput)}. */
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
@@ -106,7 +100,6 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
         attractCooldown = input.getIntOr("Cooldown", 0);
     }
 
-    /** 26.1.2: {@code BlockEntity#saveAdditional} takes a {@code ValueOutput}, not a {@code CompoundTag}. */
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);

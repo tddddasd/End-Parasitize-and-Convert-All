@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -31,7 +32,6 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.InfestedSweetBerryBushBlockEntity;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import javax.annotation.Nullable;
 
@@ -69,7 +69,6 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
         return 60;
     }
 
-    
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -89,7 +88,6 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
         return null;
     }
 
-    
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
                              net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
@@ -97,21 +95,19 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
             return;
         }
 
-        if (!IParasite.isParasiteByTagOrInterface(living)) {
-            
+        if (!ParasiteEvents.isParasiteByTagOrInterface(living)) {
+
             living.makeStuckInBlock(state, new Vec3(0.8, 0.75, 0.8));
 
-            
             if (!level.isClientSide() && state.getValue(AGE) >= 3) {
                 if (living.xOld != living.getX() || living.zOld != living.getZ()) {
                     living.hurt(level.damageSources().sweetBerryBush(), 1.0F);
-                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 0)); 
+                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 0));
                 }
             }
         }
     }
 
-    // 26.1.2: {@code Block#use} became {@code useItemOn} / {@code useWithoutItem}.
     @Override
     protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hit) {

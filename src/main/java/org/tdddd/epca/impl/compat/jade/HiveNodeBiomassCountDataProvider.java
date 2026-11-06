@@ -5,7 +5,6 @@ import net.minecraft.resources.Identifier;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IServerDataProvider;
 
-/** Server side of the hive node biomass display. */
 public class HiveNodeBiomassCountDataProvider implements IServerDataProvider<BlockAccessor> {
 
     public static final HiveNodeBiomassCountDataProvider INSTANCE = new HiveNodeBiomassCountDataProvider();

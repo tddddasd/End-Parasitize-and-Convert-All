@@ -20,14 +20,12 @@ public class BloodyClock extends Item {
         ItemStack itemStack = player.getItemInHand(hand);
 
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            
+
             int stage = EvolutionManager.getStageForDimension(level);
             int points = EvolutionManager.getPointsForDimension(level);
 
-            
             Component message = Component.literal("侵蚀阶段" + stage + " [侵蚀点数" + points + "]");
 
-            
             serverPlayer.sendSystemMessage(message, true);
         }
 

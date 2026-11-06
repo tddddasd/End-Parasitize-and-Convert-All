@@ -21,47 +21,35 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(epca.MODID);
 
-    
-
-    
     private static DeferredItem<Item> simpleItem(String name) {
         return ITEMS.registerItem(name, Item::new);
     }
 
-    
     private static <T extends Item> DeferredItem<T> customItem(String name, Function<Item.Properties, T> factory) {
         return ITEMS.registerItem(name, factory);
     }
 
-    
     private static <T extends Item> DeferredItem<T> customItem(String name, Function<Item.Properties, T> factory,
                                                               UnaryOperator<Item.Properties> properties) {
         return ITEMS.registerItem(name, factory, properties);
     }
 
-    
     private static DeferredItem<Item> spawnEgg(String name, Supplier<? extends EntityType<? extends Mob>> entitySupplier) {
         return ITEMS.registerItem(name + "_spawn_egg",
                 properties -> new SpawnEggItem(properties.spawnEgg(entitySupplier.get())));
     }
 
-    
     private static DeferredItem<Item> blockItem(String name, DeferredHolder<Block, ? extends Block> block) {
         return ITEMS.registerItem(name, properties -> new BlockItem(block.get(), properties.useBlockDescriptionPrefix()));
     }
 
-    
     private static <T extends BlockItem> DeferredItem<T> customBlockItem(String name, Function<Item.Properties, T> factory) {
         return ITEMS.registerItem(name, factory, () -> new Item.Properties().useBlockDescriptionPrefix());
     }
 
-    
-
-    
     public static final DeferredItem<Item> CLUSTER = customItem("cluster", Cluster::new);
     public static final DeferredItem<Item> PARASITE_VISCERA = customItem("parasite_viscera", ParasiteViscera::new);
     public static final DeferredItem<Item> FINS_FIN = customItem("fins_fin", FinsFin::new);
@@ -93,9 +81,6 @@ public class ModItems {
                     properties -> properties.stacksTo(16).rarity(Rarity.COMMON));
     public static final DeferredItem<Item> INFESTED_SWEET_BERRIES = customItem("infested_sweet_berries", InfestedSweetBerries::new);
 
-    
-
-    
     public static final DeferredItem<Item> BLOODY_CLOCK = ITEMS.registerItem("erosion_clock",
             properties -> new BloodyClock(properties.stacksTo(1).rarity(Rarity.UNCOMMON)));
     public static final DeferredItem<Item> KILL_STICK = ITEMS.registerItem("endless_wand",
@@ -121,7 +106,6 @@ public class ModItems {
     public static final DeferredItem<Item> ENDER_BLADE_SCRAP = ITEMS.registerItem("ender_blade_scrap",
             properties -> new EnderBladeScrap(properties.rarity(Rarity.UNCOMMON)));
 
-    
     public static final DeferredItem<Item> WOODEN_SPEAR = ITEMS.registerItem("wooden_spear",
             properties -> new WoodenSpear(properties.stacksTo(1).durability(64)));
     public static final DeferredItem<Item> STONE_SPEAR = ITEMS.registerItem("stone_spear",
@@ -139,7 +123,6 @@ public class ModItems {
     public static final DeferredItem<Item> NETHERITE_SPEAR = ITEMS.registerItem("netherite_spear",
             properties -> new NetheriteSpear(properties.stacksTo(1).durability(2031)));
 
-    
     public static final DeferredItem<LivingArmorItem> LIVING_HELMET = ITEMS.registerItem("living_helmet",
             properties -> new LivingArmorItem(LivingArmorMaterial.MATERIAL, ArmorType.HELMET,
                     properties.humanoidArmor(LivingArmorMaterial.MATERIAL, ArmorType.HELMET)));
@@ -153,7 +136,6 @@ public class ModItems {
             properties -> new LivingArmorItem(LivingArmorMaterial.MATERIAL, ArmorType.BOOTS,
                     properties.humanoidArmor(LivingArmorMaterial.MATERIAL, ArmorType.BOOTS)));
 
-    
     public static final DeferredItem<Item> ACID_SOLUTION_BUCKET = ITEMS.registerItem("acid_bucket",
             properties -> new BucketItem(ModFluids.ACID_SOLUTION.get(), properties.stacksTo(1)));
     public static final DeferredItem<Item> INFESTED_SPIDER_WEB_PROJECTILE =
@@ -162,7 +144,7 @@ public class ModItems {
             ITEMS.registerItem("infested_spider_web_blood_projectile", Item::new);
     public static final DeferredItem<Item> INFESTED_CAVE_SPIDER_WEB_PROJECTILE =
             ITEMS.registerItem("infested_cave_spider_web_projectile", Item::new);
-    
+
     public static final DeferredItem<Item> BUGLIN_SPAWN_EGG = spawnEgg("curbug", ModEntities.CURBUG);
     public static final DeferredItem<Item> YAWNING_NYA_SPAWN_EGG = spawnEgg("yawning_nya", ModEntities.YAWNING_NYA);
     public static final DeferredItem<Item> RUPTER_SPAWN_EGG = spawnEgg("ripper", ModEntities.RIPPER);
@@ -216,11 +198,7 @@ public class ModItems {
     public static final DeferredItem<Item> LIVING_FLESH_SPAWN_EGG =
             ITEMS.registerItem("living_flesh_spawn_egg",
                     properties -> new SpawnEggItem(properties.spawnEgg(ModEntities.LIVING_FLESH_SIZE0.get())));
-    // Spiders: FOUR eggs, one per supplied texture. The cave forms are a synced Variant on the same
-    // entity type, so each egg is a VariantSpawnEgg that writes its own variant onto the mob it
-    // creates (a plain spawn egg can only produce the default variant).
-    // Variant ordinals: 0 = DEFAULT, 1 = BLOOD, 2 = CAVE.
-    /** Weights for the plain eggs, indexed by variant ordinal: DEFAULT 55, BLOOD 30, CAVE 0. */
+
     private static final int[] PLAIN_SPIDER_EGG_WEIGHTS = {55, 30, 0};
 
     public static final DeferredItem<Item> INFESTED_SPIDER_SPAWN_EGG =
@@ -236,8 +214,6 @@ public class ModItems {
             customItem("walking_cave_spider_head_spawn_egg",
                     properties -> new VariantSpawnEgg(ModEntities.WALKING_SPIDER_HEAD, 2, properties));
     public static final DeferredItem<Item> INFESTED_BAT_SPAWN_EGG = spawnEgg("infested_bat", ModEntities.INFESTED_BAT);
-
-    
 
     public static final DeferredItem<Item> INFESTED_REMAINS_SMALL = blockItem("infested_remains_small", ModBlocks.INFESTED_REMAINS_SMALL);
     public static final DeferredItem<Item> INFESTED_REMAINS_MEDIUM = blockItem("infested_remains_medium", ModBlocks.INFESTED_REMAINS_MEDIUM);
@@ -355,7 +331,6 @@ public static final DeferredItem<Item> HIVE_NODE = blockItem("hive_node", ModBlo
     public static final DeferredItem<Item> INFESTED_SHORT_DRY_GRASS = blockItem("infested_short_dry_grass", ModBlocks.INFESTED_SHORT_DRY_GRASS);
     public static final DeferredItem<Item> INFESTED_TALL_DRY_GRASS = blockItem("infested_tall_dry_grass", ModBlocks.INFESTED_TALL_DRY_GRASS);
 
-    
     public static final DeferredItem<InfestedLog.InfestedLogItem> INFESTED_LOG =
             customBlockItem("infested_log", properties -> new InfestedLog.InfestedLogItem(ModBlocks.INFESTED_LOG.get(), properties));
     public static final DeferredItem<InfestedWood.InfestedWoodItem> INFESTED_WOOD =

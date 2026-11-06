@@ -12,19 +12,11 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeClientCache;
 
 import javax.annotation.Nullable;
 
-/**
- * Colour side of a like biome on the client.
- *
- * <p>Every getter returns {@code null} when the section has no like biome, when its colour toggle is off
- * or when that biome no longer exists in the client registry, so callers simply fall through to vanilla
- * behaviour.</p>
- */
 public final class LikeBiomeClientEffects {
 
     private LikeBiomeClientEffects() {
     }
 
-    /** The like biome in force at {@code pos} when it should drive colours, else {@code null}. */
     @Nullable
     public static Biome activeBiome(BlockPos pos) {
         if (pos == null || !LikeBiomeClientCache.overridesColors(pos)) {
@@ -58,14 +50,6 @@ public final class LikeBiomeClientEffects {
         return biome == null ? null : biome.getFoliageColor();
     }
 
-
-    /**
-     * Fog colour of the like biome, or {@code null}.
-     *
-     * <p>26.1.2 no longer exposes {@code Biome#getFogColor}: the colour lives in the biome's
-     * {@code EnvironmentAttributeMap} as {@code EnvironmentAttributes.FOG_COLOR}, so it is read with
-     * {@code applyModifier} against the attribute's default.</p>
-     */
     @Nullable
     public static org.joml.Vector4f fogColor(BlockPos pos) {
         Biome biome = activeBiome(pos);
@@ -82,12 +66,6 @@ public final class LikeBiomeClientEffects {
                 1.0F);
     }
 
-    /**
-     * Sky colour of the like biome, or {@code null}.
-     *
-     * <p>Same shape as {@link #fogColor}: 26.1.2 keeps the sky colour in the biome's
-     * {@code EnvironmentAttributeMap} as {@code EnvironmentAttributes.SKY_COLOR}.</p>
-     */
     @Nullable
     public static Integer skyColor(net.minecraft.core.BlockPos pos) {
         Biome biome = activeBiome(pos);

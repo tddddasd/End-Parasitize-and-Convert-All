@@ -12,19 +12,6 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 @EventBusSubscriber
 public class ShieldEventHandler {
 
-    /**
-     *  1.20.1
-     * {@code ShieldEventHandler#onLivingHurt(LivingDamageEvent)}
-     *
-     * <p>26.1.2  {@code LivingIncomingDamageEvent} + {@code DamageContainer}
-     * {@link ShieldProtectionHelper#applyDamageIgnore(LivingEntity, float)}
-     *  {@code applyShieldProtection}
-     * {@code applyDamageIgnore} + {@code applyShieldPool} setHealth
-     * </p>
-     *
-     * <p><b></b> {@code mixin/common/LivingEntityMixin#onSetHealth}
-     *  {@link ShieldProtectionHelper#applyShieldPool(LivingEntity, float)} </p>
-     */
     @SubscribeEvent
     public static void onLivingHurt(LivingIncomingDamageEvent event) {
         LivingEntity entity = event.getEntity();
@@ -53,7 +40,6 @@ public class ShieldEventHandler {
         entity.getData(ShieldCapabilityHandler.SHIELD_CAP).setShield(totalShield);
     }
 
-    
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) {
         MobEffectInstance instance = event.getEffectInstance();
@@ -65,7 +51,6 @@ public class ShieldEventHandler {
         entity.getData(ShieldCapabilityHandler.SHIELD_CAP).setShield(0);
     }
 
-    
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         MobEffectInstance instance = event.getEffectInstance();
@@ -77,7 +62,6 @@ public class ShieldEventHandler {
         entity.getData(ShieldCapabilityHandler.SHIELD_CAP).setShield(0);
     }
 
-    
     private static float computeShieldForEntity(LivingEntity entity, int amplifier) {
         float baseShield = (amplifier + 1) * 0.5f;
         float maxHealth = entity.getMaxHealth();

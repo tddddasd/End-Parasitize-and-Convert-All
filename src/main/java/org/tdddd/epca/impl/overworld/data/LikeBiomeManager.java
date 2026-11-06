@@ -9,10 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
 import org.jspecify.annotations.Nullable;
 
-/**
- * Applies like biomes on top of real ones. The real biome is never replaced: everything that wants an
- * overlaid property asks this class first.
- */
 public final class LikeBiomeManager {
 
     private LikeBiomeManager() {

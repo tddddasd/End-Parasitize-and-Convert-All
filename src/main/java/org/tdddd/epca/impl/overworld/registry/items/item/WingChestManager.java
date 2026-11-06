@@ -21,11 +21,11 @@ public class WingChestManager {
     private static final Map<UUID, Boolean> wasFlightEnabledByOtherMod = new HashMap<>();
 
     public static void init() {
-        
+
     }
 
     public static void registerWingPlayer(Player player, WingType type) {
-        
+
         if (!activeWingTypes.containsKey(player.getUUID())) {
             wasFlightEnabledByOtherMod.put(player.getUUID(), player.getAbilities().mayfly);
         }
@@ -37,13 +37,13 @@ public class WingChestManager {
         UUID playerId = player.getUUID();
         WingType removedType = activeWingTypes.remove(playerId);
         if (removedType != null) {
-            
+
             Boolean wasEnabledByOther = wasFlightEnabledByOtherMod.remove(playerId);
             if (wasEnabledByOther != null && !wasEnabledByOther) {
                 disableFlight(player);
             } else {
-                
-                player.getAbilities().setFlyingSpeed(0.05f); 
+
+                player.getAbilities().setFlyingSpeed(0.05f);
                 player.onUpdateAbilities();
             }
         }
@@ -90,18 +90,15 @@ public class WingChestManager {
         Player player = event.getEntity();
         UUID playerId = player.getUUID();
 
-        
         WingType wingType = activeWingTypes.get(playerId);
         if (wingType == null) {
-            return; 
+            return;
         }
 
-        
         if (!player.isCreative() && !player.isSpectator()) {
-            
+
             enableFlight(player, wingType.getFlightSpeed());
 
-            
             if (player.getAbilities().flying && player.onGround()) {
                 player.getAbilities().flying = false;
                 if (!player.level().isClientSide()) {
@@ -109,7 +106,7 @@ public class WingChestManager {
                 }
             }
         } else {
-            
+
             disableCustomFlight(player);
         }
     }
@@ -141,11 +138,11 @@ public class WingChestManager {
     }
 
     private static void disableCustomFlight(Player player) {
-        
+
     }
 
     public static void syncFlightState(Player player, boolean flying) {
-        
+
         if (!player.isCreative() && !player.isSpectator()) {
             player.getAbilities().flying = flying;
             player.onUpdateAbilities();
@@ -153,7 +150,7 @@ public class WingChestManager {
     }
 
     public enum WingType {
-        SENTIENT(0.05f); 
+        SENTIENT(0.05f);
 
         private final float flightSpeed;
 

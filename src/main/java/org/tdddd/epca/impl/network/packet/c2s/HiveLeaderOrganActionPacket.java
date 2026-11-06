@@ -15,57 +15,6 @@ import org.tdddd.epca.impl.overworld.data.organ.OrganSlotGroup;
 
 import javax.annotation.Nullable;
 
-/**
- *  -&gt;  GUI
- * SPEC  2  2 +
- *
- * <h2></h2>
- * <ul>
- *   <li>{@code action} {@link Action}</li>
- *   <li>{@code slot}{@link Action#INVENTORY_SLOT} <b> 035</b>
- *       <b></b>{@link OrganSlotGroup#globalIndex(int)}051
- *        {@link Action#RETURN_CARRIED} </li>
- *   <li>{@code button}0 = 1 =  {@link Action#CLICK} /
- *       {@link Action#INVENTORY_SLOT} </li>
- * </ul>
- * <p><b></b> id/count/NBT
- *  {@code Inventory}
- * </p>
- *
- * <h2></h2>
- * <ul>
- *   <li>{@link Action#CLICK}///
- *        {@code AbstractContainerMenu#clicked}  0/1
- *       <b></b> 1
- *       ""</li>
- *   <li>{@link Action#QUICK_MOVE}Shift
- *       <b></b></li>
- *   <li>{@link Action#CLEAR}</li>
- *   <li>{@link Action#RETURN_CARRIED}GUI  / </li>
- *   <li>{@link Action#INVENTORY_SLOT}39  + 9  035</li>
- * </ul>
- * <p> {@link SyncHiveLeaderOrgansPacket}
- *  52  +  STAGE 1  S2C </p>
- *
- * <h2> return</h2>
- * <ol>
- *   <li>{@code ctx.player()}  {@link ServerPlayer}</li>
- *   <li>{@link HiveLeaderManager#isHiveLeader(java.util.UUID)}</li>
- *   <li>{@link Action#INVENTORY_SLOT}  {@code [0, 36)}
- *       {@link #INVENTORY_SLOT_COUNT} {@code Inventory#INVENTORY_SIZE}  return</li>
- *   <li> {@code [0, OrganSlotGroup#totalSlots())} </li>
- *   <li> {@code isUnlocked}
- *        {@link HiveLeaderOrganGate#canModifySlot}</li>
- *   <li> {@link HiveLeaderOrganData#acceptsItem(net.minecraft.world.item.ItemStack)}
- *       {@code epca:organ_part} </li>
- *   <li></li>
- * </ol>
- *
- * <h2>1.20.1 -&gt; 26.1.2 </h2>
- * <p>{@code SimpleChannel} + {@code FriendlyByteBuf#writeVarInt/readVarInt}
- * {@link CustomPacketPayload} + {@link StreamCodec} varint
- * {@code RegistryFriendlyByteBuf}  {@code FriendlyByteBuf}</p>
- */
 public class HiveLeaderOrganActionPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<HiveLeaderOrganActionPacket> TYPE =
@@ -75,20 +24,18 @@ public class HiveLeaderOrganActionPacket implements CustomPacketPayload {
             CustomPacketPayload.codec(HiveLeaderOrganActionPacket::encode,
                     HiveLeaderOrganActionPacket::decode);
 
-    /**  */
     public enum Action {
-        /**  /  */
+
         CLICK,
-        /** Shift  */
+
         QUICK_MOVE,
-        /**  */
+
         CLEAR,
-        /**  */
+
         RETURN_CARRIED,
-        /** <b></b> {@code slot}  035 */
+
         INVENTORY_SLOT;
 
-        /**  id ordinal */
         public int id() {
             return switch (this) {
                 case CLICK -> 0;
@@ -112,26 +59,14 @@ public class HiveLeaderOrganActionPacket implements CustomPacketPayload {
         }
     }
 
-    /**
-     *  = 3   9  + 9
-     *
-     * <p> {@code Inventory#INVENTORY_SIZE} 26.1.2  36
-     *  _tmp_26src Inventory.java  30 </p>
-     */
     public static final int INVENTORY_SLOT_COUNT = 36;
 
-    /**  */
     public static final int BUTTON_LEFT = 0;
-    /**  */
+
     public static final int BUTTON_RIGHT = 1;
-    /**  GUI  {@link Action#CLEAR} */
+
     public static final int BUTTON_MIDDLE = 2;
-    /**
-     * {@link Action#INVENTORY_SLOT} Shift
-     *
-     * <p> varint  {@code button} 0/1
-     * 2 </p>
-     */
+
     public static final int BUTTON_INVENTORY_QUICK_MOVE = BUTTON_MIDDLE;
 
     private final Action action;
@@ -148,21 +83,14 @@ public class HiveLeaderOrganActionPacket implements CustomPacketPayload {
         this(action, slot, BUTTON_LEFT);
     }
 
-    /**  */
     public static HiveLeaderOrganActionPacket returnCarried() {
         return new HiveLeaderOrganActionPacket(Action.RETURN_CARRIED, -1, BUTTON_LEFT);
     }
 
-    /**
-     *  035{@code button}
-     *
-     * <p><b></b> {@code Inventory#getItem(int)}</p>
-     */
     public static HiveLeaderOrganActionPacket inventorySlot(int inventorySlot, int button) {
         return new HiveLeaderOrganActionPacket(Action.INVENTORY_SLOT, inventorySlot, button);
     }
 
-    /** GUI  shift  */
     public static HiveLeaderOrganActionPacket inventoryQuickMove(int inventorySlot) {
         return new HiveLeaderOrganActionPacket(Action.INVENTORY_SLOT, inventorySlot,
                 BUTTON_INVENTORY_QUICK_MOVE);
@@ -185,7 +113,6 @@ public class HiveLeaderOrganActionPacket implements CustomPacketPayload {
         return TYPE;
     }
 
-
     public static void encode(HiveLeaderOrganActionPacket packet, RegistryFriendlyByteBuf buf) {
         buf.writeVarInt(packet.action.id());
         buf.writeVarInt(packet.slot);
@@ -198,7 +125,6 @@ public class HiveLeaderOrganActionPacket implements CustomPacketPayload {
         int button = buf.readVarInt();
         return new HiveLeaderOrganActionPacket(action == null ? Action.RETURN_CARRIED : action, slot, button);
     }
-
 
     public static void handle(HiveLeaderOrganActionPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
@@ -218,4 +144,3 @@ public class HiveLeaderOrganActionPacket implements CustomPacketPayload {
         });
     }
 }
-

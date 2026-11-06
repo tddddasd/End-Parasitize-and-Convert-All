@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.onesent;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -23,8 +26,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
-import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
@@ -40,36 +41,35 @@ import com.geckolib.animation.RawAnimation;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.util.GeckoLibUtil;
 
-public class Mozzie extends PathfinderMob implements GeoEntity, IParasite, IOnesent, Enemy {
+public class Mozzie extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-    private int attackCooldown = 0; 
-    private static final int ATTACK_COOLDOWN_TICKS = 20; 
+    private int attackCooldown = 0;
+    private static final int ATTACK_COOLDOWN_TICKS = 20;
     private int idleTimer = 0;
-    private static final int MAX_IDLE_TIME = 1200; 
+    private static final int MAX_IDLE_TIME = 1200;
     private boolean isFlying = false;
-    private static final double ATTACK_RANGE = 2.0D; 
+    private static final double ATTACK_RANGE = 2.0D;
 
     public Mozzie(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 0;
-        this.moveControl = new FlyingMoveControl(this, 20, true); 
+        this.moveControl = new FlyingMoveControl(this, 20, true);
         this.navigation = new FlyingPathNavigation(this, level);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 5.0D) 
-                .add(Attributes.MOVEMENT_SPEED, 0.38D) 
-                .add(Attributes.ATTACK_DAMAGE, 5.0D) 
-                .add(Attributes.FOLLOW_RANGE, 32.0D) 
+                .add(Attributes.MAX_HEALTH, 5.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.38D)
+                .add(Attributes.ATTACK_DAMAGE, 5.0D)
+                .add(Attributes.FOLLOW_RANGE, 32.0D)
                 .add(Attributes.ARMOR, 2.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6D)
-                .add(Attributes.FLYING_SPEED, 0.28D) 
+                .add(Attributes.FLYING_SPEED, 0.28D)
                 .build();
     }
     @Override
@@ -99,23 +99,23 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
     public void tick() {
         super.tick();
         if (!this.level().isClientSide()) {
-            
+
             if (attackCooldown > 0) {
                 attackCooldown--;
             }
             idleTimer++;
             if (idleTimer >= MAX_IDLE_TIME) {
-                this.discard(); 
+                this.discard();
                 return;
             }
             updateFlyingState();
             LivingEntity target = this.getTarget();
             if (target != null && this.isAlive()) {
-                
+
                 if (this.hasLineOfSight(target)) {
                     applyLimitedLookAt(target);
                 }
-                
+
             }
             checkGroundBelow();
         }
@@ -133,32 +133,32 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         }
 
         double dy = targetPos.y - eyePos.y;
-        double angle = Math.atan2(Math.abs(dy), horizontalDist); 
+        double angle = Math.atan2(Math.abs(dy), horizontalDist);
         double maxAngle = Math.toRadians(45.0);
         if (angle > maxAngle) {
             double sign = dy > 0 ? 1 : -1;
             double limitedDy = horizontalDist * Math.tan(maxAngle) * sign;
-            
+
             Vec3 adjustedTarget = new Vec3(targetPos.x, eyePos.y + limitedDy, targetPos.z);
             this.getLookControl().setLookAt(adjustedTarget);
         } else {
-            
+
             this.getLookControl().setLookAt(target, 30.0F, 30.0F);
         }
     }
     private void checkGroundBelow() {
-        
+
         if (this.getTarget() == null && this.isFlying) {
             BlockPos belowPos = this.blockPosition().below();
             if (isSolidGround(belowPos)) {
-                
+
                 this.isFlying = false;
                 this.setNoGravity(false);
             }
         }
     }
     private boolean isSolidGround(BlockPos pos) {
-        
+
         return this.level().getBlockState(pos).getBlock() != Blocks.AIR &&
                 this.level().getBlockState(pos).getBlock() != Blocks.CAVE_AIR &&
                 this.level().getBlockState(pos).getBlock() != Blocks.VOID_AIR;
@@ -166,11 +166,11 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
     private void updateFlyingState() {
         LivingEntity target = this.getTarget();
         if (target != null) {
-            
+
             isFlying = true;
             this.setNoGravity(true);
         } else {
-            
+
             boolean hasGround = hasSolidGroundBelow();
             isFlying = !hasGround;
             this.setNoGravity(!hasGround);
@@ -181,7 +181,7 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         return isSolidGround(belowPos);
     }
     private boolean canFlyAtCurrentPosition() {
-        
+
         if (this.getTarget() != null) {
             BlockPos currentPos = this.blockPosition();
             if (!this.level().getBlockState(currentPos).isAir()) {
@@ -195,36 +195,33 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
     }
     @Override
     public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource damageSource) {
-        return false; 
+        return false;
     }
 
     @Override
     public void checkFallDamage(double y, boolean onGround, net.minecraft.world.level.block.state.BlockState state, net.minecraft.core.BlockPos pos) {
-        
+
     }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
-        
+
         if (attackCooldown > 0) {
-            return false; 
+            return false;
         }
         if (!isInAttackRange(target)) {
             return false;
@@ -233,14 +230,14 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         boolean attackSuccess = super.doHurtTarget(level, target);
 
         if (attackSuccess) {
-            
+
             idleTimer = 0;
             attackCooldown = ATTACK_COOLDOWN_TICKS;
 
             if (target instanceof LivingEntity livingTarget) {
-                
+
                 spawnAttackParticles(livingTarget);
-                
+
                 this.discard();
             }
         }
@@ -248,7 +245,7 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         return attackSuccess;
     }
     private boolean isInAttackRange(Entity target) {
-        
+
         AABB attackRange = new AABB(
                 this.getX() - ATTACK_RANGE,
                 this.getY() - ATTACK_RANGE,
@@ -265,7 +262,7 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
             ServerLevel serverLevel = (ServerLevel) this.level();
             BlockPos targetPos = target.blockPosition();
             RandomSource random = this.getRandom();
-            int particleCount = 5 + random.nextInt(4); 
+            int particleCount = 5 + random.nextInt(4);
 
             for (int i = 0; i < particleCount; i++) {
                 double x = targetPos.getX() + 0.5 + (random.nextDouble() - 0.5) * 2.0;
@@ -275,9 +272,9 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
                 serverLevel.sendParticles(
                         ModParticles.SPLASHI.get(),
                         x, y, z,
-                        1, 
-                        0.0, 0.0, 0.0, 
-                        0.0 
+                        1,
+                        0.0, 0.0, 0.0,
+                        0.0
                 );
             }
         }
@@ -321,13 +318,13 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
         AnimationController<Mozzie> controller = event.controller();
         Mozzie gnat = event.animatable();
         if (gnat.isFlying()) {
-            
+
             controller.setAnimation(RawAnimation.begin().thenLoop("fly"));
         } else if (gnat.isMoving()) {
-            
+
             controller.setAnimation(RawAnimation.begin().thenLoop("fly"));
         } else {
-            
+
             controller.setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
 
@@ -365,7 +362,7 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        
+
         return ModSoundEvents.MOZZIE_HURT.get();
     }
 
@@ -376,27 +373,25 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
 
     @Override
     public void die(DamageSource source) {
         super.die(source);
-        this.onDeath(source); 
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        
+
         if (!this.level().isClientSide()) {
-            
-            IParasite.super.onKillEntity(killedEntity);
+
+            ParasiteEvents.onKillEntity(this, killedEntity);
         }
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -404,7 +399,7 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -413,9 +408,6 @@ this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
     public boolean isFlying() {
         return this.isFlying;
     }
-
-        // 26.1.2: Mob#shouldDespawnInPeaceful() was removed. Peaceful-mode removal is expressed by
-    // handling it in checkDespawn(), which is where vanilla consults the difficulty.
 
     @Override
     public void travel(Vec3 travelVector) {

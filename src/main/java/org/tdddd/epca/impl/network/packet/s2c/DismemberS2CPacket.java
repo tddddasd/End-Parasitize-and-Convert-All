@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.network.packet.s2c;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -10,7 +11,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.render.EpcaGibRenderer;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-/** Server to client: break the dead parasite into render-only gibs. */
 public class DismemberS2CPacket implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<DismemberS2CPacket> TYPE =
             new CustomPacketPayload.Type<>(ModNetwork.id("dismember"));

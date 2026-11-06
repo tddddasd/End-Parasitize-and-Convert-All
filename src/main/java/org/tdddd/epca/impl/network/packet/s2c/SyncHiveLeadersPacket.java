@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-
 public class SyncHiveLeadersPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncHiveLeadersPacket> TYPE =

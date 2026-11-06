@@ -28,41 +28,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Single generic Geo renderer for ALL EPCA entities.
- *
- * <p>Custom per-entity behaviors are applied here via interfaces:</p>
- * <ul>
- *   <li>{@link IMotionAligned}  rotate to face velocity direction (projectiles)</li>
- *   <li>{@link IOverlayRenderable}  translucent overlay layer (villager plains, wolf collar)</li>
- *   <li>{@link IHeadRotatable}  head rotation, applied to the head bone snapshot</li>
- * </ul>
- *
- * <h2>GeckoLib 4  5.5.2</h2>
- * <p>GeckoLib 5 split rendering into render-state extraction and submission, and the
- * animatable is no longer reachable while drawing. The EPCA customisations were re-expressed
- * on the GeckoLib 5 hooks:</p>
- * <ul>
- *   <li>tint / hurt-overlay  {@link #getRenderColor} / {@link #getPackedOverlay}
- *       (both still receive the animatable),</li>
- *   <li>translucent render type  {@link #getRenderType(EntityRenderState, Identifier)},</li>
- *   <li>billboard / motion-aligned rotation  {@link #adjustRenderPose},</li>
- *   <li>head rotation  a {@code RenderPassInfo.BoneUpdater} installed in
- *       {@link #preRenderPass} (GeckoLib 4 mutated the bone directly),</li>
- *   <li>overlays and afterimages  a single delegate {@link GeoRenderLayer} that
- *       re-submits the model with another texture/colour/alpha.</li>
- * </ul>
- *
- * <h3>Why {@code RenderPassInfo} is used raw here</h3>
- * <p>{@code com.geckolib.renderer.base.RenderPassInfo<R extends GeoRenderState>} is bounded by
- * GeckoLib's {@code GeoRenderState}, which vanilla's {@code EntityRenderState} only gains at
- * runtime through GeckoLib's mixin. GeckoLib's own {@code GeoEntityRenderer<T, R extends EntityRenderState>}
- * therefore cannot be specialised to a concrete {@code R} from mod code, and neither can
- * {@code RenderPassInfo<EntityRenderState>} be written down. EPCA renders every entity type with
- * one renderer, so the delegate layer and its helpers take the erased {@code RenderPassInfo}
- * type; the values flowing through it are the vanilla {@code EntityRenderState}s GeckoLib
- * itself creates.</p>
- */
 @SuppressWarnings("rawtypes")
 public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntityRenderer<T, EntityRenderState> {
 
@@ -77,27 +42,15 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         withRenderLayer(new OuterLayerDelegate());
     }
 
-    /**
-     * Register an additional layer provider. Called from subclass constructors
-     * to attach per-entity-type layer rendering (afterimages, wool, etc.).
-     */
     public void addLayerProvider(IGeoLayerProvider provider) {
         layerProviders.add(provider);
     }
 
-    //  Render-state extraction
-
-    /**
-     * GeckoLib 5 only hands the animatable to the extraction phase. {@link EpcaGeoModel}
-     * and {@link IGeoLayerProvider} need it later on, so it is parked in the render state.
-     */
     @Override
     public void captureDefaultRenderState(T animatable, Void renderData, EntityRenderState renderState, float partialTick) {
         EpcaGeoModel.setRenderEntity(renderState, animatable);
         super.captureDefaultRenderState(animatable, renderData, renderState, partialTick);
     }
-
-    //  Color effects
 
     @Override
     public int getRenderColor(T animatable, Void renderData, float partialTick) {
@@ -122,8 +75,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
     public RenderType getRenderType(EntityRenderState renderState, Identifier texture) {
         return RenderTypes.entityTranslucent(texture);
     }
-
-    //  Rotation: April Fools billboard  /  motion-aligned projectiles
 
     @Override
     public void adjustRenderPose(RenderPassInfo passInfo) {
@@ -152,18 +103,10 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
     }
 
-    /** Parent bone of all eight leg pairs in infested_spider.geo.json. */
     private static final String CAVE_SHOOT_LEG_BONE = "legs";
-    /** 1 pixel down. GeckoLib model units are pixels and +Y points up, so the drop is negative. */
+
     private static final float CAVE_SHOOT_LEG_OFFSET_Y = -1.0F;
 
-    //  Head rotation  (IHeadRotatable)
-
-    /**
-     * GeckoLib 5 replaced direct bone mutation with bone updaters. The updater is resolved
-     * lazily when the render pass compiles its bone snapshots, which happens after
-     * {@code preRenderPass} and before the model is submitted.
-     */
     @Override
     public void preRenderPass(RenderPassInfo passInfo, SubmitNodeCollector collector) {
         super.preRenderPass(passInfo, collector);
@@ -182,17 +125,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
                     snapshots.ifPresent(boneName, snapshot -> snapshot.setRotY(radians)));
         }
 
-        // User requirement: while the CAVE infested spider is FIRING a projectile its leg model drops
-        // by 1 pixel. 1 pixel is 1 model unit (16 units = 1 block) and +Y points up, so the drop is
-        // -1 on the Y translation, keeping X and Z exactly as the animation set them.
-        //
-        // GeckoLib 5 has no mutable bone: the pose only exists as a BoneSnapshot, writable through a
-        // RenderPassInfo.BoneUpdater - the same mechanism the head rotation above and
-        // AfterimageData.BoneSnapshot#applyTo use. The 1.20.1 tree instead mutates the CoreGeoBone
-        // from InfestedSpiderModel#setCustomAnimations, because GeckoLib 4 still allows that.
-        //
-        // Bone: "legs", the parent of all eight leg pairs in infested_spider.geo.json. Offsetting the
-        // one parent translates every leg by the same pixel and cannot make them drift apart.
         if (entity instanceof InfestedSpider spider
                 && spider.getVariant() == InfestedSpider.Variant.CAVE
                 && spider.isShooting()) {
@@ -204,16 +136,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         }
     }
 
-    //  Public helpers for external renderers / layers
-
-    /**
-     * Re-submits the current model pass with an explicit colour and alpha.
-     *
-     * <p>GeckoLib 4 exposed {@code reRender(...)} and allowed callers to hand in a fresh
-     * {@code VertexConsumer}; GeckoLib 5 removed both. The equivalent is to push the desired
-     * colour into the render state (which is what {@code submitRenderTasks} reads) and ask it
-     * to submit the already-compiled bone snapshots again with another render type.</p>
-     */
     public void submitModelWithArgb(RenderPassInfo passInfo, SubmitNodeCollector collector,
                                     int order, RenderType renderType,
                                     float red, float green, float blue, float alpha) {
@@ -224,7 +146,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         submitWithColor(passInfo, collector, order, renderType, (a << 24) | (r << 16) | (g << 8) | b);
     }
 
-    /** Same as {@link #submitModelWithArgb} but keeps the pass's own RGB and only changes alpha. */
     public void submitModelWithAlpha(RenderPassInfo passInfo, SubmitNodeCollector collector,
                                      int order, RenderType renderType, float alpha) {
         GeoRenderState state = passInfo.renderState();
@@ -253,18 +174,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         return channel < 0 ? 0 : Math.min(channel, 255);
     }
 
-    //  GeckoLib render layer  overlays + registered IGeoLayerProviders
-
-    /**
-     * A GeckoLib {@link GeoRenderLayer} that first re-draws the model for
-     * {@link IOverlayRenderable} entities and then dispatches to all registered
-     * {@link IGeoLayerProvider} instances.
-     *
-     * <p>{@code GeoRenderLayer} is extended raw for the reason documented on
-     * {@link EpcaGeoRenderer}: its {@code R} is bounded by {@code GeoRenderState}, which a
-     * concrete vanilla render state cannot satisfy at compile time. The override signatures are
-     * therefore the erased ones; dispatch at runtime is unchanged.</p>
-     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     private class OuterLayerDelegate extends GeoRenderLayer {
 
@@ -300,10 +209,6 @@ public class EpcaGeoRenderer<T extends Entity & GeoAnimatable> extends GeoEntity
         }
     }
 
-    /**
-     * Helper for layers that need to hide whole bone sub-trees (GeckoLib 4 did this by
-     * calling {@code CoreGeoBone#setHidden}); GeckoLib 5 expresses it as a bone updater.
-     */
     public static void addBoneHider(RenderPassInfo passInfo, String boneName, boolean hide) {
         passInfo.addBoneUpdater((info, snapshots) ->
                 snapshots.ifPresent(boneName, snapshot -> snapshot.skipRender(hide)));

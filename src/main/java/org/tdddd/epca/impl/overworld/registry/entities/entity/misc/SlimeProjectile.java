@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -17,7 +18,6 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlimeSize3;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -33,14 +33,14 @@ import java.util.UUID;
 
 public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private LivingEntity target;           
-    private double correctionStrength = 0.08; 
-    private double maxCorrectionAngle = 0.15; 
-    private boolean homingEnabled = true;     
+    private LivingEntity target;
+    private double correctionStrength = 0.08;
+    private double maxCorrectionAngle = 0.15;
+    private boolean homingEnabled = true;
 
     public SlimeProjectile(EntityType<? extends ThrowableProjectile> type, Level level) {
         super(type, level);
-        this.setNoGravity(false); 
+        this.setNoGravity(false);
     }
 
     public SlimeProjectile(EntityType<? extends ThrowableProjectile> type, double x, double y, double z, Level level) {
@@ -60,7 +60,7 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        
+
     }
 
     @Override
@@ -84,7 +84,7 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
         super.readAdditionalSaveData(tag);
         if (tag.read("OwnerUUID", net.minecraft.core.UUIDUtil.CODEC).isPresent()) {
             this.ownerUuid = tag.read("OwnerUUID", net.minecraft.core.UUIDUtil.CODEC).orElse(null);
-            
+
             if (this.level() instanceof ServerLevel serverLevel) {
                 Entity owner = serverLevel.getEntity(this.ownerUuid);
                 if (owner instanceof LivingEntity) {
@@ -96,7 +96,7 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
 
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        
+
         this.discard();
         this.playSound(SoundEvents.SLIME_BLOCK_FALL, 0.8F, 1.0F);
         spawnDisappearParticles();
@@ -105,13 +105,13 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
-        
+
         if (this.level().isClientSide()) {
             return;
         }
         var target = result.getEntity();
-        if (IParasite.isParasiteNoLivingByTagOrInterface(target)) {
-            
+        if (ParasiteEvents.isParasiteNoLivingByTagOrInterface(target)) {
+
             return;
         }
         if (result.getEntity() instanceof LivingEntity livingEntity) {
@@ -122,48 +122,48 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
                 Entity e = serverLevel.getEntity(this.ownerUuid);
                 if (e instanceof LivingEntity owner) realOwner = owner;
             }
-            
+
             if (realOwner instanceof InfestedSlimeSize3) {
-                
+
                 MobEffectInstance solidifyEffect = new MobEffectInstance(
                         ModEffects.SOLIDIFY,
-                        30, 
-                        0,  
-                        false, 
-                        true   
+                        30,
+                        0,
+                        false,
+                        true
                 );
                 MobEffectInstance slownessEffect = new MobEffectInstance(
                         ModEffects.FEAR,
-                        300, 
-                        0,  
-                        false, 
-                        true   
+                        300,
+                        0,
+                        false,
+                        true
                 );
                 MobEffectInstance para_curseEffect = new MobEffectInstance(
                         ModEffects.PARA_CURSE,
-                        600, 
-                        0,  
-                        false, 
-                        true   
+                        600,
+                        0,
+                        false,
+                        true
                 );
                 livingEntity.addEffect(solidifyEffect);
                 livingEntity.addEffect(slownessEffect);
                 livingEntity.addEffect(para_curseEffect);
             } else if (realOwner == null) {
-                
+
                 MobEffectInstance solidifyEffect = new MobEffectInstance(
                         ModEffects.SOLIDIFY,
-                        30, 
-                        0,  
-                        false, 
-                        true   
+                        30,
+                        0,
+                        false,
+                        true
                 );
                 MobEffectInstance para_curseEffect = new MobEffectInstance(
                         ModEffects.PARA_CURSE,
-                        600, 
-                        0,  
-                        false, 
-                        true   
+                        600,
+                        0,
+                        false,
+                        true
                 );
                 livingEntity.addEffect(solidifyEffect);
                 livingEntity.addEffect(para_curseEffect);
@@ -188,12 +188,12 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
                 .add(0, target.getBbHeight() * 0.5, 0)
                 .subtract(this.position());
         double dist = toTarget.length();
-        if (dist < 0.5) return; 
+        if (dist < 0.5) return;
 
         Vec3 targetDirection = toTarget.normalize();
         Vec3 currentDirection = currentVelocity.normalize();
         double dot = currentDirection.dot(targetDirection);
-        dot = Math.max(-1.0, Math.min(1.0, dot)); 
+        dot = Math.max(-1.0, Math.min(1.0, dot));
         double angle = Math.acos(dot);
         if (angle < 0.01) return;
 
@@ -239,12 +239,12 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
 
     @Override
     public boolean isNoGravity() {
-        return false; 
+        return false;
     }
 
     @Override
     public boolean isAttackable() {
-        return false; 
+        return false;
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {

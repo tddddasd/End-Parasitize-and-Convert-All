@@ -11,34 +11,17 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedE
 
 import java.util.Optional;
 
-/**
- * Owns the single live {@link ArayaBossBgm} instance for the Araya NAMING EASTER EGG.
- *
- * <p>Mirrors {@link ArayaBgmManager}, but keys off the ENTITY rather than the staff-aura cache: the
- * theme belongs to a renamed infested enderman in Araya mode, and {@code isArayaMode} is a public field
- * that the client can read directly (the mode is entered from the entity's own custom name, which is
- * present on both sides).</p>
- *
- * <p>Started when such an enderman is within {@link ArayaConstants#BGM_RADIUS} of the listener, followed
- * while it stays within {@link ArayaConstants#BGM_STOP_RADIUS} (the two radii are the hysteresis), and
- * stopped on every exit path: entity dead, entity removed, no longer in Araya mode, out of range, level
- * changed, or the sound engine reporting the instance inactive.</p>
- */
 public final class ArayaBossBgmManager {
 
-    /** The one live track, or {@code null}. */
     private static ArayaBossBgm current;
 
-    /** The entity the current track belongs to, so a different enderman restarts cleanly. */
     private static int currentEntityId = -1;
 
-    /** Cached answer of "is the OGG installed", re-evaluated on every resource reload. */
     private static Boolean assetPresent;
 
     private ArayaBossBgmManager() {
     }
 
-    /** Advances the BGM state; called once per client tick from {@code ClientEvents}. */
     public static void clientTick() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null) {
@@ -52,7 +35,6 @@ public final class ArayaBossBgmManager {
             return;
         }
 
-        // A different enderman (or the previous one came back after dying): restart on the new one.
         if (current != null && holder.getId() != currentEntityId) {
             stop();
         }
@@ -73,10 +55,6 @@ public final class ArayaBossBgmManager {
         }
     }
 
-    /**
-     * Stops and releases the loop. Safe at any time, including when nothing is playing: this is also the
-     * hook the level change uses, so a dimension change or a disconnect can never leave it behind.
-     */
     public static void stop() {
         currentEntityId = -1;
         if (current == null) {
@@ -87,22 +65,18 @@ public final class ArayaBossBgmManager {
         try {
             Minecraft.getInstance().getSoundManager().stop(instance);
         } catch (Throwable ignored) {
-            // A sound engine already shut down (main menu, disconnect) must not throw into the client
-            // tick; the instance is dropped either way.
+
         }
     }
 
-    /** Drops the cached asset answer, so a new resource pack is picked up on the next tick. */
     public static void invalidateAssetCache() {
         assetPresent = null;
     }
 
-    /** True while the loop is running; for diagnostics. */
     public static boolean isPlaying() {
         return current != null;
     }
 
-    /** The nearest live Araya-mode enderman to the given position, or {@code null}. */
     private static InfestedEnderman nearestArayaEnderman(Vec3 from) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
@@ -114,7 +88,7 @@ public final class ArayaBossBgmManager {
             if (!(entity instanceof InfestedEnderman enderman)) {
                 continue;
             }
-            // Dead, removed, or no longer in Araya mode (e.g. the name was changed back) => not a holder.
+
             if (!enderman.isAlive() || !enderman.isArayaMode()) {
                 continue;
             }
@@ -127,13 +101,6 @@ public final class ArayaBossBgmManager {
         return nearest;
     }
 
-    /**
-     * True when {@code assets/epca/sounds/araya_boss.ogg} is actually installed.
-     *
-     * <p>{@code sounds.json} ships the entry unconditionally, so without this test a client running a
-     * stripped build (or a resource pack that removed the file) would play a missing-sound event every
-     * time somebody renamed an enderman. One resource-manager lookup, cached until the next reload.</p>
-     */
     public static boolean isAssetPresent() {
         if (assetPresent != null) {
             return assetPresent.booleanValue();

@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
@@ -26,8 +29,6 @@ import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
@@ -42,11 +43,11 @@ import com.geckolib.animation.RawAnimation;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.util.GeckoLibUtil;
 
-public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
+public class InfestedSilverfish extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int ambientSoundTime;
-    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
-    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
+    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20;
+    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20;
 
     public InfestedSilverfish(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -55,9 +56,8 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
         this.navigation = new InfestedSilverfishNavigation(this, level);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     public static AttributeSupplier setAttributes() {
@@ -89,7 +89,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
         super.tick();
 
         if (!this.level().isClientSide()) {
-            
+
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
@@ -114,8 +114,6 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
                 }
             }
 
-            // Gravity is never switched off any more: the mob walks inside infested blocks exactly
-            // like on any other ground, instead of floating and drifting as if it were in water.
             BlockPos epcaFoot = this.blockPosition();
             boolean epcaInsideInfested =
                     this.level().getBlockState(epcaFoot).getBlock() instanceof InfestedBlockInterface
@@ -134,62 +132,59 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     }
     public void playAmbientSound() {
         if (!this.isSilent() && this.random.nextInt(3) == 0) {
-            
+
             this.playSound(SoundEvents.SILVERFISH_AMBIENT, 0.95F, 0.8F);
         }
     }
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        
+
         return SoundEvents.SILVERFISH_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return SoundEvents.SILVERFISH_DEATH;
     }
 
     @Override
     protected void playHurtSound(DamageSource source) {
-        
+
         SoundEvent soundevent = this.getHurtSound(source);
         if (soundevent != null) {
-            this.playSound(soundevent, 0.95F, 0.8F); 
+            this.playSound(soundevent, 0.95F, 0.8F);
         }
     }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         if (source == this.damageSources().fall() && this.isInInfestedBlock()) {
             return false;
         }
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
 
     private boolean isInInfestedBlock() {
         BlockPos pos = this.blockPosition();
-        
+
         if (this.level().getBlockState(pos).getBlock() instanceof InfestedBlockInterface) {
             return true;
         }
         if (this.level().getBlockState(pos.above()).getBlock() instanceof InfestedBlockInterface) {
             return true;
         }
-        
+
         return false;
     }
     @Override
@@ -201,10 +196,10 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
 
         if (event.isMoving()) {
             if (this.isInWall()) {
-                
+
                 event.setAnimation(RawAnimation.begin().thenLoop("mining"));
             } else {
-                
+
                 event.setAnimation(RawAnimation.begin().thenLoop("walk"));
             }
         } else {
@@ -220,9 +215,9 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
-            
+
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 2 || stage > 5) {
                 return false;
@@ -232,7 +227,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -240,7 +235,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -255,15 +250,14 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     @Override
     public void die(DamageSource source) {
         super.die(source);
-        this.onDeath(source); 
     }
     private int floatingTime;
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
             this.floatingTime++;
@@ -288,7 +282,7 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
@@ -307,12 +301,12 @@ public class InfestedSilverfish extends PathfinderMob implements GeoEntity, IPar
 
     @Override
     public boolean isInWall() {
-        
+
         float f = this.getDimensions(this.getPose()).width() * 0.8F;
         AABB aabb = AABB.ofSize(this.getEyePosition(), (double)f, 1.0E-6D, (double)f);
         return BlockPos.betweenClosedStream(aabb).anyMatch((pos) -> {
             BlockState blockstate = this.level().getBlockState(pos);
-            
+
             if (blockstate.getBlock() instanceof InfestedBlockInterface) {
                 return false;
             }

@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.ai;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -9,7 +10,6 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -17,7 +17,7 @@ import java.util.List;
 
 public class PriorityTargetGoal extends Goal {
     private final Mob mob;
-    private final IParasite parasite;          
+
     private final double targetSearchRange;
     private final TargetingConditions targetConditions;
     @Nullable
@@ -25,7 +25,7 @@ public class PriorityTargetGoal extends Goal {
 
     public PriorityTargetGoal(Mob mob, double range) {
         this.mob = mob;
-        this.parasite = (IParasite) mob;
+
         this.targetSearchRange = range;
         this.targetConditions = TargetingConditions.forCombat().range(range);
         this.setFlags(EnumSet.of(Flag.TARGET));
@@ -39,7 +39,7 @@ public class PriorityTargetGoal extends Goal {
             return true;
         }
         this.target = getNearestValidTarget();
-        
+
         if (this.target != null && !canTarget(this.target)) {
             this.target = null;
         }
@@ -49,7 +49,7 @@ public class PriorityTargetGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (this.target == null || !this.target.isAlive()) return false;
-        
+
         if (!canTarget(this.target)) {
             return false;
         }
@@ -67,18 +67,18 @@ public class PriorityTargetGoal extends Goal {
     @Override
     public void stop() {
         this.target = null;
-        
+
     }
 
     @Nullable
     private LivingEntity getForcedTarget() {
         if (!(mob.level() instanceof ServerLevel serverLevel)) return null;
-        return parasite.getForcedTarget(serverLevel);
+        return ParasiteEvents.getForcedTarget(mob, serverLevel);
     }
 
     private boolean canTarget(LivingEntity target) {
         return target != null
-                && !IParasite.isParasiteByTagOrInterface(target)  
+                && !ParasiteEvents.isParasiteByTagOrInterface(target)
                 && !(target instanceof Creeper)
                 && target.isAlive()
                 && mob.hasLineOfSight(target)
@@ -91,7 +91,7 @@ public class PriorityTargetGoal extends Goal {
         AABB searchBox = mob.getBoundingBox().inflate(targetSearchRange);
         List<LivingEntity> candidates = mob.level().getEntitiesOfClass(
                 LivingEntity.class, searchBox,
-                e -> e != mob && !IParasite.isParasiteByTagOrInterface(e) && e.isAlive()
+                e -> e != mob && !ParasiteEvents.isParasiteByTagOrInterface(e) && e.isAlive()
         );
         LivingEntity nearest = null;
         double nearestDistSq = Double.MAX_VALUE;

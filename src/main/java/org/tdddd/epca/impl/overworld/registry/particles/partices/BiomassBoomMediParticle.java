@@ -7,10 +7,9 @@ import net.minecraft.util.RandomSource;
 
 import java.util.Random;
 
-// 26.1.2: TextureSheetParticle -> SingleQuadParticle.
 public class BiomassBoomMediParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
-    private final float brightnessVariation; 
+    private final float brightnessVariation;
 
     public BiomassBoomMediParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet sprites) {
         super(level, x, y, z, xd, yd, zd, sprites.first());
@@ -18,20 +17,17 @@ public class BiomassBoomMediParticle extends SingleQuadParticle {
         this.lifetime = 16;
         this.setSpriteFromAge(sprites);
 
-        
         this.gravity = 0.0F;
-        
-        this.quadSize = 0.9F; 
-        
-        Random random = new Random();
-        this.brightnessVariation = 0.7F + random.nextFloat() * 0.4F; 
 
-        
+        this.quadSize = 0.9F;
+
+        Random random = new Random();
+        this.brightnessVariation = 0.7F + random.nextFloat() * 0.4F;
+
         this.rCol *= brightnessVariation;
         this.gCol *= brightnessVariation;
         this.bCol *= brightnessVariation;
 
-        
         this.rCol = Math.min(Math.max(this.rCol, 0.0F), 1.0F);
         this.gCol = Math.min(Math.max(this.gCol, 0.0F), 1.0F);
         this.bCol = Math.min(Math.max(this.bCol, 0.0F), 1.0F);
@@ -45,11 +41,10 @@ public class BiomassBoomMediParticle extends SingleQuadParticle {
     @Override
     public void tick() {
         super.tick();
-        
+
         this.setSpriteFromAge(sprites);
     }
 
-    
     public static class BiomassBoomMediParticleProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 

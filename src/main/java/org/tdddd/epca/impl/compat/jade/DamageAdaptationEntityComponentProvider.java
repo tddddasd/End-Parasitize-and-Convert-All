@@ -11,7 +11,6 @@ import snownee.jade.api.IEntityComponentProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
-
 public class DamageAdaptationEntityComponentProvider implements IEntityComponentProvider {
 
     public static final DamageAdaptationEntityComponentProvider INSTANCE =
@@ -41,9 +40,9 @@ public class DamageAdaptationEntityComponentProvider implements IEntityComponent
 
         if (data.getInt("MinBiomassCount").isPresent()) {
             int minBiomassCount = data.getIntOr("MinBiomassCount", 0);
-            if (false) { // minimum kill count removed
+            if (false) {
                 int maxMinBiomassCount = data.getIntOr("MaxMinBiomassCount", minBiomassCount);
-                    // Jade 26 has no IElementHelper; its ItemStackElement is the equivalent icon.
+
                     tooltip.add(snownee.jade.impl.ui.ItemStackElement.of(
                             new net.minecraft.world.item.ItemStack(
                                     net.minecraft.world.item.Items.RESPAWN_ANCHOR), 0.5F));
@@ -111,4 +110,3 @@ public class DamageAdaptationEntityComponentProvider implements IEntityComponent
         return damageTypeStr;
     }
 }
-

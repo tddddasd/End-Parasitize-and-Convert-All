@@ -38,24 +38,6 @@ import org.tdddd.epca.impl.events.ArayaConstants;
 import org.tdddd.epca.impl.events.ArayaSyncHandler;
 import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
-/**
- * Kill stick.
- *
- * <h2>26.1.2 item-API changes applied here</h2>
- * <ul>
- *   <li>{@code Item#getDefaultAttributeModifiers(EquipmentSlot)} is gone: item attributes are a
- *       data component now, so the reach bonus is built with {@link ItemAttributeModifiers} and
- *       installed through {@code Item.Properties#attributes(...)} in the constructor.</li>
- *   <li>{@code NeoForgeMod.ENTITY_REACH} does not exist in 26.1.2  the reach attribute is vanilla
- *       {@code Attributes.ENTITY_INTERACTION_RANGE} (verified: {@code NeoForgeMod} only declares
- *       SWIM_SPEED / NAMETAG_DISTANCE / CREATIVE_FLIGHT).</li>
- *   <li>{@code AttributeModifier} is a record {@code (Identifier, double, Operation)}.</li>
- *   <li>{@code Item#use} returns {@link InteractionResult} ({@code InteractionResultHolder} is
- *       deleted); {@code getUseDuration} takes the stack <i>and</i> the entity;
- *       {@code releaseUsing} returns {@code boolean}; {@code inventoryTick} takes a
- *       {@link ServerLevel} and an {@link EquipmentSlot}.</li>
- * </ul>
- */
 public class KillStick extends Item {
     private static final Random RANDOM = new Random();
     private static final double CLEAR_RANGE = 128.0;
@@ -102,10 +84,7 @@ public class KillStick extends Item {
                 if (player.getCooldowns().isOnCooldown(stack)) {
                     return;
                 }
-                // Player Animation Library 1.2.6: the layer is read back by the id it was registered
-                // under and the animation id is triggered on the PlayerAnimationController the factory
-                // put inside it. The library loads epca:kill_stick from
-                // assets/epca/player_animations/kill_stick.animation.json by itself.
+
                 IAnimation layer = PlayerAnimationAccess.getPlayerAnimationLayer(
                         clientPlayer,
                         Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"));
@@ -176,8 +155,7 @@ public class KillStick extends Item {
                 Identifier.fromNamespaceAndPath(epca.MODID, "kill_stick"));
         if (layer instanceof ModifierLayer<?> modifierLayer
                 && modifierLayer.getAnimation() instanceof PlayerAnimationController controller) {
-            // setAnimation(null) is gone: the controller stays installed and the triggered animation
-            // is what gets cleared, which is the same thing the old player-animator build cleared.
+
             controller.stopTriggeredAnimation();
         }
     }
@@ -196,7 +174,6 @@ public class KillStick extends Item {
         super.inventoryTick(stack, level, entity, slot);
     }
 
-    
     private static boolean isHoldingKillStick(Player player) {
         return player.getMainHandItem().getItem() instanceof KillStick;
     }
@@ -219,21 +196,14 @@ public class KillStick extends Item {
                     serverLevel.sendParticles(particle, x, y, z, 1, 0, 0, 0, 0.1);
                 }
 
-                // The renamed staff's own hit: 444 points of the mod's MINIMUM damage type on the target
-                // of this click, so the kill (and therefore the trident sound and the  counter in
-                // ArayaSyncHandler) has one unambiguous source. The source carries the player as its
-                // causing entity, which is what lets LivingDeathEvent name the killer.
                 if (entity instanceof LivingEntity livingTarget) {
-                    // 26.1.2: registryAccess().lookupOrThrow(...) instead of registryOrThrow(...).
+
                     Holder<DamageType> holder = serverLevel.registryAccess()
                             .lookupOrThrow(Registries.DAMAGE_TYPE)
                             .getOrThrow(ModDamageTypes.MINIMUM);
                     livingTarget.hurt(new DamageSource(holder, player, player),
                             ArayaConstants.DAMAGE);
 
-                    // Every left click of the renamed staff on a living entity cuts, mob or player and
-                    // whatever the outcome of the hit. Sent before the victim is removed and moved to
-                    // the void below, so the blade keeps the position the hit happened at.
                     ArayaSyncHandler.broadcastSlash(serverLevel, player, livingTarget);
                 }
             }
@@ -319,4 +289,3 @@ public class KillStick extends Item {
         return lowest;
     }
 }
-

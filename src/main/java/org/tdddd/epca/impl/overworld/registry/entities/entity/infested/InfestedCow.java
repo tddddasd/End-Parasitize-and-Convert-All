@@ -1,4 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+
+import net.minecraft.world.entity.LivingEntity;
+import org.tdddd.epca.impl.utils.entity.InfestedUtils;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.resources.Identifier;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
@@ -37,8 +41,6 @@ import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
@@ -59,7 +61,7 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
-public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable {
+public class InfestedCow extends PathfinderMob implements GeoEntity, Enemy , IHeadRotatable {
     private int stepSoundDelay = 0;
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
 
@@ -69,26 +71,26 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
 
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedCow.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedCow.class, EntityDataSerializers.BOOLEAN);
-    
+
     private static final EntityDataAccessor<Boolean> DATA_IS_CHARGING = SynchedEntityData.defineId(InfestedCow.class, EntityDataSerializers.BOOLEAN);
 
     private static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath("epca", "a5766b59-7066-4402-ad81-0e3b7b6c2b9b");
     private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     private int ambientSoundTime;
-    private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20; 
-    private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20; 
+    private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20;
+    private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20;
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedCow.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 30;
-    private BlockPos deathPosition; 
-    private int chargeCooldown = 0;                      
-    private int chargeTicksRemaining = 0;                 
-    private Vec3 chargeDirection;                          
-    private LivingEntity chargeTarget;                     
-    private List<Entity> chargedEntities = new ArrayList<>(); 
-    private static final int CHARGE_COOLDOWN_TICKS = 200;          
-    private static final double CHARGE_SPEED_MULTIPLIER = 1.2;     
-    private static final int MAX_CHARGE_DISTANCE = 8;              
-    private static final int STOP_AHEAD_TICKS = 20;                 
+    private BlockPos deathPosition;
+    private int chargeCooldown = 0;
+    private int chargeTicksRemaining = 0;
+    private Vec3 chargeDirection;
+    private LivingEntity chargeTarget;
+    private List<Entity> chargedEntities = new ArrayList<>();
+    private static final int CHARGE_COOLDOWN_TICKS = 200;
+    private static final double CHARGE_SPEED_MULTIPLIER = 1.2;
+    private static final int MAX_CHARGE_DISTANCE = 8;
+    private static final int STOP_AHEAD_TICKS = 20;
 
     public InfestedCow(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -99,7 +101,6 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
         return true;
     }
@@ -111,8 +112,8 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
         super.customServerAiStep(level);
 
         if (!this.level().isClientSide()) {
-            breakCooldown = tryBreakLightSources(this, breakCooldown);
-            
+            breakCooldown = InfestedUtils.tryBreakLightSources(this, breakCooldown);
+
             tickCharge();
         }
     }
@@ -148,7 +149,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
         super.registerGoals();
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
-        
+
         this.goalSelector.addGoal(0, new ChargeGoal());
 
         this.goalSelector.addGoal(5, new FloatGoal(this));
@@ -180,7 +181,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
                     this.setWalking(false);
                 }
             } else {
-                
+
                 this.setRunning(true);
                 this.setWalking(false);
             }
@@ -190,7 +191,7 @@ public class InfestedCow extends PathfinderMob implements GeoEntity, IParasite, 
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
                 if (!this.level().isClientSide()) {
-                    
+
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
@@ -259,14 +260,14 @@ this.discard();
         }
 
         if (!this.level().isClientSide()) {
-            
+
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
                     playAmbientSound();
                 }
             }
-            
+
             updateFloating();
             if (chargeCooldown > 0) {
                 chargeCooldown--;
@@ -275,13 +276,13 @@ this.discard();
         if (!this.level().isClientSide() && this.onGround() && this.isMoving()) {
             if (this.stepSoundDelay <= 0) {
                 this.playSound(ModSoundEvents.INFESTED_COW_STEP.get(), 1.0F, 1.0F);
-                
+
                 this.stepSoundDelay = 15 + this.random.nextInt(6);
             } else {
                 this.stepSoundDelay--;
             }
         } else {
-            
+
             if (this.stepSoundDelay > 0) this.stepSoundDelay--;
         }
     }
@@ -328,7 +329,7 @@ this.discard();
             return;
         }
         double speed = this.getAttributeValue(Attributes.MOVEMENT_SPEED) * CHARGE_SPEED_MULTIPLIER;
-        if (speed <= 0) speed = 0.3; 
+        if (speed <= 0) speed = 0.3;
         Vec3 currentPos = this.position();
         Vec3 nextPos = currentPos.add(chargeDirection.scale(speed));
         BlockPos nextBlockPos = new BlockPos((int) Math.floor(nextPos.x), (int) Math.floor(nextPos.y), (int) Math.floor(nextPos.z));
@@ -339,14 +340,14 @@ this.discard();
             return;
         }
         this.setDeltaMovement(chargeDirection.x * speed, 0, chargeDirection.z * speed);
-        
+
         this.setOnGround(true);
-        
+
         this.move(MoverType.SELF, new Vec3(chargeDirection.x * speed, 0, chargeDirection.z * speed));
         AABB chargeBox = this.getBoundingBox();
         List<Entity> nearby = this.level().getEntities(this, chargeBox, entity -> {
             if (entity == this || !entity.isAlive()) return false;
-            if (IParasite.isParasiteNoLivingByTagOrInterface(entity) || entity instanceof Creeper) return false;
+            if (ParasiteEvents.isParasiteNoLivingByTagOrInterface(entity) || entity instanceof Creeper) return false;
             if (entity instanceof Player player && (player.isCreative() || player.isSpectator())) return false;
             return true;
         });
@@ -354,7 +355,7 @@ this.discard();
         for (Entity hit : nearby) {
             if (!chargedEntities.contains(hit)) {
                 chargedEntities.add(hit);
-                
+
                 if (hit instanceof LivingEntity living) {
                     living.hurtOrSimulate(this.damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE) * 0.25f);
                 }
@@ -372,15 +373,15 @@ this.discard();
         this.chargeTarget = target;
         this.chargeDirection = new Vec3(target.getX() - this.getX(), 0, target.getZ() - this.getZ()).normalize();
         double distance = this.distanceTo(target);
-        
+
         double speed = this.getAttributeValue(Attributes.MOVEMENT_SPEED) * CHARGE_SPEED_MULTIPLIER;
         if (speed <= 0) speed = 0.3;
         int ticksNeeded = (int) Math.ceil(Math.min(distance, MAX_CHARGE_DISTANCE) / speed);
         this.chargeTicksRemaining = ticksNeeded;
         this.chargedEntities.clear();
         this.setCharging(true);
-        this.getNavigation().stop(); 
-        this.setTarget(target); 
+        this.getNavigation().stop();
+        this.setTarget(target);
     }
 
     private void stopCharging() {
@@ -389,7 +390,7 @@ this.discard();
         this.chargeDirection = null;
         this.chargedEntities.clear();
         this.chargeCooldown = CHARGE_COOLDOWN_TICKS;
-        
+
         this.setDeltaMovement(Vec3.ZERO);
     }
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
@@ -426,7 +427,7 @@ this.discard();
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
-            if (shouldIgnoreDamageFrom(attacker)) {
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
                 return false;
             }
         }
@@ -436,17 +437,15 @@ this.discard();
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
 
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        return super.hurtServer(level, source, adjustedAmount);
+        return super.hurtServer(level, source, amount);
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
         if (!this.level().isClientSide()) {
-            IParasite.super.onKillEntity(killedEntity);
+            ParasiteEvents.onKillEntity(this, killedEntity);
             this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0, false, false, true));
         }
     }
@@ -507,7 +506,7 @@ this.discard();
             int minKills = 0;
             if (minKills > 0) {
                 int currentDeaths = 0;
-                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
+                if (false) {
                     ;
                     this.setHealth(this.getMaxHealth());
                     return;
@@ -516,18 +515,15 @@ this.discard();
         }
 
         if (this.isOnFire()) {
-            
+
             super.die(source);
-            this.onDeath(source);
             return;
         }
 
         if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
-            this.onDeath(source);
         } else {
             super.die(source);
-            this.onDeath(source);
             if (!this.level().isClientSide()) {
                 if (this.random.nextFloat() < 0.3f) {
                     WalkingCowHead head = ModEntities.WALKING_COW_HEAD.get().create(this.level(), EntitySpawnReason.MOB_SUMMONED);
@@ -550,7 +546,7 @@ this.discard();
         entityData.define(DATA_IS_INVULNERABLE, false);
         entityData.define(DATA_IS_RUNNING, false);
         entityData.define(DATA_IS_WALKING, false);
-        
+
         entityData.define(DATA_IS_CHARGING, false);
     }
 
@@ -684,8 +680,8 @@ this.discard();
             if (target == null || !target.isAlive()) return false;
             if (!hasLineOfSight(target)) return false;
             double distance = distanceToSqr(target);
-            if (distance > MAX_CHARGE_DISTANCE * MAX_CHARGE_DISTANCE) return false; 
-            
+            if (distance > MAX_CHARGE_DISTANCE * MAX_CHARGE_DISTANCE) return false;
+
             if (Math.abs(target.getY() - getY()) > 1.0) return false;
             return true;
         }
@@ -702,7 +698,7 @@ this.discard();
 
         @Override
         public void stop() {
-            
+
             if (isCharging()) {
                 stopCharging();
             }

@@ -14,20 +14,20 @@ public class WeirdMincedFlesh extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(6)  
-                .saturationModifier(0.4F)  
+                .nutrition(6)
+                .saturationModifier(0.4F)
                 .build();
     }
 
     private static Consumable createConsumable() {
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.PARA_CURSE,  
-                        15 * 20,  
-                        0  
-                ), 0.3F))  
+                        ModEffects.PARA_CURSE,
+                        15 * 20,
+                        0
+                ), 0.3F))
                 .build();
     }
 }

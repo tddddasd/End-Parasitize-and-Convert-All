@@ -22,7 +22,7 @@ public class AdaptationParticleProvider implements ParticleProvider<SimplePartic
                                    double x, double y, double z,
                                    double xSpeed, double ySpeed, double zSpeed,
                                    RandomSource random) {
-        // 26.1.2: the sprite is passed into the particle constructor; TextureSheetParticle#pickSprite is gone.
+
         return new AdaptationParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, type, this.sprite.get(random));
     }
 }

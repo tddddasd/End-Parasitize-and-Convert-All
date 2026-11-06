@@ -16,13 +16,11 @@ import org.tdddd.epca.impl.overworld.registry.items.item.InfestedLapisLazuli;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Mixin(EnchantmentMenu.class)
 public abstract class EnchantmentMenuMixin {
     private net.minecraft.world.Container epca$slots() {
         return ((EnchantmentMenuAccessor) (Object) this).epca$getEnchantSlots();
     }
-
 
     @Inject(
             method = "clickMenuButton",
@@ -36,12 +34,11 @@ public abstract class EnchantmentMenuMixin {
         ItemStack lapis = this.epca$slots().getItem(1);
         if (!(lapis.getItem() instanceof InfestedLapisLazuli)) return;
 
-
         ItemStack enchantedItem = this.epca$slots().getItem(0);
         if (enchantedItem.isEmpty()) return;
 
         List<Holder<Enchantment>> curses = new ArrayList<>();
-        
+
         player.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                 .get(net.minecraft.tags.EnchantmentTags.CURSE)
                 .ifPresent(set -> set.forEach(curses::add));

@@ -19,13 +19,11 @@ public class SpearAttackHandler {
 
     @SubscribeEvent
     public static void onPlayerAttackEntity(AttackEntityEvent event) {
-        
+
         if (!(event.getEntity().level().isClientSide())) return;
 
-        
         if (!(event.getEntity() instanceof AbstractClientPlayer player)) return;
 
-        
         ItemStack mainHand = player.getMainHandItem();
         boolean isSpear = mainHand.getItem() == ModItems.WOODEN_SPEAR.get() ||
                 mainHand.getItem() == ModItems.STONE_SPEAR.get() ||
@@ -36,15 +34,10 @@ public class SpearAttackHandler {
                 mainHand.getItem() == ModItems.DIAMOND_SPEAR.get() ||
                 mainHand.getItem() == ModItems.NETHERITE_SPEAR.get();
 
-        
         boolean isLiving = event.getTarget() instanceof LivingEntity;
 
-        
         if (isSpear && isLiving) {
-            // Player Animation Library 1.2.6: the per-player layer is read back by the same id it was
-            // registered under, and the animation id is triggered on the PlayerAnimationController the
-            // factory put inside that layer. The library loads epca:stab itself from
-            // assets/epca/player_animations/stab.animation.json, so no registry lookup is needed.
+
             IAnimation layer = PlayerAnimationAccess.getPlayerAnimationLayer(
                     player,
                     Identifier.fromNamespaceAndPath(epca.MODID, "stab"));

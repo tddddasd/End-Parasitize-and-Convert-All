@@ -22,7 +22,7 @@ import org.tdddd.epca.impl.client.GuiTexture;
 public class CustomTab extends CreativeModeTab {
 
     public final ImmutableList<ITabEntry> entries;
-    
+
     public final Map<Integer, ITabEntry> renderedEntries;
 
     protected CustomTab(Builder builder) {
@@ -40,8 +40,7 @@ public class CustomTab extends CreativeModeTab {
             displayItemsSearchTab.addAll(entry.getItemsToAddToSearch(parameters));
         };
         displayItems = items;
-        // 26.1.2: CreativeModeTab#rebuildSearchTree() no longer exists  the creative search tree is built by
-        // CreativeModeInventoryScreen from getSearchTabDisplayItems(), so there is nothing left to rebuild here.
+
     };
 
     public static class Builder extends CreativeModeTab.Builder {
@@ -61,7 +60,6 @@ public class CustomTab extends CreativeModeTab {
             return this;
         };
 
-        
         @Override
         @Deprecated
         public Builder displayItems(DisplayItemsGenerator displayItemsGenerator) {
@@ -71,19 +69,17 @@ public class CustomTab extends CreativeModeTab {
     };
 
     public static interface ITabEntry {
-        
+
         public default void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {};
-        
+
         public default int getSize() {
             return 1;
         };
 
-        
         public default boolean newLine() {
             return false;
         };
 
-        
         public default void addItems(List<ItemStack> stacks, ItemDisplayParameters parameters, IntConsumer specialRenderLocation) {
             if (newLine()) stacks.addAll(Collections.nCopies(((9 - (stacks.size() % 9)) % 9), ItemStack.EMPTY));
             if (hasSpecialRendering()) specialRenderLocation.accept(stacks.size());
@@ -173,12 +169,10 @@ public class CustomTab extends CreativeModeTab {
             private final Component subheading;
             private final GuiTexture backgroundTexture;
 
-            
             public Subheading(Component subheading) {
                 this(subheading, GuiTexture.CREATIVE_MODE_TAB_BLANK_ROW);
             }
 
-            
             public Subheading(Component subheading, GuiTexture backgroundTexture) {
                 this.subheading = subheading;
                 this.backgroundTexture = backgroundTexture;
@@ -196,8 +190,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
-                // 26.1.2: GuiGraphics#drawString -> GuiGraphicsExtractor#text
+
                 graphics.text(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -206,12 +199,10 @@ public class CustomTab extends CreativeModeTab {
             private final Component subheading;
             private final GuiTexture backgroundTexture;
 
-            
             public Subheading0(Component subheading) {
                 this(subheading, GuiTexture.CREATIVE_MODE_TAB_BLANK_ROW_MATERIALS);
             }
 
-            
             public Subheading0(Component subheading, GuiTexture backgroundTexture) {
                 this.subheading = subheading;
                 this.backgroundTexture = backgroundTexture;
@@ -229,8 +220,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
-                // 26.1.2: GuiGraphics#drawString -> GuiGraphicsExtractor#text
+
                 graphics.text(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -239,12 +229,10 @@ public class CustomTab extends CreativeModeTab {
             private final Component subheading;
             private final GuiTexture backgroundTexture;
 
-            
             public Subheading1(Component subheading) {
                 this(subheading, GuiTexture.CREATIVE_MODE_TAB_BLANK_ROW_SPAWN);
             }
 
-            
             public Subheading1(Component subheading, GuiTexture backgroundTexture) {
                 this.subheading = subheading;
                 this.backgroundTexture = backgroundTexture;
@@ -262,8 +250,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
-                // 26.1.2: GuiGraphics#drawString -> GuiGraphicsExtractor#text
+
                 graphics.text(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }
@@ -272,12 +259,10 @@ public class CustomTab extends CreativeModeTab {
             private final Component subheading;
             private final GuiTexture backgroundTexture;
 
-            
             public Subheading2(Component subheading) {
                 this(subheading, GuiTexture.CREATIVE_MODE_TAB_BLANK_ROW_BLOCKS);
             }
 
-            
             public Subheading2(Component subheading, GuiTexture backgroundTexture) {
                 this.subheading = subheading;
                 this.backgroundTexture = backgroundTexture;
@@ -295,8 +280,7 @@ public class CustomTab extends CreativeModeTab {
             @Override
             public void render(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, float partialTick) {
                 Minecraft mc = Minecraft.getInstance();
-                // removed: this tab drew a gui texture (creative_inventory*) that was never shipped
-                // 26.1.2: GuiGraphics#drawString -> GuiGraphicsExtractor#text
+
                 graphics.text(mc.font, subheading, x + 3, y + 5, 0x5A575A, false);
             }
         }

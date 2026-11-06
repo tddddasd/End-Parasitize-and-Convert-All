@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.events;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
+import org.tdddd.epca.impl.overworld.registry.ModTags;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,7 +37,7 @@ public class BiomassEventHandler {
         DamageSource source = event.getSource();
         if (source.getEntity() instanceof Player player && HiveLeaderManager.isHiveLeader(player.getUUID())) {
             LivingEntity killed = event.getEntity();
-            if (!(killed instanceof IParasite)) {
+            if (!ParasiteEvents.isParasiteEntity(killed)) {
                 addPointsAndSync(player, 1);
             }
         }
@@ -48,7 +51,7 @@ public class BiomassEventHandler {
         if (!player.isShiftKeyDown()) return;
 
         LivingEntity target = event.getEntity();
-        if (!(target instanceof IParasite) || target instanceof Player) return;
+        if (!ParasiteEvents.isParasiteEntity(target) || target instanceof Player) return;
 
         Level level = player.level();
         if (level.isClientSide()) return;
@@ -75,51 +78,27 @@ public class BiomassEventHandler {
         player.getPersistentData().putLong("LastParasiteInteract", now);
     }
 
-    /**
-     *
-     *
-     * <p><b></b>
-     * <b></b>{@code BiomassManager}{@code BiomassPoints}
-     * {@code Player#getPersistentData()} <b></b>/
-     *  synced data
-     *
-     * </p>
-     *
-     * <p><b></b>
-     * {@link #onLivingAttack}
-     * {@code HiveLeaderDecomposeParasiteHandler}</p>
-     *
-     * <p>{@code EntityBiomassCountManager}
-     * {@code epca_kill_count}
-     * <b></b></p>
-     */
     public static int computeParasiteBiomass(LivingEntity target) {
         int basePoints = 1;
         int biomassCount = EntityBiomassCountManager.getCurrentBiomassCount(target);
         Random rand = new Random();
 
-        if (target instanceof IInfested) {
+        if (BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(target.getType()).is(org.tdddd.epca.impl.overworld.registry.ModTags.INFESTED)) {
             basePoints = 2 + rand.nextInt(3) + biomassCount;
-        } else if (target instanceof IOnesent) {
+        } else if (BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(target.getType()).is(org.tdddd.epca.impl.overworld.registry.ModTags.ONESENT)) {
             basePoints = 1 + rand.nextInt(2) + biomassCount;
-        } else if (target instanceof IPoverty) {
+        } else if (BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(target.getType()).is(org.tdddd.epca.impl.overworld.registry.ModTags.POVERTY)) {
             basePoints = 2 + rand.nextInt(2) + biomassCount;
-        } else if (target instanceof IReshape) {
+        } else if (BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(target.getType()).is(org.tdddd.epca.impl.overworld.registry.ModTags.RESHAPE)) {
             basePoints = 12 + 4 + rand.nextInt(3) + biomassCount;
-        } else if (target instanceof ILink) {
+        } else if (BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(target.getType()).is(org.tdddd.epca.impl.overworld.registry.ModTags.LINK)) {
             basePoints = 4 + biomassCount;
         }
         return basePoints;
     }
 
-    /**
-     * {@link BiomassSyncPacket}
-     *
-     * <p> private
-     * </p>
-     */
     public static void addPointsAndSync(Player player, int amount) {
-        
+
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
@@ -137,4 +116,3 @@ public class BiomassEventHandler {
         }
     }
 }
-

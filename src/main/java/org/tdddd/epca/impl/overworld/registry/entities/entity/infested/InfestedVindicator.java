@@ -1,5 +1,9 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.utils.entity.InfestedUtils;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,8 +42,6 @@ import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
@@ -60,7 +62,7 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class InfestedVindicator extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , GapJumper {
+public class InfestedVindicator extends PathfinderMob implements GeoEntity, Enemy , GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     public int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         return 0;
@@ -69,30 +71,29 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedVindicator.class, EntityDataSerializers.BOOLEAN);
     private static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath("epca", "c9766b59-7066-4402-ad81-0e3b7b6c2b9b");
     private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
-    
+
     private int ambientSoundTime;
-    private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20; 
-    private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20; 
+    private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20;
+    private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20;
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedVindicator.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 30;
-    private BlockPos deathPosition; 
+    private BlockPos deathPosition;
     private int jumpCooldown = 0;
 
     public InfestedVindicator(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
-        
+
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
         var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
         if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
-        
+
         this.navigation = new ParasiteGroundNavigation(this, level);
         this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_HUMANOID);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     private int breakCooldown = 0;
@@ -102,7 +103,7 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
         super.customServerAiStep(level);
 
         if (!this.level().isClientSide()) {
-            breakCooldown = tryBreakLightSources(this, breakCooldown);
+            breakCooldown = InfestedUtils.tryBreakLightSources(this, breakCooldown);
             if (jumpCooldown > 0) {
                 jumpCooldown--;
             }
@@ -125,17 +126,17 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
                         boolean isCliffToJump = (currentGroundY - forward1Y > 0.5) && (currentGroundY - forward2Y <= 0.5);
 
                         if (isCliffToJump) {
-                            
-                            double jumpPower = 0.45;       
-                            double horizontalSpeed = 0.28;  
+
+                            double jumpPower = 0.45;
+                            double horizontalSpeed = 0.28;
 
                             this.setDeltaMovement(
                                     dir.x * horizontalSpeed,
                                     jumpPower,
                                     dir.z * horizontalSpeed
                             );
-                            this.hurtMarked = true;          
-                            this.jumpCooldown = 10;           
+                            this.hurtMarked = true;
+                            this.jumpCooldown = 10;
                         }
                     }
                 }
@@ -153,10 +154,10 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 16.0D) 
-                .add(Attributes.MOVEMENT_SPEED, 0.25D) 
-                .add(Attributes.ATTACK_DAMAGE, 5.0D) 
-                .add(Attributes.FOLLOW_RANGE, 16.0D) 
+                .add(Attributes.MAX_HEALTH, 16.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.25D)
+                .add(Attributes.ATTACK_DAMAGE, 5.0D)
+                .add(Attributes.FOLLOW_RANGE, 16.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.2D)
                 .add(Attributes.ARMOR, 5.0D)
                 .build();
@@ -171,7 +172,7 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
         super.registerGoals();
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
-        
+
         this.goalSelector.addGoal(5, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
@@ -186,7 +187,7 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
     public void tick() {
         super.tick();
         if (!this.level().isClientSide()) {
-            boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001; 
+            boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
             boolean hasTarget = this.getTarget() != null;
             this.setRunning(isMoving && hasTarget);
             this.setWalking(isMoving && !hasTarget);
@@ -195,7 +196,7 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
             } else if (isMoving && !hasTarget) {
                 this.setRunning(false);
             } else {
-                
+
                 this.setRunning(false);
                 this.setWalking(false);
             }
@@ -204,24 +205,24 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
             super.tick();
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
-                
+
                 if (!this.level().isClientSide()) {
-                    
+
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     if (this.level() instanceof ServerLevel serverLevel) {
-                        
-                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), 
+
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
-                                10, 
-                                0.3, 0.45, 0.3, 
-                                0.0 
+                                10,
+                                0.3, 0.45, 0.3,
+                                0.0
                         );
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
-                                7, 
-                                0.4, 0.3, 0.4, 
-                                0.2); 
+                                7,
+                                0.4, 0.3, 0.4,
+                                0.2);
                         BlockPos deathPos = this.deathPosition;
                         long seed = this.random.nextLong();
                         int delay = this.random.nextInt(30) + 40;
@@ -230,26 +231,26 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
                                 serverLevel.getServer().getTickCount() + delay,
                                 () -> {
                                     spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed));
-                                    
+
                                     spawnBuglins(serverLevel, deathPos, RandomSource.create(seed));
                                 }
                         ));
                         AreaEffectCloud cloud = new AreaEffectCloud(serverLevel,
                                 deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
-                        cloud.setRadius(1.5F); 
-                        cloud.setDuration(60); 
-                        cloud.setRadiusPerTick(0); 
-                        cloud.setWaitTime(0); 
+                        cloud.setRadius(1.5F);
+                        cloud.setDuration(60);
+                        cloud.setRadiusPerTick(0);
+                        cloud.setWaitTime(0);
                         cloud.addEffect(new MobEffectInstance(
                                 ModEffects.PARA_CURSE,
-                                1200, 
-                                1,    
+                                1200,
+                                1,
                                 false, true
                         ));
                         cloud.addEffect(new MobEffectInstance(
                                 MobEffects.POISON,
-                                200,  
-                                0,    
+                                200,
+                                0,
                                 false, true
                         ));
 
@@ -258,9 +259,9 @@ public class InfestedVindicator extends PathfinderMob implements GeoEntity, IPar
                 }
                 triggerDismemberment();
 this.discard();
-                return; 
+                return;
             }
-            
+
             return;
         }
         AttributeInstance movementAttribute = this.getAttribute(Attributes.MOVEMENT_SPEED);
@@ -268,16 +269,16 @@ this.discard();
             boolean hasTarget = this.getTarget() != null;
             movementAttribute.removeModifier(WANDER_SPEED_ID);
             if (hasTarget) {
-                
+
                 movementAttribute.setBaseValue(chaseSpeed);
             } else {
-                
+
                 movementAttribute.setBaseValue(baseSpeed);
                 movementAttribute.addTransientModifier(WANDER_SPEED_REDUCTION);
             }
             if (!this.level().isClientSide()) {
                 double horizontalMovement = this.getDeltaMovement().horizontalDistance();
-                boolean isActuallyMoving = horizontalMovement > 0.01; 
+                boolean isActuallyMoving = horizontalMovement > 0.01;
 
                 this.setRunning(isActuallyMoving && hasTarget);
                 this.setWalking(isActuallyMoving && !hasTarget);
@@ -290,12 +291,12 @@ this.discard();
         if (!this.level().isClientSide()) {
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
-                    
+
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
                     playAmbientSound();
                 }
             }
-            
+
             updateFloating();
         }
     }
@@ -306,7 +307,7 @@ this.discard();
         while (mutable.getY() > level().getMinY()) {
             BlockState state = level().getBlockState(mutable);
             if (state.isSolid()) {
-                return mutable.getY() + 1; 
+                return mutable.getY() + 1;
             }
             mutable.setY(mutable.getY() - 1);
         }
@@ -318,7 +319,7 @@ this.discard();
         double dx = target.getX() - this.getX();
         double dz = target.getZ() - this.getZ();
         double horizontalDistSq = dx * dx + dz * dz;
-        if (horizontalDistSq <= 1.0) return false; 
+        if (horizontalDistSq <= 1.0) return false;
 
         Vec3 dir = new Vec3(dx, 0, dz).normalize();
         double currentGround = getGroundHeightAt(this.blockPosition());
@@ -331,17 +332,17 @@ this.discard();
             double ground = getGroundHeightAt(checkPos);
 
             double drop = currentGround - ground;
-            if (drop > 0.5) { 
+            if (drop > 0.5) {
                 width++;
-                if (width > 1) return false;        
-                if (i == 3) return false;            
+                if (width > 1) return false;
+                if (i == 3) return false;
             } else {
-                
+
                 if (width > 0) {
-                    
+
                     return this.getNavigation().createPath(target, 0) == null;
                 } else {
-                    return false; 
+                    return false;
                 }
             }
         }
@@ -349,12 +350,12 @@ this.discard();
     }
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 3; i++) {
-            
-            EntityType<?> buglinType = ModEntities.CURBUG.get(); 
+
+            EntityType<?> buglinType = ModEntities.CURBUG.get();
             Entity buglin = buglinType.create(level, EntitySpawnReason.MOB_SUMMONED);
 
             if (buglin != null) {
-                
+
                 double offsetX = random.nextDouble() - 0.5;
                 double offsetY = random.nextDouble() * 0.5;
                 double offsetZ = random.nextDouble() - 0.5;
@@ -384,22 +385,22 @@ this.discard();
     }
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        
+
         return ModSoundEvents.INFESTED_VINDICATOR_HURT.get();
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return ModSoundEvents.INFESTED_VINDICATOR_DEATH.get();
     }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
         if (isFakingDeath() || isInvulnerable()) {
@@ -407,24 +408,20 @@ this.discard();
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
         if (!this.level().isClientSide()) {
             this.addEffect(new MobEffectInstance(
                     MobEffects.REGENERATION,
-                    60,     
-                    0,      
+                    60,
+                    0,
                     false, false, true
             ));
-            IParasite.super.onKillEntity(killedEntity);
+            ParasiteEvents.onKillEntity(this, killedEntity);
         }
     }
     @Override
@@ -433,7 +430,7 @@ this.discard();
     }
 
     private PlayState animationPredicate(AnimationTest<InfestedVindicator> event) {
-        
+
         boolean isMoving = event.isMoving();
         if (this.isFakingDeath()) {
             event.setAnimation(RawAnimation.begin().thenLoop("dead"));
@@ -442,7 +439,7 @@ this.discard();
         } else if (this.isWalking()) {
             event.setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else {
-            
+
             event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
 
@@ -456,9 +453,9 @@ this.discard();
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
-            
+
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 2 || stage > 4) {
                 return false;
@@ -466,8 +463,8 @@ this.discard();
         }
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
-    private double baseSpeed = 0.27D; 
-    private double chaseSpeed = 0.38D; 
+    private double baseSpeed = 0.27D;
+    private double chaseSpeed = 0.38D;
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
@@ -475,7 +472,7 @@ this.discard();
     }
     @Override
     public void die(DamageSource source) {
-        
+
         if (isFakingDeath()) {
             super.die(source);
             return;
@@ -485,30 +482,27 @@ this.discard();
             int minKills = 0;
             if (minKills > 0) {
                 int currentDeaths = 0;
-                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
-                    
+                if (false) {
+
                     ;
-                    
+
                     this.setHealth(this.getMaxHealth());
-                    return; 
+                    return;
                 }
             }
         }
 
         if (this.isOnFire()) {
-            
+
             super.die(source);
-            this.onDeath(source);
             return;
         }
         if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
-            this.onDeath(source); 
         } else {
-            
+
             super.die(source);
-            this.onDeath(source); 
-            
+
             if (!this.level().isClientSide()) {
                 if (this.random.nextFloat() < 0.3f) {
                     WalkingVindicatorHead head = ModEntities.WALKING_VINDICATOR_HEAD.get().create(this.level(), EntitySpawnReason.MOB_SUMMONED);
@@ -526,9 +520,9 @@ this.discard();
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
         entityData.define(DATA_IS_FAKING_DEATH, false);
-        
+
         entityData.define(DATA_IS_INVULNERABLE, false);
-        
+
         entityData.define(DATA_IS_RUNNING, false);
         entityData.define(DATA_IS_WALKING, false);
     }
@@ -555,17 +549,17 @@ this.discard();
         this.entityData.set(DATA_IS_INVULNERABLE, invulnerable);
     }
     private void triggerFakeDeath(DamageSource source) {
-        
+
         setFakingDeath(true);
         setInvulnerable(true);
-        fakeDeathTimer = 30; 
-        deathPosition = this.blockPosition(); 
+        fakeDeathTimer = 30;
+        deathPosition = this.blockPosition();
         this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);
 
-        this.setPose(Pose.DYING); 
+        this.setPose(Pose.DYING);
         this.entityData.set(DATA_IS_FAKING_DEATH, true);
     }
     private static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
@@ -582,10 +576,10 @@ this.discard();
     private static void placeRemainsBlock(Level level, BlockPos deathPos, BlockPos.MutableBlockPos pos,
                                           RandomSource rand, BlockState state, int count) {
         for (int i = 0; i < count; i++) {
-            
+
             double offsetX = (rand.nextDouble() - 0.5) * 5;
             double offsetZ = (rand.nextDouble() - 0.5) * 5;
-            int offsetY = -rand.nextInt(3); 
+            int offsetY = -rand.nextInt(3);
 
             pos.set(
                     deathPos.getX() + offsetX,
@@ -593,7 +587,7 @@ this.discard();
                     deathPos.getZ() + offsetZ
             );
             if (level.isEmptyBlock(pos)) {
-                
+
                 BlockPos below = pos.below();
                 BlockState belowState = level.getBlockState(below);
                 if (belowState.isFaceSturdy(level, below, Direction.UP)) {
@@ -604,7 +598,7 @@ this.discard();
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -612,7 +606,7 @@ this.discard();
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -621,10 +615,10 @@ this.discard();
     private int floatingTime;
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
             this.floatingTime++;
@@ -639,7 +633,7 @@ this.discard();
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));

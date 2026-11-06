@@ -19,7 +19,6 @@ public class InfestedUndeadHandler {
         Level level = victim.level();
         if (level.isClientSide()) return;
 
-        
         if (!victim.getType().builtInRegistryHolder().is(ModTags.INFESTED_UNDEAD)) {
             return;
         }

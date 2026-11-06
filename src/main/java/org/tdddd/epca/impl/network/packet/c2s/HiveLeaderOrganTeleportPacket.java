@@ -7,28 +7,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-/**
- *  -&gt; SPEC  B
- *
- * <h2></h2>
- * <p><b></b> {@link RequestOpenHiveLeaderOrgansPacket}
- *
- * /
- * <b></b>{@code ServerPlayer#getLookAngle()}
- *  {@link HiveLeaderOrganTeleportHandler}</p>
- *
- * <h2></h2>
- * <p> {@link HiveLeaderOrganTeleportHandler#handleRequest(ServerPlayer)}
- *  sender </p>
- * <ol>
- *   <li>{@code ctx.player()}  {@link ServerPlayer}</li>
- *   <li>{@code HiveLeaderManager#isHiveLeader(sender.getUUID())}</li>
- *   <li>{@code HiveLeaderOrganSavedData#readOrCreate}
- *        33   2 <b></b></li>
- *   <li>20 /</li>
- *   <li><b></b></li>
- * </ol>
- */
 public class HiveLeaderOrganTeleportPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<HiveLeaderOrganTeleportPacket> TYPE =
@@ -62,4 +40,3 @@ public class HiveLeaderOrganTeleportPacket implements CustomPacketPayload {
         });
     }
 }
-

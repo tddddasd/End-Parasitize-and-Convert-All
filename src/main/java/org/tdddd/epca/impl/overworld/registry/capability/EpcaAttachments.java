@@ -8,12 +8,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.tdddd.epca.impl.epca;
 
-
 public class EpcaAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
             DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, epca.MODID);
 
-    
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<LifetimeCapability>> LIFETIME =
             ATTACHMENT_TYPES.register("lifetime",
                     () -> AttachmentType.serializable(

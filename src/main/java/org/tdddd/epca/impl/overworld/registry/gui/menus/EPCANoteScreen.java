@@ -23,11 +23,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 public class EPCANoteScreen extends Screen {
 
-    
-    
     private static final Identifier INNER_FRAME = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/inner_frame.png");
     private static final Identifier BTN_UP = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/button_up.png");
     private static final Identifier BTN_DOWN = Identifier.fromNamespaceAndPath(epca.MODID, "textures/gui/epca_note/button_down.png");
@@ -54,7 +51,6 @@ public class EPCANoteScreen extends Screen {
     private static final int BTN_TEX_H = 24;
     private static final int PAGE_BTN_TEX_SIZE = 18;
 
-    
     private static final int COVER_SHADOW = 0xFF1E0D05;
     private static final int COVER_DARK = 0xFF3C1C0E;
     private static final int COVER = 0xFF5C2E18;
@@ -82,7 +78,6 @@ public class EPCANoteScreen extends Screen {
     private static final int MAX_CHILD_VISIBLE = 8;
     private static final int CONTENT_PADDING = 8;
     private static final int LEFT_RIGHT_SPACING = 6;
-
 
     private int parentScrollOffset = 0;
     private int selectedParentIndex = 0;
@@ -141,7 +136,6 @@ public class EPCANoteScreen extends Screen {
         rebuildPagesForCurrentChild();
     }
 
-
     private void refreshTabsAndUI() {
         refreshTabData();
 
@@ -158,7 +152,6 @@ public class EPCANoteScreen extends Screen {
         rebuildPagesForCurrentChild();
     }
 
-
     private void refreshTabData() {
         this.parentTabs = EPCANoteTabData.getVisibleTabsForPlayer();
         if (this.parentTabs == null) {
@@ -169,7 +162,6 @@ public class EPCANoteScreen extends Screen {
             selectedParentIndex = parentTabs.isEmpty() ? 0 : parentTabs.size() - 1;
         }
     }
-
 
     private void recomputeLayout() {
         outerX = (width - OUTER_W) / 2;
@@ -191,7 +183,6 @@ public class EPCANoteScreen extends Screen {
         childListStartY = innerY - 75;
     }
 
-
     private void rebuildUIComponents() {
 
         if (btnParentUp != null) removeWidget(btnParentUp);
@@ -200,7 +191,6 @@ public class EPCANoteScreen extends Screen {
         if (btnChildRight != null) removeWidget(btnChildRight);
         if (btnPrevPage != null) removeWidget(btnPrevPage);
         if (btnNextPage != null) removeWidget(btnNextPage);
-
 
         if (parentTabs.size() > MAX_PARENT_VISIBLE) {
             int upY = parentListStartY - BUTTON_H - 5;
@@ -211,7 +201,6 @@ public class EPCANoteScreen extends Screen {
             addRenderableWidget(btnParentUp);
             addRenderableWidget(btnParentDown);
         }
-
 
         int btnPosXLeft = innerX + CONTENT_PADDING;
         int btnPosXRight = innerX + INNER_W - CONTENT_PADDING - PAGE_BTN_SIZE;
@@ -227,12 +216,10 @@ public class EPCANoteScreen extends Screen {
         addRenderableWidget(btnPrevPage);
         addRenderableWidget(btnNextPage);
 
-
         updateChildButtons();
 
         updatePageButtons();
     }
-
 
     private void updateChildButtons() {
         if (btnChildLeft != null) removeWidget(btnChildLeft);
@@ -300,7 +287,6 @@ public class EPCANoteScreen extends Screen {
             updatePageButtons();
         }
     }
-
 
     private List<PageContent> buildPages(String rawContent, int leftWidth, int rightWidth, int areaHeight, Font font) {
         List<RenderElement> elements = parseElements(rawContent, leftWidth, font);
@@ -452,7 +438,6 @@ public class EPCANoteScreen extends Screen {
         return -1;
     }
 
-
     private String translateName(String raw) {
         if (raw == null) return "";
         if (raw.startsWith("lang:")) {
@@ -469,14 +454,12 @@ public class EPCANoteScreen extends Screen {
         return raw;
     }
 
-
     @Override
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         float scale = getScaleFactor();
         var pose = guiGraphics.pose();
         pose.pushMatrix();
 
-        
         double layoutX = convertMouseX(mouseX);
         double layoutY = convertMouseY(mouseY);
 
@@ -486,15 +469,12 @@ public class EPCANoteScreen extends Screen {
             pose.translate(-width / 2.0f, -height / 2.0f);
         }
 
-        
         int hoveredParent = getClickedParentIndex((int) layoutX, (int) layoutY);
         int hoveredChild = getClickedChildIndex((int) layoutX, (int) layoutY);
 
         drawCover(guiGraphics);
 
-
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INNER_FRAME, innerX, innerY, 0.0F, 0.0F, INNER_W, INNER_H, INNER_TEX_W, INNER_TEX_H);
-
 
         for (int i = 0; i < MAX_PARENT_VISIBLE; i++) {
             int idx = parentScrollOffset + i;
@@ -510,7 +490,6 @@ public class EPCANoteScreen extends Screen {
                     y + (PARENT_TAB_H - font.lineHeight) / 2,
                     selected ? TAB_TEXT_SELECTED : TAB_TEXT);
         }
-
 
         int visibleCount = Math.min(currentChildTabs.size() - childScrollOffset, MAX_CHILD_VISIBLE);
         int totalWidth = visibleCount * CHILD_TAB_W;
@@ -529,9 +508,7 @@ public class EPCANoteScreen extends Screen {
                     selected ? TAB_TEXT_SELECTED : TAB_TEXT);
         }
 
-
         drawPages(guiGraphics);
-
 
         drawFooter(guiGraphics, hoveredParent, hoveredChild);
 
@@ -557,7 +534,6 @@ public class EPCANoteScreen extends Screen {
         double layoutX = convertMouseX(event.x());
         double layoutY = convertMouseY(event.y());
 
-        
         int clickedParent = getClickedParentIndex((int) layoutX, (int) layoutY);
         if (clickedParent != -1) {
             selectedParentIndex = clickedParent;
@@ -572,7 +548,6 @@ public class EPCANoteScreen extends Screen {
             return true;
         }
 
-        
         return super.mouseClicked(new MouseButtonEvent(layoutX, layoutY, event.buttonInfo()), doubleClick);
     }
 
@@ -597,7 +572,6 @@ public class EPCANoteScreen extends Screen {
         return super.mouseReleased(new MouseButtonEvent(layoutX, layoutY, event.buttonInfo()));
     }
 
-    
     private void drawCover(GuiGraphicsExtractor guiGraphics) {
         guiGraphics.fill(outerX - 2, outerY - 2, outerX + OUTER_W + 2, outerY + OUTER_H + 2, COVER_SHADOW);
         guiGraphics.fill(outerX, outerY, outerX + OUTER_W, outerY + OUTER_H, COVER_DARK);
@@ -619,7 +593,6 @@ public class EPCANoteScreen extends Screen {
         guiGraphics.fill(innerX - 2, innerY - 2, innerX + INNER_W + 2, innerY + INNER_H + 2, COVER_EDGE);
     }
 
-    
     private void drawTab(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h,
                          boolean selected, boolean hovered) {
         int bg = selected ? TAB_BG_SELECTED : (hovered ? TAB_BG_HOVER : TAB_BG);
@@ -636,7 +609,6 @@ public class EPCANoteScreen extends Screen {
         }
     }
 
-    
     private void drawPages(GuiGraphicsExtractor guiGraphics) {
         if (pages.isEmpty()) return;
         PageContent page = pages.get(currentPage);
@@ -652,7 +624,6 @@ public class EPCANoteScreen extends Screen {
         }
     }
 
-    
     private void drawFooter(GuiGraphicsExtractor guiGraphics, int hoveredParent, int hoveredChild) {
         String hovered = null;
         if (hoveredChild >= 0 && hoveredChild < currentChildTabs.size()) {
@@ -675,7 +646,6 @@ public class EPCANoteScreen extends Screen {
         }
     }
 
-    
     private static String fit(Font font, String text, int maxWidth) {
         if (text == null || text.isEmpty()) return "";
         if (font.width(text) <= maxWidth) return text;
@@ -686,7 +656,7 @@ public class EPCANoteScreen extends Screen {
         int yOffset = 0;
         for (RenderElement e : elements) {
             if (e instanceof TextLine text) {
-                
+
                 guiGraphics.text(font, text.formatted, baseX, baseY + yOffset, PAGE_TEXT);
                 yOffset += font.lineHeight;
             } else if (e instanceof ImageElement img) {
@@ -722,7 +692,6 @@ public class EPCANoteScreen extends Screen {
         NeoForge.EVENT_BUS.unregister(eventListener);
         super.removed();
     }
-
 
     private interface RenderElement {
         int getHeight(Font font);
@@ -768,7 +737,6 @@ public class EPCANoteScreen extends Screen {
             this.texHeight = texHeight;
         }
 
-        // 26.1.2: AbstractButton#renderWidget was replaced by the extraction hook extractContents.
         @Override
         protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
             guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, getX(), getY(), 0.0F, 0.0F, width, height, texWidth, texHeight);

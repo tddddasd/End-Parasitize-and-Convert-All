@@ -14,11 +14,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import org.tdddd.epca.impl.epca;
 
-
 @EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public final class WaterColorClientSetup {
 
-    /** Same fallback the 1.20.1 mixins used when the vanilla lookup produced nothing. */
     private static final int DEFAULT_WATER_COLOR = 0x3F76E4;
 
     private WaterColorClientSetup() {}
@@ -30,12 +28,10 @@ public final class WaterColorClientSetup {
         event.register(List.of(new EpcaWaterCauldronTintSource()), Blocks.WATER_CAULDRON);
     }
 
-    /** Block-state tint used for {@code Blocks.WATER} / {@code Blocks.BUBBLE_COLUMN} in the world. */
     private static final class EpcaWaterBlockTintSource implements BlockTintSource {
         @Override
         public int color(BlockState state) {
-            // No world context (inventory / GUI): the 1.20.1 mixin could not run either, so keep the
-            // vanilla default rather than forcing a biome lookup that is impossible here.
+
             return -1;
         }
 
@@ -50,7 +46,6 @@ public final class WaterColorClientSetup {
         }
     }
 
-    /** Cauldron water follows the same effect (1.20.1 tinted it through the biome water hook too). */
     private static final class EpcaWaterCauldronTintSource implements BlockTintSource {
         @Override
         public int color(BlockState state) {
@@ -68,7 +63,6 @@ public final class WaterColorClientSetup {
         return color == -1 ? DEFAULT_WATER_COLOR : color;
     }
 
-    /** Exactly the 1.20.1 behaviour: hand the vanilla water colour to the effects manager. */
     private static int applyEffect(BlockPos pos, int originalColor) {
         if (pos == null) {
             return originalColor;

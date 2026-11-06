@@ -8,7 +8,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.ClientColorEffect;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-
 public class ColorEffectPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<ColorEffectPacket> TYPE =
@@ -19,9 +18,8 @@ public class ColorEffectPacket implements CustomPacketPayload {
 
     private final int entityId;
     private final int type;
-    private final int duration; 
+    private final int duration;
 
-    
     private static final int DEFAULT_DURATION = 10;
 
     public ColorEffectPacket(LivingEntity entity, int type) {
@@ -52,8 +50,7 @@ public class ColorEffectPacket implements CustomPacketPayload {
     }
 
     public static void handle(ColorEffectPacket packet, IPayloadContext ctx) {
-        // 26.1.2: the effect is recorded by entity id without requiring the entity to be present
-        // yet, so a packet that arrives before the new entity is spawned still takes effect.
+
         ctx.enqueueWork(() -> ClientColorEffect.setEffect(packet.entityId, packet.type, packet.duration));
     }
 }

@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class InfestedDirt extends Block implements InfestedBlockInterface {
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedDirt(Properties properties) {
@@ -61,17 +61,16 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
         return Blocks.COARSE_DIRT.getSoundType(Blocks.COARSE_DIRT.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 
@@ -82,9 +81,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
 
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        // Random ticks are extremely common once a large area is infested, and each one used to try
-        // several plants with dozens of candidate positions. Skipping the body most of the time keeps
-        // growth working while cutting the per tick block operations by an order of magnitude.
+
         if (random.nextFloat() > 0.01F) {
             return;
         }
@@ -98,18 +95,16 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
             spawnPumpkins(level, pos, random);
         }
 
-        // Infested bush: the very same chance and range as the infested pumpkin above, only with no
-        // biome requirement and 2~5 plants per attempt instead of the pumpkin's 3~8.
         if (random.nextFloat() < 0.005f) {
             spawnBushes(level, pos, random);
         }
 
         if (hasWaterAround(level, pos) && level.getBlockState(pos.above()).isAir()) {
             if (random.nextFloat() < 0.0075f) {
-                spawnSugarCanes(level, pos, random, 5 + random.nextInt(2), 2, 1, 2); 
+                spawnSugarCanes(level, pos, random, 5 + random.nextInt(2), 2, 1, 2);
             }
             if (random.nextFloat() < 0.005f) {
-                spawnSugarCanes(level, pos, random, 2 + random.nextInt(3), 1, 1, 1); 
+                spawnSugarCanes(level, pos, random, 2 + random.nextInt(3), 1, 1, 1);
             }
         }
     }
@@ -123,7 +118,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                     }
                 });
 
-        int count = 1 + random.nextInt(7); // 1~7
+        int count = 1 + random.nextInt(7);
         for (int i = 0; i < count; i++) {
             for (int attempt = 0; attempt < 20; attempt++) {
                 int dx = random.nextInt(5) - 2;
@@ -139,9 +134,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                     canPlace = true;
                 } else {
                     Block aboveBlock = ModBlocks.INFESTED_SWEET_BERRY_BUSH.get();
-// 26.1.2: Forge's IPlantable is gone. NeoForge exposes
-                    // IBlockStateExtension#canSustainPlant(BlockGetter, BlockPos, Direction, BlockState),
-                    // which returns a TriState (DEFAULT = "let the plant decide").
+
                     var soilDecision = belowState.canSustainPlant(level, below, Direction.UP,
                             aboveBlock.defaultBlockState());
                     if (!soilDecision.isDefault()) {
@@ -168,7 +161,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
     }
 
     private void spawnPumpkins(ServerLevel level, BlockPos pos, RandomSource random) {
-        
+
         Set<BlockPos> existingPumpkins = new HashSet<>();
         BlockPos.betweenClosedStream(pos.offset(-16, -16, -16), pos.offset(16, 16, 16))
                 .forEach(p -> {
@@ -177,25 +170,22 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                     }
                 });
 
-        int count = 3 + random.nextInt(6); // 3~8
+        int count = 3 + random.nextInt(6);
         int placed = 0;
         for (int i = 0; i < count; i++) {
             for (int attempt = 0; attempt < 30; attempt++) {
-                
+
                 int dx = random.nextInt(11) - 5;
                 int dy = random.nextInt(7) - 3;
                 int dz = random.nextInt(11) - 5;
                 BlockPos targetPos = pos.offset(dx, dy, dz);
 
-                
                 if (!level.isEmptyBlock(targetPos)) continue;
 
-                
                 BlockPos below = targetPos.below();
                 BlockState belowState = level.getBlockState(below);
                 if (belowState.getBlock() != ModBlocks.INFESTED_DIRT.get()) continue;
 
-                
                 boolean tooClose = false;
                 for (BlockPos pumpkinPos : existingPumpkins) {
                     if (pumpkinPos.distSqr(targetPos) < 64 * 64) {
@@ -214,8 +204,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
     }
 
     private void spawnBushes(ServerLevel level, BlockPos pos, RandomSource random) {
-        // Same shape as spawnPumpkins: same presence check, same +-5 / +-3 spawn range and the
-        // same 64 block minimum distance between two plants.
+
         Set<BlockPos> existingBushes = new HashSet<>();
         BlockPos.betweenClosedStream(pos.offset(-16, -16, -16), pos.offset(16, 16, 16))
                 .forEach(p -> {
@@ -224,7 +213,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                     }
                 });
 
-        int count = 2 + random.nextInt(4); // 2~5
+        int count = 2 + random.nextInt(4);
         int placed = 0;
         for (int i = 0; i < count; i++) {
             for (int attempt = 0; attempt < 30; attempt++) {
@@ -234,14 +223,11 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                 int dz = random.nextInt(11) - 5;
                 BlockPos targetPos = pos.offset(dx, dy, dz);
 
-
                 if (!level.isEmptyBlock(targetPos)) continue;
-
 
                 BlockPos below = targetPos.below();
                 BlockState belowState = level.getBlockState(below);
                 if (belowState.getBlock() != ModBlocks.INFESTED_DIRT.get()) continue;
-
 
                 boolean tooClose = false;
                 for (BlockPos bushPos : existingBushes) {
@@ -261,7 +247,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
     }
 
     private void spawnSugarCanes(ServerLevel level, BlockPos center, RandomSource random, int count, int rangeX, int rangeY, int rangeZ) {
-        
+
         Set<BlockPos> existingCanes = new HashSet<>();
         BlockPos.betweenClosedStream(center.offset(-48, -48, -48), center.offset(48, 48, 48))
                 .forEach(p -> {
@@ -271,7 +257,7 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                 });
 
         int placed = 0;
-        for (int i = 0; i < count * 20; i++) { 
+        for (int i = 0; i < count * 20; i++) {
             if (placed >= count) break;
 
             int dx = random.nextInt(2 * rangeX + 1) - rangeX;
@@ -279,10 +265,8 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
             int dz = random.nextInt(2 * rangeZ + 1) - rangeZ;
             BlockPos targetPos = center.offset(dx, dy, dz);
 
-            
             if (!level.isEmptyBlock(targetPos)) continue;
 
-            
             BlockPos below = targetPos.below();
             BlockState belowState = level.getBlockState(below);
             if (!(belowState.getBlock() == ModBlocks.INFESTED_DIRT.get() ||
@@ -290,10 +274,8 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
                 continue;
             }
 
-            
             if (!hasWaterAround(level, targetPos.below())) continue;
 
-            
             boolean tooClose = false;
             for (BlockPos canePos : existingCanes) {
                 if (canePos.distSqr(targetPos) < 48 * 48) {
@@ -303,7 +285,6 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
             }
             if (tooClose) continue;
 
-            
             level.setBlock(targetPos, ModBlocks.INFESTED_SUGAR_CANE.get()
                     .defaultBlockState()
                     .setValue(InfestedSugarCane.AGE, 0)
@@ -314,7 +295,6 @@ public class InfestedDirt extends Block implements InfestedBlockInterface {
         }
     }
 
-    
     private boolean hasWaterAround(LevelReader level, BlockPos pos) {
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             BlockState sideState = level.getBlockState(pos.relative(dir));

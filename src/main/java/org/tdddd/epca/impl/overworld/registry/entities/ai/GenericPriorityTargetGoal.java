@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.ai;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -9,7 +10,6 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -88,7 +88,7 @@ public class GenericPriorityTargetGoal extends Goal {
     }
 
     private boolean isFriendly(LivingEntity entity) {
-        return IParasite.isParasiteByTagOrInterface(entity);
+        return ParasiteEvents.isParasiteByTagOrInterface(entity);
     }
 
     @Nullable

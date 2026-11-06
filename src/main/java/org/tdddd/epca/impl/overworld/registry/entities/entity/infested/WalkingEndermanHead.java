@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,8 +39,6 @@ import org.tdddd.epca.impl.client.entity.IGlowRenderable;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.CarryConfigManager;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
@@ -54,13 +55,13 @@ import com.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.Optional;
 
-public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy, IGlowRenderable {
+public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, Enemy, IGlowRenderable {
 
     @Override
     public Identifier getGlowTexture() {
         return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/walking_enderman_head_unstable_glow.png");
     }
-    
+
     public enum Variant {
         DEFAULT,
         UNSTABLE
@@ -70,7 +71,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     private static final int TELEPORT_COOLDOWN_MIN = 160;
     private static final int TELEPORT_COOLDOWN_MAX = 200;
     private int teleportCooldown = 0;
-    // UNSTABLE-only preemptive attack dodge + blink barrage tuning.
+
     private static final int DODGE_COOLDOWN_TICKS = 160;
     private static final int DODGE_ATTEMPTS = 32;
     private static final float BLINK_CHANCE = 0.05F;
@@ -80,12 +81,12 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     private static final int BLINK_ATTEMPTS = 16;
     private static final double BLINK_RADIUS_FALLBACK = 16.0D;
     private static final double BLINK_RADIUS_MAX = 32.0D;
-    // Blink barrage state (UNSTABLE only).
+
     private LivingEntity blinkTarget;
     private int blinkRemaining = 0;
     private int blinkTicks = 0;
-    private Entity carriedEntity; 
-    
+    private Entity carriedEntity;
+
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int ambientSoundTime;
     private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20;
@@ -98,7 +99,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         this.navigation = new GroundPathNavigation(this, level);
 
         if (!level.isClientSide()) {
-            
+
             int roll = this.random.nextInt(100);
             if (roll < 70) {
                 this.setVariant(Variant.DEFAULT);
@@ -122,7 +123,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         super.registerGoals();
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
-        
+
         this.goalSelector.addGoal(0, new PickUpParasiteGoal());
         this.goalSelector.addGoal(1, new PlacePassengerGoal());
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, true));
@@ -139,7 +140,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         super.tick();
 
         if (!this.level().isClientSide()) {
-            
+
             if (this.teleportCooldown > 0) this.teleportCooldown--;
             tickBlinkBarrage();
             Entity carried = this.getCarriedEntity();
@@ -164,7 +165,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                 }
             }
         } else {
-            
+
             for (int i = 0; i < 2; ++i) {
                 this.level().addParticle(
                         ParticleTypes.PORTAL,
@@ -181,15 +182,15 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     }
     private boolean attemptTeleportAndPlace(LivingEntity target) {
         if (target == null || getCarriedEntity() == null) return false;
-        
+
         RandomSource rand = random;
         for (int i = 0; i < 16; i++) {
             double x = target.getX() + (rand.nextDouble() - 0.5) * 8.0;
             double y = target.getY() + rand.nextInt(3) - 1;
             double z = target.getZ() + (rand.nextDouble() - 0.5) * 8.0;
             if (randomTeleport(x, y, z, true)) {
-                teleportCooldown = TELEPORT_COOLDOWN_MAX; 
-                
+                teleportCooldown = TELEPORT_COOLDOWN_MAX;
+
                 return attemptPlaceCarried();
             }
         }
@@ -201,7 +202,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
         BlockPos basePos = blockPosition();
         RandomSource rand = random;
-        int placeRange = 6; 
+        int placeRange = 6;
 
         for (int attempt = 0; attempt < 10; attempt++) {
             int dx = rand.nextInt(placeRange + 1) - placeRange / 2;
@@ -213,7 +214,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                 BlockPos below = placePos.below();
                 BlockState belowState = level().getBlockState(below);
                 if (belowState.isFaceSturdy(level(), below, Direction.UP)) {
-                    
+
                     releaseCarriedEntity();
                     passenger.setPos(placePos.getX() + 0.5, placePos.getY(), placePos.getZ() + 0.5);
                     if (passenger instanceof Mob) {
@@ -238,7 +239,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         for (StackTraceElement element : stackTrace) {
             String className = element.getClassName();
-            
+
             if (className.startsWith("net.minecraft.commands.") ||
                     className.startsWith("net.minecraft.server.commands.") ||
                     className.startsWith("net.minecraft.server.players.") ||
@@ -254,7 +255,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     public void teleportTo(double x, double y, double z) {
-        
+
         if (!this.level().isClientSide() && this.getCarriedEntity() != null && isTeleportFromExternalSource()) {
             releaseCarriedEntity();
         }
@@ -263,17 +264,17 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     public boolean randomTeleport(double x, double y, double z, boolean particleEffects) {
-        
+
         return super.randomTeleport(x, y, z, particleEffects);
     }
 
     private void applyVariantAttributes() {
-        if (this.level().isClientSide()) return; 
+        if (this.level().isClientSide()) return;
         AttributeInstance followRange = this.getAttribute(Attributes.FOLLOW_RANGE);
         if (followRange != null) {
             double base = 32.0D;
             if (this.getVariant() == Variant.UNSTABLE) {
-                base = 32.0D * 1.25; 
+                base = 32.0D * 1.25;
             }
             followRange.setBaseValue(base);
         }
@@ -355,18 +356,17 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
     public void setVariant(Variant variant) {
         this.entityData.set(DATA_VARIANT, variant.ordinal());
         if (!this.level().isClientSide()) {
-            applyVariantAttributes(); 
+            applyVariantAttributes();
         }
     }
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
-            if (shouldIgnoreDamageFrom(attacker)) return false;
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) return false;
         }
         if (!this.level().isClientSide() && source.getDirectEntity() instanceof Projectile projectile) {
-            // UNSTABLE uses the vanilla-style dart away before the hit lands, so this branch only
-            // handles the non-UNSTABLE deflection/rebound behaviour.
+
             if (getVariant() != Variant.UNSTABLE) {
                 if (tryForcedTeleport()) {
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -379,7 +379,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
             }
         }
 
-        // UNSTABLE darts away the moment the attack is made, so the swing misses entirely.
         if (getVariant() == Variant.UNSTABLE && !this.level().isClientSide() && this.teleportCooldown <= 0) {
             boolean attackerSource = source.getEntity() instanceof LivingEntity
                     || source.getDirectEntity() instanceof Projectile;
@@ -389,11 +388,10 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
 
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, amount);
 
         if (!this.level().isClientSide() && result && this.teleportCooldown <= 0
                 && getVariant() != Variant.UNSTABLE) {
@@ -405,8 +403,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         return result;
     }
 
-    // Non-UNSTABLE keeps the mod's custom portal sound. UNSTABLE is normally handled by the
-    // dart-away above, but its other teleport paths use the vanilla teleport sound.
     private void playPostDamageTeleportSound() {
         if (getVariant() == Variant.UNSTABLE) {
             this.level().playSound(null, this.xo, this.yo, this.zo,
@@ -443,7 +439,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         return hurt;
     }
 
-    // 5% chance, UNSTABLE only: blink around the victim a few times, one hop every few ticks.
     private void tryStartBlinkBarrage(LivingEntity victim) {
         if (victim == null) return;
         if (this.level().isClientSide()) return;
@@ -502,7 +497,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         return false;
     }
 
-    // Blink barrage destinations need a loaded chunk, a solid floor, two free blocks and no liquid.
     private boolean isBlinkDestinationUsable(double x, double y, double z) {
         BlockPos pos = BlockPos.containing(x, y, z);
         if (!this.level().hasChunkAt(pos) || this.level().isOutsideBuildHeight(pos)) return false;
@@ -533,9 +527,8 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     public void die(DamageSource source) {
-        releaseCarriedEntity(); 
+        releaseCarriedEntity();
         super.die(source);
-        this.onDeath(source); 
     }
     private void updateFloating() {
         if (this.isInWater()) {
@@ -619,7 +612,6 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
         }
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
         return true;
     }
@@ -648,7 +640,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
             double offsetX = (rand.nextDouble() - 0.5) * 3.0;
             double offsetZ = (rand.nextDouble() - 0.5) * 3.0;
             double x = target.getX() + offsetX;
-            double y = target.getY() + rand.nextInt(2) - 1; 
+            double y = target.getY() + rand.nextInt(2) - 1;
             double z = target.getZ() + offsetZ;
             if (randomTeleport(x, y, z, true)) {
                 teleportCooldown = TELEPORT_COOLDOWN_MAX;
@@ -724,19 +716,19 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                     WalkingEndermanHead.this.getNavigation().stop();
                     LivingEntity target = WalkingEndermanHead.this.getTarget();
                     if (target != null && WalkingEndermanHead.this.attemptTeleportAndPlace(target)) {
-                        
+
                         carryTarget = null;
                         cooldown = 40;
                         return;
                     }
-                    
+
                     carryTarget = null;
                     cooldown = 40;
                     return;
                 }
             }
             if (distSq <= 1.2 * 1.2) {
-                
+
                 if (WalkingEndermanHead.this.getCarriedEntity() == null) {
                     WalkingEndermanHead.this.setCarriedEntity(carryTarget);
                     WalkingEndermanHead.this.level().playSound(null, WalkingEndermanHead.this.getX(), WalkingEndermanHead.this.getY(), WalkingEndermanHead.this.getZ(),
@@ -744,7 +736,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
                     WalkingEndermanHead.this.getNavigation().stop();
                     LivingEntity target = WalkingEndermanHead.this.getTarget();
                     if (target != null && WalkingEndermanHead.this.attemptTeleportAndPlace(target)) {
-                        
+
                         carryTarget = null;
                         cooldown = 40;
                         return;
@@ -867,7 +859,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -876,7 +868,7 @@ public class WalkingEndermanHead extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }

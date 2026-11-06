@@ -11,26 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- *  GUI
- *  /  GUI
- *
- * <h2> Container</h2>
- * <p> {@code AbstractContainerMenu} {@code MenuType}
- *  {@code Slot} 52/
- *  UUID
- * //
- *  {@code HiveLeaderOrganActionPacket} / {@code HiveLeaderOrganActionHandler}</p>
- *
- * <h2></h2>
- * <p> /  {@code HiveLeaderOrganEvents}
- * {@code ServerPlayer#drop} </p>
- *
- * <p>1.20.1 -&gt; 26.1.2{@code Player#getInventory().add(...)} / {@code Player#drop}
- *  {@code ItemStack#save(CompoundTag)} / {@code ItemStack#of(CompoundTag)}  26.1.2
- * <b></b>_tmp_26src {@code ItemStack.java}  {@code save}  {@code of}
- *  NBT  {@link ItemStack#CODEC} {@link NbtOps#INSTANCE}</p>
- */
 public final class HiveLeaderOrganCarry {
 
     private static final Map<UUID, ItemStack> CARRIED = new HashMap<>();
@@ -38,14 +18,12 @@ public final class HiveLeaderOrganCarry {
     private HiveLeaderOrganCarry() {
     }
 
-    /**  null {@link ItemStack#EMPTY} */
     public static ItemStack get(ServerPlayer player) {
         if (player == null) return ItemStack.EMPTY;
         ItemStack stack = CARRIED.get(player.getUUID());
         return stack == null ? ItemStack.EMPTY : stack;
     }
 
-    /** {@code null}  */
     public static void set(ServerPlayer player, @Nullable ItemStack stack) {
         if (player == null) return;
         if (stack == null || stack.isEmpty()) {
@@ -55,7 +33,6 @@ public final class HiveLeaderOrganCarry {
         }
     }
 
-    /**  */
     public static void returnToPlayer(ServerPlayer player) {
         if (player == null) return;
         ItemStack carried = CARRIED.remove(player.getUUID());
@@ -63,27 +40,24 @@ public final class HiveLeaderOrganCarry {
         giveBack(player, carried);
     }
 
-    /**  */
     public static void giveBack(ServerPlayer player, ItemStack stack) {
         if (player == null || stack == null || stack.isEmpty()) return;
         ItemStack remainder = stack.copy();
-        // Player#getInventory().add(ItemStack)
+
         boolean added = player.getInventory().add(remainder);
         if (!added && !remainder.isEmpty()) {
             player.drop(remainder, false);
         }
     }
 
-    /**  /  GUI  */
     public static void onDimensionChanged(ServerPlayer player) {
         returnToPlayer(player);
     }
 
-    /** / NBT  */
     public static String describe(ServerPlayer player) {
         ItemStack stack = get(player);
         if (stack.isEmpty()) return "empty";
-        // 26.1.2ItemStack#save(CompoundTag)  ItemStack.CODEC + NbtOps
+
         CompoundTag tag = new CompoundTag();
         Tag encoded = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, stack).result().orElse(null);
         if (encoded instanceof CompoundTag compound) {
@@ -92,4 +66,3 @@ public final class HiveLeaderOrganCarry {
         return stack.getCount() + "x " + tag;
     }
 }
-

@@ -15,8 +15,6 @@ public class ModBlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, epca.MODID);
 
-    
-
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SwallowCystBlockEntity>> SWALLOW_CYST =
             BLOCK_ENTITIES.register("swallow_cyst",
                     () -> new BlockEntityType<>(SwallowCystBlockEntity::new, ModBlocks.SWALLOW_CYST.get()));

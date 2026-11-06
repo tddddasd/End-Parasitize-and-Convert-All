@@ -5,7 +5,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.tdddd.epca.impl.utils.IPurpleLightningBolt;
 
-
 @Mixin(LightningBoltRenderState.class)
 public class LightningBoltRenderStateMixin implements IPurpleLightningBolt {
 

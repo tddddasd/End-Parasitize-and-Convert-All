@@ -9,25 +9,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.effect.ArayaClientCache;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-/**
- * Server to client batch sync of the render-only fire blocks the aura keeps alive.
- *
- * <p>The server decides where and when: it rolls the fire field around each holder, picks the positions,
- * and reports each block's lifetime and height, which the client only draws. The client never invents a
- * position, never extends a lifetime and never spawns a fire of its own, so a lagging client cannot drift
- * from the server's picture.</p>
- *
- * <h2>Payload</h2>
- * <p>A count, the absolute game tick the whole field was rolled at, and then that many entries of
- * {@code (blockPos, lifetimeTicks, height)}. The roll tick is sent once per batch instead of per entry,
- * because a field is always rolled as a whole; it is what makes every client put the same fire out at the
- * same instant, even one that connects in the middle of a wave. The height travels as a byte in
- * 1/255-block steps, which is finer than a pixel at any sane distance and keeps the packet small.</p>
- *
- * <h2>1.20.1 -&gt; 26.1.2</h2>
- * <p>A {@link CustomPacketPayload} with a {@link StreamCodec} instead of a {@code SimpleChannel} message;
- * the wire format is byte-for-byte the same.</p>
- */
 public class SyncArayaFirePacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncArayaFirePacket> TYPE =
@@ -36,10 +17,8 @@ public class SyncArayaFirePacket implements CustomPacketPayload {
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncArayaFirePacket> STREAM_CODEC =
             CustomPacketPayload.codec(SyncArayaFirePacket::encode, SyncArayaFirePacket::decode);
 
-    /** Hard cap on how many fire blocks one batch may carry, on the sending and receiving side. */
     public static final int MAX_ENTRIES = 256;
 
-    /** Height decode factor of the byte written by {@link #encode}. */
     public static final float HEIGHT_SCALE = 255.0F;
 
     private final long rolledAtTick;
@@ -61,7 +40,6 @@ public class SyncArayaFirePacket implements CustomPacketPayload {
         this.heights = heights;
     }
 
-    /** Ticks this entry was born before the batch's {@link #rolledAtTick}; zero for a fresh roll. */
     public long[] bornAgoTicks() {
         return this.bornAgoTicks;
     }
@@ -85,7 +63,7 @@ public class SyncArayaFirePacket implements CustomPacketPayload {
 
     public static SyncArayaFirePacket decode(RegistryFriendlyByteBuf buf) {
         int size = buf.readVarInt();
-        // Checked before the arrays are allocated, so a malformed count cannot blow up the client.
+
         if (size < 0 || size > MAX_ENTRIES) {
             throw new DecoderException(
                     "SyncArayaFirePacket: " + size + " entries exceeds " + MAX_ENTRIES);

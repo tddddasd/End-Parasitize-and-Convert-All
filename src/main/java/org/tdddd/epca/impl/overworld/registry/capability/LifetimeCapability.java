@@ -8,18 +8,16 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 
-
 @EventBusSubscriber(modid = epca.MODID)
 public class LifetimeCapability implements ILifetimeCapability, net.neoforged.neoforge.common.util.ValueIOSerializable {
 
-    
     public static final net.neoforged.neoforge.registries.DeferredHolder<
             net.neoforged.neoforge.attachment.AttachmentType<?>,
             net.neoforged.neoforge.attachment.AttachmentType<LifetimeCapability>> LIFETIME =
             EpcaAttachments.LIFETIME;
 
-    private int remainingTicks = -1; 
-    private LivingEntity entity;     
+    private int remainingTicks = -1;
+    private LivingEntity entity;
 
     public LifetimeCapability(LivingEntity entity) {
         this.entity = entity;
@@ -40,12 +38,10 @@ public class LifetimeCapability implements ILifetimeCapability, net.neoforged.ne
         if (remainingTicks > 0) {
             remainingTicks--;
             if (remainingTicks == 0 && entity != null && !entity.level().isClientSide()) {
-                entity.discard(); 
+                entity.discard();
             }
         }
     }
-
-    
 
     @Override
     public void serialize(ValueOutput output) {
@@ -57,12 +53,10 @@ public class LifetimeCapability implements ILifetimeCapability, net.neoforged.ne
         this.remainingTicks = input.getIntOr("RemainingTicks", -1);
     }
 
-    
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
         if (event.getEntity() instanceof LivingEntity living) {
-            
-            
+
             LifetimeCapability cap = living.getExistingDataOrNull(EpcaAttachments.LIFETIME);
             if (cap != null) {
                 cap.tick();

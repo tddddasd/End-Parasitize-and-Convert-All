@@ -9,7 +9,6 @@ import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.ui.JadeUI;
 
-
 public class BiomassCountEntityComponentProvider implements IEntityComponentProvider {
 
     public static final BiomassCountEntityComponentProvider INSTANCE = new BiomassCountEntityComponentProvider();

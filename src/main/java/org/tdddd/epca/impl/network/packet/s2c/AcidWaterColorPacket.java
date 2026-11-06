@@ -8,7 +8,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.WaterColorEffectsManager;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-
 public class AcidWaterColorPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<AcidWaterColorPacket> TYPE =

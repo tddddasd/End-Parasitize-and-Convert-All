@@ -29,43 +29,24 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onClientSetup1(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            // 1.20.1 registered the menu screen here through ItemProperties-driven model predicates. In 26.1.2
-            // the screen goes through RegisterMenuScreensEvent (see registerMenuScreens below) and item model
-            // predicates are data driven, so nothing is left to enqueue.
+
         });
-        // Item shader layer bindings (the corruption / decay overlay). The 1.20.1 tree forwarded its
-        // FMLClientSetupEvent to EpcaRenderClient.onClientSetup, which is what registers the shipped
-        // bindings; this keeps that entry point and that ordering.
+
         org.tdddd.epca.impl.client.render.EpcaRenderClient.onClientSetup(event);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(
                 org.tdddd.epca.impl.client.render.EpcaGibRenderer.class);
     }
 
-    /**
-     * 26.1.2: {@code MenuScreens#register} is private; NeoForge exposes the dedicated
-     * {@link RegisterMenuScreensEvent} on the mod bus instead.
-     */
     @SubscribeEvent
     public static void registerMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.SWALLOW_CYST.get(), SwallowCystScreen::new);
     }
 
-    /**
-     * 26.1.2: {@code ItemProperties.register(item, "stage", predicate)} was deleted along with the whole
-     * {@code ItemProperties} class  item model predicates are declared in resources and resolved through
-     * {@code RangeSelectItemModelProperty}. This registers the equivalent of the old {@code "stage"} predicate
-     * as {@code epca:evolution_stage} so {@code assets/epca/items/bloody_clock.json} can drive the model.
-     */
     @SubscribeEvent
     public static void registerItemModelProperties(RegisterRangeSelectItemModelPropertyEvent event) {
         event.register(Identifier.fromNamespaceAndPath(epca.MODID, "evolution_stage"), EvolutionStageProperty.MAP_CODEC);
     }
 
-    /**
-     * Numeric item model property reproducing the 1.20.1 {@code ItemProperties.register(bloodyClock, "stage", )}
-     * predicate: {@code stageForDimension(level) + 2}, evaluated against the item owner's level (or the item's
-     * own level when there is no living owner).
-     */
     public static class EvolutionStageProperty implements RangeSelectItemModelProperty {
         public static final MapCodec<EvolutionStageProperty> MAP_CODEC =
                 MapCodec.unit(new EvolutionStageProperty());
@@ -89,19 +70,6 @@ public class ClientSetup {
         }
     }
 
-    /**
-     *  GUI SPEC  1  B1 <b>H</b> -
-     *
-     * <p> NeoForge  {@link RegisterKeyMappingsEvent}mod
-     *  {@code ClientHandlerI}  {@code InputEvent.Key}  GLFW
-     *  SPEC " H"</p>
-     *
-     * <p>26.1.2{@code KeyMapping}
-     * {@code KeyMapping.Category} {@link HiveLeaderOrganKeys#CATEGORY}
-     *  lang  {@code key.category.epca.keys}
-     *  /  /
-     *  - </p>
-     */
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(HiveLeaderOrganKeys.OPEN_ORGANS);
@@ -113,7 +81,7 @@ public class ClientSetup {
     public static void registerParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModParticles.CONVERSION.get(), spriteSet ->
                 spriteSet == null ? null : new org.tdddd.epca.impl.client.particles.ConversionParticle.Provider(spriteSet, true));
-        // Variant 5: flat-on-the-ground burst, used by the Symbiosis Lie death burst.
+
         event.registerSpriteSet(ModParticles.HORIZONTAL_CONVERSION.get(), spriteSet ->
                 spriteSet == null ? null : new org.tdddd.epca.impl.client.particles.HorizontalConversionParticle.Provider(spriteSet));
         for (var type : java.util.List.of(ModParticles.INFESTED_CONVERSION, ModParticles.ONESENT_CONVERSION,
@@ -216,4 +184,3 @@ public class ClientSetup {
         event.registerSpriteSet(ModParticles.P_ADAPTATION.get(), AdaptationParticleProvider::new);
     }
 }
-

@@ -10,8 +10,6 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.particles.ConversionParticleType;
 
-// 26.1.2: removed @EventBusSubscriber -- this class declares no @SubscribeEvent methods,
-// and the loader now throws IllegalArgumentException when such a class is registered.
 public class ModParticles {
     public static final DeferredRegister<ParticleType<?>> REGISTRY =
             DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, epca.MODID);
@@ -62,10 +60,7 @@ public class ModParticles {
             REGISTRY.register("poverty_conversion", ConversionParticleType::new);
     public static final DeferredHolder<ParticleType<?>, ConversionParticleType> RESHAPE_CONVERSION =
             REGISTRY.register("reshape_conversion", ConversionParticleType::new);
-    /**
-     * Variant 5: same 10-frame burst, but the quad always lies flat on the XZ plane. This is the
-     * particle the Symbiosis Lie death burst spawns (see {@code SymbiosisDeathHandler}).
-     */
+
     public static final DeferredHolder<ParticleType<?>, ConversionParticleType> HORIZONTAL_CONVERSION =
             REGISTRY.register("horizontal_conversion", ConversionParticleType::new);
 

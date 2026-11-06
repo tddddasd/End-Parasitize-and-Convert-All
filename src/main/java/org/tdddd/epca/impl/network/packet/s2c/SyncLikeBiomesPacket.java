@@ -14,7 +14,6 @@ import org.tdddd.epca.impl.overworld.data.LikeBiomeSavedData;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Sends the whole like biome table of one dimension to its clients. */
 public class SyncLikeBiomesPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncLikeBiomesPacket> TYPE =

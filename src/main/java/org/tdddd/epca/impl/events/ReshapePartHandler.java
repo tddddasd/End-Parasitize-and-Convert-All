@@ -16,23 +16,22 @@ public class ReshapePartHandler {
 
     private static final String TARGET_ID = "epca:reshape_part";
 
-    
     @SubscribeEvent
     public static void onLevelTick(LevelTickEvent.Post event) {
-        
+
         if (event.getLevel().isClientSide()) {
             return;
         }
 
         Level level = event.getLevel();
-        
+
         AABB originBox = new AABB(BlockPos.ZERO).inflate(0.001);
 
         level.getEntities(null, originBox).forEach(entity -> {
-            
+
             Identifier rl = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
             if (rl != null && rl.toString().equals(TARGET_ID)) {
-                
+
                 if (entity.getX() == 0.0D && entity.getY() == 0.0D && entity.getZ() == 0.0D) {
                     entity.remove(Entity.RemovalReason.DISCARDED);
                 }

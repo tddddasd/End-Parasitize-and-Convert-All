@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.blocks;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -32,7 +33,6 @@ import org.tdddd.eej.api.AltarStructure;
 import org.tdddd.eej.impl.altar.AbstractAltarBlock;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,37 +40,25 @@ import java.util.List;
 import java.util.Locale;
 import net.minecraft.server.level.ServerPlayer;
 
-
 public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
 
-    
     private static final int RITUAL_SCAN_RADIUS = 72;
-    
+
     private static final double RITUAL_SPHERE_RADIUS = 1.5;
 
     @Override
     public InteractionResult onAltarUse(Level level, BlockPos pos, BlockState state,
                                         Player player, InteractionHand hand, ItemStack heldItem) {
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         if (!player.isShiftKeyDown() && heldItem.isEmpty()) {
             SacrificePlan plan = evaluateSacrifice(level, pos);
             if (plan.isOk()) {
                 performSacrifice(plan.serverLevel(), pos, player, plan.animals(), plan.villagers());
                 return InteractionResult.SUCCESS;
             }
-            
+
         }
 
-        
         if (heldItem.is(ModItems.KILL_STICK.get())) {
             if (!(state.getBlock() instanceof AbstractAltarBlock altarBlock)) {
                 return InteractionResult.PASS;
@@ -94,9 +82,6 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         return InteractionResult.PASS;
     }
 
-    
-
-    
     public enum SacrificeCheck {
         OK,
         NO_BASE,
@@ -111,7 +96,6 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         }
     }
 
-    
     private record SacrificePlan(SacrificeCheck result, @Nullable ServerLevel serverLevel,
                                  List<Animal> animals, List<LivingEntity> villagers) {
         static SacrificePlan failed(SacrificeCheck result) {
@@ -123,7 +107,6 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         }
     }
 
-    
     private SacrificePlan evaluateSacrifice(Level level, BlockPos pos) {
         if (level.isClientSide()) return SacrificePlan.failed(SacrificeCheck.NO_BASE);
         if (!(level instanceof ServerLevel serverLevel)) return SacrificePlan.failed(SacrificeCheck.NO_BASE);
@@ -146,8 +129,8 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         for (Entity e : entities) {
             if (e.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)
                     <= RITUAL_SPHERE_RADIUS * RITUAL_SPHERE_RADIUS) {
-                if (IParasite.isParasiteNoLivingByTagOrInterface(e)) {
-                    
+                if (ParasiteEvents.isParasiteNoLivingByTagOrInterface(e)) {
+
                     parasitePresent = true;
                     break;
                 }
@@ -163,16 +146,13 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         if (animals.size() < 2) return SacrificePlan.failed(SacrificeCheck.NOT_ENOUGH_ANIMALS);
         if (villagers.isEmpty()) return SacrificePlan.failed(SacrificeCheck.NOT_ENOUGH_VILLAGERS);
 
-        
         if (BlockConversionManager.getInstance().hasSacrificeTask(serverLevel, pos)) {
             return SacrificePlan.failed(SacrificeCheck.ALREADY_RUNNING);
         }
 
-        
         return new SacrificePlan(SacrificeCheck.OK, serverLevel, animals, villagers);
     }
 
-    
     private void performSacrifice(ServerLevel level, BlockPos pos, Player player,
                                   List<Animal> animals, List<LivingEntity> villagers) {
         int animalRemoved = 0;
@@ -209,7 +189,6 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
             pedestal.clearItem();
         }
 
-        
         double cx = pos.getX() + 0.5;
         double cy = pos.getY() + 1.0;
         double cz = pos.getZ() + 0.5;
@@ -228,15 +207,13 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
                     });
         }
         if (!queued) {
-            
+
             reportFailure(player, SacrificeCheck.ALREADY_RUNNING);
             return;
         }
 
-        // The ritual itself stays silent: no chat text for the initiator or for nearby players.
     }
 
-    
     private static void sacrificeFeedback(ServerLevel level, LivingEntity victim) {
         double x = victim.getX();
         double y = victim.getY() + victim.getBbHeight() * 0.5;
@@ -257,7 +234,6 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         return result;
     }
 
-    
     private static void reportFailure(Player player, SacrificeCheck check) {
         sendTo(player, Component.translatable(check.langKey()));
         if (player.level() instanceof ServerLevel serverLevel) {
@@ -278,12 +254,6 @@ public class EpcaAltarInteractionHandler implements AltarInteractionHandler {
         return item == Items.DIAMOND_BLOCK || item == Items.EMERALD_BLOCK || item == Items.AMETHYST_BLOCK;
     }
 
-    /**
-     * 26.1.2: {@code Player#displayClientMessage(Component, boolean)} was deleted; that action-bar
-     * variant now lives on {@code ServerPlayer#sendSystemMessage(Component, boolean)}. On the client
-     * this is a no-op, matching the old behaviour (these messages only came from the server-side
-     * altar interaction path).
-     */
     private static void sendTo(Player player, Component message) {
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.sendSystemMessage(message, true);

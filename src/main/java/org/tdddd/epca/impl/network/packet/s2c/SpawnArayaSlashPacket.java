@@ -8,23 +8,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.effect.ArayaSlashClientCache;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-/**
- * Server to client: one Alayavijnana slash was cut, draw it here.
- *
- * <p>Sent to every player in the level for every kill of another player by the named staff. The slash is
- * a pure visual, so it is not an entity: an entity would need a spawn packet, a tracker, an update packet
- * and a removal packet, and would tick on the server for something that only ever draws. One of these
- * packets instead carries the three things the renderer cannot derive - where the blade goes, which way
- * the cut came from (that is what fixes the 50-degree blade frame) and the world time it started at, so
- * growth, hold and fade run on the world clock on every client alike.</p>
- *
- * <p>The packet is deliberately fire-and-forget: the client drops the entry after
- * {@code SLASH_HOLD_TICKS + SLASH_FADE_TICKS}, and a client that joins later simply never saw it.</p>
- *
- * <h2>1.20.1 -&gt; 26.1.2</h2>
- * <p>A {@link CustomPacketPayload} with a {@link StreamCodec} instead of a {@code SimpleChannel} message;
- * the wire format is byte-for-byte the same.</p>
- */
 public class SpawnArayaSlashPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SpawnArayaSlashPacket> TYPE =

@@ -13,7 +13,6 @@ import org.tdddd.epca.impl.overworld.registry.items.item.InfestedFlesh;
 import org.tdddd.epca.impl.overworld.registry.items.item.LivingArmorBox;
 import org.tdddd.epca.impl.overworld.registry.items.item.ParasiteViscera;
 
-
 public class KeyPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<KeyPacket> TYPE =
@@ -47,7 +46,6 @@ public class KeyPacket implements CustomPacketPayload {
         });
     }
 
-    
     private static boolean isEdible(ItemStack stack) {
         return stack.get(DataComponents.FOOD) != null;
     }

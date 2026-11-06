@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.special;
 
+import net.minecraft.world.entity.LivingEntity;
+
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.UUIDUtil;
@@ -28,11 +30,10 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import org.jetbrains.annotations.Nullable;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.UUID;
 
-public class YawningNya extends PathfinderMob implements IParasite {
+public class YawningNya extends PathfinderMob {
     private static final EntityDataAccessor<Boolean> DATA_HAS_REVENGE =
             SynchedEntityData.defineId(YawningNya.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_HAS_SHOWN_JOIN_MESSAGE =
@@ -45,13 +46,11 @@ public class YawningNya extends PathfinderMob implements IParasite {
     public YawningNya(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
 
-        
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     @Override
@@ -61,7 +60,6 @@ public class YawningNya extends PathfinderMob implements IParasite {
         entityData.define(DATA_HAS_SHOWN_JOIN_MESSAGE, false);
     }
 
-    
     public static AttributeSupplier createAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
@@ -69,7 +67,7 @@ public class YawningNya extends PathfinderMob implements IParasite {
                 .add(Attributes.ATTACK_DAMAGE, 1.0D)
                 .add(Attributes.FOLLOW_RANGE, 16.0D)
                 .add(Attributes.ARMOR, 0.0D)
-                .add(Attributes.ATTACK_SPEED, 4.0D) 
+                .add(Attributes.ATTACK_SPEED, 4.0D)
                 .build();
     }
 
@@ -81,7 +79,6 @@ public class YawningNya extends PathfinderMob implements IParasite {
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
 
-        
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
     }
 
@@ -89,13 +86,11 @@ public class YawningNya extends PathfinderMob implements IParasite {
     public void tick() {
         super.tick();
 
-        
         if (!this.level().isClientSide() && !this.entityData.get(DATA_HAS_SHOWN_JOIN_MESSAGE)) {
             this.showJoinMessage();
             this.entityData.set(DATA_HAS_SHOWN_JOIN_MESSAGE, true);
         }
 
-        
         if (this.attackStrengthTicker > 0) {
             --this.attackStrengthTicker;
         }
@@ -111,10 +106,9 @@ public class YawningNya extends PathfinderMob implements IParasite {
 
     private void showJoinMessage() {
         if (this.level() instanceof ServerLevel serverLevel) {
-            
+
             Component joinMessage = Component.translatable("entity.epca.yawning_nya.join");
 
-            
             serverLevel.getServer().getPlayerList().broadcastSystemMessage(joinMessage, false);
         }
     }
@@ -125,9 +119,8 @@ public class YawningNya extends PathfinderMob implements IParasite {
         if (attacker instanceof LivingEntity && attacker != this && revengeCooldown <= 0) {
             this.lastAttacker = attacker.getUUID();
             this.entityData.set(DATA_HAS_REVENGE, true);
-            this.revengeCooldown = 100; 
+            this.revengeCooldown = 100;
 
-            
             if (attacker instanceof LivingEntity livingAttacker) {
                 this.setLastHurtByMob(livingAttacker);
                 this.doHurtTarget(serverLevel, livingAttacker);
@@ -137,46 +130,38 @@ public class YawningNya extends PathfinderMob implements IParasite {
         return super.hurtServer(serverLevel, source, amount);
     }
 
-    
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
-        
+
         ItemStack mainHandItem = this.getMainHandItem();
 
-        
         float baseDamage = (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE);
         if (!mainHandItem.isEmpty()) {
-            
+
             baseDamage += getWeaponAttackDamage(mainHandItem);
         }
 
-        
         this.playSound(SoundEvents.PLAYER_ATTACK_WEAK, 1.0F, 1.0F);
 
         DamageSource damageSource = this.damageSources().mobAttack(this);
-        
-        // EnchantmentHelper#modifyDamage inside the damage pipeline, so it is no longer
-        // computed here with EnchantmentHelper#getDamageBonus.
+
         float totalDamage = EnchantmentHelper.modifyDamage(level, mainHandItem, target, damageSource, baseDamage);
 
         boolean attacked = target.hurtServer(level, damageSource, totalDamage);
 
         if (attacked) {
-            
+
             if (!mainHandItem.isEmpty() && target instanceof LivingEntity) {
                 EnchantmentHelper.doPostAttackEffects(level, target, damageSource);
 
-                
                 if (mainHandItem.isDamageableItem()) {
                     mainHandItem.hurtAndBreak(1, this, EquipmentSlot.MAINHAND);
                 }
             }
 
-            
             this.setLastHurtMob(target);
 
-            
-            this.attackStrengthTicker = 20; 
+            this.attackStrengthTicker = 20;
         }
 
         return attacked;
@@ -192,7 +177,6 @@ public class YawningNya extends PathfinderMob implements IParasite {
         return (float) attackDamage[0];
     }
 
-    
     public float getAttackDamage() {
         ItemStack mainHandItem = this.getMainHandItem();
         float baseDamage = (float)this.getAttributeValue(Attributes.ATTACK_DAMAGE);
@@ -201,12 +185,10 @@ public class YawningNya extends PathfinderMob implements IParasite {
             baseDamage += getWeaponAttackDamage(mainHandItem);
         }
 
-        
         float cooldownPercent = this.getAttackStrengthScale(0.0F);
         return baseDamage * (0.2F + cooldownPercent * cooldownPercent * 0.8F);
     }
 
-    
     public float getAttackStrengthScale(float adjustTicks) {
         float attackStrength = (float)this.attackStrengthTicker - adjustTicks;
         if (attackStrength < 0.0F) {
@@ -216,7 +198,6 @@ public class YawningNya extends PathfinderMob implements IParasite {
         return attackStrength / 20.0F;
     }
 
-    
     @Override
     public ItemStack getMainHandItem() {
         return this.getItemInHand(InteractionHand.MAIN_HAND);
@@ -261,29 +242,25 @@ public class YawningNya extends PathfinderMob implements IParasite {
         this.lastAttacker = input.read("LastAttacker", UUIDUtil.CODEC).orElse(null);
     }
 
-    
     @Override
     public boolean canHoldItem(ItemStack stack) {
         return true;
     }
 
-
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean killedByPlayer) {
         super.dropCustomDeathLoot(level, source, killedByPlayer);
-        
+
         if (!this.getMainHandItem().isEmpty()) {
             this.spawnAtLocation(level, this.getMainHandItem().copy());
         }
     }
-
 
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return false;
     }
 
-    
     @Override
     public boolean isAffectedByPotions() {
         return true;
@@ -304,37 +281,32 @@ public class YawningNya extends PathfinderMob implements IParasite {
         return HumanoidArm.RIGHT;
     }
 
-
-    
     @Override
     public void setHealth(float health) {
-        
+
         super.setHealth(this.getMaxHealth());
     }
 
-    
     @Override
     public void die(DamageSource damageSource) {
-        
-        
+
     }
 
     @Override
     public boolean isDeadOrDying() {
-        
+
         return false;
     }
 
     @Override
     public boolean isAlive() {
-        
+
         return true;
     }
 
     @Override
     public void kill(ServerLevel level) {
-        
-        
+
     }
 
     public static boolean checkNyaSpawnRules(
@@ -344,7 +316,7 @@ public class YawningNya extends PathfinderMob implements IParasite {
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
 }

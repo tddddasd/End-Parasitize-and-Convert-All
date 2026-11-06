@@ -20,7 +20,6 @@ public class CustomTabRenderer {
             return;
         }
 
-        
         CreativeModeTab selectedTab = CreativeModeInventoryScreen.selectedTab;
         if (!(selectedTab instanceof CustomTab customTab)) {
             return;
@@ -29,7 +28,7 @@ public class CustomTabRenderer {
         var graphics = event.getGuiGraphics();
         int mouseX = (int) mc.mouseHandler.xpos();
         int mouseY = (int) mc.mouseHandler.ypos();
-        // 26.1.2: RenderGuiEvent#getPartialTick() returns a DeltaTracker, not a float.
+
         float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
 
         int leftPos = creativeScreen.width;

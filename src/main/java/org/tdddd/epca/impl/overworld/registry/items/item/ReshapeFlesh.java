@@ -14,25 +14,25 @@ public class ReshapeFlesh extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(7)  
-                .saturationModifier(0.2F)  
+                .nutrition(7)
+                .saturationModifier(0.2F)
                 .build();
     }
 
     private static Consumable createConsumable() {
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.PARA_CURSE,  
-                        15 * 20,  
-                        0  
-                ), 0.6F))  
+                        ModEffects.PARA_CURSE,
+                        15 * 20,
+                        0
+                ), 0.6F))
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        MobEffects.POISON,  
-                        5 * 20,  
-                        0  
-                ), 0.9F))  
+                        MobEffects.POISON,
+                        5 * 20,
+                        0
+                ), 0.9F))
                 .build();
     }
 }

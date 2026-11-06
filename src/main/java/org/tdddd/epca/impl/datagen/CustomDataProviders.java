@@ -16,34 +16,28 @@ import java.util.concurrent.CompletableFuture;
 
 import static net.minecraft.data.DataProvider.saveStable;
 
-
 public class CustomDataProviders {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    
     private static Path dataPath(PackOutput out, String subfolder, String file) {
         return out.getOutputFolder(PackOutput.Target.DATA_PACK)
                 .resolve(epca.MODID + "/" + subfolder + "/" + file + ".json");
     }
 
-    
     private static String regName(EntityType<?> type) {
         return Objects.requireNonNull(BuiltInRegistries.ENTITY_TYPE.getKey(type)).toString();
     }
-
-    //  1. Entity Conversions
 
     public static class EntityConversionRule {
         public String from, to, fins_to, mozzie_to;
         public boolean small_entity_priority = true;
         public int priority = 0;
         public Map<String, Object> nbt_conditions;
-        
+
         public Boolean meat_particles;
     }
 
-    
     private static final Set<String> NO_MEAT_PARTICLES = Set.of(
             "skeleton", "bat", "villager", "pillager", "vindcator", "enderman", "endermite",
             "silverfish", "slime_size0", "slime_size1", "slime_size3", "creeper", "iron_golem",
@@ -59,7 +53,6 @@ public class CustomDataProviders {
         public CompletableFuture<?> run(CachedOutput cache) {
             List<CompletableFuture<?>> tasks = new ArrayList<>();
 
-            
             conv(cache, tasks, "cow",      EntityType.COW,      ModEntities.INFESTED_COW,            true,  1);
             conv(cache, tasks, "chicken",  EntityType.CHICKEN,  ModEntities.INFESTED_CHICKEN,         false, 1);
             conv(cache, tasks, "pig",      EntityType.PIG,      ModEntities.INFESTED_PIG,             true,  1);
@@ -77,19 +70,15 @@ public class CustomDataProviders {
             conv(cache, tasks, "vindcator",EntityType.VINDICATOR,ModEntities.INFESTED_VINDICATOR,     true,  1);
             conv(cache, tasks, "endermite",EntityType.ENDERMITE, ModEntities.INFESTED_ENDERMITE,      true,  1);
             conv(cache, tasks, "silverfish",EntityType.SILVERFISH,ModEntities.INFESTED_SILVERFISH,    true,  1);
-            // Spiders: both vanilla spiders convert into the single infested_spider type. The variant
-            // (DEFAULT vs CAVE) is assigned by ParaCurseEffect#convertUsingDataPackRule, because a
-            // data-driven rule can only name the target entity type, not a variant of it.
+
             conv(cache, tasks, "spider",      EntityType.SPIDER,      ModEntities.INFESTED_SPIDER, true, 1);
             conv(cache, tasks, "cave_spider", EntityType.CAVE_SPIDER, ModEntities.INFESTED_SPIDER, true, 1);
             conv(cache, tasks, "bat",EntityType.BAT ,ModEntities.INFESTED_BAT,    true,  1);
 
-            
             convNbt(cache, tasks, "slime_size0", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE0, false, 1, Map.of("Size", 0));
             convNbt(cache, tasks, "slime_size1", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE1, true,  1, Map.of("Size", 1));
             convNbt(cache, tasks, "slime_size3", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE3, true,  1, Map.of("Size", 3));
 
-            
             conv(cache, tasks, "cow_baby",      EntityType.COW,      ModEntities.INFESTED_COW,      true,  0);
             conv(cache, tasks, "chicken_baby",  EntityType.CHICKEN,  ModEntities.INFESTED_CHICKEN,  false, 0);
             conv(cache, tasks, "pig_baby",      EntityType.PIG,      ModEntities.INFESTED_PIG,      true,  0);
@@ -100,10 +89,8 @@ public class CustomDataProviders {
             conv(cache, tasks, "husk_baby",     EntityType.HUSK,     ModEntities.INFESTED_HUSK,     true,  0);
             conv(cache, tasks, "drowned_baby",  EntityType.DROWNED,  ModEntities.INFESTED_DROWNED,  true,  0);
 
-            
             convBoss(cache, tasks, "ender_dragon",      EntityType.ENDER_DRAGON,    true, 1);
 
-            
             convMozzie(cache, tasks, "creeper", EntityType.CREEPER);
             convMozzie(cache, tasks, "iron_golem", EntityType.IRON_GOLEM);
             convMozzie(cache, tasks, "guardian", EntityType.GUARDIAN);
@@ -117,33 +104,30 @@ public class CustomDataProviders {
             return CompletableFuture.allOf(tasks.toArray(CompletableFuture[]::new));
         }
 
-        
-
-        /** from=EntityType, to=DeferredHolder */
         private void conv(CachedOutput c, List<CompletableFuture<?>> tasks,
                           String file, EntityType<?> from, DeferredHolder<EntityType<?>, ? extends EntityType<?>> to,
                           boolean smallPrio, int prio) {
             tasks.add(write(c, file, regName(from), regName(to.get()), smallPrio, prio, null));
         }
-        
+
         private void conv(CachedOutput c, List<CompletableFuture<?>> tasks,
                           String file, DeferredHolder<EntityType<?>, ? extends EntityType<?>> from,
                           DeferredHolder<EntityType<?>, ? extends EntityType<?>> to,
                           boolean smallPrio, int prio) {
             tasks.add(write(c, file, regName(from.get()), regName(to.get()), smallPrio, prio, null));
         }
-        
+
         private void convBoss(CachedOutput c, List<CompletableFuture<?>> tasks,
                               String file, EntityType<?> from, boolean smallPrio, int prio) {
             tasks.add(write(c, file, regName(from), null, smallPrio, prio, null));
         }
-        
+
         private void convNbt(CachedOutput c, List<CompletableFuture<?>> tasks,
                              String file, EntityType<?> from, DeferredHolder<EntityType<?>, ? extends EntityType<?>> to,
                              boolean smallPrio, int prio, Map<String, Object> nbt) {
             tasks.add(write(c, file, regName(from), regName(to.get()), smallPrio, prio, nbt));
         }
-        
+
         private void convMozzie(CachedOutput c, List<CompletableFuture<?>> tasks,
                                 String file, EntityType<?> from) {
             EntityConversionRule rule = new EntityConversionRule();
@@ -158,7 +142,6 @@ public class CustomDataProviders {
                     dataPath(out, "entity_conversions", file)));
         }
 
-        
         private CompletableFuture<?> write(CachedOutput c, String file,
                                             String from, String to, boolean smallPrio, int prio,
                                             Map<String, Object> nbt) {
@@ -177,8 +160,6 @@ public class CustomDataProviders {
 
         @Override public String getName() { return "EPCA Entity Conversions"; }
     }
-
-    //  3. Entity Carry
 
     public static class EntityCarryData {
         public List<String> carryable;
@@ -237,8 +218,6 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Entity Carry"; }
     }
 
-    //  4. Block Conversions
-
     public static class BlockConversionsData {
         public Map<String, String> conversions;
         BlockConversionsData(Map<String, String> c) { this.conversions = c; }
@@ -264,7 +243,7 @@ public class CustomDataProviders {
 
         @Override
         public CompletableFuture<?> run(CachedOutput cache) {
-            // general
+
             Map<String, String> general = new LinkedHashMap<>();
             put(general, "minecraft:dirt", "epca:infested_dirt");
             put(general, "minecraft:grass_block", "epca:infested_dirt");
@@ -280,7 +259,6 @@ public class CustomDataProviders {
             put(general, "minecraft:dirt_path", "epca:infested_dirt");
             put(general, "minecraft:farmland", "epca:infested_dirt");
 
-            
             for (String wood : Arrays.asList("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry")) {
                 put(general, "minecraft:" + wood + "_planks", "epca:infested_planks");
                 put(general, "minecraft:" + wood + "_slab", "epca:infested_planks_slab");
@@ -288,7 +266,6 @@ public class CustomDataProviders {
                 put(general, "minecraft:" + wood + "_fence", "epca:infested_planks_fence");
             }
 
-            
             for (String wood : Arrays.asList("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry")) {
                 put(general, "minecraft:" + wood + "_log", "epca:infested_log");
                 put(general, "minecraft:" + wood + "_wood", "epca:infested_wood");
@@ -297,12 +274,10 @@ public class CustomDataProviders {
                 put(general, "minecraft:" + wood + "_leaves", "epca:infested_leaves");
             }
 
-            
             put(general, "minecraft:sand", "epca:infested_sand");
             put(general, "minecraft:suspicious_sand", "epca:infested_sand");
             put(general, "minecraft:red_sand", "epca:infested_sand");
 
-            
             put(general, "minecraft:stone", "epca:infested_stone");
             put(general, "minecraft:diorite", "epca:infested_stone");
             put(general, "minecraft:andesite", "epca:infested_stone");
@@ -315,7 +290,6 @@ public class CustomDataProviders {
             put(general, "minecraft:polished_andesite", "epca:infested_polished_stone");
             put(general, "minecraft:polished_granite", "epca:infested_polished_stone");
 
-            
             put(general, "minecraft:stone_slab", "epca:infested_stone_slab");
             put(general, "minecraft:diorite_slab", "epca:infested_stone_slab");
             put(general, "minecraft:andesite_slab", "epca:infested_stone_slab");
@@ -325,7 +299,6 @@ public class CustomDataProviders {
             put(general, "minecraft:polished_andesite_slab", "epca:infested_polished_stone_slab");
             put(general, "minecraft:polished_granite_slab", "epca:infested_polished_stone_slab");
 
-            
             put(general, "minecraft:stone_stairs", "epca:infested_stone_stairs");
             put(general, "minecraft:diorite_stairs", "epca:infested_stone_stairs");
             put(general, "minecraft:andesite_stairs", "epca:infested_stone_stairs");
@@ -334,12 +307,10 @@ public class CustomDataProviders {
             put(general, "minecraft:polished_andesite_stairs", "epca:infested_polished_stone_stairs");
             put(general, "minecraft:polished_granite_stairs", "epca:infested_polished_stone_stairs");
 
-            
             put(general, "minecraft:diorite_wall", "epca:infested_stone_wall");
             put(general, "minecraft:andesite_wall", "epca:infested_stone_wall");
             put(general, "minecraft:granite_wall", "epca:infested_stone_wall");
 
-            
             put(general, "minecraft:cobblestone", "epca:infested_cobblestone");
             put(general, "minecraft:mossy_cobblestone", "epca:infested_cobblestone");
             put(general, "minecraft:cobblestone_slab", "epca:infested_cobblestone_slab");
@@ -349,7 +320,6 @@ public class CustomDataProviders {
             put(general, "minecraft:cobblestone_wall", "epca:infested_cobblestone_wall");
             put(general, "minecraft:mossy_cobblestone_wall", "epca:infested_cobblestone_wall");
 
-            
             put(general, "minecraft:stone_bricks", "epca:infested_stone_bricks");
             put(general, "minecraft:mossy_stone_bricks", "epca:infested_stone_bricks");
             put(general, "minecraft:stone_brick_slab", "epca:infested_stone_bricks_slab");
@@ -361,7 +331,6 @@ public class CustomDataProviders {
             put(general, "minecraft:cracked_stone_bricks", "epca:infested_cracked_stone_bricks");
             put(general, "minecraft:chiseled_stone_bricks", "epca:infested_chiseled_stone_bricks");
 
-            
             put(general, "minecraft:sandstone", "epca:infested_sandstone");
             put(general, "minecraft:red_sandstone", "epca:infested_sandstone");
             put(general, "minecraft:sandstone_slab", "epca:infested_sandstone_slab");
@@ -383,7 +352,6 @@ public class CustomDataProviders {
             put(general, "minecraft:smooth_sandstone_stairs", "epca:infested_smooth_sandstone_stairs");
             put(general, "minecraft:smooth_red_sandstone_stairs", "epca:infested_smooth_sandstone_stairs");
 
-            
             put(general, "minecraft:coal_ore", "epca:infested_coal_ore");
             put(general, "minecraft:copper_ore", "epca:infested_copper_ore");
             put(general, "minecraft:iron_ore", "epca:infested_iron_ore");
@@ -393,11 +361,9 @@ public class CustomDataProviders {
             put(general, "minecraft:emerald_ore", "epca:infested_emerald_ore");
             put(general, "minecraft:diamond_ore", "epca:infested_diamond_ore");
 
-            
             put(general, "minecraft:snow", "epca:infested_snow");
             put(general, "minecraft:snow_block", "epca:infested_snow_block");
 
-            
             put(general, "minecraft:infested_cobblestone", "epca:infested_infested_cobblestone");
             put(general, "minecraft:infested_stone", "epca:infested_infested_stone");
             put(general, "minecraft:infested_stone_bricks", "epca:infested_infested_stone_bricks");
@@ -405,14 +371,11 @@ public class CustomDataProviders {
             put(general, "minecraft:infested_cracked_stone_bricks", "epca:infested_infested_cracked_stone_bricks");
             put(general, "minecraft:infested_chiseled_stone_bricks", "epca:infested_infested_chiseled_stone_bricks");
 
-            
             put(general, "caerula_arbor:sea_trail_grown", "epca:infested_nethersea_brand_grown");
             put(general, "caerula_arbor:sea_trail_solid", "epca:infested_nethersea_brand_solid");
 
-            
             put(general, "minecraft:pointed_dripstone", "epca:infested_pointed_dripstone");
 
-            
             put(general, "minecraft:deepslate", "epca:infested_heavy_stone");
             put(general, "minecraft:tuff", "epca:infested_heavy_stone");
             put(general, "minecraft:infested_deepslate", "epca:infested_infested_heavy_stone");
@@ -454,24 +417,21 @@ public class CustomDataProviders {
             put(general, "minecraft:short_grass", "epca:infested_grass");
             put(general, "minecraft:dead_bush", "epca:infested_dead_bush");
 
-            // Moss. The moss BLOCK entry comes first so that the reverse purification lookup below
-            // picks a source that exists in this version.
             put(general, "minecraft:moss_block", "epca:infested_moss_block");
             put(general, "minecraft:pale_moss_block", "epca:infested_moss_block");
             put(general, "minecraft:moss_carpet", "epca:infested_moss_carpet");
             put(general, "minecraft:pale_moss_carpet", "epca:infested_moss_carpet");
-            // Bush and dry grass.
+
             put(general, "minecraft:bush", "epca:infested_bush");
             put(general, "minecraft:short_dry_grass", "epca:infested_short_dry_grass");
             put(general, "minecraft:tall_dry_grass", "epca:infested_tall_dry_grass");
-            // Vanilla firefly bush becomes infested SHORT GRASS (not a bush) by explicit request.
+
             put(general, "minecraft:firefly_bush", "epca:infested_short_grass");
             put(general, "minecraft:fern", "epca:infested_fern");
             put(general, "minecraft:tall_grass", "epca:infested_tall_grass");
             put(general, "minecraft:large_fern", "epca:infested_tall_fern");
             put(general, "minecraft:chiseled_deepslate", "epca:infested_chiseled_deepslate");
 
-            
             Map<String, String> beckon = new LinkedHashMap<>(general);
 
             return CompletableFuture.allOf(
@@ -489,8 +449,6 @@ public class CustomDataProviders {
         }
         @Override public String getName() { return "EPCA Block Conversions"; }
     }
-
-    //  5. Biomass Spawns
 
     public static class SpawnEffect {
         public String effect; public int duration; public int amplifier;
@@ -558,4 +516,3 @@ public class CustomDataProviders {
         @Override public String getName() { return "EPCA Biomass Spawns"; }
     }
 }
-

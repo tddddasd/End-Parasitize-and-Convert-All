@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.effects.debuff;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
@@ -19,7 +20,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import org.tdddd.epca.impl.ModConfig;
 import org.tdddd.epca.impl.overworld.data.EntityConversionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 
@@ -27,7 +27,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ContemptInorganicEffect extends MobEffect {
-    /** Erosion points granted when this effect converts a creature. */
+
     private static final int CONTEMPT_CONVERSION_POINTS = 4;
 
     private static final int BASE_DURATION = 1200;
@@ -45,21 +45,15 @@ public class ContemptInorganicEffect extends MobEffect {
         super(MobEffectCategory.BENEFICIAL, 0x6B3E2A);
     }
 
-    // 26.1.2: LivingEntity#getEffect/addEffect and MobEffectInstance(Holder<MobEffect>, ...) take a Holder.
-    // Resolving this instance through the registry yields the canonical holder it was registered with.
     private Holder<MobEffect> holder() {
         return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(this);
     }
 
-    // 26.1.2: isDurationEffectTick(duration, amplifier) -> shouldApplyEffectTickThisTick(tickCount, amplification).
-    // 1.20.1 returned true unconditionally and the body below enforces its own cadence.
     @Override
     public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
         return true;
     }
 
-    // 26.1.2: applyEffectTick(LivingEntity,int) -> applyEffectTick(ServerLevel,LivingEntity,int):boolean.
-    // The body is unchanged; the isClientSide() early-out is now implied by the ServerLevel parameter.
     @Override
     public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         long gameTime = serverLevel.getGameTime();
@@ -68,13 +62,11 @@ public class ContemptInorganicEffect extends MobEffect {
         if (currentEffect == null) return true;
         int duration = currentEffect.getDuration();
 
-        
         if (duration <= 1 && !(entity instanceof Player)) {
             entity.addEffect(new MobEffectInstance(holder(), BASE_DURATION, 0, false, false, true));
             return true;
         }
 
-        
         long lastParaCurseTime = entity.getPersistentData().getLong(TAG_LAST_PARA_CURSE_TIME).orElse(0L);
         if (lastParaCurseTime == 0) {
             lastParaCurseTime = gameTime - PARA_CURSE_INTERVAL;
@@ -85,7 +77,6 @@ public class ContemptInorganicEffect extends MobEffect {
             entity.getPersistentData().putLong(TAG_LAST_PARA_CURSE_TIME, gameTime);
         }
 
-        
         if (entity instanceof Player player) {
             long nextSoundTime = entity.getPersistentData().getLong(TAG_NEXT_SOUND_TIME).orElse(0L);
             if (nextSoundTime == 0) {
@@ -101,30 +92,25 @@ public class ContemptInorganicEffect extends MobEffect {
             }
         }
 
-        
         if (!entity.getPersistentData().getBoolean(TAG_CONVERTED_BY_CONTEMPT).orElse(false)) {
             MobEffectInstance para_curse = entity.getEffect(ModEffects.PARA_CURSE);
             if (para_curse != null && entity.getHealth() <= entity.getMaxHealth() * 0.5f) {
-                
+
                 tryPerformConversion(entity);
             }
         }
         return true;
     }
 
-    // 26.1.2: Entity#saveWithoutId now writes into a ValueOutput. EntityConversionManager still matches
-    // its datapack rules against a CompoundTag, so the entity is serialised through TagValueOutput with
-    // the entity's registry context -- the same field set (including "Age") that 1.20.1 produced.
     private static CompoundTag saveEntityTag(LivingEntity entity) {
         TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, entity.registryAccess());
         entity.saveWithoutId(output);
         return output.buildResult();
     }
 
-    
     private void tryPerformConversion(LivingEntity entity) {
-        
-        if (entity instanceof Player || IParasite.isParasiteByTagOrInterface(entity)) {
+
+        if (entity instanceof Player || ParasiteEvents.isParasiteByTagOrInterface(entity)) {
             return;
         }
         if (ModConfig.isInConversionModImmunityWhitelist(entity)) {
@@ -144,19 +130,16 @@ public class ContemptInorganicEffect extends MobEffect {
                 try {
                     Entity newEntity = targetType.create(serverLevel, net.minecraft.world.entity.EntitySpawnReason.CONVERSION);
                     if (newEntity != null) {
-                        
+
                         newEntity.setPos(entity.getX(), entity.getY(), entity.getZ());
                         newEntity.setYRot(entity.getYRot());
                         newEntity.setXRot(entity.getXRot());
 
-                        
                         playConversionEffects(entity);
 
-                        
                         entity.remove(Entity.RemovalReason.KILLED);
                         entity.teleportTo(1000000, -4000, 1000000);
 
-                        
                         serverLevel.addFreshEntity(newEntity);
 
                         var evolution = org.tdddd.epca.impl.overworld.data.EvolutionManager
@@ -165,17 +148,15 @@ public class ContemptInorganicEffect extends MobEffect {
                             evolution.addPoints(CONTEMPT_CONVERSION_POINTS);
                         }
 
-                        
                         entity.getPersistentData().putBoolean(TAG_CONVERTED_BY_CONTEMPT, true);
                     }
                 } catch (Exception e) {
-                    
+
                 }
             }
         }
     }
 
-    
     private void playConversionEffects(LivingEntity entity) {
         entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 SoundEvents.ZOMBIE_INFECT, SoundSource.HOSTILE, 0.8F, 1.2F);
@@ -185,7 +166,7 @@ public class ContemptInorganicEffect extends MobEffect {
 
     private static void spawnConversionParticles(LivingEntity entity) {
         if (entity.level() instanceof ServerLevel serverLevel) {
-            // 26.1.2: the conversion burst is EPCA meat particles (3~5) instead of explosions.
+
             net.minecraft.util.RandomSource random = entity.getRandom();
             int count = 3 + random.nextInt(3);
             serverLevel.sendParticles(ModParticles.LIVING_FLESH.get(),

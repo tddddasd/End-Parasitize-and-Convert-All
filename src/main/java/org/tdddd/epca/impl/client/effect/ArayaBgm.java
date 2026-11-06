@@ -12,39 +12,10 @@ import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.events.ArayaConstants;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 
-/**
- * The looping BGM the Alayavijnana staff plays while its  counter is at or above
- * {@link ArayaConstants#TIANSHA_THRESHOLD}.
- *
- * <h2>Why this is an {@link AbstractSoundInstance} and not a {@code level.playSound}</h2>
- * <p>A level sound is fire-and-forget: vanilla picks one {@code Sound} from the event's list, plays it
- * once and forgets it. This track is 184 seconds long, has to <b>loop</b> for as long as the condition
- * holds, has to be stoppable the instant the holder loses the staff or walks away, and must not be
- * distance-filtered by vanilla's own attenuation (that would fade a 3 MB music track down to nothing
- * over 16 blocks). Owning the instance is the only way to get all three.</p>
- *
- * <h2>Positioning and volume</h2>
- * <p>The instance is deliberately <b>non-attenuated</b> ({@link SoundInstance.Attenuation#NONE}) and
- * carries the holder's position as its own position, so the track is not panned or occluded. The audible
- * radius is expressed by {@link #getVolume()}, which fades the track down over the outer part of
- * {@link ArayaConstants#BGM_STOP_RADIUS} and is recomputed on every query; the manager stops the loop
- * once that radius is crossed.</p>
- *
- * <h2>Lifecycle</h2>
- * <p>One instance is created when the loop starts and destroyed ({@code SoundManager#stop}) when it ends.
- * {@link ArayaBgmManager} owns the single live instance, so there is never more than one track playing
- * and never a dangling one.</p>
- *
- * <h2>1.20.1 -&gt; 26.1.2</h2>
- * <p>The only difference is {@code ResourceLocation} becoming {@link Identifier}; the superclass
- * constructor,{@code SoundSource}, {code Attenuation} and the volume override are identical.</p>
- */
 public final class ArayaBgm extends AbstractSoundInstance {
 
-    /** Sound event id; {@code sounds.json} must list the file with {@code stream: true}. */
     public static final Identifier ID = Identifier.fromNamespaceAndPath(epca.MODID, "araya");
 
-    /** Holder position this instance currently follows. */
     private Vec3 holderPosition;
 
     private ArayaBgm(Vec3 holderPosition) {
@@ -60,11 +31,9 @@ public final class ArayaBgm extends AbstractSoundInstance {
         this.z = holderPosition.z;
     }
 
-    /** Starts the loop at the given holder, or returns {@code null} when the asset is not installed. */
     public static ArayaBgm start(SoundManager soundManager, Vec3 holderPosition) {
         if (!ArayaBgmManager.isAssetPresent()) {
-            // The sound event exists (sounds.json ships it) but the OGG may not: rather than firing a
-            // missing-sound warning every time somebody reaches nine kills, the loop is skipped.
+
             return null;
         }
         ArayaBgm instance = new ArayaBgm(holderPosition);
@@ -72,7 +41,6 @@ public final class ArayaBgm extends AbstractSoundInstance {
         return instance;
     }
 
-    /** Follows the holder; the position is only used for the source, the volume is computed. */
     public void follow(Vec3 position) {
         this.holderPosition = position;
         this.x = position.x;
@@ -84,11 +52,6 @@ public final class ArayaBgm extends AbstractSoundInstance {
         return this.holderPosition;
     }
 
-    /**
-     * Volume as a function of how far the local listener is from the holder: full up to
-     * {@link ArayaConstants#BGM_RADIUS}, then a linear ramp down to silence at
-     * {@link ArayaConstants#BGM_STOP_RADIUS}, where the manager stops the instance.
-     */
     @Override
     public float getVolume() {
         Minecraft minecraft = Minecraft.getInstance();
@@ -104,7 +67,6 @@ public final class ArayaBgm extends AbstractSoundInstance {
         return (float) Math.max(0.0D, this.volume * (1.0D - t));
     }
 
-    /** Distance from the local listener to the holder, or {@code Double.MAX_VALUE} without a player. */
     public double listenerDistance() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
@@ -113,4 +75,3 @@ public final class ArayaBgm extends AbstractSoundInstance {
         return minecraft.player.position().distanceTo(this.holderPosition);
     }
 }
-

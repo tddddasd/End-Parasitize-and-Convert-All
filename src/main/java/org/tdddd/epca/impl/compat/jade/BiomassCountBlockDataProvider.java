@@ -7,7 +7,6 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBloc
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IServerDataProvider;
 
-
 public class BiomassCountBlockDataProvider implements IServerDataProvider<BlockAccessor> {
 
     public static final BiomassCountBlockDataProvider INSTANCE = new BiomassCountBlockDataProvider();

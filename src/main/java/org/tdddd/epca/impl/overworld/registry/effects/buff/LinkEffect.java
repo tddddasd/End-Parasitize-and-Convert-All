@@ -11,11 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Link: a parasite carrying it tends to patrol around a hive node.
- *
- * <p>26.1.2 uses applyEffectTick(ServerLevel, LivingEntity, int) and shouldApplyEffectTickThisTick.</p>
- */
 public class LinkEffect extends MobEffect {
 
     private static final int NODE_RANGE = 16;

@@ -29,65 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- *  GUISPEC  1  C  +  2  2
- *
- * <p><b> 600  430</b> {@value #LAYOUT_SCALE_MIN}
- * 52 36
- * C1
- *  16 C2C5 39  33 C6/C7
- * C8C9</p>
- *
- * <h2>26.1.2  GUI </h2>
- * <ul>
- *   <li>{@code Screen#render(GuiGraphics,int,int,float)}  {@code GuiGraphics}  26.1.2
- *        {@code extractRenderState(GuiGraphicsExtractor,int,int,float)}
- *       _tmp_26src {@code Screen.java}  117  / {@code InventoryScreen.java}  79
- *        {@code extractRenderState}tooltip </li>
- *   <li>{@code drawString/drawCenteredString} -&gt; {@code text/centeredText}
- *       {@code renderOutline} -&gt; {@code outline}{@code renderItem} -&gt; {@code item}
- *       {@code renderItemDecorations} -&gt; {@code itemDecorations}
- *       {@code renderTooltip(font, stack, x, y)} -&gt; {@code setTooltipForNextFrame(font, stack, x, y)}</li>
- *   <li>{@code PoseStack}3D {@code Matrix3x2fStack}2D
- *       {@code GuiGraphicsExtractor#pose()}  {@code Matrix3x2fStack}
- *       {@code pushMatrix/popMatrix/translate/scale}
- *       <ul>
- *         <li> translate  scale(0.75) 2D
- *              1.20.1  {@code translate(x,y,0)+scale(0.75,0.75,1)}
- *             z 26.1.2  GUI </li>
- *         <li> {@code translate(0,0,232)}  z
- *             26.1.2  GUI </li>
- *         <li> 3D pose
- *             {@code InventoryScreen#renderEntityInInventoryFollowsAngle}
- *             _tmp_26src {@code InventoryScreen.java}  116
- *              / </li>
- *       </ul></li>
- *   <li>{@code renderBackground}  26.1.2  {@code Screen}
- *       {@code renderWithTooltip}
- *        {@code fill}  1.20.1 </li>
- *   <li>{@code mouseClicked(MouseButtonEvent, boolean)} /
- *       {@code mouseDragged(MouseButtonEvent, double, double)} / {@code mouseReleased(MouseButtonEvent)}
- *       _tmp_26src {@code GuiEventListener.java}  21/25/29
- *       shift  {@code Minecraft#hasShiftDown()}</li>
- *   <li> {@code Inventory#items}
- *       {@code getNonEquipmentItems().size()}  {@code getItem(int)}</li>
- *   <li>{@code ItemStack#isSameItemSameTags} -&gt; {@code isSameItemSameComponents}
- *       {@code registryAccess().registryOrThrow} -&gt; {@code lookupOrThrow}
- *       {@code ModNetwork.sendToServer} -&gt; {@code ClientPacketDistributor.sendToServer}</li>
- * </ul>
- *
- * <h2></h2>
- * <p>1.20.1 <b></b>
- * {@code layoutSnapshot()} / {@code layoutDebugInfo()} / {@code slotOverlapCount()} /
- * {@code readoutOverlapCount()} / {@code outOfPanelCount()}
- * 26
- *
- *  {@code 480 + 812 + 12 = 588} </p>
- */
 @OnlyIn(Dist.CLIENT)
 public class HiveLeaderOrganScreen extends Screen {
 
-    //  600  430
     private static final int PANEL_WIDTH = 600;
     private static final int PANEL_HEIGHT = 430;
     private static final int PANEL_COLOR = 0xE0100618;
@@ -96,12 +40,11 @@ public class HiveLeaderOrganScreen extends Screen {
     private static final int DESIGN_WIDTH = PANEL_WIDTH;
     private static final int DESIGN_HEIGHT = PANEL_HEIGHT;
     private static final int VIEWPORT_MARGIN = 6;
-    /** 0.40  240  172  */
+
     private static final float LAYOUT_SCALE_MIN = 0.40F;
     private static final int COMPACT_HEAD_INNER_DROP = 4;
     private static final int COMPACT_READOUT_INSET = 8;
 
-    //  SPEC C8/C9
     public static final int COLOR_STATS = 0xFFCC66FF;
     public static final int COLOR_DAMAGE_INFO = 0xFF55FF7A;
     private static final int COLOR_TITLE = 0xFFE9C7FF;
@@ -124,7 +67,6 @@ public class HiveLeaderOrganScreen extends Screen {
     private static final int SLOT_INVENTORY_FILL = 0xFF20182C;
     private static final int SLOT_INVENTORY_BORDER = 0xFF6A5A80;
 
-    //   lang
     private static final String KEY_TITLE = "epca.organ_gui.title";
     private static final String KEY_HINT_DRAG = "epca.organ_gui.hint.drag";
     private static final String KEY_HINT_QUICK_MOVE = "epca.organ_gui.hint.quick_move";
@@ -150,15 +92,13 @@ public class HiveLeaderOrganScreen extends Screen {
     private static final String KEY_SOURCE_TORSO_INNER = "epca.organ_gui.source.torso_inner";
     private static final String KEY_SOURCE_HEAD_INNER = "epca.organ_gui.source.head_inner";
     private static final String KEY_ATTRIBUTE_PREFIX = "epca.organ_gui.attribute.";
-    /**  lang {@code %s} =  */
+
     private static final String KEY_BIOMASS = "epca.organ_gui.biomass";
 
-    /**  -&gt;  */
     private static final Map<String, Component> ATTRIBUTE_LABELS = new ConcurrentHashMap<>();
 
-    //  12px  0.75
     private static final int SLOT_SIZE = 12;
-    /** {@code SLOT_SIZE / 16.0} 1 =  */
+
     private static final float ITEM_RENDER_SCALE = Math.min(1.0F, SLOT_SIZE / 16.0F);
     private static final int SLOT_STRIDE = 12;
     private static final int TORSO_INNER_STRIDE = 12;
@@ -172,7 +112,6 @@ public class HiveLeaderOrganScreen extends Screen {
     private static final int HEAD_INNER_LEFT = MODEL_CENTER_X - (2 * TORSO_INNER_STRIDE + SLOT_SIZE) / 2;
     private static final int HEAD_INNER_TOP = 48;
 
-    //  16
     private static final int PURPLE_ARM_LEFT_X = 132;
     private static final int PURPLE_ARM_RIGHT_X = 444;
     private static final int PURPLE_CENTER_LEFT_X = 276;
@@ -182,127 +121,63 @@ public class HiveLeaderOrganScreen extends Screen {
     private static final int PURPLE_TORSO_TOP = 262;
     private static final int PURPLE_LEG_TOP = 286;
 
-    //  9   4 3  + 1
     private static final int INVENTORY_LEFT = 480;
     private static final int INVENTORY_TOP = 228;
     private static final int HOTBAR_TOP = INVENTORY_TOP + 3 * INVENTORY_STRIDE + 14;
 
-    /**  1.20.1  {@code READOUT_TOP_OFFSET}  */
     private static final int READOUT_TOP_OFFSET = 308;
-    /** 10 1.20.1  9 10  */
+
     private static final int READOUT_LINE_HEIGHT = 10;
-    /**
-     *  =  {@link #DESIGN_HEIGHT}430
-     *
-     * <p><b>1.20.1 </b> {@code statsBlock} / {@code damageBlock}
-     *
-     * {@code (430 - 308) / 10 = 12}</p>
-     *
-     * <p><b>26 </b>
-     *
-     * {@code min(panelScreenHeight(), this.height) / layoutScale / 10}
-     * {@code layoutScale = 0.400} 302
-     * {@code min(172, this.height)}  160  9
-     *  9 {@code block_reach} / </p>
-     */
+
     private static final int READOUT_RECT_BOTTOM = DESIGN_HEIGHT;
-    /**
-     *
-     *
-     * <p>1.20.1  <b>12</b>{@code STATS_MAX_LINES} 465
-     *  {@link OrganStatReadout#DEFAULT_STATS_MAX_LINES} = 12
-     *  + = 9 + 3 = 12
-     * 26  12<b> 12</b>
-     * /
-     *  {@code checkReadoutBudget()}</p>
-     */
+
     private static final int STATS_MAX_LINES = 12;
     private static final int READOUT_LEFT_INSET = 6;
     private static final int READOUT_GREEN_X = 384;
     private static final int READOUT_GREEN_TOP = 308;
 
-    /** 6 */
     private static final int BIOMASS_LEFT = READOUT_LEFT_INSET;
-    /**  300  */
+
     private static final int BIOMASS_TOP = 8;
-    /**
-     * =  10
-     *
-     * <p> {@code Font#lineHeight} = 9  10
-     * </p>
-     */
+
     private static final int BIOMASS_LINE_HEIGHT = READOUT_LINE_HEIGHT;
-    /**  */
+
     private static final int COLOR_BIOMASS = COLOR_STATS;
 
-    /** =  {@code renderEntityInInventory}  {@code size}  */
     private static final int MODEL_SIZE = 44;
-    /** {@code PlayerRenderer#scale}  0.9375 */
+
     private static final float PLAYER_MODEL_SCALE = 0.9375F;
-    /**
-     * = <b> {@code modelSize}</b>
-     *
-     * <p> 32  = 2 1  = 16  0.9375
-     *  {@code 2  0.9375  size = 1.875  size}
-     *  = {@code 0.9375  size} =  + 0.9375  size</p>
-     */
+
     private static final double MODEL_ANCHOR_OFFSET_PER_SIZE = 0.9375D;
 
-    //  26.1.2 picture-in-picture
-    //
-    // 26.1.2  InventoryScreen#renderEntityInInventoryFollowsAngle(graphics,
-    // x0, y0, x1, y1, size, offsetY, xAngle, yAngle, entity)_tmp_26src
-    // InventoryScreen.java  116  pose
-    //   1.  (x1 - x0) * guiScale (y1 - y0) * guiScale
-    //   2. pose = translate(w / 2, h / 2) * scale(guiScale * size)
-    //      * translate(0, boundingBoxHeight / 2 + offsetY, 0) * rotation
-    //      PictureInPictureRenderer#prepare  38-51 GuiEntityRenderer  30-34
-    //      1  = size  GUI
-    //   3.  identity  2D pose  (x0, y0)-(x1, y1)
-    //      PictureInPictureRenderer#blitTexture  59-78 GuiEntityRenderState
-    //      pose PictureInPictureRenderState#pose()  IDENTITY_POSE
-    // 26.1.2  x0 / y0 / x1 / y1  GUI
-    //  extractRenderState  translate(panelLeft, panelTop) + scale(layoutScale)
-    //    pose  +  size
-    // 44
-    //
-    //  +
-    //    y =  y + size * (boundingBoxHeight / 2 + offsetY - h)
-    //  h =  h = 0.9375 * (1.501 - 1.5)
-    // = 0.0009375 h = 0.9375 * (1.501 + 0.5) = 1.8759375
-    // = 1.875    1.20.1  1.875 * size  h = 0.9384375
-    //  size * (0.9 + 0.0625 - 0.9384375) = size * 0.0240625
-    /** 26.1.2  26  InventoryScreen  0.0625 */
     private static final float MODEL_PIP_OFFSET_Y = 0.0625F;
-    /** 26.1.2  = 1.8 / 2 = 0.9 boundingBoxHeight / 2 */
+
     private static final double MODEL_PIP_BOUNDING_BOX_HALF_HEIGHT = 0.9D;
-    /** = 0.9375 * (1.501 - 1.5) = 0.0009375 */
+
     private static final double MODEL_PIP_MESH_BOTTOM = PLAYER_MODEL_SCALE * (1.501D - 1.5D);
-    /** = 0.9375 * (1.501 + 0.5) = 1.8759375 */
+
     private static final double MODEL_PIP_MESH_TOP = PLAYER_MODEL_SCALE * (1.501D + 0.5D);
-    /** = ( + ) / 2 = 0.9384375 */
+
     private static final double MODEL_PIP_MESH_CENTER_HEIGHT =
             (MODEL_PIP_MESH_BOTTOM + MODEL_PIP_MESH_TOP) / 2.0D;
-    /**  size= 0.9 + 0.0625 - 0.9384375 = 0.0240625 */
+
     private static final double MODEL_PIP_CENTER_OFFSET_PER_SIZE =
             MODEL_PIP_BOUNDING_BOX_HALF_HEIGHT + MODEL_PIP_OFFSET_Y - MODEL_PIP_MESH_CENTER_HEIGHT;
-    /**   size 26  49 / 2 / 30 */
+
     private static final double MODEL_PIP_BOX_HALF_WIDTH_PER_SIZE = 24.5D / 30.0D;
-    /**   size 26  70 / 2 / 30 */
+
     private static final double MODEL_PIP_BOX_HALF_HEIGHT_PER_SIZE = 35.0D / 30.0D;
 
-    /**  /  /  */
     private final HiveLeaderOrganModelRotation rotation = new HiveLeaderOrganModelRotation();
     private boolean draggingModel;
     private double dragAnchorX;
     private double dragAnchorY;
 
-    /** 52  -&gt; {left, top} */
     private final int[][] slotGeometry = new int[OrganSlotGroup.totalSlots()][2];
-    /** 36  -&gt; {left, top} */
+
     private final int[][] inventoryGeometry =
             new int[HiveLeaderOrganActionPacket.INVENTORY_SLOT_COUNT][2];
-    /** "" */
+
     @Nullable
     private LivingEntity hostEntity;
 
@@ -311,13 +186,9 @@ public class HiveLeaderOrganScreen extends Screen {
     private int panelTop;
     private int modelSize = MODEL_SIZE;
     private boolean compactLayout;
-    /**
-     *  {@link #DESIGN_HEIGHT}
-     */
+
     private Rect statsBlock = new Rect(READOUT_LEFT_INSET, READOUT_TOP_OFFSET, DESIGN_WIDTH, DESIGN_HEIGHT);
-    /**
-     *  {@link #DESIGN_HEIGHT}
-     */
+
     private Rect damageBlock = new Rect(READOUT_GREEN_X, READOUT_GREEN_TOP, DESIGN_WIDTH, DESIGN_HEIGHT);
     private double layoutMouseX;
     private double layoutMouseY;
@@ -326,9 +197,6 @@ public class HiveLeaderOrganScreen extends Screen {
         super(Component.translatable(KEY_TITLE));
     }
 
-    /**
-     *  lang {@link #KEY_HINT_SEPARATOR}
-     */
     protected String hintText() {
         String separator = Component.translatable(KEY_HINT_SEPARATOR).getString();
         return Component.translatable(KEY_HINT_DRAG).getString()
@@ -337,57 +205,33 @@ public class HiveLeaderOrganScreen extends Screen {
                 + separator + Component.translatable(KEY_HINT_CLOSE).getString();
     }
 
-
     @Override
     protected void init() {
         super.init();
         this.hostEntity = this.minecraft == null ? null : this.minecraft.player;
-        // /
+
         computeResponsiveLayout();
         computeSlotGeometry();
         computeInventoryGeometry();
     }
 
-    /**
-     *
-     *
-     * <p> /  {@code k = size  0.9375 / 16} {@code 16k = 0.9375  size / 2}
-     *  {@code 4k}{@code 8k}
-     * {@code MODEL_SIZE = 44}  <b>42  82</b>
-     * y 148..160y 262..274</p>
-     */
     protected ModelBody modelBody() {
         return ModelBody.of(MODEL_CENTER_X, MODEL_CENTER_Y, modelSize());
     }
 
-    /**  {@code layoutScale} pose  */
     protected int modelSize() {
         return this.modelSize;
     }
 
-    /**
-     *  26.1.2  {@code size} GUI  /
-     *
-     * <p> {@link #MODEL_PIP_OFFSET_Y}
-     * <b></b> {@code scale(layoutScale)}
-     * {@code layoutScale} {@code size}  {@code int}
-     *  1.20.1 size44 pose
-     *  {@code 0.5  1.875  0.94}  0.5 </p>
-     *
-     * <p>{@code MODEL_SIZE = 44} layoutScale 1.000 / 0.992 / 0.662 /
-     * 0.497  44 / 44 / 29 / 220.40  18</p>
-     */
     protected int modelScreenSize() {
         return Math.max(1, (int) Math.round(this.modelSize * (double) this.layoutScale));
     }
 
-    /**  */
     protected record ModelBody(Rect head, Rect torso, Rect leftArm, Rect rightArm,
                                Rect leftLeg, Rect rightLeg, int feetY, int topY) {
 
-        /**  = 1/16  8  +24 */
         static final int MODEL_LOCAL_HEIGHT = 32;
-        /**  = 16  */
+
         static final int MODEL_UNITS_PER_BLOCK = 16;
 
         static ModelBody of(int centerX, int centerY, int size) {
@@ -418,7 +262,6 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    /** / */
     protected record Rect(int left, int top, int right, int bottom) {
         int width() {
             return right - left;
@@ -437,7 +280,6 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    /**  52  {@link OrganSlotGroup} */
     private void computeSlotGeometry() {
         placeRow(OrganSlotGroup.HEAD, PURPLE_HEAD_TOP, PURPLE_CENTER_LEFT_X, PURPLE_CENTER_RIGHT_X);
         placeRow(OrganSlotGroup.TORSO, PURPLE_TORSO_TOP, PURPLE_CENTER_LEFT_X, PURPLE_CENTER_RIGHT_X);
@@ -464,12 +306,10 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    /**  33 */
     protected int headInnerTop() {
         return HEAD_INNER_TOP + (this.compactLayout ? COMPACT_HEAD_INNER_DROP : 0);
     }
 
-    /** 2  /  */
     private void placeRow(OrganSlotGroup group, int top, int leftX, int rightX) {
         for (int local = 0; local < group.size(); local++) {
             slotGeometry[group.globalIndex(local)][0] = (local % 2 == 0) ? leftX : rightX;
@@ -477,7 +317,6 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    /** 3  /  */
     private void placeColumn(OrganSlotGroup group, int leftX, int top) {
         for (int local = 0; local < group.size(); local++) {
             slotGeometry[group.globalIndex(local)][0] = leftX;
@@ -485,12 +324,6 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    /**
-     *  36
-     *
-     * <p> {@code Inventory} 08 =
-     * 935 = 3  {@link #INVENTORY_TOP}  {@link #INVENTORY_STRIDE}</p>
-     */
     private void computeInventoryGeometry() {
         for (int index = 0; index < inventoryGeometry.length; index++) {
             int slotColumn = index % 9;
@@ -502,15 +335,6 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    //   +  +
-
-    /**
-     *  600  430
-     *
-     * <p>
-     * {@code (READOUT_TOP_OFFSET + READOUT_LINE_HEIGHT) * layoutScale > }
-     *  {@link #COMPACT_HEAD_INNER_DROP}</p>
-     */
     private void computeResponsiveLayout() {
         int availableWidth = usableWidth();
         int availableHeight = usableHeight();
@@ -532,7 +356,7 @@ public class HiveLeaderOrganScreen extends Screen {
         int panelViewportRight = this.panelLeft + panelWidthInWindow;
         int panelHeightInWindow = Math.min(panelHeight, this.height);
         int panelViewportBottom = this.panelTop + panelHeightInWindow;
-        //  430 1.20.1
+
         int statsBottom = READOUT_RECT_BOTTOM;
         int damageBottom = READOUT_RECT_BOTTOM;
         int statsMaxWidth = READOUT_GREEN_X - READOUT_LEFT_INSET;
@@ -556,13 +380,6 @@ public class HiveLeaderOrganScreen extends Screen {
         this.damageBlock = readoutDamageBlock(designRightLimit, damageBottom);
     }
 
-    /**
-     *
-     *
-     * <p> {@code readoutBottom}=
-     *  {@link #statsBlock}
-     *  {@link #READOUT_RECT_BOTTOM}</p>
-     */
     private Rect readoutDamageBlock(int designRightLimit, int readoutBottom) {
         if (!this.compactLayout) {
             return new Rect(READOUT_GREEN_X, READOUT_GREEN_TOP,
@@ -581,12 +398,10 @@ public class HiveLeaderOrganScreen extends Screen {
         return Math.max(1, this.height - VIEWPORT_MARGIN * 2);
     }
 
-    /**  x -&gt;  */
     protected double toLayoutX(double screenX) {
         return (screenX - this.panelLeft) / this.layoutScale;
     }
 
-    /**  y -&gt;  */
     protected double toLayoutY(double screenY) {
         return (screenY - this.panelTop) / this.layoutScale;
     }
@@ -599,17 +414,10 @@ public class HiveLeaderOrganScreen extends Screen {
         return Math.round(DESIGN_HEIGHT * this.layoutScale);
     }
 
-    /**  y */
     protected int modelCenterY() {
         return MODEL_CENTER_Y;
     }
 
-    /**
-     * =  y{@code  + 0.9375  modelSize}
-     *
-     * <p>26.1.2 {@link #modelBody()}
-     * </p>
-     */
     protected int modelScreenAnchorY() {
         return MODEL_CENTER_Y + (int) Math.round(MODEL_ANCHOR_OFFSET_PER_SIZE * this.modelSize);
     }
@@ -622,27 +430,10 @@ public class HiveLeaderOrganScreen extends Screen {
         return this.damageBlock;
     }
 
-    /**  y */
     protected int readoutDamageTop() {
         return this.compactLayout ? this.damageBlock.top() : READOUT_GREEN_TOP;
     }
 
-    /**
-     *  {@link #STATS_MAX_LINES}
-     *
-     * <p><b> =   </b>
-     * {@code (430 - 308) / 10 = 12}  1.20.1
-     * {@code readoutLineLimit()} / {@code damageLineLimit()}
-     * {@code statsBlock.bottom()}  430
-     *  1.20.1  12</p>
-     *
-     * <p> {@code this.statsBlock.height()}
-     * {@link #computeResponsiveLayout()}
-     *  9    9
-     * {@code block_reach} /
-     *  {@link #READOUT_RECT_BOTTOM}
-     * </p>
-     */
     protected int readoutLineLimit() {
         if (this.statsBlock.right() <= this.statsBlock.left()) return 0;
         int bottom = Math.min(READOUT_RECT_BOTTOM, this.statsBlock.bottom()) - this.statsBlock.top();
@@ -650,25 +441,14 @@ public class HiveLeaderOrganScreen extends Screen {
         return Math.max(0, Math.min(STATS_MAX_LINES, bottom / READOUT_LINE_HEIGHT));
     }
 
-    /**  {@link OrganStatReadout#DAMAGE_LINE_COUNT} = 2 */
     protected int damageLineLimit() {
         int rows = this.damageBlock.height() / READOUT_LINE_HEIGHT;
         return Math.max(0, Math.min(OrganStatReadout.DAMAGE_LINE_COUNT, rows));
     }
 
-
-    /**
-     * 26.1.2  1.20.1  {@code render(GuiGraphics, )}
-     *
-     * <p>     scissor pose
-     *  pushMatrix + translate() + scale(layoutScale)  //
-     *        +  scissor  tooltip
-     *  26.1.2
-     * 1.20.1  {@code translate(0,0,232)}  z</p>
-     */
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        //  tick  partialTick
+
         this.rotation.update(partialTick);
 
         this.layoutMouseX = toLayoutX(mouseX);
@@ -685,7 +465,7 @@ public class HiveLeaderOrganScreen extends Screen {
         int clipBottom = Math.min(this.height - 1, panelY + panelH);
         boolean scissor = clipRight > clipLeft && clipBottom > clipTop;
         if (scissor) {
-            // 26.1.2  scissor  GUI  pose  pushMatrix
+
             graphics.enableScissor(clipLeft, clipTop, clipRight, clipBottom);
         }
 
@@ -716,16 +496,12 @@ public class HiveLeaderOrganScreen extends Screen {
             graphics.disableScissor();
         }
 
-        // tooltip
         renderSlotTooltip(graphics, mouseX, mouseY);
         renderCarriedStack(graphics, mouseX, mouseY);
 
-        //  addRenderableWidget
-        //  1.20.1 " super.render"
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
-    /**  52  {@link OrganSlotGroup} */
     protected void renderSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         HiveLeaderOrganData data = HiveLeaderOrganClientData.data();
         HiveLeaderOrganGate.Gates gates = HiveLeaderOrganClientData.gates();
@@ -751,7 +527,6 @@ public class HiveLeaderOrganScreen extends Screen {
             }
         }
 
-        //  33  39
         int dividerY = headInnerTop() - 4;
         graphics.fill(HEAD_INNER_LEFT, dividerY,
                 HEAD_INNER_LEFT + OrganSlotGroup.HEAD_INNER.columns() * TORSO_INNER_STRIDE,
@@ -770,7 +545,6 @@ public class HiveLeaderOrganScreen extends Screen {
                 KEY_GROUP_TORSO_INNER);
     }
 
-    /**  null */
     @Nullable
     private Rect slotGroupBounds(OrganSlotGroup group) {
         int minX = Integer.MAX_VALUE;
@@ -788,7 +562,6 @@ public class HiveLeaderOrganScreen extends Screen {
         return new Rect(minX, minY, maxX, maxY);
     }
 
-    /** / */
     private void renderGroupLabel(GuiGraphicsExtractor graphics, OrganSlotGroup group, String langKey) {
         Rect bounds = slotGroupBounds(group);
         if (bounds == null) return;
@@ -802,14 +575,12 @@ public class HiveLeaderOrganScreen extends Screen {
         drawLabel(graphics, label, labelX, labelY);
     }
 
-    /**  */
     private void renderRegionLabelLeft(GuiGraphicsExtractor graphics, @Nullable Rect bounds, String langKey) {
         if (bounds == null) return;
         Component label = Component.translatable(langKey);
         drawLabel(graphics, label, 6 + this.font.width(label) / 2, bounds.centerY() - 4);
     }
 
-    /**  */
     private void drawLabel(GuiGraphicsExtractor graphics, Component label, int centeredX, int y) {
         int width = this.font.width(label);
         if (rectsOverlapPx(centeredX - width / 2, y, width, this.font.lineHeight, this.statsBlock)
@@ -820,7 +591,6 @@ public class HiveLeaderOrganScreen extends Screen {
         graphics.centeredText(this.font, label, centeredX, y, COLOR_GROUP_LABEL);
     }
 
-    /**  +  +  */
     private void renderSlotBackground(GuiGraphicsExtractor graphics, int x, int y, OrganSlotKind kind,
                                       boolean locked, boolean gated, boolean hovered) {
         int fill;
@@ -842,14 +612,6 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    /**
-     *  {@code SLOT_SIZE  SLOT_SIZE}  {@code (x, y)}
-     *
-     * <p>26.1.2  {@code GuiGraphicsExtractor#item(stack, x, y)} 16  16
-     *  12  {@code translate(x, y)}
-     * {@code scale(0.75)} 12  12
-     * tooltip  12  12 </p>
-     */
     protected void renderItemInCell(GuiGraphicsExtractor graphics, ItemStack stack, int x, int y) {
         if (stack.isEmpty()) return;
         graphics.pose().pushMatrix();
@@ -860,12 +622,6 @@ public class HiveLeaderOrganScreen extends Screen {
         graphics.pose().popMatrix();
     }
 
-    /**
-     * 39  + 9  035 =  36
-     *
-     * <p> container
-     * </p>
-     */
     protected void renderInventory(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         Inventory inventory = clientInventory();
         graphics.text(this.font, Component.translatable(KEY_INVENTORY), INVENTORY_LEFT,
@@ -890,26 +646,17 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    /**  null */
     @Nullable
     protected Inventory clientInventory() {
         LocalPlayer player = localPlayer();
         return player == null ? null : player.getInventory();
     }
 
-    /**
-     *
-     *
-     * <p>26.1.2{@code Inventory#items}
-     * {@code getNonEquipmentItems().size()}36  {@code getItem(int)}
-     * _tmp_26src {@code Inventory.java}  55 / 90 / 430 </p>
-     */
     private static ItemStack inventoryItem(Inventory inventory, int index) {
         if (index < 0 || index >= inventory.getNonEquipmentItems().size()) return ItemStack.EMPTY;
         return inventory.getItem(index);
     }
 
-    /** 89  fill  GUI  */
     private void renderLockIcon(GuiGraphicsExtractor graphics, int slotX, int slotY) {
         int baseX = slotX + 2;
         int baseY = slotY + 2;
@@ -922,13 +669,6 @@ public class HiveLeaderOrganScreen extends Screen {
         graphics.fill(baseX + 3, baseY + 5, baseX + 5, baseY + 7, LOCK_SHADOW);
     }
 
-    /**
-     *  tooltip
-     *
-     * <p><b></b> {@code AbstractContainerScreen#renderTooltip}
-     *
-     * <b></b>tooltip <b></b></p>
-     */
     private void renderSlotTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (!HiveLeaderOrganClientData.carried().isEmpty()) return;
         int layoutX = (int) Math.floor(this.layoutMouseX);
@@ -950,50 +690,16 @@ public class HiveLeaderOrganScreen extends Screen {
         graphics.setTooltipForNextFrame(this.font, stack, mouseX, mouseY);
     }
 
-    /**
-     *  {@code mouseX/mouseY}
-     *
-     * <p> {@link HiveLeaderOrganClientData#carried()}
-     *  {@code HiveLeaderOrganCarry}
-     * </p>
-     */
     protected void renderCarriedStack(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         ItemStack carried = HiveLeaderOrganClientData.carried();
         if (carried.isEmpty()) return;
         int x = mouseX - 8;
         int y = mouseY - 8;
-        // 1.20.1  translate(0,0,232)  z26.1.2
+
         graphics.item(carried, x, y);
         graphics.itemDecorations(this.font, carried, x, y);
     }
 
-
-    /**
-     * {@link #KEY_BIOMASS}
-     *
-     * <p>
-     * {@code OrganSlotUnlock}
-     *  {@code DESIGN_WIDTH / 2} </p>
-     *
-     * <p><b></b>{@code BiomassClientData#getPoints()}   HUD
-     * {@code BiomassHUD} +
-     *  {@code BiomassSyncPacket}  /
-     * </p>
-     *
-     * <p><b></b> {@code (BIOMASS_LEFT, BIOMASS_TOP) = (6, 8)}
-     *  {@code (6, 8) - (6 + font.width(label), 18)}
-     *  =  = {@link #BIOMASS_LINE_HEIGHT} = 10 9
-     *  y = 20  2px
-     *  300  104px 248
-     *  64 y = 48 y = 96
-     *  y &gt;= 148 y &gt;= 173 y &gt;= 216 y &gt;= 308
-     *  {@code scale(layoutScale)}
-     * </p>
-     *
-     * <p> {@code drawLabel}
-     *
-     * </p>
-     */
     protected void renderBiomassReadout(GuiGraphicsExtractor graphics) {
         Component label = Component.translatable(KEY_BIOMASS, BiomassClientData.getPoints());
         int width = this.font.width(label);
@@ -1002,7 +708,7 @@ public class HiveLeaderOrganScreen extends Screen {
                         this.damageBlock)) {
             return;
         }
-        //  = 300 - /2
+
         int limit = Math.min(DESIGN_WIDTH - READOUT_LEFT_INSET,
                 DESIGN_WIDTH / 2 - this.font.width(this.title) / 2);
         if (BIOMASS_LEFT + width > limit) {
@@ -1011,12 +717,6 @@ public class HiveLeaderOrganScreen extends Screen {
         graphics.text(this.font, label.getString(), BIOMASS_LEFT, BIOMASS_TOP, COLOR_BIOMASS, true);
     }
 
-    /**
-     * SPEC C8SPEC C9 2
-     *
-     * <p> {@link OrganStatSummary} lang
-     *  2  2 </p>
-     */
     protected void renderReadouts(GuiGraphicsExtractor graphics) {
         OrganStatSummary summary = OrganStatSummary.compute(HiveLeaderOrganClientData.data());
         List<String> statsLines = OrganStatReadout.statsLines(this.hostEntity, summary,
@@ -1048,11 +748,6 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    /**
-     *  lang
-     *
-     * <p></p>
-     */
     private static final OrganStatReadout.ReadoutLabels READOUT_LABELS = new OrganStatReadout.ReadoutLabels() {
         @Override
         public Component attributeName(String attributeKey) {
@@ -1091,11 +786,6 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     };
 
-    /**
-     *  null
-     *
-     * <p>26.1.2{@code registryOrThrow} -&gt; {@code lookupOrThrow}</p>
-     */
     @Nullable
     protected Registry<DamageType> damageTypeRegistry() {
         Minecraft minecraft = this.minecraft;
@@ -1103,68 +793,6 @@ public class HiveLeaderOrganScreen extends Screen {
         return minecraft.level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
     }
 
-
-    /**
-     *
-     *
-     * <p>26.1.2
-     * {@code InventoryScreen#renderEntityInInventoryFollowsAngle(GuiGraphicsExtractor graphics,
-     * int x0, int y0, int x1, int y1, int size, float offsetY, float xAngle, float yAngle,
-     * LivingEntity entity)}_tmp_26src {@code InventoryScreen.java}  116
-     *  {@code createRenderState}
-     *  {@code renderEntityInInventoryFollowsMouse}
-     * {@code bodyRot = 180 + xAngle  20}{@code xRot = yAngle  20}</p>
-     * <ul>
-     *   <li>{@code xAngle = (yaw  180) / 20}  yaw = 180 {@code bodyRot = 180}
-     *        1.20.1  {@code renderRotatableModel}
-     *       1.20.1  {@code (yaw-180)/40} 40</li>
-     *   <li>{@code yAngle = pitch / 20}   1.20.1  pitch = </li>
-     * </ul>
-     * <p> {@link #modelBody()} {@link #isOverModel} ""
-     * ""
-     * {@link #MODEL_ANCHOR_OFFSET_PER_SIZE} </p>
-     */
-    /**
-     *  1.20.1
-     *
-     * <p>26.1.2
-     * {@code InventoryScreen#renderEntityInInventoryFollowsAngle(GuiGraphicsExtractor graphics,
-     * int x0, int y0, int x1, int y1, int size, float offsetY, float xAngle, float yAngle,
-     * LivingEntity entity)}_tmp_26src {@code InventoryScreen.java}  116-139
-     *  {@code renderEntityInInventoryFollowsMouse}
-     * {@code bodyRot = 180 + xAngle  20}{@code xRot = yAngle  20}</p>
-     * <ul>
-     *   <li>{@code xAngle = (yaw  180) / 20}  yaw = 180 {@code bodyRot = 180}
-     *        1.20.1  {@code renderRotatableModel}
-     *       1.20.1  {@code (yaw-180)/40} 40</li>
-     *   <li>{@code yAngle = pitch / 20}   1.20.1  pitch = </li>
-     * </ul>
-     *
-     * <p><b> 1.20.1 </b>{@code x0 / y0 / x1 / y1}
-     * <b> GUI </b>{@code size}
-     * 1  =  GUI {@code offsetY}  0.0625
-     * <b></b> {@code translate(panelLeft, panelTop) + scale(layoutScale)}
-     *  identity  2D pose  {@code (x0, y0)-(x1, y1)}
-     *  {@link #MODEL_PIP_OFFSET_Y}
-     *  rect
-     *  1.20.1  {@code size * MODEL_PIP_CENTER_OFFSET_PER_SIZE}
-     * </p>
-     *
-     * <p> +   {@code layoutScale}
-     * {@code layoutScale}  {@code size}{@link #modelScreenSize()}
-     *  = 1.20.1  {@code (300, 214)}
-     *  {@code 1.875  44 = 82.5} {@code 42} {@code layoutScale}
-     *  {@code size}  1
-     * {@code MODEL_SIZE = 44}{@code layoutScale}
-     * 1.000 / 0.992 / 0.662 / 0.497  {@code size} 44 / 44 / 29 / 22
-     * 0.40  18</p>
-     *
-     * <p> 26  49  70 / size 30
-     * 62
-     * {@link #modelBody()} {@link #isOverModel}
-     *  {@code (300, 214)} {@code 0.9375  size}
-     * </p>
-     */
     protected void renderPlayerModel(GuiGraphicsExtractor graphics) {
         LocalPlayer player = this.minecraft == null ? null : this.minecraft.player;
         if (player == null) {
@@ -1176,13 +804,6 @@ public class HiveLeaderOrganScreen extends Screen {
         float xAngle = (this.rotation.yaw() - 180.0F) / 20.0F;
         float yAngle = -this.rotation.pitch() / 20.0F;
 
-        // 26.1.2
-        // translate(panelLeft, panelTop) + scale(layoutScale)
-        //   size     =  size * layoutScale modelScreenSize()
-        //    =  +  * layoutScale
-        //    size * MODEL_PIP_CENTER_OFFSET_PER_SIZE
-        //             + offsetY
-        //  +  size
         int size = modelScreenSize();
         double centerX = this.panelLeft + MODEL_CENTER_X * (double) this.layoutScale;
         double centerY = this.panelTop + MODEL_CENTER_Y * (double) this.layoutScale;
@@ -1199,10 +820,6 @@ public class HiveLeaderOrganScreen extends Screen {
                 xAngle, yAngle, player);
     }
 
-    //
-    //  GUI
-    //  toLayoutX/toLayoutY
-
     @Override
     public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
@@ -1217,10 +834,10 @@ public class HiveLeaderOrganScreen extends Screen {
             if (slot >= 0 && !this.draggingModel) {
                 HiveLeaderOrganActionPacket.Action action;
                 if (button == HiveLeaderOrganActionPacket.BUTTON_MIDDLE) {
-                    //  =
+
                     action = HiveLeaderOrganActionPacket.Action.CLEAR;
                 } else if (hasShiftDown()) {
-                    // Shift  =
+
                     action = HiveLeaderOrganActionPacket.Action.QUICK_MOVE;
                 } else {
                     action = HiveLeaderOrganActionPacket.Action.CLICK;
@@ -1238,7 +855,7 @@ public class HiveLeaderOrganScreen extends Screen {
 
         if (button == HiveLeaderOrganActionPacket.BUTTON_LEFT && !isInsidePanel(layoutX, layoutY)) {
             if (HiveLeaderOrganClientData.hasPendingLocalCarried()) {
-                //  =
+
                 sendReturnCarried();
                 return true;
             }
@@ -1259,14 +876,12 @@ public class HiveLeaderOrganScreen extends Screen {
         double mouseX = event.x();
         double mouseY = event.y();
         if (this.draggingModel && event.button() == HiveLeaderOrganActionPacket.BUTTON_LEFT) {
-            //  dragX/dragY
+
             float deltaX = (float) (mouseX - this.dragAnchorX);
             float deltaY = (float) (mouseY - this.dragAnchorY);
             this.dragAnchorX = mouseX;
             this.dragAnchorY = mouseY;
 
-            //  1  = 1 / layoutScale
-            //  layoutScale
             float sensitivity = this.layoutScale;
             this.rotation.dragged(deltaX * sensitivity, deltaY * sensitivity);
             return true;
@@ -1284,12 +899,10 @@ public class HiveLeaderOrganScreen extends Screen {
         return super.mouseReleased(event);
     }
 
-    /** shift 26.1.2  Screen  hasShiftDown {@code Minecraft#hasShiftDown()} */
     private static boolean hasShiftDown() {
         return Minecraft.getInstance().hasShiftDown();
     }
 
-    /**  */
     protected boolean isOverModel(double mouseX, double mouseY) {
         ModelBody body = modelBody();
         int left = body.leftArm().left();
@@ -1301,12 +914,10 @@ public class HiveLeaderOrganScreen extends Screen {
                 && mouseY >= top - pad && mouseY <= bottom + pad;
     }
 
-    /**  */
     protected boolean isInsidePanel(double mouseX, double mouseY) {
         return mouseX >= 0 && mouseX <= DESIGN_WIDTH && mouseY >= 0 && mouseY <= DESIGN_HEIGHT;
     }
 
-    /**  -1 */
     protected int slotAt(double mouseX, double mouseY) {
         for (int index = 0; index < slotGeometry.length; index++) {
             int x = slotGeometry[index][0];
@@ -1318,7 +929,6 @@ public class HiveLeaderOrganScreen extends Screen {
         return -1;
     }
 
-    /**  -1 */
     protected int inventorySlotAt(double mouseX, double mouseY) {
         for (int index = 0; index < inventoryGeometry.length; index++) {
             int x = inventoryGeometry[index][0];
@@ -1334,20 +944,11 @@ public class HiveLeaderOrganScreen extends Screen {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
     }
 
-    /**  +  */
     private static boolean rectsOverlapPx(int x, int y, int width, int height, Rect other) {
         return x < other.right() && other.left() < x + width
                 && y < other.bottom() && other.top() < y + height;
     }
 
-
-    /**
-     *
-     *
-     *
-     * <p><b></b> +  +
-     * SPEC D2</p>
-     */
     protected void sendSlotAction(HiveLeaderOrganActionPacket.Action action, int slot, int button) {
         switch (action) {
             case CLICK -> predictOrganSlotClick(slot, button);
@@ -1360,12 +961,6 @@ public class HiveLeaderOrganScreen extends Screen {
         ClientPacketDistributor.sendToServer(new HiveLeaderOrganActionPacket(action, slot, button));
     }
 
-    /**
-     *  {@code HiveLeaderOrganActionHandler#click}
-     *
-     * <p> +  +
-     * </p>
-     */
     private void predictOrganSlotClick(int slot, int button) {
         ItemStack carried = HiveLeaderOrganClientData.carried();
         ItemStack inSlot = organSlotStack(slot);
@@ -1383,7 +978,7 @@ public class HiveLeaderOrganScreen extends Screen {
                         : inSlot.copyWithCount(inSlot.getCount() - amount);
             }
         } else if (!HiveLeaderOrganData.acceptsItem(carried)) {
-            //  epca:organ_part
+
             expectedSlot = inSlot;
         } else if (inSlot.isEmpty()) {
             int amount = right ? 1 : carried.getCount();
@@ -1402,7 +997,6 @@ public class HiveLeaderOrganScreen extends Screen {
         HiveLeaderOrganClientData.predictOrganSlotAction(slot, expectedSlot, carried, carriedAfter);
     }
 
-    /** Shift  {@code HiveLeaderOrganActionHandler#quickMove} */
     private void predictOrganSlotQuickMove(int slot) {
         ItemStack carried = HiveLeaderOrganClientData.carried();
         ItemStack inSlot = organSlotStack(slot);
@@ -1428,7 +1022,6 @@ public class HiveLeaderOrganScreen extends Screen {
         HiveLeaderOrganClientData.predictOrganSlotAction(slot, expectedSlot, carried, carriedAfter);
     }
 
-    /**  {@code HiveLeaderOrganActionHandler#clear} */
     private void predictOrganSlotClear(int slot) {
         ItemStack carried = HiveLeaderOrganClientData.carried();
         ItemStack inSlot = organSlotStack(slot);
@@ -1436,30 +1029,22 @@ public class HiveLeaderOrganScreen extends Screen {
         HiveLeaderOrganClientData.predictOrganSlotAction(slot, expectedSlot, carried, carried);
     }
 
-    /**  /  */
     private static ItemStack organSlotStack(int slot) {
         HiveLeaderOrganData data = HiveLeaderOrganClientData.data();
         if (slot < 0 || slot >= data.size()) return ItemStack.EMPTY;
         return data.getItem(slot);
     }
 
-    /**  {@code amount} {@code shrinkCarried}  */
     private static ItemStack takeFrom(ItemStack stack, int amount) {
         if (stack.isEmpty() || amount <= 0) return stack;
         int left = stack.getCount() - amount;
         return left <= 0 ? ItemStack.EMPTY : stack.copyWithCount(left);
     }
 
-    /**
-     *
-     *
-     * <p><b></b>
-     *  tick  container </p>
-     */
     protected void sendInventoryAction(int inventorySlot, int button) {
         if (button == HiveLeaderOrganActionPacket.BUTTON_MIDDLE
                 || (hasShiftDown() && button == HiveLeaderOrganActionPacket.BUTTON_LEFT)) {
-            //  INVENTORY_SLOT + BUTTON_MIDDLE
+
             HiveLeaderOrganClientData.predictCarried(ItemStack.EMPTY);
             ClientPacketDistributor.sendToServer(
                     HiveLeaderOrganActionPacket.inventoryQuickMove(inventorySlot));
@@ -1474,7 +1059,7 @@ public class HiveLeaderOrganScreen extends Screen {
         ItemStack carriedAfter = carried;
         if (carried.isEmpty()) {
             if (!inSlot.isEmpty()) {
-                //  doClick
+
                 int amount = right ? (inSlot.getCount() + 1) / 2 : inSlot.getCount();
                 carriedAfter = inSlot.copyWithCount(amount);
             }
@@ -1496,104 +1081,31 @@ public class HiveLeaderOrganScreen extends Screen {
                 HiveLeaderOrganActionPacket.inventorySlot(inventorySlot, button));
     }
 
-    /**  */
     protected void sendReturnCarried() {
         HiveLeaderOrganClientData.clearCarried();
         ClientPacketDistributor.sendToServer(HiveLeaderOrganActionPacket.returnCarried());
     }
 
-
-    /**  GUI  */
     @Override
     public boolean isPauseScreen() {
         return false;
     }
 
-    /**
-     * 26.1.2  true  1.20.1
-     *
-     * <p><b>26.1.2 </b>{@code Screen#extractRenderStateWithTooltipAndSubtitles}
-     * _tmp_26src {@code Screen.java}  107-114  {@code nextStratum()}
-     *  {@code extractBackground(...)} {@code nextStratum()}
-     * {@code extractRenderState(...)} {@code Screen#extractBackground} 383-396
-     * </p>
-     * <ul>
-     *   <li>{@code false}{@code Screen}  432-434
-     *       {@code extractPanorama} + {@code extractBlurredBackground} + {@code extractMenuBackground}
-     *        387-392 <b></b> 32  32
-     *        {@code textures/gui/inworld_menu_background.png} 413-422 </li>
-     *   <li>{@code true}  {@code extractTransparentBackground} 424-426
-     *       </li>
-     * </ul>
-     * <p> true  1.20.1
-     * {@code Screen#renderBackground}_tmp_vanilla_src {@code Screen.java}  358-366
-     * {@code level != null}  26.1.2  <b>{@code public}
-     *  {@code final}</b> 432 <b></b>
-     * {@code @Override}
-     * {@code extractBackground} </p>
-     */
     public boolean isInGameUi() {
-        // =   26.1.2  1.20.1  renderBackground
-        //  /   1.20.1  renderDirtBackground
+
         return this.minecraft != null && this.minecraft.level != null;
     }
 
-    /**
-     * <b>26.1.2 </b> 1.20.1  {@code Screen#renderBackground}
-     *
-     * <p><b></b>
-     * {@code isInGameUi()}  {@code extractBackground}
-     * {@code isInGameUi() == false}
-     *
-     * / +
-     * {@code PANEL_COLOR} = {@code 0xE0100618}  88%  12%
-     *  12% </p>
-     *
-     * <p><b>1.20.1 </b>{@code Screen#renderBackground}_tmp_vanilla_src
-     * {@code Screen.java}  358-366  {@code level != null}
-     *  {@code fillGradient(0, 0, width, height, -1072689136, -804253680)}
-     * </p>
-     *
-     * <p><b></b>26.1.2
-     * {@code Screen#extractTransparentBackground} 424-426
-     * {@code graphics.fillGradient(0, 0, this.width, this.height, -1072689136, -804253680)}
-     *   1.20.1  {@code fillGradient} <b> int </b>
-     *  ARGB  {@code 0xC0101010 / 0xD0101010}
-     * {@code 0x101010}  75% 81% <b></b>
-     * Gradle  API </p>
-     *
-     * <p> {@code minecraft.gui.extractDeferredSubtitles()} 395
-     *  {@code super} </p>
-     *
-     * <p><b></b> 108-111  {@code nextStratum()}
-     *  {@code extractRenderState}
-     *  1.20.1 {@code renderBackground}
-     *  {@code extractRenderState}
-     * {@code translate(panelLeft, panelTop) + scale(layoutScale)}
-     * 1.20.1 </p>
-     *
-     * <p>tooltip
-     * 600  430 12px
-     * <b></b></p>
-     */
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         if (this.minecraft == null || this.minecraft.level == null) {
-            //  +  1.20.1  renderDirtBackground
+
             super.extractBackground(graphics, mouseX, mouseY, a);
             return;
         }
-        //  26.1.2 = 1.20.1  renderBackground
+
         this.extractTransparentBackground(graphics);
     }
 
-    /**
-     *
-     *
-     * <p><b></b>
-     *
-     *
-     * {@code HiveLeaderOrganEvents}</p>
-     */
     @Override
     public void removed() {
         this.draggingModel = false;
@@ -1601,10 +1113,8 @@ public class HiveLeaderOrganScreen extends Screen {
         super.removed();
     }
 
-    /**  */
     @Nullable
     protected LocalPlayer localPlayer() {
         return Minecraft.getInstance().player;
     }
 }
-

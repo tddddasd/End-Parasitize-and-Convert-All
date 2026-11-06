@@ -64,8 +64,7 @@ public class StageIIBeckonSpawnEgg extends SpawnEggItem {
 
             Component message = Component.translatable("epca.message.stage_too_low")
                     .withStyle(style -> style.withColor(color));
-            // 26.1.2: Player#displayClientMessage(Component, boolean overlay) is gone; the
-            // overlay variant now lives on ServerPlayer#sendSystemMessage(Component, boolean).
+
             if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
                 serverPlayer.sendSystemMessage(message, true);
             }

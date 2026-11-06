@@ -17,14 +17,12 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.concurrent.CompletableFuture;
 
-
 public class RecipeProviderData extends RecipeProvider {
 
     public RecipeProviderData(HolderLookup.Provider registries, RecipeOutput output) {
         super(registries, output);
     }
 
-    
     public static class Runner extends RecipeProvider.Runner {
         public Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
             super(output, registries);
@@ -51,34 +49,27 @@ public class RecipeProviderData extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
-        
+
         spearCrafting(Items.FLINT,          modItem("flint_spear"));
         spearCrafting(Items.COPPER_INGOT,   modItem("copper_spear"));
         spearCrafting(Items.IRON_INGOT,     modItem("iron_spear"));
         spearCrafting(Items.GOLD_INGOT,     modItem("golden_spear"));
         spearCrafting(Items.DIAMOND,        modItem("diamond_spear"));
-        // wooden/stone use tags, not single items
+
         spearCraftingTag(ItemTags.PLANKS,            modItem("wooden_spear"));
         spearCraftingTag(ItemTags.STONE_CRAFTING_MATERIALS, modItem("stone_spear"));
 
-        
-        
         spearRecycling(modItem("copper_spear"),  Items.COPPER_NUGGET, 0.1F);
         spearRecycling(modItem("iron_spear"),    Items.IRON_NUGGET,  0.1F);
         spearRecycling(modItem("golden_spear"),  Items.GOLD_NUGGET,  0.1F);
 
-        
         rawRecycling(modItem("infested_raw_copper"), Items.COPPER_NUGGET, 0.1F);
         rawRecycling(modItem("infested_raw_iron"),   Items.IRON_NUGGET,  0.1F);
         rawRecycling(modItem("infested_raw_gold"),   Items.GOLD_NUGGET,  0.1F);
 
-        
         netheriteSmithing(modItem("diamond_spear"), modItem("netherite_spear"));
     }
 
-    
-
-    
     private void spearCrafting(Item material, Item result) {
         String matName = BuiltInRegistries.ITEM.getKey(material).getPath();
         String resultName = BuiltInRegistries.ITEM.getKey(result).getPath();
@@ -89,7 +80,6 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(this.output, recipeId(resultName + "_crafting_shaped"));
     }
 
-    
     private void spearCraftingTag(TagKey<Item> materialTag, Item result) {
         String resultName = BuiltInRegistries.ITEM.getKey(result).getPath();
         ShapedRecipeBuilder.shaped(this.items, RecipeCategory.COMBAT, result)
@@ -99,9 +89,6 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(this.output, recipeId(resultName + "_crafting_shaped"));
     }
 
-    
-
-    
     private void spearRecycling(Item spear, Item result, float xp) {
         String spearName = BuiltInRegistries.ITEM.getKey(spear).getPath();
         String group = "smelting_" + spearName;
@@ -119,7 +106,6 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(this.output, recipeId(spearName + "_blasting"));
     }
 
-    
     private void rawRecycling(Item raw, Item result, float xp) {
         String rawName = BuiltInRegistries.ITEM.getKey(raw).getPath();
         String group = "smelting_" + rawName;
@@ -137,9 +123,6 @@ public class RecipeProviderData extends RecipeProvider {
                 .save(this.output, recipeId(rawName + "_blasting"));
     }
 
-    
-
-    
     private void netheriteSmithing(Item base, Item result) {
         String resultName = BuiltInRegistries.ITEM.getKey(result).getPath();
         SmithingTransformRecipeBuilder.smithing(

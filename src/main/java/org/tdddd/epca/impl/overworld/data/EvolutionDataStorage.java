@@ -18,15 +18,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EvolutionDataStorage extends SavedData {
-    /** 1.20.1 used the file name "EvolutionData"; 26.1.2 needs a valid (lowercase) Identifier path.
-     *  Old file: data/EvolutionData.dat - new file: data/epca/evolution_data.dat (see PORTING-NOTES-w2-data.md). */
+
     private static final Identifier DATA_ID = Identifier.fromNamespaceAndPath("epca", "evolution_data");
 
-    /** Dimension keys keep the 1.20.1 "namespace:path" string form: ResourceKey.codec writes exactly what
-     *  the old code wrote via dim.location().toString(). */
     private static final Codec<ResourceKey<Level>> DIMENSION_CODEC = ResourceKey.codec(Registries.DIMENSION);
 
-    /** "Dimensions" list entry: {Dimension:"ns:dim", Points:int} - same field names as the 1.20.1 save/load. */
     private record DimensionPoints(ResourceKey<Level> dimension, int points) {
         private static final Codec<DimensionPoints> CODEC = RecordCodecBuilder.create(i -> i.group(
                 DIMENSION_CODEC.fieldOf("Dimension").forGetter(DimensionPoints::dimension),
@@ -34,7 +30,6 @@ public class EvolutionDataStorage extends SavedData {
         ).apply(i, DimensionPoints::new));
     }
 
-    /** "Cooldowns" list entry: {Dimension:"ns:dim", CooldownEnd:long}. */
     private record DimensionCooldown(ResourceKey<Level> dimension, long endTick) {
         private static final Codec<DimensionCooldown> CODEC = RecordCodecBuilder.create(i -> i.group(
                 DIMENSION_CODEC.fieldOf("Dimension").forGetter(DimensionCooldown::dimension),
@@ -42,7 +37,6 @@ public class EvolutionDataStorage extends SavedData {
         ).apply(i, DimensionCooldown::new));
     }
 
-    /** "OverriddenStages" list entry: {Dimension:"ns:dim", Stage:int}. */
     private record DimensionStage(ResourceKey<Level> dimension, int stage) {
         private static final Codec<DimensionStage> CODEC = RecordCodecBuilder.create(i -> i.group(
                 DIMENSION_CODEC.fieldOf("Dimension").forGetter(DimensionStage::dimension),
@@ -50,10 +44,6 @@ public class EvolutionDataStorage extends SavedData {
         ).apply(i, DimensionStage::new));
     }
 
-    /**
-     * 26.1.2 persists SavedData through a codec. The three legacy lists keep their 1.20.1 names, so a 1.20.1
-     * data compound can be carried over by wrapping it as {"data": &lt;old root compound&gt;} in the new file.
-     */
     public static final Codec<EvolutionDataStorage> CODEC = RecordCodecBuilder.create(i -> i.group(
             DimensionPoints.CODEC.listOf().optionalFieldOf("Dimensions", List.of())
                     .forGetter(EvolutionDataStorage::pointsList),
@@ -66,25 +56,22 @@ public class EvolutionDataStorage extends SavedData {
     public static final SavedDataType<EvolutionDataStorage> TYPE =
             new SavedDataType<EvolutionDataStorage>(DATA_ID, EvolutionDataStorage::new, CODEC);
 
-    
     private final Map<ResourceKey<Level>, Integer> dimensionPoints = new ConcurrentHashMap<>();
-    
+
     private final Map<ResourceKey<Level>, Long> dimensionCooldowns = new ConcurrentHashMap<>();
     private final Map<ResourceKey<Level>, Integer> overriddenStages = new ConcurrentHashMap<>();
 
     public EvolutionDataStorage() {
-        
+
         dimensionPoints.put(Level.OVERWORLD, 0);
         dimensionPoints.put(Level.NETHER, -50);
         dimensionPoints.put(Level.END, -50);
-        
+
         ResourceKey<Level> twilightForest = ResourceKey.create(Registries.DIMENSION,
                 Identifier.parse("twilightforest:twilight_forest"));
         dimensionPoints.put(twilightForest, -50);
     }
 
-    /** Codec decode constructor: takes only what the file contains and seeds nothing, matching the old
-     *  EvolutionDataStorage(CompoundTag) constructor (the defaults above are for brand new data only). */
     private EvolutionDataStorage(List<DimensionPoints> points, List<DimensionCooldown> cooldowns,
                                  List<DimensionStage> stages) {
         for (DimensionPoints entry : points) {
@@ -120,7 +107,6 @@ public class EvolutionDataStorage extends SavedData {
         return level.getServer().overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
-    
     public int getPointsForDimension(ResourceKey<Level> dimension) {
         return dimensionPoints.getOrDefault(dimension, 0);
     }
@@ -130,7 +116,6 @@ public class EvolutionDataStorage extends SavedData {
         setDirty();
     }
 
-    
     public long getCooldownEndForDimension(ResourceKey<Level> dimension) {
         return dimensionCooldowns.getOrDefault(dimension, 0L);
     }
@@ -140,7 +125,6 @@ public class EvolutionDataStorage extends SavedData {
         setDirty();
     }
 
-    
     public Integer getOverriddenStage(ResourceKey<Level> dimension) {
         return overriddenStages.get(dimension);
     }
@@ -159,13 +143,12 @@ public class EvolutionDataStorage extends SavedData {
         return Collections.unmodifiableSet(overriddenStages.keySet());
     }
 
-    
     public void resetDimension(ResourceKey<Level> dimension) {
         if (dimension.equals(Level.OVERWORLD)) setPointsForDimension(dimension, 0);
         else if (dimension.equals(Level.NETHER) || dimension.equals(Level.END))
             setPointsForDimension(dimension, -50);
         else setPointsForDimension(dimension, 0);
-        clearOverriddenStage(dimension); 
+        clearOverriddenStage(dimension);
     }
 
     public void resetAllDimensions() {

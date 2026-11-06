@@ -10,35 +10,18 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-/**
- * Central manager for EPCA entity registration.
- * Pattern follows HallEntityManager from The Hall.
- *
- * <p>Stores attribute suppliers, render-type lists, and per-type model/texture/animation
- * resources so that entities can be auto-registered without modifying their source code.</p>
- */
 public class EpcaEntityManager {
 
-    /** Entity types  attribute suppliers for EntityAttributeCreationEvent. */
     private static final Map<EntityType<? extends LivingEntity>, Supplier<AttributeSupplier>> ATTRIBUTE_BLUEPRINTS = new LinkedHashMap<>();
 
-    /** Entity types that receive auto-renderers via EpcaGeoRenderer. */
     private static final List<EntityType<? extends LivingEntity>> RENDER_TYPES = new ArrayList<>();
 
-    /** Per-type model resources (for auto-renderers, so entities don't need IAutoRenderableEntity). */
     private static final Map<EntityType<?>, Identifier> MODEL_MAP = new HashMap<>();
     private static final Map<EntityType<?>, Identifier> TEXTURE_MAP = new HashMap<>();
     private static final Map<EntityType<?>, Identifier> ANIMATION_MAP = new HashMap<>();
 
-    /** Tracked living entity instances (server-side). */
     private static final Map<EntityType<?>, Set<LivingEntity>> TRACKED_ENTITIES = new ConcurrentHashMap<>();
 
-    //  Registration
-
-    /**
-     * Register a mob with attributes + auto-renderer. Entity extends AbstractEpcaEntity.
-     * Entity must implement IAutoRenderableEntity (resources from entity fields).
-     */
     public static <T extends LivingEntity> EntityType<T> registerMob(
             EntityType<T> type, Supplier<AttributeSupplier> attrSupplier) {
         ATTRIBUTE_BLUEPRINTS.put(type, attrSupplier);
@@ -46,10 +29,6 @@ public class EpcaEntityManager {
         return type;
     }
 
-    /**
-     * Register a mob with attributes + auto-renderer. Resources provided explicitly,
-     * no IAutoRenderableEntity needed on the entity class.
-     */
     public static <T extends LivingEntity> EntityType<T> registerMobWithRender(
             EntityType<T> type, Supplier<AttributeSupplier> attrSupplier,
             Identifier model, Identifier texture, Identifier animation) {
@@ -61,10 +40,6 @@ public class EpcaEntityManager {
         return type;
     }
 
-    /**
-     * Register a misc entity for auto-rendering only (no attributes).
-     * Model/texture/animation are looked up by name convention.
-     */
     public static <T extends LivingEntity> EntityType<T> registerRenderOnly(
             EntityType<T> type, Identifier model, Identifier texture, Identifier animation) {
         RENDER_TYPES.add(type);
@@ -80,23 +55,17 @@ public class EpcaEntityManager {
         return type;
     }
 
-    //  Event hooks
-
-    /** Called from ModEntityEvents to create all registered attributes. */
     public static void createAttributes(EntityAttributeCreationEvent event) {
         ATTRIBUTE_BLUEPRINTS.forEach((type, supplier) -> event.put(type, supplier.get()));
         ATTRIBUTE_BLUEPRINTS.clear();
     }
 
-    /** Called from ClientHandler to get all types needing auto-renderers. */
     @SuppressWarnings("unchecked")
     public static List<EntityType<? extends LivingEntity>> consumeRenderTypes() {
         List<EntityType<? extends LivingEntity>> result = new ArrayList<>(RENDER_TYPES);
         RENDER_TYPES.clear();
         return result;
     }
-
-    //  Resource lookups  (for auto-renderer model)
 
     public static Identifier getModel(EntityType<?> type) {
         return MODEL_MAP.get(type);
@@ -109,8 +78,6 @@ public class EpcaEntityManager {
     public static Identifier getAnimation(EntityType<?> type) {
         return ANIMATION_MAP.get(type);
     }
-
-    //  Entity tracking
 
     public static void track(LivingEntity entity) {
         if (entity.level().isClientSide()) return;
@@ -135,4 +102,3 @@ public class EpcaEntityManager {
         TRACKED_ENTITIES.clear();
     }
 }
-

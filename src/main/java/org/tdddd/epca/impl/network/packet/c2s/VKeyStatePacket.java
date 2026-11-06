@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-
 public class VKeyStatePacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<VKeyStatePacket> TYPE =

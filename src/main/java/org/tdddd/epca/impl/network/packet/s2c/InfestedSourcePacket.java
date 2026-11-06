@@ -10,10 +10,8 @@ import org.tdddd.epca.impl.client.WaterColorEffectsManager;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.overworld.data.InfestedBlockManager;
 
-
 public class InfestedSourcePacket {
 
-    
     public static class AddInfestedSourcePacket implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<AddInfestedSourcePacket> TYPE =
                 new CustomPacketPayload.Type<>(ModNetwork.id("add_infested_source"));
@@ -42,14 +40,12 @@ public class InfestedSourcePacket {
 
         public static void handle(AddInfestedSourcePacket packet, IPayloadContext ctx) {
             ctx.enqueueWork(() -> {
-                
+
                 WaterColorEffectsManager.addInfestedSource(packet.pos);
             });
         }
     }
 
-    
-    
     public static class RemoveInfestedSourcePacket implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<RemoveInfestedSourcePacket> TYPE =
                 new CustomPacketPayload.Type<>(ModNetwork.id("remove_infested_source"));
@@ -77,13 +73,12 @@ public class InfestedSourcePacket {
 
         public static void handle(RemoveInfestedSourcePacket packet, IPayloadContext ctx) {
             ctx.enqueueWork(() -> {
-                
+
                 WaterColorEffectsManager.removeInfestedSource(packet.pos);
             });
         }
     }
 
-    
     public static class RequestAllInfestedSourcesPacket implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<RequestAllInfestedSourcesPacket> TYPE =
                 new CustomPacketPayload.Type<>(ModNetwork.id("request_all_infested_sources"));
@@ -92,7 +87,7 @@ public class InfestedSourcePacket {
                 CustomPacketPayload.codec(RequestAllInfestedSourcesPacket::encode, RequestAllInfestedSourcesPacket::decode);
 
         public void encode(RegistryFriendlyByteBuf buf) {
-            
+
         }
 
         public static RequestAllInfestedSourcesPacket decode(RegistryFriendlyByteBuf buf) {
@@ -113,12 +108,6 @@ public class InfestedSourcePacket {
         }
     }
 
-    /**
-     * Many adds and removes in one payload.
-     *
-     * <p>Mass infestation used to send one {@code add_infested_source} per block to every player, which is
-     * what made large infested regions laggy. Batching turns thousands of payloads into one per tick.</p>
-     */
     public static class BatchInfestedSourcePacket implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<BatchInfestedSourcePacket> TYPE =
                 new CustomPacketPayload.Type<>(ModNetwork.id("batch_infested_source"));

@@ -53,29 +53,21 @@ public class epca {
         return Identifier.fromNamespaceAndPath(MODID, path);
     };
 
-    // 26.1.2: FMLJavaModLoadingContext is gone; the mod event bus is injected
-    // into the mod constructor instead (see EPCA-PORT-GUIDE.md).
     public epca(IEventBus modEventBus, ModContainer modContainer) {
-        // 26.1.2: register the custom game rule while its registry is still open (a static
-        // initializer would run after the registry is frozen).
+
         modEventBus.addListener(RegisterEvent.class, event -> {
             if (event.getRegistryKey().equals(Registries.GAME_RULE)) {
                 DO_INFESTED_FALLBACK = GameRules.registerBoolean(
                         "epca_hardness_conversion_block", GameRuleCategory.MISC, true);
             }
         });
-        
-        
-        
 
         IEventBus forgeBus = NeoForge.EVENT_BUS;
-        
-        
+
         ModNetwork.register(modEventBus);
-        
+
         EpcaAttachments.register(modEventBus);
-        // Initialize the attachment holders during construction; a lazy first touch at runtime would
-        // register an entry after RegisterEvent has fired and crash the game (see ShieldCapabilityHandler).
+
         ShieldCapabilityHandler.init();
         ModCreativeTabs.CREATIVE_TABS.register(modEventBus);
         ModParticles.REGISTRY.register(modEventBus);
@@ -92,28 +84,25 @@ public class epca {
         ModConfig.register(modContainer);
         WingChestManager.init();
 
-        
         if (org.tdddd.epca.impl.compat.EejCompat.loaded()) {
             org.tdddd.epca.impl.compat.EejAltarCompat.registerInteraction();
         }
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
-        
-        
+
         }
 
         modEventBus.addListener(this::clientSetup);
-        
+
         modEventBus.addListener(org.tdddd.epca.impl.datagen.DataGenEvent::gatherClientData);
         modEventBus.addListener(org.tdddd.epca.impl.datagen.DataGenEvent::gatherServerData);
-        
+
         forgeBus.addListener(this::onRegisterCommands);
         forgeBus.addListener(this::onServerStarted);
         forgeBus.addListener(this::onAddReloadListeners);
         forgeBus.addListener(this::onPlayerTick);
     }
 
-    
     public static final net.neoforged.neoforge.registries.DeferredHolder<
             net.neoforged.neoforge.attachment.AttachmentType<?>,
             net.neoforged.neoforge.attachment.AttachmentType<
@@ -125,7 +114,6 @@ public class epca {
         }
     }
 
-    
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         org.tdddd.epca.impl.commands.BiomassCountCommand.register(event.getDispatcher());
@@ -135,6 +123,7 @@ public class epca {
         event.getDispatcher().register(ParasiteSummonCommand.registerSetParasite());
         HiveLeaderCommand.register(event);
         org.tdddd.epca.impl.commands.LikeBiomeCommand.register(event.getDispatcher());
+        org.tdddd.epca.impl.soul.SoulSystem.register(event.getDispatcher());
     }
 
     @SubscribeEvent
@@ -143,29 +132,10 @@ public class epca {
         EvolutionDataStorage.get(overworld);
     }
 
-    // SPEC A1: the old "attract parasites" server-tick hook and its forgeBus listener
-    // registration were removed here. Nothing else drove ParasiteAttractionManager; the
-    // pending-conversion queue is ticked by ParaCurseEffectTickHandler.
-    /**
-     *  tick + STAGE 3
-     *
-     * <p> SPEC  2  3
-     * {@code HiveLeaderManager#isHiveLeader}
-     * {@link org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary#compute}
-     *  {@link HiveLeaderOrganEffects#tick}
-     * +  {@code entity_gravity} +
-     *  tick
-     *  {@link HiveLeaderOrganEffects#notLeader} tick
-     * SPEC  1  2 </p>
-     *
-     * <p>26.1.21.20.1  {@code TickEvent.PlayerTickEvent} {@code phase}
-     * {@code net.neoforged.neoforge.event.tick.PlayerTickEvent.Post} phase </p>
-     */
     @SubscribeEvent
     public void onPlayerTick(PlayerTickEvent.Post event) {
         LivingArmorBox.applyBiomassEffects(event.getEntity());
 
-        // STAGE 3 HiveLeaderOrganEffects
         if (!event.getEntity().level().isClientSide()) {
             if (HiveLeaderManager.isHiveLeader(event.getEntity().getUUID())) {
                 HiveLeaderOrganEffects.tick(event.getEntity());
@@ -177,26 +147,15 @@ public class epca {
 
     @SubscribeEvent
     public void onAddReloadListeners(AddServerReloadListenersEvent event) {
-        
+
         event.addListener(asResource("entity_conversion"), new EntityConversionManager());
         event.addListener(asResource("entity_integration"), new EntityIntegrationManager());
         event.addListener(asResource("entity_kill_count"), new EntityBiomassCountManager());
         event.addListener(asResource("carry_config"), CarryConfigManager.INSTANCE);
         event.addListener(asResource("biomass_spawn"), new BiomassSpawnManager());
-        // SPEC D6 json
-        // data/epca/organ_stats/<item>.json + _defaults.json OrganStatManager
+
         event.addListener(asResource("organ_stats"), new OrganStatManager());
     }
 
-    // Attribute registration is now handled by ModEntityEvents.onEntityAttributeCreation()
-    // which delegates to both EpcaEntityManager.createAttributes() (auto-registration)
-    // and registerManualAttributes() (backward compat for existing entities).
-
-    
-    
-    // 26.1.2: game rules live in the built-in minecraft:game_rule registry, which is frozen
-    // before the mod constructor runs. The rule therefore cannot be created in a static
-    // initializer; it is registered by the RegisterEvent listener in the constructor.
     public static net.minecraft.world.level.gamerules.GameRule<Boolean> DO_INFESTED_FALLBACK;
 }
-

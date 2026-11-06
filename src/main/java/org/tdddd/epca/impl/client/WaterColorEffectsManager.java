@@ -11,29 +11,20 @@ public class WaterColorEffectsManager {
 
     private static final Map<BlockPos, Integer> acidSources = new ConcurrentHashMap<>();
 
-    
     private static final Map<ChunkPos, Set<BlockPos>> INFESTED_BY_CHUNK = new ConcurrentHashMap<>();
-    //private static final int INFESTED_PURPLE = 0xFF8066AA;
 
-    
-
-    
     public static void addInfestedSource(BlockPos pos) {
     }
 
-    
     public static void removeInfestedSource(BlockPos pos) {
     }
 
-    
     public static void addInfestedSourcesBatch(Collection<BlockPos> positions) {
     }
 
-    
     public static void clearInfestedCache() {
     }
 
-    
     private static float getNearestInfestedDistance(BlockPos pos) {
         int cx = pos.getX() >> 4;
         int cz = pos.getZ() >> 4;
@@ -55,7 +46,7 @@ public class WaterColorEffectsManager {
                     if (d2 < minDistSq) {
                         minDistSq = (float) d2;
                         if (minDistSq <= 4.0f) {
-                            // close enough for the strongest tint: no need to look any further
+
                             return (float) Math.sqrt(minDistSq);
                         }
                     }
@@ -69,7 +60,6 @@ public class WaterColorEffectsManager {
         return -1f;
     }
 
-    
     public static int getWaterColor(BlockPos pos, int originalColor) {
         int acidColor = getAcidColor(pos);
 
@@ -80,7 +70,6 @@ public class WaterColorEffectsManager {
         return mixed;
     }
 
-    
     public static void updateClientEffect(BlockPos waterPos, BlockPos acidPos, int distance) {
         acidSources.put(waterPos.immutable(), Math.min(distance, 8));
         forceChunkUpdate(waterPos);
@@ -114,7 +103,6 @@ public class WaterColorEffectsManager {
         return (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
 
-    
     private static void forceChunkUpdate(BlockPos pos) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null && mc.levelRenderer != null) {
@@ -141,8 +129,7 @@ public class WaterColorEffectsManager {
         }
 
         for (ChunkPos cp : chunks) {
-            // 26.1.2: Level#getMinSection/getMaxSection -> getMinSectionY/getMaxSectionY, and ChunkPos exposes
-            // record accessors x()/z() instead of public fields.
+
             for (int y = mc.level.getMinSectionY(); y <= mc.level.getMaxSectionY(); y++) {
                 mc.levelRenderer.setSectionDirty(cp.x(), y, cp.z());
             }

@@ -16,9 +16,7 @@ public class InfestedSlimeSpawnEgg extends SpawnEggItem {
     private static final Random RANDOM = new Random();
 
     public InfestedSlimeSpawnEgg(Properties properties) {
-        
-        // 26.1.2: SpawnEggItem only takes Properties; the entity type is a property now.
-        // (-1, -1 background/foreground colours are gone: spawn-egg colours are per-entity data.)
+
         super(properties.spawnEgg(ModEntities.INFESTED_SLIME_SIZE0.get()));
     }
 

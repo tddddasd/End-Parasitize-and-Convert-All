@@ -23,19 +23,16 @@ public class MasterDifficultyAdvancementHandler {
         var server = player.level().getServer();
         if (server == null) return;
 
-        
         boolean allowCommands = server.getWorldData().isAllowCommands();
-        
+
         boolean isHardDifficulty = player.level().getDifficulty() == Difficulty.HARD;
 
-        
         ServerLevel level = player.level();
         WorldDifficultyData difficultyData = WorldDifficultyData.get(level);
         boolean isMasterDifficulty = difficultyData.getDifficulty() == DifficultyLevel.MASTER;
 
-        
         if (!allowCommands && isHardDifficulty && isMasterDifficulty) {
-            
+
             AdvancementHolder advancement = server.getAdvancements().get(
                     Identifier.fromNamespaceAndPath(epca.MODID, "master_difficulty")
             );

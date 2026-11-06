@@ -18,8 +18,7 @@ public class ClientHandlerI {
     public static void onKeyInput0(InputEvent.Key event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null && mc.level != null) {
-            // 26.1.2: SimpleChannel/ModNetwork.INSTANCE are gone; serverbound payloads go
-            // through the client-only ClientPacketDistributor (see ModNetwork's javadoc).
+
             if (event.getKey() == GLFW.GLFW_KEY_V && event.getAction() == GLFW.GLFW_PRESS) {
                 ClientPacketDistributor.sendToServer(new KeyPacket());
             }

@@ -55,14 +55,12 @@ import java.util.*;
 
 public class BlockConversionManager {
 
-    /** Erosion points granted for every block that gets infested. */
     private static final int INFEST_POINTS = 1;
     private static final BlockConversionManager INSTANCE = new BlockConversionManager();
     private final Gson gson = new Gson();
 
-    
     private StageConfig stageIConfig = new StageConfig();
-    
+
     private StageConfig stageIIConfig = new StageConfig();
     private StageConfig generalConfig = new StageConfig();
 
@@ -73,11 +71,7 @@ public class BlockConversionManager {
         loadStageIConfig();
         loadStageIIConfig();
         loadGeneralConfig();
-        
-        
-        
-        
-        
+
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::handleServerStarted);
         NeoForge.EVENT_BUS.addListener(this::handlePlayerLoggedOut);
@@ -87,11 +81,10 @@ public class BlockConversionManager {
         return INSTANCE;
     }
 
-    
     private void loadStageIConfig() {
         stageIConfig = loadConfig("stage_i_block_conversions.json");
         if (stageIConfig == null) {
-            stageIConfig = new StageConfig(); 
+            stageIConfig = new StageConfig();
         }
     }
 
@@ -126,7 +119,6 @@ public class BlockConversionManager {
         return null;
     }
 
-    
     private static class StageConfig {
         Map<String, String> conversions = new HashMap<>();
         int plant_radius = 1;
@@ -134,11 +126,10 @@ public class BlockConversionManager {
         int leaves_interval = 5;
     }
 
-
     public boolean convertBlockUsingStageIConfig(ServerLevel level, BlockPos pos, BlockState state) {
         float hardness = state.getDestroySpeed(level, pos);
         if (hardness < 0.0f || hardness > 2.0f) {
-            return false; 
+            return false;
         }
         float multiplier = 1.0f;
         if (org.tdddd.epca.impl.compat.EejCompat.loaded()
@@ -160,7 +151,6 @@ public class BlockConversionManager {
         convertNearbyLeaves(level, center, stageIConfig.leaves_radius);
     }
 
-    
     public boolean convertBlockUsingStageIIConfig(ServerLevel level, BlockPos pos, BlockState state) {
         float multiplier = 1.0f;
         if (org.tdddd.epca.impl.compat.EejCompat.loaded()
@@ -202,7 +192,7 @@ public class BlockConversionManager {
     public void convertNearbyLeavesForGeneral(ServerLevel level, BlockPos center) {
         convertNearbyLeaves(level, center, generalConfig.leaves_radius);
     }
-    
+
     private boolean convertBlockUsingMap(ServerLevel level, BlockPos pos, BlockState state, Map<String, String> map, float hardnessMultiplier) {
         Block originalBlock = state.getBlock();
         Identifier blockId = BuiltInRegistries.BLOCK.getKey(originalBlock);
@@ -215,7 +205,7 @@ public class BlockConversionManager {
                 BlockState newState = targetBlock.defaultBlockState();
                 newState = copyCommonBlockProperties(state, newState);
                 level.setBlock(pos, newState, 3);
-                
+
                 sendInfestedPacketToClients(level, pos, true);
                 afterBlockConverted(level, pos, newState);
                 org.tdddd.epca.impl.overworld.data.EvolutionManager.forDimension(level)
@@ -226,11 +216,11 @@ public class BlockConversionManager {
             if (!level.getGameRules().get(epca.DO_INFESTED_FALLBACK)) {
                 return false;
             }
-            
+
             if (isInfestedBlock(state)) {
                 return false;
             }
-            
+
             if (state.isAir() || !state.getFluidState().isEmpty()) {
                 return false;
             }
@@ -244,7 +234,7 @@ public class BlockConversionManager {
             float hardness = state.getDestroySpeed(level, pos) * hardnessMultiplier;
 
             if (hardness == 0.0f || !state.isCollisionShapeFullBlock(level, pos)) {
-                int layers = 2 + level.getRandom().nextInt(5); 
+                int layers = 2 + level.getRandom().nextInt(5);
                 BlockState residueState = ModBlocks.INFESTED_RESIDUE.get().defaultBlockState()
                         .setValue(InfestedResidue.LAYERS, layers);
                 level.setBlock(pos, residueState, 3);
@@ -298,7 +288,6 @@ public class BlockConversionManager {
         }
     }
 
-    
     public void convertLilyPadsAboveInfested(ServerLevel level, BlockPos infestedPos) {
         for (int i = 1; i <= 7; i++) {
             BlockPos checkPos = infestedPos.above(i);
@@ -309,9 +298,8 @@ public class BlockConversionManager {
         }
     }
 
-    
     private void convertLilyPadWithBelow(ServerLevel level, BlockPos pos) {
-        
+
         String fullBlockId = BuiltInRegistries.BLOCK.getKey(Blocks.LILY_PAD).toString();
         String targetBlockId = generalConfig.conversions.get(fullBlockId);
         Block targetBlock = null;
@@ -331,11 +319,11 @@ public class BlockConversionManager {
     }
 
     private BlockState copyCommonBlockProperties(BlockState source, BlockState target) {
-        
+
         if (source.hasProperty(RotatedPillarBlock.AXIS) && target.hasProperty(RotatedPillarBlock.AXIS)) {
             target = target.setValue(RotatedPillarBlock.AXIS, source.getValue(RotatedPillarBlock.AXIS));
         }
-        
+
         if (source.hasProperty(net.minecraft.world.level.block.SlabBlock.TYPE) &&
                 target.hasProperty(net.minecraft.world.level.block.SlabBlock.TYPE)) {
             target = target.setValue(net.minecraft.world.level.block.SlabBlock.TYPE,
@@ -346,7 +334,7 @@ public class BlockConversionManager {
             target = target.setValue(net.minecraft.world.level.block.SlabBlock.WATERLOGGED,
                     source.getValue(net.minecraft.world.level.block.SlabBlock.WATERLOGGED));
         }
-        
+
         if (source.hasProperty(net.minecraft.world.level.block.StairBlock.FACING) &&
                 target.hasProperty(net.minecraft.world.level.block.StairBlock.FACING)) {
             target = target.setValue(net.minecraft.world.level.block.StairBlock.FACING,
@@ -367,7 +355,7 @@ public class BlockConversionManager {
             target = target.setValue(net.minecraft.world.level.block.StairBlock.WATERLOGGED,
                     source.getValue(net.minecraft.world.level.block.StairBlock.WATERLOGGED));
         }
-        
+
         if (source.hasProperty(net.minecraft.world.level.block.WallBlock.UP) &&
                 target.hasProperty(net.minecraft.world.level.block.WallBlock.UP)) {
             target = target.setValue(net.minecraft.world.level.block.WallBlock.UP,
@@ -398,7 +386,7 @@ public class BlockConversionManager {
             target = target.setValue(net.minecraft.world.level.block.WallBlock.WATERLOGGED,
                     source.getValue(net.minecraft.world.level.block.WallBlock.WATERLOGGED));
         }
-        
+
         if (source.hasProperty(FenceBlock.NORTH) && target.hasProperty(FenceBlock.NORTH)) {
             target = target.setValue(FenceBlock.NORTH, source.getValue(FenceBlock.NORTH));
         }
@@ -411,18 +399,18 @@ public class BlockConversionManager {
         if (source.hasProperty(FenceBlock.WEST) && target.hasProperty(FenceBlock.WEST)) {
             target = target.setValue(FenceBlock.WEST, source.getValue(FenceBlock.WEST));
         }
-        
+
         if (source.hasProperty(PointedDripstoneBlock.TIP_DIRECTION) && target.hasProperty(PointedDripstoneBlock.TIP_DIRECTION)) {
             target = target.setValue(PointedDripstoneBlock.TIP_DIRECTION, source.getValue(PointedDripstoneBlock.TIP_DIRECTION));
         }
         if (source.hasProperty(PointedDripstoneBlock.THICKNESS) && target.hasProperty(PointedDripstoneBlock.THICKNESS)) {
             target = target.setValue(PointedDripstoneBlock.THICKNESS, source.getValue(PointedDripstoneBlock.THICKNESS));
         }
-        
+
         if (source.hasProperty(SnowLayerBlock.LAYERS) && target.hasProperty(SnowLayerBlock.LAYERS)) {
             target = target.setValue(SnowLayerBlock.LAYERS, source.getValue(SnowLayerBlock.LAYERS));
         }
-        
+
         if (source.hasProperty(BlockStateProperties.WATERLOGGED) && target.hasProperty(BlockStateProperties.WATERLOGGED)) {
             target = target.setValue(BlockStateProperties.WATERLOGGED, source.getValue(BlockStateProperties.WATERLOGGED));
         }
@@ -595,17 +583,6 @@ public class BlockConversionManager {
                 state.getBlock() instanceof net.minecraft.world.level.block.LeavesBlock;
     }
 
-    //  Cursed world: silent chunk-level conversion
-
-    /**
-     * The conversion targets that are plants and therefore keep their own leaf/face state instead of going
-     * through {@link #copyCommonBlockProperties}.
-     */
-    /**
-     * Lazily built: these are EPCA blocks, and their DeferredHolders are still unbound while mod
-     * loading is registering blocks. A static initialiser would throw "Trying to access unbound
-     * value" and abort the whole registry event, so the set is created on first use instead.
-     */
     private static volatile Set<Block> PLANT_CONVERSION_TARGETS;
 
     private static Set<Block> plantConversionTargets() {
@@ -630,7 +607,6 @@ public class BlockConversionManager {
         return targets;
     }
 
-    /** Block states that {@link #convertPlantAtPosition} or the vine/leaf rules handle specially. */
     private static final Set<Block> SPECIAL_PLANT_BLOCKS = Set.of(
             Blocks.SHORT_GRASS,
             Blocks.FERN,
@@ -641,18 +617,9 @@ public class BlockConversionManager {
             Blocks.LILY_PAD,
             Blocks.FLOWERING_AZALEA_LEAVES);
 
-    /** Blocks that are never converted and would only waste a lookup. */
     private static final Set<Block> NEVER_CONVERTIBLE = Set.of(
             Blocks.AIR, Blocks.CAVE_AIR, Blocks.VOID_AIR, Blocks.WATER, Blocks.LAVA, Blocks.BEDROCK);
 
-    /**
-     * Every block that the chunk generation conversion can turn into something else: the entries of the
-     * general conversion config plus the vanilla plants/vines/leaves the hardcoded rules cover.
-     *
-     * <p>Built per converted chunk (not cached in a field) because {@link #generalConfig} is loaded by the
-     * constructor and an instance is cheap to build; used as a section-palette predicate so that a section
-     * whose palette contains none of these blocks is skipped without reading a single block.
-     */
     private Set<Block> buildConvertibleBlockSet() {
         Set<Block> blocks = new HashSet<>();
         for (String id : generalConfig.conversions.keySet()) {
@@ -672,26 +639,6 @@ public class BlockConversionManager {
         return blocks;
     }
 
-    /**
-     * Silent, chunk-level conversion used for freshly generated chunks of the cursed world.
-     *
-     * <p>Unlike the interactive single-block methods this entry point produces <b>no</b> side effects at all:
-     * no particles, no sounds, no network packets, no random rolls and no delayed queueing. It only reads the
-     * chunk and replaces blocks, and it applies <b>every</b> conversion unconditionally (the "convert all, not
-     * by probability" requirement).
-     *
-     * <p>Performance shape:
-     * <ul>
-     *   <li>sections with {@code hasOnlyAir()} are skipped outright;</li>
-     *   <li>a section whose palette holds no convertible block is skipped before any block is read;</li>
-     *   <li>blocks already carried by an {@link InfestedBlockInterface} are skipped;</li>
-     *   <li>blocks are written with update flag {@value #CHUNK_CONVERSION_UPDATE_FLAGS}, matching the other
-     *       bulk-generation writer in this class (the chunk is brand new, so no neighbour notification is
-     *       needed and no client packet has to be broadcast).</li>
-     * </ul>
-     *
-     * @return the number of block positions that were replaced
-     */
     public int convertChunkAtGeneration(ServerLevel level, ChunkAccess chunk) {
         ChunkPos chunkPos = chunk.getPos();
         int baseX = chunkPos.getMinBlockX();
@@ -721,19 +668,11 @@ public class BlockConversionManager {
         return converted;
     }
 
-    /** The update flag used by {@link #convertChunkAtGeneration}. */
     private static final int CHUNK_CONVERSION_UPDATE_FLAGS = 2;
 
-    /**
-     * One block, silently. Plant rules first (they own the grass/fern/vine/leaf shapes), then the general
-     * conversion map.
-     *
-     * @return whether the block was replaced
-     */
     private boolean convertSingleBlockSilently(ServerLevel level, BlockPos pos, BlockState state) {
         if (state.is(Blocks.SHORT_GRASS)) {
-            // convertPlantAtPosition rolls a 35% chance for the short variant; "convert everything" means the
-            // full block, so the chunk path is deterministic here.
+
             level.setBlock(pos, ModBlocks.INFESTED_GRASS.get().defaultBlockState(), CHUNK_CONVERSION_UPDATE_FLAGS);
             return true;
         }
@@ -756,8 +695,7 @@ public class BlockConversionManager {
             BlockState infested = state.is(Blocks.FLOWERING_AZALEA_LEAVES)
                     ? ModBlocks.INFESTED_FLOWERING_LEAVES.get().defaultBlockState()
                     : ModBlocks.INFESTED_LEAVES.get().defaultBlockState();
-            // A vanilla leaf keeps its distance/persistent properties; the interactive path drops them because
-            // it always builds the default state.
+
             if (state.hasProperty(LeavesBlock.DISTANCE) && infested.hasProperty(LeavesBlock.DISTANCE)) {
                 infested = infested.setValue(LeavesBlock.DISTANCE, state.getValue(LeavesBlock.DISTANCE));
             }
@@ -770,11 +708,6 @@ public class BlockConversionManager {
         return convertGeneralBlockSilently(level, pos, state);
     }
 
-    /**
-     * Replaces one or both halves of a tall grass / large fern. A block that is not mapped to a double plant
-     * (for example {@code minecraft:large_fern} in a config that remaps it elsewhere) falls through to the
-     * general map instead of being dropped.
-     */
     private boolean convertDoublePlantSilently(ServerLevel level, BlockPos pos, BlockState state) {
         BlockState lowerState = state;
         BlockPos lowerPos = pos;
@@ -796,8 +729,7 @@ public class BlockConversionManager {
         level.setBlock(lowerPos, targetBlock.defaultBlockState()
                 .setValue(DoublePlantBlock.HALF, DoubleBlockHalf.LOWER), CHUNK_CONVERSION_UPDATE_FLAGS);
         BlockPos upperPos = lowerPos.above();
-        // Do not overwrite whatever ended up above the lower half (the upper half itself, or a neighbour that
-        // has already been converted while scanning this chunk).
+
         if (level.getBlockState(upperPos).is(lowerState.getBlock())) {
             level.setBlock(upperPos, targetBlock.defaultBlockState()
                     .setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER), CHUNK_CONVERSION_UPDATE_FLAGS);
@@ -805,7 +737,6 @@ public class BlockConversionManager {
         return true;
     }
 
-    /** Silent variant of {@link #convertVineToInfested}: same face-preserving result, no level parameter type change. */
     private void convertVineToInfestedSilently(ServerLevel level, BlockPos pos, BlockState vineState) {
         BlockState infestedVineState = ModBlocks.INFESTED_VINE.get().defaultBlockState();
         for (Direction dir : Direction.values()) {
@@ -817,10 +748,6 @@ public class BlockConversionManager {
         level.setBlock(pos, infestedVineState, CHUNK_CONVERSION_UPDATE_FLAGS);
     }
 
-    /**
-     * The general-config lookup of {@link #convertBlockUsingMap}, without the packets, the fallback gating and
-     * the residue rules' extra bookkeeping.
-     */
     private boolean convertGeneralBlockSilently(ServerLevel level, BlockPos pos, BlockState state) {
         String targetId = generalConfig.conversions.get(
                 BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
@@ -832,13 +759,12 @@ public class BlockConversionManager {
         if (!plantConversionTargets().contains(targetBlock)) {
             newState = copyCommonBlockProperties(state, newState);
         } else if (newState.hasProperty(InfestedLilyPad.NATURAL_SPAWN)) {
-            // Same marker the interactive lily-pad path sets.
+
             newState = newState.setValue(InfestedLilyPad.NATURAL_SPAWN, true);
         }
         level.setBlock(pos, newState, CHUNK_CONVERSION_UPDATE_FLAGS);
         return true;
     }
-
 
     public boolean isInfestedBlock(BlockState state) {
         return state.getBlock() instanceof InfestedBlockInterface;
@@ -895,7 +821,6 @@ public class BlockConversionManager {
         }
     }
 
-    
     public Block getTargetLilyPadBlock() {
         String targetId = generalConfig.conversions.get("minecraft:lily_pad");
         if (targetId != null) {
@@ -907,7 +832,6 @@ public class BlockConversionManager {
         return Blocks.LILY_PAD;
     }
 
-    
     @Nullable
     public BlockState findInfestedBlockBelow(Level level, BlockPos pos, int range) {
         for (int i = 1; i <= range; i++) {
@@ -920,24 +844,19 @@ public class BlockConversionManager {
         return null;
     }
 
-
-
-    
-
-    
     private static final class SacrificeTask {
-        
+
         static final int BATCH_SIZE = 700;
-        
+
         private static final int PARTICLE_INTERVAL = 20;
         private static final int HEARTBEAT_INTERVAL = 60;
-        
+
         private static final int PERCENT_STEP = 10;
 
         final ResourceKey<Level> dimension;
         final BlockPos center;
         final UUID playerId;
-        
+
         final BlockPos[] positions;
         int index;
         int tick;
@@ -957,11 +876,6 @@ public class BlockConversionManager {
 
         boolean isComplete() { return index >= positions.length; }
 
-        /**
-         * Ticks this ritual still needs, from the batches left to convert. Sent to the clients so the
-         * aura knows how long it has to stay (and so the purple sky can ramp), see
-         * {@link #syncRitualAura()}.
-         */
         int remainingTicks() {
             int left = Math.max(0, positions.length - index);
             return (int) Math.ceil(left / (double) BATCH_SIZE);
@@ -972,37 +886,24 @@ public class BlockConversionManager {
         }
     }
 
-    
     private final Map<ResourceKey<Level>, Queue<SacrificeTask>> sacrificeTasks = new HashMap<>();
 
-    
     private static final int PERSIST_INTERVAL_TICKS = 100;
     private int persistCounter;
 
-    
     @Nullable
     private net.minecraft.server.MinecraftServer recoveredServer;
 
-    /** Ticks between two visual batches of the running rituals; see {@link #syncRitualAura()}. */
     public static final int RITUAL_SYNC_INTERVAL_TICKS = 10;
 
-    /** Blocks around a ritual within which a player is told about it. */
     public static final double RITUAL_SYNC_RADIUS = 96.0D;
 
-    /**
-     * How long a dimension keeps receiving (possibly empty) ritual batches after its last ritual ended.
-     * The client starts its fade-out when a ritual stops appearing in a batch, so the empty batches
-     * have to keep coming for a moment after the lightning, or the aura would never dissolve.
-     */
     private static final int RITUAL_AUDIENCE_GRACE_TICKS = 120;
 
-    /** Server tick counter for the ritual batches. */
     private int ritualSyncCounter;
 
-    /** Dimensions that still have to receive ritual batches (empty ones included). */
     private final Map<ResourceKey<Level>, Integer> ritualAudienceGrace = new HashMap<>();
 
-    
     public boolean addSacrificeTask(ServerLevel level, BlockPos center, UUID playerId, List<BlockPos> positions,
                                     @Nullable Runnable conflictHandler) {
         BlockPos[] snapshot = positions.toArray(new BlockPos[0]);
@@ -1016,17 +917,15 @@ public class BlockConversionManager {
             }
             queue.add(new SacrificeTask(level.dimension(), center, playerId, snapshot));
         }
-        
+
         persistedTasks(level).setTasksForDimension(level.dimension(), toSavedEntries(level));
         return true;
     }
 
-    
     public boolean addSacrificeTask(ServerLevel level, BlockPos center, UUID playerId, List<BlockPos> positions) {
         return addSacrificeTask(level, center, playerId, positions, null);
     }
 
-    
     public boolean hasSacrificeTask(ServerLevel level, BlockPos center) {
         synchronized (sacrificeTasks) {
             Queue<SacrificeTask> queue = sacrificeTasks.get(level.dimension());
@@ -1038,7 +937,6 @@ public class BlockConversionManager {
         }
     }
 
-    
     public boolean cancelSacrificeTask(ResourceKey<Level> dimension, BlockPos center) {
         boolean cancelled = false;
         synchronized (sacrificeTasks) {
@@ -1055,7 +953,6 @@ public class BlockConversionManager {
         return cancelled;
     }
 
-    
     public List<BlockPos> cancelSacrificeTasksForPlayer(ResourceKey<Level> dimension, UUID playerId) {
         List<BlockPos> cancelled = new ArrayList<>();
         synchronized (sacrificeTasks) {
@@ -1073,26 +970,22 @@ public class BlockConversionManager {
         }
         ServerLevel level = levelOf(dimension);
         if (level != null && persistedTasks(level).removeTasksForPlayer(dimension, playerId) && cancelled.isEmpty()) {
-            
+
             cancelled.add(BlockPos.ZERO);
         }
         return cancelled;
     }
 
-    
     public void clearSacrificeTasks() {
         synchronized (sacrificeTasks) {
             sacrificeTasks.clear();
         }
     }
 
-    
-
     private static SacrificeSavedData persistedTasks(ServerLevel level) {
         return SacrificeSavedData.get(level);
     }
 
-    
     private List<SacrificeSavedData.SacrificeEntry> toSavedEntries(ServerLevel level) {
         List<SacrificeSavedData.SacrificeEntry> entries = new ArrayList<>();
         synchronized (sacrificeTasks) {
@@ -1113,7 +1006,7 @@ public class BlockConversionManager {
                     packed[i] = SacrificeSavedData.encodeOffset(dx, dy, dz);
                 }
                 if (!encodable) {
-                    
+
                     epca.LOGGER.error("Sacrifice task at {} has positions outside the encodable range; not persisting it",
                             task.center);
                     continue;
@@ -1125,7 +1018,6 @@ public class BlockConversionManager {
         return entries;
     }
 
-    
     @SubscribeEvent
     public void handleServerStarted(ServerStartedEvent event) {
         net.minecraft.server.MinecraftServer server = event.getServer();
@@ -1133,7 +1025,6 @@ public class BlockConversionManager {
         restoreSacrificeTasks(server);
     }
 
-    
     private void restoreSacrificeTasks(net.minecraft.server.MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels()) {
             SacrificeSavedData data = persistedTasks(level);
@@ -1145,7 +1036,7 @@ public class BlockConversionManager {
                 if (!entry.dimension().equals(level.dimension())) continue;
                 BlockPos[] positions = SacrificeSavedData.decodePositions(entry.positions(), entry.center());
                 if (entry.nextIndex() >= positions.length) {
-                    
+
                     restored.add(new SacrificeTask(entry.dimension(), entry.center(), entry.playerId(), positions,
                             positions.length));
                     continue;
@@ -1168,15 +1059,14 @@ public class BlockConversionManager {
             for (SacrificeTask task : restored) {
                 epca.LOGGER.info("Restored in-progress sacrifice ritual at {} in {} ({}%)",
                         task.center, level.dimension().identifier(), task.percent());
-                
+
                 for (ServerPlayer player : level.players()) {
-                    // A resumed ritual is not announced as chat text.
+
                 }
             }
         }
     }
 
-    
     @SubscribeEvent
     public void handlePlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         Player player = event.getEntity();
@@ -1184,17 +1074,15 @@ public class BlockConversionManager {
         ResourceKey<Level> dimension = serverPlayer.level().dimension();
         List<BlockPos> cancelled = cancelSacrificeTasksForPlayer(dimension, serverPlayer.getUUID());
         if (!cancelled.isEmpty()) {
-            // A cancelled ritual is not announced as chat text.
+
             epca.LOGGER.info("Cancelled {} in-progress sacrifice ritual(s) because their owner logged out",
                     cancelled.size());
         }
     }
 
-    
-
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Post event) {
-        
+
         if (!pendingDoublePlantConversions.isEmpty()) {
             Map<ServerLevel, Set<BlockPos>> toProcess;
             synchronized (pendingDoublePlantConversions) {
@@ -1214,17 +1102,6 @@ public class BlockConversionManager {
         syncRitualAura();
     }
 
-    /**
-     * Tells every player near a running ritual where it is and how long it still needs, so the client
-     * can draw the purple aura until the lightning falls and then fade it out.
-     *
-     * <p>Only the head of each dimension's queue is converting, so that is the task that is announced.
-     * A dimension that has (or just had) a ritual keeps receiving batches for
-     * {@link #RITUAL_AUDIENCE_GRACE_TICKS} ticks - empty ones included, because the client reads a
-     * missing entry as "the ritual is over, start fading". This is the 26.1.2 twin of the 1.20.1
-     * method of the same name, with the level identity carried by the dimension key the sacrifice task
-     * map is keyed by here.</p>
-     */
     private void syncRitualAura() {
         if (++ritualSyncCounter % RITUAL_SYNC_INTERVAL_TICKS != 0) {
             return;
@@ -1284,14 +1161,11 @@ public class BlockConversionManager {
         }
     }
 
-    
     private void advanceSacrificeTasks() {
         persistCounter++;
         net.minecraft.server.MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server != null && server != recoveredServer) {
-            
-            
-            
+
             recoveredServer = server;
             restoreSacrificeTasks(server);
         }
@@ -1312,7 +1186,7 @@ public class BlockConversionManager {
 
                 ServerLevel level = levelOf(entry.getKey());
                 if (level == null || level.isClientSide()) {
-                    
+
                     continue;
                 }
 
@@ -1341,7 +1215,6 @@ public class BlockConversionManager {
         }
     }
 
-    
     private void tickAndConvert(ServerLevel level, SacrificeTask task) {
         int end = Math.min(task.index + SacrificeTask.BATCH_SIZE, task.positions.length);
         for (int i = task.index; i < end; i++) {
@@ -1364,7 +1237,6 @@ public class BlockConversionManager {
         task.index = end;
         task.tick++;
 
-        
         if (task.tick % SacrificeTask.PARTICLE_INTERVAL == 0) {
             double x = task.center.getX() + 0.5;
             double y = task.center.getY() + 1.0;
@@ -1373,7 +1245,6 @@ public class BlockConversionManager {
             level.sendParticles(ModParticles.PARA_CURSE.get(), x, y, z, 1, 0.5, 0.5, 0.5, 0.0);
         }
 
-        
         if (task.tick % SacrificeTask.HEARTBEAT_INTERVAL == 0) {
             level.playSound(null, task.center, SoundEvents.BEACON_AMBIENT, SoundSource.BLOCKS, 0.6F, 0.6F);
             int percent = task.percent();
@@ -1381,12 +1252,12 @@ public class BlockConversionManager {
                 task.lastReportedPercent = percent;
                 Player owner = level.getPlayerByUUID(task.playerId);
                 if (owner != null) {
-                    // Ritual progress is not shown as chat text.
+
                 }
-                
+
                 for (Player nearby : nearbyPlayers(level, task.center, NEARBY_MESSAGE_RADIUS)) {
                     if (nearby != owner) {
-                        // Ritual progress is not shown as chat text.
+
                     }
                 }
             }
@@ -1415,20 +1286,18 @@ public class BlockConversionManager {
             HiveLeaderManager.addHiveLeader(player.getUUID());
         }
 
-        
         persistedTasks(level).removeTasksAt(level.dimension(), center);
         level.playSound(null, center, SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.WEATHER, 1.0F, 1.0F);
         if (player != null) {
-            // The ritual's completion is not shown as chat text.
+
         }
         for (Player nearby : nearbyPlayers(level, center, NEARBY_MESSAGE_RADIUS)) {
             if (nearby != player) {
-                // The ritual's completion is not shown as chat text.
+
             }
         }
     }
 
-    
     private static final double NEARBY_MESSAGE_RADIUS = 32.0;
 
     private static List<Player> nearbyPlayers(ServerLevel level, BlockPos center, double radius) {
@@ -1448,7 +1317,6 @@ public class BlockConversionManager {
         return server == null ? null : server.getLevel(dimension);
     }
 
-    
     private static void sendRitualMessage(Player player, Component message) {
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.sendSystemMessage(message, true);

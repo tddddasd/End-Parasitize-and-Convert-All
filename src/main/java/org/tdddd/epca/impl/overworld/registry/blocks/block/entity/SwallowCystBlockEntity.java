@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block.entity;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -29,7 +30,6 @@ import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.SwallowCyst;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystMenu;
 import com.geckolib.animatable.GeoBlockEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -45,16 +45,16 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-            
+
             if (!isInventoryEmpty()) {
                 emptyTicks = 0;
             }
         }
     };
-    private int emptyTicks = 0;          
-    private int absorbCooldown = 0;      
-    private int damageCooldown = 0;       
-    private int consumeCooldown = 0; 
+    private int emptyTicks = 0;
+    private int absorbCooldown = 0;
+    private int damageCooldown = 0;
+    private int consumeCooldown = 0;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -68,10 +68,10 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
 
         boolean isLiving = state.getValue(SwallowCyst.LIVING);
         if (isLiving) {
-            
+
             if (consumeCooldown <= 0) {
                 consumeAndEvolve(serverLevel);
-                consumeCooldown = 4; 
+                consumeCooldown = 4;
             } else {
                 consumeCooldown--;
             }
@@ -89,7 +89,7 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
     }
 
     private void consumeAndEvolve(ServerLevel level) {
-        
+
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if (!stack.isEmpty()) {
@@ -97,11 +97,11 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
                 if (stack.isEmpty()) {
                     inventory.setStackInSlot(i, ItemStack.EMPTY);
                 }
-                
+
                 EvolutionManager evolutionManager = EvolutionManager.forDimension(level);
                 evolutionManager.addPoints(2);
                 setChanged();
-                return; 
+                return;
             }
         }
     }
@@ -111,7 +111,7 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
             absorbCooldown--;
             return;
         }
-        absorbCooldown = 8; 
+        absorbCooldown = 8;
         AABB area = new AABB(pos.getX(), pos.getY() + 0.5, pos.getZ(),
                 pos.getX() + 1, pos.getY() + 2, pos.getZ() + 1);
         for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, area)) {
@@ -123,9 +123,9 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
                 item.setItem(remaining);
             }
             if (!remaining.isEmpty() && remaining.getCount() == stack.getCount()) {
-                continue; 
+                continue;
             }
-            break; 
+            break;
         }
     }
 
@@ -156,13 +156,13 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
             damageCooldown--;
             return;
         }
-        damageCooldown = 20; 
+        damageCooldown = 20;
 
         AABB area = new AABB(pos.getX(), pos.getY() + 1, pos.getZ(),
                 pos.getX() + 1, pos.getY() + 2, pos.getZ() + 1);
         for (Entity entity : level.getEntitiesOfClass(Entity.class, area)) {
-            if (entity instanceof LivingEntity living && !IParasite.isParasiteByTagOrInterface(living)) {
-                if (level.getRandom().nextFloat() < 0.05f) { 
+            if (entity instanceof LivingEntity living && !ParasiteEvents.isParasiteByTagOrInterface(living)) {
+                if (level.getRandom().nextFloat() < 0.05f) {
                     living.hurtOrSimulate(living.damageSources().generic(), 1.0f);
                     living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 300, 0));
                     level.playSound(null, pos, SoundEvents.PLAYER_HURT, SoundSource.HOSTILE, 0.5f, 1.0f);
@@ -174,7 +174,7 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
     private void becomeDead(ServerLevel level, BlockPos pos) {
         BlockState newState = level.getBlockState(pos).setValue(SwallowCyst.LIVING, false);
         level.setBlock(pos, newState, 3);
-        
+
     }
 
     private boolean isInventoryEmpty() {
@@ -203,13 +203,6 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
     public AbstractContainerMenu createMenu(int id, Inventory inv, Player player) {
         return new SwallowCystMenu(id, inv, this);
     }
-
-    //  Persistence
-    //
-    //  26.1.2: BlockEntity#saveAdditional/loadAdditional speak ValueOutput/ValueInput
-    //  (the Forge capability API  LazyOptional / Capability / ForgeCapabilities /
-    //  invalidateCaps  no longer exists at all). ItemStackHandler is ValueIOSerializable,
-    //  so it is written through a child view; the keys are unchanged.
 
     @Override
     protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {

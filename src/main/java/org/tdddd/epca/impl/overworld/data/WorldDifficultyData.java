@@ -9,14 +9,9 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 
 public class WorldDifficultyData extends SavedData {
-    /** 1.20.1 stored this as "epca_world_difficulty"; it stays a valid Identifier path. */
+
     private static final Identifier DATA_ID = Identifier.fromNamespaceAndPath("epca", "epca_world_difficulty");
 
-    /**
-     * Legacy field names kept. Defaults mirror the old load(CompoundTag): "customBaseDifficulty",
-     * "customSpawnRate" and "customRewardEnabled" only overwrote the in-memory default when present, and
-     * "difficulty" fell back to id 0 (EASY) because the old read used getInt(...).orElse(0).
-     */
     public static final Codec<WorldDifficultyData> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.INT.optionalFieldOf("difficulty", 0)
                     .forGetter(data -> data.difficulty.getId()),
@@ -33,14 +28,12 @@ public class WorldDifficultyData extends SavedData {
 
     private DifficultyLevel difficulty = DifficultyLevel.NORMAL;
 
-    
     private DifficultyLevel customBaseDifficulty = DifficultyLevel.NORMAL;
-    private float customSpawnRate = 1.0f;      
+    private float customSpawnRate = 1.0f;
     private boolean customRewardEnabled = true;
 
     public WorldDifficultyData() {}
 
-    /** Codec decode constructor. Values are assigned as stored (the setters' clamping is a user-input guard). */
     private WorldDifficultyData(int difficultyId, int customBaseDifficultyId, float customSpawnRate,
                                 boolean customRewardEnabled) {
         this.difficulty = DifficultyLevel.fromId(difficultyId);
@@ -56,7 +49,6 @@ public class WorldDifficultyData extends SavedData {
         setDirty();
     }
 
-    
     public DifficultyLevel getCustomBaseDifficulty() { return customBaseDifficulty; }
     public void setCustomBaseDifficulty(DifficultyLevel baseDifficulty) {
         this.customBaseDifficulty = baseDifficulty;

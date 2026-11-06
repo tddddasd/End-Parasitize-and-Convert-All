@@ -19,61 +19,9 @@ import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganSavedData;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary;
 import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
 
-/**
- * STAGE 3 SPEC C9  /  /
- *
- * <h2></h2>
- * <ul>
- *   <li><b></b>{@link #onHiveLeaderAttack}
- *       {@code OrganStatSummary#minimumDamage()}  YawningNekoAPI
- *        +  mixin
- *       {@code minimumDamageIntervalTicks()} 40 tick = 2 </li>
- *   <li><b></b>{@link #onHiveLeaderHurt}
- *       {@link HiveLeaderOrganAdaptation#resolve}</li>
- * </ul>
- *
- * <h2></h2>
- * <p>YawningNekoAPI
- *  {@code MinimumDamageManager} <b></b>
- * {@code data/yawning_neko_api/minimum_damage/*.json}
- *   API  {@link ModDamageTypes#MINIMUM}
- * {@code yawning_neko_api:minimum} {@link DamageSource}
- * {@code target.hurt(source, amount)}API  {@code LivingEntityMixin#onHurtMinimum}
- *  {@code hurt}  HEAD  amount
- *  {@code BioTortIncarnation#applyMinimumDamage}
- * {@code new DamageSource(holder, attacker, attacker)}</p>
- *
- * <h2></h2>
- * <p><b> + </b>
- * {@code HiveLeaderOrganMinDamage} {@code last_tick} + {@code target}
- * </p>
- * <p>
- * {@code event.getAmount() < minimumDamage}
- * </p>
- *
- * <h2>1.20.1 -&gt; 26.1.2  API </h2>
- * <ul>
- *   <li>{@code net.minecraftforge.event.entity.living.LivingHurtEvent} -&gt;
- *       {@code net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent}
- *       26.1.2 {@code getEntity()} / {@code getSource()} /
- *       {@code getAmount()} / {@code setAmount(float)} </li>
- *   <li>{@code registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)} -&gt;
- *       {@code registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE)}26.1.2
- *        {@code HiveLeaderHandler}  53 </li>
- *   <li>{@code registry.getHolderOrThrow(KEY)} -&gt; {@code registry.getOrThrow(KEY)}</li>
- *   <li>{@code @Mod.EventBusSubscriber(bus = FORGE)} -&gt; {@code @EventBusSubscriber(modid = epca.MODID)}
- *       26.1.2  game bus</li>
- *   <li><b>NBT  Optional</b>{@code CompoundTag}  26.1.2
- *       <b></b> {@code putUUID/getUUID/hasUUID} _tmp_26src {@code CompoundTag.java}
- *        UUID  {@code UUID}
- *       <b></b>{@code UUID#toString()} / {@code getStringOr(name, "")}
- *        {@code target} UUID</li>
- * </ul>
- */
 @EventBusSubscriber(modid = epca.MODID)
 public final class HiveLeaderOrganDamageHandler {
 
-    /**  */
     private static final String MIN_DAMAGE_KEY = "HiveLeaderOrganMinDamage";
     private static final String TAG_LAST_TICK = "last_tick";
     private static final String TAG_TARGET = "target";
@@ -81,7 +29,6 @@ public final class HiveLeaderOrganDamageHandler {
     private HiveLeaderOrganDamageHandler() {
     }
 
-    /**  */
     @SubscribeEvent
     public static void onHiveLeaderAttack(LivingIncomingDamageEvent event) {
         if (!(event.getSource().getEntity() instanceof Player attacker)) return;
@@ -106,7 +53,6 @@ public final class HiveLeaderOrganDamageHandler {
         applyMinimumDamage(attacker, target, (float) minimumDamage, now);
     }
 
-    /**  + SPEC C9 / D6 */
     @SubscribeEvent
     public static void onHiveLeaderHurt(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
@@ -121,29 +67,16 @@ public final class HiveLeaderOrganDamageHandler {
         }
     }
 
-    /**  /  UUID  */
     public static void clear(Player player) {
         HiveLeaderOrganEffects.clear(player);
         if (player == null) return;
         player.getPersistentData().remove(MIN_DAMAGE_KEY);
-        // STAGE B
-        // level.getGameTime()
-        // HiveLeaderOrganTeleportHandler
-        // //
-        // <b></b> "PlayerPersisted"
-        // <b></b>=
-        // HiveLeaderOrganSavedData
+
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             org.tdddd.epca.impl.network.packet.c2s.HiveLeaderOrganTeleportHandler.clear(serverPlayer);
         }
     }
 
-
-    /**
-     *  YawningNekoAPI
-     * {@link ModDamageTypes#MINIMUM} + {@code new DamageSource(holder, causing, direct)} + {@code hurt}
-     *
-     */
     private static void applyMinimumDamage(Player attacker, LivingEntity target, float amount, long now) {
         Registry<DamageType> registry = attacker.level().registryAccess()
                 .lookupOrThrow(Registries.DAMAGE_TYPE);
@@ -153,18 +86,11 @@ public final class HiveLeaderOrganDamageHandler {
 
         CompoundTag tag = attacker.getPersistentData().getCompoundOrEmpty(MIN_DAMAGE_KEY);
         tag.putLong(TAG_LAST_TICK, now);
-        // 26.1.2CompoundTag  putUUID
+
         tag.putString(TAG_TARGET, target.getUUID().toString());
         attacker.getPersistentData().put(MIN_DAMAGE_KEY, tag);
     }
 
-    /**
-     *  {@code now - last >= interval}
-     *
-     * <p> true <b></b>
-     * {@link #applyMinimumDamage} /
-     * </p>
-     */
     private static boolean intervalElapsed(Player attacker, LivingEntity target, long now, int interval) {
         CompoundTag tag = attacker.getPersistentData().getCompoundOrEmpty(MIN_DAMAGE_KEY);
         String stored = tag.getStringOr(TAG_TARGET, "");
@@ -173,4 +99,3 @@ public final class HiveLeaderOrganDamageHandler {
         return now - tag.getLongOr(TAG_LAST_TICK, 0L) >= interval;
     }
 }
-

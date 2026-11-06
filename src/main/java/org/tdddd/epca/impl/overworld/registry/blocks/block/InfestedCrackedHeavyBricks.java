@@ -48,7 +48,6 @@ public class InfestedCrackedHeavyBricks extends Block implements InfestedBlockIn
         return Blocks.DEEPSLATE_BRICKS.getSoundType(Blocks.DEEPSLATE_BRICKS.defaultBlockState(), level, pos, entity);
     }
 
-
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {

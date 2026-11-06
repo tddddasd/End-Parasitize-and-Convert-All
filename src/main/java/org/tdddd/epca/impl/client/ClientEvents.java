@@ -23,7 +23,6 @@ import org.tdddd.epca.impl.epca;
 public class ClientEvents {
     private static int tickCounter = 0;
 
-    /** Level the ritual cache belongs to; a change resets it, so no old altar survives a teleport. */
     private static ClientLevel ritualLevel;
 
     @SubscribeEvent
@@ -32,27 +31,23 @@ public class ClientEvents {
         if (tickCounter % 20 == 0) {
             EndermanAfterimageLayer.cleanupOrphaned();
         }
-        // Ages the shader-rendered gas clouds and reads the synced jet-skill state of the visible
-        // reshape mobs. Client-only visual state; no packets, no server-side changes.
+
         GasCloudManager.clientTick();
-        // Ages the per-entity fade state of the soul-protection flame, exactly like the 1.20.1 twin.
+
         SoulProtectionHeartRenderer.clientTick();
-        // Ages the server-synced "which entities carry soul protection" cache: level-change clear plus
-        // the local countdown of the durations the server reported.
+
         SoulProtectionClientCache.clientTick();
-        // Ages the sacrifice-ritual aura: the renderer reads it, this only drives the fade in/out.
+
         ClientLevel level = Minecraft.getInstance().level;
         if (level != ritualLevel) {
             ritualLevel = level;
             SacrificeRitualClientCache.clear();
-            // The Alayavijnana aura belongs to a level too: a teleport, a dimension change or a
-            // disconnect must not leave the BGM playing or a fire field behind.
+
             ArayaClientCache.clear();
             ArayaSlashClientCache.clear();
             ArayaBgmManager.stop();
             ArayaBgmManager.invalidateAssetCache();
-            // The naming-egg theme belongs to an entity in a level too, so the same level-change hook
-            // stops it and drops its cached asset answer.
+
             ArayaBossBgmManager.stop();
             ArayaBossBgmManager.invalidateAssetCache();
             ArayaSceneCopy.invalidate();
@@ -60,15 +55,11 @@ public class ClientEvents {
         SacrificeRitualClientCache.clientTick();
         ArayaClientCache.clientTick(level == null ? 0L : level.getGameTime());
         ArayaSlashClientCache.clientTick(level == null ? 0L : level.getGameTime());
-        // Starts, follows and stops the  BGM: the loop runs only while a holder with an active counter
-        // is reported and the local listener is inside the documented radius.
+
         ArayaBgmManager.clientTick();
-        // Starts, follows and stops the ARAYA NAMING EGG theme: the loop runs only while a renamed
-        // infested enderman in Araya mode is within the documented radius of the listener.
+
         ArayaBossBgmManager.clientTick();
-        //  GUI H  /  /
-        //  ClientTickEvent + KeyMapping#consumeClick()
-        //  -
+
         HiveLeaderOrganClientInput.tick();
     }
 }

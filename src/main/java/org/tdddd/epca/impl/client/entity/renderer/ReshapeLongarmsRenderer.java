@@ -10,16 +10,6 @@ import org.tdddd.epca.impl.client.entity.gas.GasCloudLayer;
 import org.tdddd.epca.impl.client.entity.model.ReshapeLongarmsModel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLongarms;
 
-/**
- * Renderer for the reshape longarms.
- *
- * <h2>GeckoLib 4  5.5.2</h2>
- * <p>GeckoLib 4 hid the removed back parts by mutating bones before rendering
- * ({@code model.getAnimationProcessor().getBone(name).setHidden(hide)}). GeckoLib 5 bones are
- * immutable while rendering, so the same effect is expressed as a
- * {@code RenderPassInfo.BoneUpdater} that calls {@code BoneSnapshot#skipRender}  which is exactly
- * what {@link EpcaGeoRenderer#addBoneHider} installs.</p>
- */
 public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
 
     private static final String[] BACK_PART_BONES = {
@@ -28,8 +18,7 @@ public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
 
     public ReshapeLongarmsRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new ReshapeLongarmsModel());
-        // Shader-rendered red gas clouds for the active and passive jet skills. The clouds are
-        // additional to (and much sparser than) the INFESTIVE_GAS particles, which are untouched.
+
         addLayerProvider(GasCloudLayer.forLongarms());
     }
 
@@ -46,4 +35,3 @@ public class ReshapeLongarmsRenderer extends EpcaGeoRenderer<ReshapeLongarms> {
         }
     }
 }
-

@@ -9,7 +9,6 @@ import org.tdddd.epca.impl.overworld.data.EPCANoteTabData;
 
 import java.util.List;
 
-
 public class SyncNoteTabsPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncNoteTabsPacket> TYPE =

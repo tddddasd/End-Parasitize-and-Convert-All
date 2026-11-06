@@ -1,4 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
+
+import net.minecraft.world.entity.LivingEntity;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.entity.animal.fox.Fox;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.client.entity.IHeadRotatable;
@@ -46,8 +49,6 @@ import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
@@ -68,7 +69,7 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy , IHeadRotatable , GapJumper {
+public class InfestedFox extends PathfinderMob implements GeoEntity, Enemy , IHeadRotatable , GapJumper {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
@@ -76,7 +77,7 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 30;
-    private BlockPos deathPosition; 
+    private BlockPos deathPosition;
     public boolean isFakingDeath() {
         return this.entityData.get(DATA_IS_FAKING_DEATH);
     }
@@ -86,18 +87,18 @@ public class InfestedFox extends PathfinderMob implements GeoEntity, IParasite, 
     }
     private static final EntityDataAccessor<Boolean> DATA_IS_INVULNERABLE = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
     private int ambientSoundTime;
-    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
-    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
+    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20;
+    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20;
 
     private static final EntityDataAccessor<Integer> DATA_VARIANT = SynchedEntityData.defineId(
             InfestedFox.class, EntityDataSerializers.INT
     );
-    
+
     private static final EntityDataAccessor<Boolean> DATA_IS_POUNCING = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_POUNCE_TARGET_ID = SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.INT);
 
-    private int attackCooldown = 0;                 
-    private LivingEntity pendingAttackTarget;       
+    private int attackCooldown = 0;
+    private LivingEntity pendingAttackTarget;
     private boolean isPouncing = false;
     public double pounceStartY;
 public double pounceTopY;
@@ -106,17 +107,17 @@ public double pounceLastY;
 
 public static final float POUNCE_BASE_DAMAGE = 4.0F;
 public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
-    private double pounceDamageBonus;               
-    private static final int MAX_POUNCE_HEIGHT = 8; 
-    private static final int POUNCE_CHECK_HEIGHT = 3; 
-    
+    private double pounceDamageBonus;
+    private static final int MAX_POUNCE_HEIGHT = 8;
+    private static final int POUNCE_CHECK_HEIGHT = 3;
+
     public enum IdleAnimType { IDLE, SIT, LAYING }
 
     private static final EntityDataAccessor<Integer> DATA_IDLE_ANIM_TYPE =
             SynchedEntityData.defineId(InfestedFox.class, EntityDataSerializers.INT);
 
-    private int idleAnimTimer = 0;           
-    private int sitToLayingDelay = 0;        
+    private int idleAnimTimer = 0;
+    private int sitToLayingDelay = 0;
 
     public IdleAnimType getIdleAnimType() {
         return IdleAnimType.values()[this.entityData.get(DATA_IDLE_ANIM_TYPE)];
@@ -128,7 +129,7 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
     private static final Identifier LAYING_RANGE_ID = Identifier.fromNamespaceAndPath("epca", "b7d8c1e2-3f4a-5b6c-7d8e-9f0a1b2c3d4e");
     private static final AttributeModifier LAYING_RANGE_REDUCTION =
             new AttributeModifier(LAYING_RANGE_ID, -0.9, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
-    private int attackCooldownTimer = 0;  
+    private int attackCooldownTimer = 0;
 
     public InfestedFox(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -143,9 +144,8 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
         SNOW
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     public static AttributeSupplier setAttributes() {
@@ -170,16 +170,16 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
         this.goalSelector.addGoal(2, new LeapSeekGoal(this, ParasitePathing.MAX_GAP_JUMP_FOX));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
-        
+
         this.goalSelector.addGoal(5, new FloatGoal(this));
-        
+
         this.goalSelector.addGoal(1, new PounceGoal(this));
         this.goalSelector.addGoal(3, new FollowTargetGoal(this, 1.0, 16));
         this.goalSelector.addGoal(2, new InfestedFoxAttackGoal(this));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D) {
             @Override
             public boolean canUse() {
-                
+
                 return super.canUse() && getIdleAnimType() == IdleAnimType.IDLE;
             }
         });
@@ -192,7 +192,7 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
     public void tick() {
         super.tick();
         if (!this.level().isClientSide()) {
-            boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001; 
+            boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
             boolean hasTarget = this.getTarget() != null;
             this.setRunning(isMoving && hasTarget);
             this.setWalking(isMoving && !hasTarget);
@@ -201,7 +201,7 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
             } else if (isMoving && !hasTarget) {
                 this.setRunning(false);
             } else {
-                
+
                 this.setRunning(false);
                 this.setWalking(false);
             }
@@ -211,25 +211,25 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
                     !this.isFakingDeath()) {
 
                 if (idleAnimTimer <= 0) {
-                    
-                    if (this.random.nextFloat() < 0.4f) { 
+
+                    if (this.random.nextFloat() < 0.4f) {
                         setIdleAnimType(IdleAnimType.SIT);
-                        sitToLayingDelay = 280 + this.random.nextInt(120); 
+                        sitToLayingDelay = 280 + this.random.nextInt(120);
                         idleAnimTimer = sitToLayingDelay;
-                    } else { 
+                    } else {
                         setIdleAnimType(IdleAnimType.IDLE);
-                        idleAnimTimer = 100 + this.random.nextInt(100); 
+                        idleAnimTimer = 100 + this.random.nextInt(100);
                     }
                 } else {
                     idleAnimTimer--;
-                    
+
                     if (getIdleAnimType() == IdleAnimType.SIT && idleAnimTimer == 0) {
                         setIdleAnimType(IdleAnimType.LAYING);
-                        idleAnimTimer = Integer.MAX_VALUE; 
+                        idleAnimTimer = Integer.MAX_VALUE;
                     }
                 }
             } else {
-                
+
                 if (getIdleAnimType() != IdleAnimType.IDLE) {
                     setIdleAnimType(IdleAnimType.IDLE);
                 }
@@ -240,24 +240,24 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
             super.tick();
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
-                
+
                 if (!this.level().isClientSide()) {
-                    
+
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     if (this.level() instanceof ServerLevel serverLevel) {
-                        
-                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), 
+
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
-                                10, 
-                                0.3, 0.45, 0.3, 
-                                0.0 
+                                10,
+                                0.3, 0.45, 0.3,
+                                0.0
                         );
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
-                                7, 
-                                0.4, 0.3, 0.4, 
-                                0.2); 
+                                7,
+                                0.4, 0.3, 0.4,
+                                0.2);
                         BlockPos deathPos = this.deathPosition;
                         long seed = this.random.nextLong();
                         int delay = this.random.nextInt(30) + 40;
@@ -266,26 +266,26 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
                                 serverLevel.getServer().getTickCount() + delay,
                                 () -> {
                                     spawnRemainsBlocksAt(serverLevel, deathPos, RandomSource.create(seed));
-                                    
+
                                     spawnBuglins(serverLevel, deathPos, RandomSource.create(seed));
                                 }
                         ));
                         AreaEffectCloud cloud = new AreaEffectCloud(serverLevel,
                                 deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
-                        cloud.setRadius(1.5F); 
-                        cloud.setDuration(60); 
-                        cloud.setRadiusPerTick(0); 
-                        cloud.setWaitTime(0); 
+                        cloud.setRadius(1.5F);
+                        cloud.setDuration(60);
+                        cloud.setRadiusPerTick(0);
+                        cloud.setWaitTime(0);
                         cloud.addEffect(new MobEffectInstance(
                                 ModEffects.PARA_CURSE,
-                                1200, 
-                                0,    
+                                1200,
+                                0,
                                 false, true
                         ));
                         cloud.addEffect(new MobEffectInstance(
                                 MobEffects.POISON,
-                                200,  
-                                0,    
+                                200,
+                                0,
                                 false, true
                         ));
 
@@ -294,21 +294,21 @@ public static final double AIRBORNE_ATTACK_WINDOW = 0.6D;
                 }
                 triggerDismemberment();
 this.discard();
-                return; 
+                return;
             }
-            
+
             return;
         }
 
         if (!this.level().isClientSide()) {
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
-                    
+
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
                     playAmbientSound();
                 }
             }
-            
+
             updateFloating();
             if (attackCooldownTimer > 0) {
                 attackCooldownTimer--;
@@ -319,16 +319,16 @@ this.discard();
             boolean hasTarget = this.getTarget() != null;
             movementAttribute.removeModifier(WANDER_SPEED_ID);
             if (hasTarget) {
-                
+
                 movementAttribute.setBaseValue(chaseSpeed);
             } else {
-                
+
                 movementAttribute.setBaseValue(baseSpeed);
                 movementAttribute.addTransientModifier(WANDER_SPEED_REDUCTION);
             }
             if (!this.level().isClientSide()) {
                 double horizontalMovement = this.getDeltaMovement().horizontalDistance();
-                boolean isActuallyMoving = horizontalMovement > 0.01; 
+                boolean isActuallyMoving = horizontalMovement > 0.01;
 
                 this.setRunning(isActuallyMoving && hasTarget);
                 this.setWalking(isActuallyMoving && !hasTarget);
@@ -351,13 +351,13 @@ this.discard();
         }
     }
 
-    private double baseSpeed = 0.27D; 
-    private double chaseSpeed = 0.38D; 
+    private double baseSpeed = 0.27D;
+    private double chaseSpeed = 0.38D;
     public InfestedFox.Variant getVariant() {
-        
+
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
         if (variantOrdinal == null) {
-            
+
             return InfestedFox.Variant.DEFAULT;
         }
         int index = Mth.clamp(variantOrdinal, 0, InfestedFox.Variant.values().length - 1);
@@ -378,21 +378,21 @@ this.discard();
     }
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        
+
         return ModSoundEvents.INFESTED_FOX_HURT.get();
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return ModSoundEvents.INFESTED_FOX_DEATH.get();
     }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
         if (isFakingDeath() || isInvulnerable()) {
@@ -400,31 +400,28 @@ this.discard();
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
     private void triggerFakeDeath(DamageSource source) {
-        
+
         setFakingDeath(true);
         setInvulnerable(true);
-        fakeDeathTimer = 30; 
-        deathPosition = this.blockPosition(); 
+        fakeDeathTimer = 30;
+        deathPosition = this.blockPosition();
         this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
         this.setInvulnerable(true);
         this.setTarget(null);
 
-        this.setPose(Pose.DYING); 
+        this.setPose(Pose.DYING);
         this.entityData.set(DATA_IS_FAKING_DEATH, true);
     }
 
     @Override
     public void die(DamageSource source) {
-        
+
         if (isFakingDeath()) {
             super.die(source);
             return;
@@ -434,36 +431,33 @@ this.discard();
             int minKills = 0;
             if (minKills > 0) {
                 int currentDeaths = 0;
-                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
-                    
+                if (false) {
+
                     ;
-                    
+
                     this.setHealth(this.getMaxHealth());
-                    return; 
+                    return;
                 }
             }
         }
 
         if (this.isOnFire()) {
-            
+
             super.die(source);
-            this.onDeath(source);
             return;
         }
         if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
-            this.onDeath(source); 
         } else {
-            
+
             super.die(source);
-            this.onDeath(source); 
             if (!this.level().isClientSide()) {
                 if (this.random.nextFloat() < 0.3f) {
                     WalkingFoxHead head = ModEntities.WALKING_FOX_HEAD.get().create(this.level(), EntitySpawnReason.MOB_SUMMONED);
                     if (head != null) {
                         head.setPos(this.getX(), this.getY(), this.getZ());
                         head.setYRot(this.random.nextFloat() * 360.0F);
-                        
+
                         InfestedFox.Variant foxVariant = this.getVariant();
                         WalkingFoxHead.Variant headVariant = foxVariant == InfestedFox.Variant.SNOW ?
                                 WalkingFoxHead.Variant.SNOW : WalkingFoxHead.Variant.DEFAULT;
@@ -491,7 +485,7 @@ this.discard();
         } else if (this.isPouncing) {
             event.setAnimation(RawAnimation.begin().thenPlay("attack"));
         } else {
-            
+
             switch (getIdleAnimType()) {
                 case IDLE:
                     event.setAnimation(RawAnimation.begin().thenLoop("idle"));
@@ -515,9 +509,9 @@ this.discard();
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
-            
+
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 2 || stage > 5) {
                 return false;
@@ -538,7 +532,7 @@ this.discard();
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -546,7 +540,7 @@ this.discard();
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -560,10 +554,10 @@ this.discard();
     private int floatingTime;
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
             this.floatingTime++;
@@ -577,12 +571,12 @@ this.discard();
     }
     private static void spawnBuglins(ServerLevel level, BlockPos pos, RandomSource random) {
         for (int i = 0; i < 3; i++) {
-            
-            EntityType<?> buglinType = ModEntities.CURBUG.get(); 
+
+            EntityType<?> buglinType = ModEntities.CURBUG.get();
             Entity buglin = buglinType.create(level, EntitySpawnReason.MOB_SUMMONED);
 
             if (buglin != null) {
-                
+
                 double offsetX = random.nextDouble() - 0.5;
                 double offsetY = random.nextDouble() * 0.5;
                 double offsetZ = random.nextDouble() - 0.5;
@@ -617,10 +611,10 @@ this.discard();
     private static void placeRemainsBlock(Level level, BlockPos deathPos, BlockPos.MutableBlockPos pos,
                                           RandomSource rand, BlockState state, int count) {
         for (int i = 0; i < count; i++) {
-            
+
             double offsetX = (rand.nextDouble() - 0.5) * 5;
             double offsetZ = (rand.nextDouble() - 0.5) * 5;
-            int offsetY = -rand.nextInt(3); 
+            int offsetY = -rand.nextInt(3);
 
             pos.set(
                     deathPos.getX() + offsetX,
@@ -628,7 +622,7 @@ this.discard();
                     deathPos.getZ() + offsetZ
             );
             if (level.isEmptyBlock(pos)) {
-                
+
                 BlockPos below = pos.below();
                 BlockState belowState = level.getBlockState(below);
                 if (belowState.isFaceSturdy(level, below, Direction.UP)) {
@@ -643,9 +637,9 @@ this.discard();
         super.defineSynchedData(entityData);
         entityData.define(DATA_VARIANT, InfestedFox.Variant.DEFAULT.ordinal());
         entityData.define(DATA_IS_FAKING_DEATH, false);
-        
+
         entityData.define(DATA_IS_INVULNERABLE, false);
-        
+
         entityData.define(DATA_IS_RUNNING, false);
         entityData.define(DATA_IS_WALKING, false);
         entityData.define(DATA_IS_POUNCING, false);
@@ -687,7 +681,7 @@ this.discard();
             try {
                 this.setVariant(InfestedFox.Variant.valueOf(variantName));
             } catch (IllegalArgumentException e) {
-                
+
                 this.setVariant(InfestedFox.Variant.DEFAULT);
             }
         }
@@ -696,7 +690,7 @@ this.discard();
     @Override
     public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
-        
+
         tag.putString("Variant", this.getVariant().name());
     }
 
@@ -711,7 +705,7 @@ this.discard();
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
@@ -742,7 +736,7 @@ this.discard();
         private final InfestedFox fox;
         private LivingEntity target;
         private int jumpCooldown = 0;
-        private boolean forceMaxHeight = false; 
+        private boolean forceMaxHeight = false;
 
         public PounceGoal(InfestedFox fox) { this.fox = fox; }
 
@@ -758,7 +752,7 @@ this.discard();
             double dx = fox.getX() - target.getX();
             double dz = fox.getZ() - target.getZ();
             double horizDistSq = dx * dx + dz * dz;
-            if (horizDistSq > 3.5 * 3.5) return false; 
+            if (horizDistSq > 3.5 * 3.5) return false;
 
             double dy = target.getY() - fox.getY();
             if (dy > 1.0 && dy < 7.0) {
@@ -766,17 +760,17 @@ this.discard();
                 for (int y = 1; y <= 8; y++) {
                     BlockPos checkPos = fox.blockPosition().above(y);
                     BlockState state = fox.level().getBlockState(checkPos);
-                    if (state.isSolid()) { 
+                    if (state.isSolid()) {
                         blocked = true;
                         break;
                     }
                 }
                 if (!blocked) {
                     forceMaxHeight = true;
-                    return true; 
+                    return true;
                 }
             }
-            forceMaxHeight = false; 
+            forceMaxHeight = false;
             for (int y = 1; y <= POUNCE_CHECK_HEIGHT; y++) {
                 BlockPos checkPos = fox.blockPosition().above(y);
                 BlockState state = fox.level().getBlockState(checkPos);
@@ -799,7 +793,7 @@ this.discard();
         @Override
         public boolean canContinueToUse() {
             return fox.isPouncing() || (target != null && target.isAlive() &&
-                    fox.distanceToSqr(target) < 144.0); 
+                    fox.distanceToSqr(target) < 144.0);
         }
 
         @Override
@@ -812,7 +806,7 @@ this.discard();
             fox.pounceLastY = fox.getY();
 
             if (target != null) {
-                
+
                 double dx = target.getX() - fox.getX();
                 double dz = target.getZ() - fox.getZ();
                 double horizontalDist = Math.sqrt(dx * dx + dz * dz);
@@ -824,7 +818,7 @@ this.discard();
                 }
                 double height;
                 if (forceMaxHeight) {
-                    height = 8.0; 
+                    height = 8.0;
                 } else {
                     double dy = target.getY() - fox.getY();
                     if (dy > 1.0) {
@@ -847,7 +841,7 @@ this.discard();
             fox.setPounceTargetId(-1);
             fox.pounceDamageBonus = 0;
             fox.pounceHitDelivered = false;
-            forceMaxHeight = false; 
+            forceMaxHeight = false;
         }
 
         @Override
@@ -859,7 +853,7 @@ this.discard();
                 LivingEntity target = (LivingEntity) fox.level().getEntity(fox.getPounceTargetId());
                 if (target != null && target.isAlive() && !fox.pounceHitDelivered && fox.canHitNow(target, lastY)) {
                     double distSq = fox.distanceToSqr(target.getX(), fox.getY(), target.getZ());
-                    if (distSq < 4.0) {   // relaxed: the swept-AABB test above is the real hit check
+                    if (distSq < 4.0) {
                         double descent = fox.pounceTopY - Math.max(fox.getY(), target.getY());
                         fox.doPounceAttack(target, POUNCE_BASE_DAMAGE + (float) Math.max(0.0D, descent));
                         fox.pounceHitDelivered = true;
@@ -883,12 +877,12 @@ this.discard();
 
         @Override
         protected void checkAndPerformAttack(LivingEntity target) {
-            // 26.1.2: MeleeAttackGoal#getAttackReachSqr was replaced by canPerformAttack(target).
+
             if (this.canPerformAttack(target) && this.isTimeToAttack() && fox.attackCooldownTimer == 0) {
                 if (attackDelay == 0) {
-                    attackDelay = 3; 
+                    attackDelay = 3;
                     fox.pendingAttackTarget = target;
-                    
+
                     fox.setPouncing(true);
                 }
             }
@@ -913,7 +907,7 @@ this.discard();
         if (target == null || !target.isAlive()) return;
         float damage = 4.0f;
         if (this.getVariant() == Variant.SNOW) {
-            
+
             target.setTicksFrozen(180);
         }
         target.hurtOrSimulate(damageSources().mobAttack(this), damage);
@@ -932,14 +926,14 @@ this.discard();
     @Override
     public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource source) {
         if (fallDistance <= 9.0f) {
-            return false; 
+            return false;
         }
-        
+
         float reducedDamage = (float) ((fallDistance - 9.0) * 0.05);
         if (reducedDamage > 0) {
             this.hurtOrSimulate(source, reducedDamage);
         }
-        return false; 
+        return false;
     }
 
     private void triggerDismemberment() {

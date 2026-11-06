@@ -15,36 +15,12 @@ import org.tdddd.epca.impl.overworld.raid.InfestedRaidBarrierData;
 
 import java.util.List;
 
-/**
- * Draws the raid-victory barrier: a huge, very transparent pink sphere with an animated
- * enchantment-like shimmer sweeping over it.
- *
- * <p>Geometry is a closed UV sphere (phi 0..PI, theta 0..2*PI) drawn with no back-face culling, so the
- * whole shell is visible from inside and outside alike.</p>
- *
- * <p>The look comes from two per-vertex terms:</p>
- * <ul>
- *   <li>a Fresnel-ish alpha, {@code 1 - |dot(normal, view)|}, which keeps the silhouette denser than the
- *       middle so the sphere reads as a shell rather than a solid ball;</li>
- *   <li>a travelling sine band that pushes the colour towards white and lifts the alpha, which is what
- *       gives the "enchanted" sweep.</li>
- * </ul>
- *
- * <p><b>Why this render type.</b> {@code RenderTypes.debugQuads()} is the translucent
- * {@code POSITION_COLOR} pipeline ({@code BlendFunction.TRANSLUCENT}, cull off, depth write off, no alpha
- * cutout), so the sphere can fade all the way to zero alpha without popping. The obvious alternative,
- * {@code RenderTypes.entityTranslucent(...)}, carries {@code ALPHA_CUTOUT 0.1} and discards every fragment
- * below 0.1 alpha - that is exactly what punched holes into the sphere and made it look unclosed - and
- * {@code RenderTypes.entityGlint()} expects a {@code POSITION_TEX} vertex and tests depth with
- * {@code EQUAL}, so it cannot be layered over an independent sphere at all.</p>
- */
 @EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public final class InfestedRaidBarrierRenderer {
-    /** Sphere tessellation; the seam closes exactly because phi ends at PI and theta at 2*PI. */
+
     private static final int STACKS = 20;
     private static final int SLICES = 40;
 
-    /** Alpha budget per vertex (before the fade-in/out multiplier). */
     private static final float ALPHA_FLOOR = 0.10F;
     private static final float ALPHA_RIM = 0.13F;
     private static final float ALPHA_SHIMMER = 0.10F;
@@ -53,7 +29,6 @@ public final class InfestedRaidBarrierRenderer {
     private static final float PINK_G = 0.42F;
     private static final float PINK_B = 0.84F;
 
-    /** Spatial frequency / speed of the travelling shimmer band. */
     private static final double SHIMMER_FREQ = 0.10D;
     private static final double SHIMMER_SPEED = 1.6D;
 
@@ -118,7 +93,6 @@ public final class InfestedRaidBarrierRenderer {
         Vec3 toCam = cam.subtract(p).normalize();
         double rim = Math.pow(1.0D - Math.abs(normal.dot(toCam)), 2.0D);
 
-        // Travelling band: bright where sin(...) peaks, giving the enchantment-like sweep.
         double band = 0.5D + 0.5D * Math.sin((p.x + p.y * 1.4D + p.z * 0.8D) * SHIMMER_FREQ * 6.2831853D
                 - seconds * SHIMMER_SPEED);
         float shimmer = (float) (band * band);
@@ -126,7 +100,6 @@ public final class InfestedRaidBarrierRenderer {
         float alpha = (ALPHA_FLOOR + ALPHA_RIM * (float) rim + ALPHA_SHIMMER * shimmer) * fade;
         alpha = Math.min(1.0F, alpha);
 
-        // Blend the pink towards white on the band crest so the sweep reads as a highlight.
         float r = PINK_R;
         float g = PINK_G + (0.95F - PINK_G) * shimmer * 0.75F;
         float b = PINK_B + (1.0F - PINK_B) * shimmer * 0.75F;

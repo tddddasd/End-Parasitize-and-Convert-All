@@ -29,15 +29,11 @@ import net.minecraft.world.entity.item.FallingBlockEntity;
 public class InfestedResidue extends FallingBlock implements InfestedBlockInterface {
     public static final IntegerProperty LAYERS = IntegerProperty.create("layers", 1, 8);
 
-    /**
-     * 26.1.2: id-bearing constructor for {@code DeferredRegister.Blocks#registerBlock}.
-     */
     public InfestedResidue(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(LAYERS, 1));
     }
 
-    /** Kept for {@code simpleCodec} / hand construction with the original defaults. */
     public InfestedResidue() {
         this(Properties.of()
                 .noOcclusion()
@@ -56,7 +52,6 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
         return simpleCodec(InfestedResidue::new);
     }
 
-    /** 26.1.2: {@code FallingBlock#getDustColor} is abstract (FALLING_DUST particle colour). */
     @Override
     public int getDustColor(BlockState state, BlockGetter level, BlockPos pos) {
         return 0x8C6B4A;
@@ -79,7 +74,6 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
         return Block.box(0.0D, 0.0D, 0.0D, 16.0D, layers * 2.0D - 1.9D, 16.0D);
     }
 
-    // 26.1.2: {@code Block#use} was split into {@code useItemOn} / {@code useWithoutItem}.
     @Override
     protected InteractionResult useItemOn(ItemStack held, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hit) {

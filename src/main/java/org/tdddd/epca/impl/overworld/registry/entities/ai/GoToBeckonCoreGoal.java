@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.ai;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -8,7 +9,6 @@ import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBlockEntity;
 import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.EnumSet;
 
@@ -24,20 +24,19 @@ public class GoToBeckonCoreGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (!(entity instanceof IParasite)) return false;
-        
+        if (!ParasiteEvents.isParasiteEntity(entity)) return false;
+
         if (EntityBiomassCountManager.getCurrentBiomassCount(entity) <= 0) return false;
 
         if (--searchCooldown > 0) return false;
-        searchCooldown = 10; 
+        searchCooldown = 10;
 
         Level level = entity.level();
-        
+
         BlockPos entityPos = entity.blockPosition();
-        double nearestDistSq = 48 * 48; 
+        double nearestDistSq = 48 * 48;
         BlockPos nearestCore = null;
 
-        
         for (int dx = -48; dx <= 48; dx++) {
             for (int dz = -48; dz <= 48; dz++) {
                 for (int dy = -16; dy <= 16; dy++) {
@@ -45,9 +44,9 @@ public class GoToBeckonCoreGoal extends Goal {
                     if (level.getBlockState(checkPos).getBlock() == ModBlocks.BECKON_CORE.get()) {
                         double dist = entityPos.distSqr(checkPos);
                         if (dist < nearestDistSq) {
-                            
+
                             if (level.getBlockEntity(checkPos) instanceof BeckonCoreBlockEntity be) {
-                                if (!be.isGenerating() && be.getBiomassCount() < 128) { 
+                                if (!be.isGenerating() && be.getBiomassCount() < 128) {
                                     nearestDistSq = dist;
                                     nearestCore = checkPos;
                                 }
@@ -76,9 +75,9 @@ public class GoToBeckonCoreGoal extends Goal {
     @Override
     public void tick() {
         if (corePos == null) return;
-        
+
         if (entity.distanceToSqr(Vec3.atCenterOf(corePos)) <= 4.0) {
-            
+
             entity.getNavigation().stop();
         }
     }
@@ -86,12 +85,12 @@ public class GoToBeckonCoreGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (corePos == null) return false;
-        
+
         if (EntityBiomassCountManager.getCurrentBiomassCount(entity) <= 0) return false;
         Level level = entity.level();
         if (!(level.getBlockEntity(corePos) instanceof BeckonCoreBlockEntity be)) return false;
-        if (be.isGenerating() || be.getBiomassCount() >= 64) return false; 
-        
+        if (be.isGenerating() || be.getBiomassCount() >= 64) return false;
+
         if (entity.distanceToSqr(Vec3.atCenterOf(corePos)) > 48*48) return false;
         return true;
     }

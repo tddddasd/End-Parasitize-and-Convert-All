@@ -33,54 +33,16 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Server half of the Alayavijnana staff feature: the kill path, the slash broadcast, the aura sweep and
- * the fire field.
- *
- * <h2>The kill path (the damage itself plus the counter)</h2>
- * <p>The 444-point hit is applied by {@code KillStick#onLeftClickEntity}, through the mod's own
- * minimum-damage mechanism ({@code yawning_neko_api:minimum}, exactly the way
- * {@code EnderBladeAttackHandler} builds a source for it). This handler owns what happens <i>after</i>
- * that hit: when the victim actually dies and the killer is a player holding the named staff, the kill is
- * counted on the staff stack ({@link ArayaTiansha}) if the victim was <b>another player</b>, the vanilla
- * trident throw sound plays at the victim's position, and the slash is broadcast to everyone who can see
- * it.</p>
- *
- * <h2>The aura sweep</h2>
- * <p>{@link ArayaConstants#AURA_SYNC_INTERVAL_TICKS} ticks apart, every level is swept for players whose
- * carried staff has an active counter. Each such holder is reported to the players around it, and the
- * render-only fire field around it is re-rolled every {@link ArayaConstants#FIRE_REROLL_TICKS} ticks.
- * Both batches are complete sets, so nothing has to be cancelled explicitly: a holder that stops
- * qualifying is simply absent from the next sweep, and the client drops its aura, its BGM and its
- * fire.</p>
- *
- * <p>Nothing here reads or writes a client class: it is a plain server tick subscriber, so it runs
- * unchanged on an integrated and on a dedicated server.</p>
- *
- * <h2>1.20.1 -&gt; 26.1.2</h2>
- * <p>{@code @Mod.EventBusSubscriber} plus {@code TickEvent.ServerTickEvent} with a phase become
- * {@code @EventBusSubscriber} plus {@code ServerTickEvent.Post}; the sweep logic is identical.</p>
- */
 @EventBusSubscriber(modid = epca.MODID)
 public final class ArayaSyncHandler {
 
-    /** Server ticks seen by this handler; drives the sweep cadence and the fire re-roll period. */
     private static long serverTickCounter;
 
-    /**
-     * The fire blocks the server believes are alive, per holder.
-     *
-     * <p>The server owns the field: it rolls a wave of {@code FIRE_MIN_PER_WAVE..FIRE_MAX_PER_WAVE} blocks
-     * around each holder on the roll period, keeps the previous waves until their lifetime runs out, caps
-     * the total at {@code FIRE_MAX_ACTIVE} by dropping the oldest, and ships the resulting set - position,
-     * age, lifetime and height - so every client draws exactly the same fire at exactly the same time.</p>
-     */
     private static final Map<UUID, List<ActiveFire>> ACTIVE_FIRES = new HashMap<>();
 
     private ArayaSyncHandler() {
     }
 
-    /** One render-only fire block that is currently burning around a holder. */
     private static final class ActiveFire {
         private final BlockPos position;
         private final long bornAtTick;
@@ -94,10 +56,6 @@ public final class ArayaSyncHandler {
             this.height = height;
         }
     }
-
-    // ===============================================================================================
-    //  Kill path
-    // ===============================================================================================
 
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
@@ -113,36 +71,21 @@ public final class ArayaSyncHandler {
             return;
         }
 
-        // Count only a kill of somebody else: a self-kill, a mob kill and a kill with anything but the
-        // renamed staff all leave the counter alone.
         if (ArayaTiansha.isOtherPlayer(killer, victim)) {
             ArayaTiansha.increment(staff);
         }
 
-        // The vanilla trident throw, at the victim, for everyone in range. The slash is not spawned
-        // here any more: it belongs to the hit itself and is sent from the click path, so that a
-        // renamed staff cuts on every left click and not only on a kill.
         level.playSound(null, victim.getX(), victim.getY(), victim.getZ(), SoundEvents.TRIDENT_THROW,
                 SoundSource.PLAYERS, 1.0F, 1.0F);
     }
 
-    /**
-     * Sends the slash to every player in the level.
-     *
-     * <p>Called for every left click of the renamed staff on a living entity - mobs and players alike -
-     * so the cut shows on ordinary hits as well as on kills. The blade is centred on the victim and its
-     * direction is the horizontal direction the hit came from, so the 50-degree cut always runs away
-     * from the attacker. Only the horizontal part is sent, because the blade's own 50-degree rise is
-     * what the renderer builds from it.</p>
-     */
     public static void broadcastSlash(ServerLevel level, Player attacker, LivingEntity victim) {
         Vec3 from = attacker.position();
         Vec3 to = victim.position();
         double dx = to.x - from.x;
         double dz = to.z - from.z;
         if (dx * dx + dz * dz < 1.0E-6D) {
-            // Attacker and victim on the same spot: fall back to the attacker's facing so the blade
-            // still has a definite direction.
+
             Vec3 look = attacker.getLookAngle();
             dx = look.x;
             dz = look.z;
@@ -154,10 +97,6 @@ public final class ArayaSyncHandler {
             ModNetwork.sendToPlayer(player, packet);
         }
     }
-
-    // ===============================================================================================
-    //  Aura sweep
-    // ===============================================================================================
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
@@ -172,7 +111,6 @@ public final class ArayaSyncHandler {
         }
     }
 
-    /** Reports the active holders of one level to the players around them, and re-rolls their fire. */
     private static void sweepLevel(ServerLevel level, boolean reroll) {
         List<ServerPlayer> players = level.players();
         if (players.isEmpty()) {
@@ -184,8 +122,7 @@ public final class ArayaSyncHandler {
                 holders.add(player);
             }
         }
-        // The fire field: age out what burned down, roll a new wave on the roll period, and hold the total
-        // at FIRE_MAX_ACTIVE by dropping the oldest blocks of the holder whose waves overlap the most.
+
         long now = level.getGameTime();
         Set<UUID> holderIds = new HashSet<>();
         for (ServerPlayer holder : holders) {
@@ -204,11 +141,10 @@ public final class ArayaSyncHandler {
                 }
             }
         }
-        // A holder who lost the staff (or left) must not leave fire burning behind them.
+
         ACTIVE_FIRES.keySet().removeIf(uuid -> !holderIds.contains(uuid));
         if (holders.isEmpty()) {
-            // One empty batch per player is what clears the client cache, so a level whose last holder
-            // just lost the staff still stops the BGM and removes the fire.
+
             for (ServerPlayer listener : players) {
                 ModNetwork.sendToPlayer(listener, new SyncArayaAuraPacket(new int[0], new double[0]));
             }
@@ -228,9 +164,7 @@ public final class ArayaSyncHandler {
                 }
             }
             ModNetwork.sendToPlayer(listener, buildAuraPacket(visible));
-            // The whole fire set is resent on every sweep, not only on a roll: the entries carry their own
-            // age, so a listener that just came into range sees the fires already burning instead of an
-            // empty field for up to one roll period.
+
             if (!visible.isEmpty()) {
                 ModNetwork.sendToPlayer(listener, buildFirePacket(level, visible));
             }
@@ -251,7 +185,6 @@ public final class ArayaSyncHandler {
         return new SyncArayaAuraPacket(entityIds, positions);
     }
 
-    /** One batch with the union of the live fire blocks of the holders this listener can see. */
     private static SyncArayaFirePacket buildFirePacket(ServerLevel level, List<ServerPlayer> holders) {
         long now = level.getGameTime();
         List<ActiveFire> pooled = new ArrayList<>();
@@ -286,14 +219,6 @@ public final class ArayaSyncHandler {
         return new SyncArayaFirePacket(now, bornAgoTicks, xArray, yArray, zArray, lifetimes, heights);
     }
 
-    /**
-     * Rolls one holder's new fire wave: {@link ArayaConstants#FIRE_MIN_PER_WAVE} to
-     * {@link ArayaConstants#FIRE_MAX_PER_WAVE} positions inside {@link ArayaConstants#FIRE_RADIUS} blocks,
-     * keeping only those where a complete block has a free position on top of it.
-     *
-     * <p>The roll is a pure function of the holder's entity id and the current roll period, so the wave is
-     * stable for the whole roll and every client is told exactly the same positions.</p>
-     */
     private static List<BlockPos> rollFireField(ServerLevel level, ServerPlayer holder) {
         long period = serverTickCounter / Math.max(1L, ArayaConstants.FIRE_REROLL_TICKS);
         Random random = new Random(0x9E3779B97F4A7C15L * (holder.getId() + 1L)
@@ -316,14 +241,6 @@ public final class ArayaSyncHandler {
         return field;
     }
 
-    /**
-     * The position a fire may be drawn at in one column, or {@code null}.
-     *
-     * <p>"" is checked with the block's own collision shape ({@code isCollisionShapeFullBlock})
-     * rather than with a block tag, so it means the same thing for modded blocks; the position above the
-     * floor also has to be replaceable and dry, so the fire never sticks out of a wall or floats on
-     * water.</p>
-     */
     private static BlockPos findFireSurface(ServerLevel level, int x, int aroundY, int z) {
         for (int offset = 1; offset >= -2; offset--) {
             BlockPos floor = new BlockPos(x, aroundY + offset, z);
@@ -349,4 +266,3 @@ public final class ArayaSyncHandler {
         return null;
     }
 }
-

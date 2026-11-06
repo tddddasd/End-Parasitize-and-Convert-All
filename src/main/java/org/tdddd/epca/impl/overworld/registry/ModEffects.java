@@ -63,7 +63,6 @@ public class ModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> SOUL_PROTECTION =
             EFFECTS.register("soul_protection", SoulProtectionEffect::new);
 
-    /** 虫染不详之兆 - carrying it into a village starts an infested raid. */
     public static final DeferredHolder<MobEffect, MobEffect> INFESTED_OMEN =
             EFFECTS.register("infested_omen", org.tdddd.epca.impl.overworld.registry.effects.debuff.InfestedOmenEffect::new);
 

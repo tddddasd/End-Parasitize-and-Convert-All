@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.network.packet.c2s;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -10,10 +13,8 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.List;
-
 
 public class ToggleFollowPacket implements CustomPacketPayload {
 
@@ -41,21 +42,19 @@ public class ToggleFollowPacket implements CustomPacketPayload {
 
             ServerLevel level = player.level();
             AABB box = player.getBoundingBox().inflate(16);
-            List<Entity> parasites = level.getEntities(player, box, e -> e instanceof IParasite);
+            List<Entity> parasites = level.getEntities(player, box, e -> ParasiteEvents.isParasiteEntity(e));
 
             boolean hasFollower = false;
             for (Entity e : parasites) {
-                if (e instanceof IParasite p) {
-                    if (player.getUUID().equals(p.getFollowTarget())) {
-                        hasFollower = true;
-                        break;
-                    }
+                if (player.getUUID().equals(ParasiteEvents.getFollowTarget((LivingEntity) e))) {
+                    hasFollower = true;
+                    break;
                 }
             }
 
             boolean follow = !hasFollower;
             for (Entity e : parasites) {
-                ((IParasite) e).setFollowTarget(follow ? player.getUUID() : null);
+                ParasiteEvents.setFollowTarget((LivingEntity) e, follow ? player.getUUID() : null);
             }
         });
     }

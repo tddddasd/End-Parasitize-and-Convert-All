@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.special;
 
+import net.minecraft.world.entity.LivingEntity;
+
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -33,11 +35,11 @@ import java.util.stream.Collectors;
 
 public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
-    
+
     private int runSoundCooldown = 0;
     private int standSoundCooldown = 0;
     private int standSoundDelay = 0;
-    private int attackSoundCooldown = 0; 
+    private int attackSoundCooldown = 0;
     private boolean wasMoving = false;
     private boolean isAttacking = false;
 
@@ -65,32 +67,32 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
     }
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
-        
+
         if (!(target instanceof Player)) {
-            target.remove(RemovalReason.UNLOADED_TO_CHUNK); 
-            return true; 
+            target.remove(RemovalReason.UNLOADED_TO_CHUNK);
+            return true;
         }
-        
+
         return super.doHurtTarget(level, target);
     }
 
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        
+
         this.goalSelector.addGoal(2, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true) {
             @Override
             public void start() {
                 super.start();
-                
+
                 ((Nullthing) this.mob).setAttacking(true);
             }
 
             @Override
             public void stop() {
                 super.stop();
-                
+
                 ((Nullthing) this.mob).setAttacking(false);
             }
         });
@@ -106,7 +108,7 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
     @Override
     public void tick() {
         super.tick();
-        
+
         if (this.getHealth() < this.getMaxHealth()) {
             super.setHealth(this.getMaxHealth());
         }
@@ -118,7 +120,7 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
             this.getActiveEffects().stream()
                     .map(MobEffectInstance::getEffect)
                     .filter(effect -> !isEpcaEffect(effect.value()))
-                    .collect(Collectors.toList()) 
+                    .collect(Collectors.toList())
                     .forEach(this::removeEffect);
 
             boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001D;
@@ -127,26 +129,26 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
                     if (this.random.nextBoolean()) {
                         this.playSound(ModSoundEvents.NULLTHING_ATTACK0.get(), 1.0F, 1.0F);
                     }
-                    attackSoundCooldown = 10; 
+                    attackSoundCooldown = 10;
                 } else {
-                    attackSoundCooldown--; 
+                    attackSoundCooldown--;
                 }
             } else {
             }
             if (isMoving) {
                 if (runSoundCooldown <= 0) {
                     this.playSound(ModSoundEvents.NULLTHING_RUN.get(), 0.8F, 1.0F);
-                    runSoundCooldown = 40; 
+                    runSoundCooldown = 40;
                 } else {
                     runSoundCooldown--;
                 }
-                
+
                 if (wasMoving != isMoving) {
                     standSoundCooldown = 0;
-                    standSoundDelay = this.random.nextInt(120) + 120; 
+                    standSoundDelay = this.random.nextInt(120) + 120;
                 }
             }
-            
+
             else {
                 if (standSoundCooldown <= 0) {
                     if (standSoundDelay <= 0) {
@@ -155,11 +157,11 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
                         } else {
                             this.playSound(ModSoundEvents.NULLTHING_STAND2.get(), 0.6F, 1.0F);
                         }
-                        standSoundDelay = this.random.nextInt(120); 
+                        standSoundDelay = this.random.nextInt(120);
                     } else {
                         standSoundDelay--;
                     }
-                    standSoundCooldown = 20; 
+                    standSoundCooldown = 20;
                 } else {
                     standSoundCooldown--;
                 }
@@ -177,12 +179,12 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
     }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         return false;
     }
     @Override
     public void setHealth(float health) {
-        
+
         super.setHealth(this.getMaxHealth());
     }
     @Override
@@ -191,13 +193,13 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
 
     @Override
     public boolean isDeadOrDying() {
-        
+
         return false;
     }
 
     @Override
     public boolean isAlive() {
-        
+
         return true;
     }
 
@@ -209,7 +211,7 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
     }
     @Override
     public void checkDespawn() {
-        
+
         this.noActionTime = 0;
     }
     @Override
@@ -221,7 +223,7 @@ public class Nullthing extends PathfinderMob implements GeoEntity, Enemy {
         boolean isMoving = event.isMoving();
 
         if (this.isAttacking && this.getTarget() != null && this.distanceToSqr(this.getTarget()) < 8.0D) {
-            
+
             event.setAnimation(RawAnimation.begin().thenLoop("attack"));
         } else if (isMoving) {
             event.setAnimation(RawAnimation.begin().thenLoop("trot"));

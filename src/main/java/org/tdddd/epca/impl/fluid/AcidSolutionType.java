@@ -4,7 +4,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.neoforged.neoforge.common.SoundActions;
 import net.neoforged.neoforge.fluids.FluidType;
 
-
 public class AcidSolutionType extends FluidType {
     public AcidSolutionType() {
         super(Properties.create()
@@ -21,7 +20,7 @@ public class AcidSolutionType extends FluidType {
                 .density(3000)
                 .temperature(1300)
                 .viscosity(6000)
-                
+
                 .isWaterLike(true));
     }
 }

@@ -18,7 +18,7 @@ public class InfestedNetherseaIcecream extends Item {
         return new FoodProperties.Builder()
                 .nutrition(5)
                 .saturationModifier(0.8F)
-                .alwaysEdible() // 26.1.2 rename of alwaysEat()
+                .alwaysEdible()
                 .build();
     }
 
@@ -30,7 +30,7 @@ public class InfestedNetherseaIcecream extends Item {
                         0
                 ), 1.0F))
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        MobEffects.RESISTANCE, // 26.1.2 rename of DAMAGE_RESISTANCE
+                        MobEffects.RESISTANCE,
                         10 * 20,
                         1
                 ), 1.0F))

@@ -11,7 +11,6 @@ import org.tdddd.epca.impl.overworld.registry.items.item.WingChestManager;
 
 import java.util.UUID;
 
-
 public class FlightStatePacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<FlightStatePacket> TYPE =
@@ -46,7 +45,7 @@ public class FlightStatePacket implements CustomPacketPayload {
     public static void handle(FlightStatePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer sender) {
-                
+
                 ServerLevel level = sender.level();
                 ServerPlayer player = level.getServer().getPlayerList().getPlayer(packet.playerId);
 

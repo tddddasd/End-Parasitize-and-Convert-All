@@ -26,11 +26,10 @@ public class FearEffectEventHandler {
             Identifier.fromNamespaceAndPath("minecraft", "lingering_potion")
     );
 
-    
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Player player = event.getEntity();
-        
+
         if (!player.hasEffect(ModEffects.FEAR)) return;
 
         int amplifier = player.getEffect(ModEffects.FEAR).getAmplifier();
@@ -41,18 +40,15 @@ public class FearEffectEventHandler {
         }
     }
 
-    
     @SubscribeEvent
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         Player player = event.getEntity();
-        
+
         if (!player.hasEffect(ModEffects.FEAR)) return;
 
-        
         ItemStack stack = player.getItemInHand(event.getHand());
         Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 
-        
         if (itemId != null && (THROWABLE_ITEMS.contains(itemId) || stack.getItem() instanceof ProjectileWeaponItem)) {
             return;
         }

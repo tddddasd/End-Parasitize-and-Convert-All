@@ -21,32 +21,24 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 
 public class InfestedRemainsLarge extends Block {
-    
-    private static final VoxelShape INTERACTION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D); 
-    
+
+    private static final VoxelShape INTERACTION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
+
     private static final VoxelShape COLLISION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 0.1D, 16.0D);
 
-    /**
-     * 26.1.2: {@code DeferredRegister.Blocks#registerBlock} takes a
-     * {@code Function<Properties, B>} so the registry id can be attached to the
-     * properties. A no-arg-only block is registered through the plain
-     * {@code register(...)} overload, which leaves the id unset and aborts the whole
-     * block registry at runtime with {@code NullPointerException: Block id not set}.
-     */
     public InfestedRemainsLarge(Properties properties) {
         super(properties);
     }
 
-    /** Kept for {@code simpleCodec} / hand construction with the original defaults. */
     public InfestedRemainsLarge() {
         this(Properties.of()
-                .noOcclusion() 
-                .strength(0.0f) 
+                .noOcclusion()
+                .strength(0.0f)
                 .sound(SoundType.NETHER_WART)
-                .isViewBlocking((state, world, pos) -> false) 
-                .isSuffocating((state, world, pos) -> false) 
-                .instabreak() 
-                .pushReaction(PushReaction.DESTROY) 
+                .isViewBlocking((state, world, pos) -> false)
+                .isSuffocating((state, world, pos) -> false)
+                .instabreak()
+                .pushReaction(PushReaction.DESTROY)
         );
     }
 
@@ -55,21 +47,20 @@ public class InfestedRemainsLarge extends Block {
         return simpleCodec(InfestedRemainsLarge::new);
     }
 
-    
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
                              net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
-            
+
             if (!livingEntity.hasEffect(ModEffects.PARA_CURSE)) {
-                
+
                 livingEntity.addEffect(new MobEffectInstance(
                         ModEffects.PARA_CURSE,
-                        900,   
-                        1,     
-                        false, 
-                        true,  
-                        true   
+                        900,
+                        1,
+                        false,
+                        true,
+                        true
                 ));
             }
         }
@@ -86,26 +77,22 @@ public class InfestedRemainsLarge extends Block {
         return INTERACTION_SHAPE;
     }
 
-    
     @Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
 
-    
     @Override
     public boolean propagatesSkylightDown(BlockState state) {
         return true;
     }
 
-    
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockPos belowPos = pos.below();
         return Block.canSupportCenter(level, belowPos, Direction.UP);
     }
 
-    
     @Override
     public BlockState updateShape(BlockState state, LevelReader level, net.minecraft.world.level.ScheduledTickAccess ticks,
                                   BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState,
@@ -116,7 +103,6 @@ public class InfestedRemainsLarge extends Block {
         return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
     }
 
-    
     @Override
     public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!state.canSurvive(level, pos)) {
@@ -124,7 +110,6 @@ public class InfestedRemainsLarge extends Block {
         }
     }
 
-    
     @Override
     public PushReaction getPistonPushReaction(BlockState state) {
         return PushReaction.DESTROY;

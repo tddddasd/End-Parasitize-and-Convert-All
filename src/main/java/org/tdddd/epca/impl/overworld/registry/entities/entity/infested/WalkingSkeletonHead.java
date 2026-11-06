@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -24,8 +27,6 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
@@ -40,11 +41,11 @@ import com.geckolib.animation.object.PlayState;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import com.geckolib.util.GeckoLibUtil;
 
-public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
+public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int ambientSoundTime;
-    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
-    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
+    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20;
+    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20;
 
     public enum Variant {
         DEFAULT,
@@ -54,25 +55,25 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
-        
+
         entityData.define(DATA_VARIANT, WalkingSkeletonHead.Variant.DEFAULT.ordinal());
     }
 
     public WalkingSkeletonHead(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
-        
+
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
-        
+
         if (!level.isClientSide()) {
             int roll = this.random.nextInt(100);
             if (roll < 70) {
-                this.setVariant(WalkingSkeletonHead.Variant.DEFAULT);  
+                this.setVariant(WalkingSkeletonHead.Variant.DEFAULT);
             } else {
-                this.setVariant(WalkingSkeletonHead.Variant.FIRED);    
+                this.setVariant(WalkingSkeletonHead.Variant.FIRED);
             }
         }
-        
+
         this.navigation = new GroundPathNavigation(this, level);
     }
 
@@ -80,10 +81,10 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
             WalkingSkeletonHead.class, EntityDataSerializers.INT
     );
     public WalkingSkeletonHead.Variant getVariant() {
-        
+
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
         if (variantOrdinal == null) {
-            
+
             return WalkingSkeletonHead.Variant.DEFAULT;
         }
         int index = Mth.clamp(variantOrdinal, 0, WalkingSkeletonHead.Variant.values().length - 1);
@@ -94,16 +95,15 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
         this.entityData.set(DATA_VARIANT, variant.ordinal());
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 6.0D) 
-                .add(Attributes.MOVEMENT_SPEED, 0.28D) 
-                .add(Attributes.ATTACK_DAMAGE, 2.0D) 
+                .add(Attributes.MAX_HEALTH, 6.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.28D)
+                .add(Attributes.ATTACK_DAMAGE, 2.0D)
                 .add(Attributes.FOLLOW_RANGE, 16.0D)
                 .build();
     }
@@ -113,7 +113,7 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
         super.registerGoals();
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
-        
+
         this.goalSelector.addGoal(5, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
@@ -130,12 +130,12 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
         if (!this.level().isClientSide()) {
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
-                    
+
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
                     playAmbientSound();
                 }
             }
-            
+
             updateFloating();
         }
     }
@@ -151,26 +151,23 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return ModSoundEvents.WALKING_HEAD_DEATH.get();
     }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -180,10 +177,10 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
     private PlayState animationPredicate(AnimationTest<WalkingSkeletonHead> event) {
 
         if (event.isMoving()) {
-            
+
             event.setAnimation(RawAnimation.begin().thenLoop("walk"));
         } else {
-            
+
             event.setAnimation(RawAnimation.begin().thenLoop("idle"));
         }
 
@@ -197,9 +194,9 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
-            
+
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 2 || stage > 5) {
                 return false;
@@ -209,7 +206,7 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -217,7 +214,7 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -232,7 +229,7 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
     @Override
     public void die(DamageSource source) {
         if (!this.level().isClientSide()) {
-            
+
             int fragmentCount = 6 + this.random.nextInt(5);
             boolean isFired = this.getVariant() == Variant.FIRED;
 
@@ -243,16 +240,16 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
                 double spawnZ = this.getZ();
                 fragment.setPos(spawnX, spawnY, spawnZ);
                 float angle = this.random.nextFloat() * (float) Math.PI * 2;
-                float speed = 0.3f + this.random.nextFloat() * 0.3f; 
+                float speed = 0.3f + this.random.nextFloat() * 0.3f;
                 double vx = Math.cos(angle) * speed;
                 double vz = Math.sin(angle) * speed;
-                double vy = 0.1 + this.random.nextFloat() * 0.2;     
+                double vy = 0.1 + this.random.nextFloat() * 0.2;
 
                 fragment.setDeltaMovement(vx, vy, vz);
                 if (getVariant() == WalkingSkeletonHead.Variant.FIRED) {
-                    
+
                     fragment.setRemainingFireTicks(300);
-                    
+
                     fragment.getPersistentData().putBoolean("InfestedFireArrow", true);
                 }
 
@@ -264,10 +261,10 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
     private int floatingTime;
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
             this.floatingTime++;
@@ -282,7 +279,7 @@ public class WalkingSkeletonHead extends PathfinderMob implements GeoEntity, IPa
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));

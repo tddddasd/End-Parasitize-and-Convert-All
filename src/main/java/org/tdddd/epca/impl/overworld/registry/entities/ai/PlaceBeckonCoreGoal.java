@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.ai;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -9,7 +10,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIIBeckon;
 
@@ -20,11 +20,11 @@ public class PlaceBeckonCoreGoal extends Goal {
     private final Mob entity;
     private BlockPos targetPos;
     private int checkCooldown = 0;
-    private boolean isNearby = false; 
+    private boolean isNearby = false;
 
     private static final int KILLS_REQUIRED = 15;
     private static final int SEARCH_RADIUS = 16;
-    private static final int NEARBY_RADIUS = 1; 
+    private static final int NEARBY_RADIUS = 1;
 
     public PlaceBeckonCoreGoal(Mob entity) {
         this.entity = entity;
@@ -33,7 +33,7 @@ public class PlaceBeckonCoreGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (!(entity instanceof IParasite)) return false;
+        if (!ParasiteEvents.isParasiteEntity(entity)) return false;
         int kills = EntityBiomassCountManager.getCurrentBiomassCount(entity);
         if (kills < KILLS_REQUIRED) return false;
 
@@ -46,11 +46,9 @@ public class PlaceBeckonCoreGoal extends Goal {
         Level level = entity.level();
         BlockPos entityPos = entity.blockPosition();
 
-        
         if (isBeckonCoreNearby(level, entityPos)) return false;
         if (isBeckonEntityNearby(level, entityPos)) return false;
 
-        
         BlockPos nearby = findNearbyBlock(level, entityPos);
         if (nearby != null) {
             this.targetPos = nearby;
@@ -58,13 +56,11 @@ public class PlaceBeckonCoreGoal extends Goal {
             return true;
         }
 
-        
         this.targetPos = findSuitableBlock(level, entityPos);
         this.isNearby = false;
         return targetPos != null;
     }
 
-    
     private BlockPos findNearbyBlock(Level level, BlockPos center) {
         for (int dx = -NEARBY_RADIUS; dx <= NEARBY_RADIUS; dx++) {
             for (int dy = -NEARBY_RADIUS; dy <= NEARBY_RADIUS; dy++) {
@@ -80,7 +76,6 @@ public class PlaceBeckonCoreGoal extends Goal {
         return null;
     }
 
-    
     private BlockPos findSuitableBlock(Level level, BlockPos center) {
         for (int dx = -SEARCH_RADIUS; dx <= SEARCH_RADIUS; dx++) {
             for (int dy = -SEARCH_RADIUS; dy <= SEARCH_RADIUS; dy++) {
@@ -112,7 +107,6 @@ public class PlaceBeckonCoreGoal extends Goal {
         return true;
     }
 
-    
     private boolean isBeckonCoreNearby(Level level, BlockPos center) {
         for (int dx = -SEARCH_RADIUS; dx <= SEARCH_RADIUS; dx++) {
             for (int dy = -16; dy <= 16; dy++) {
@@ -127,7 +121,6 @@ public class PlaceBeckonCoreGoal extends Goal {
         return false;
     }
 
-    
     private boolean isBeckonEntityNearby(Level level, BlockPos center) {
         AABB area = new AABB(center).inflate(SEARCH_RADIUS);
         List<StageIBeckon> stageIList = level.getEntitiesOfClass(StageIBeckon.class, area, e -> e.isAlive());
@@ -140,18 +133,17 @@ public class PlaceBeckonCoreGoal extends Goal {
     public void start() {
         if (targetPos == null) return;
         if (!isNearby) {
-            
+
             Vec3 pos = Vec3.atBottomCenterOf(targetPos);
             entity.getNavigation().moveTo(pos.x, pos.y, pos.z, 1.0);
         }
-        
+
     }
 
     @Override
     public void tick() {
         if (targetPos == null) return;
 
-        
         if (isNearby || entity.distanceToSqr(Vec3.atCenterOf(targetPos)) < 4.0) {
             Level level = entity.level();
             BlockState state = level.getBlockState(targetPos);
@@ -163,15 +155,15 @@ public class PlaceBeckonCoreGoal extends Goal {
             targetPos = null;
             isNearby = false;
         }
-        
+
     }
 
     @Override
     public boolean canContinueToUse() {
         if (targetPos == null) return false;
-        
+
         if (isNearby) return true;
-        
+
         return entity.getNavigation().isInProgress();
     }
 

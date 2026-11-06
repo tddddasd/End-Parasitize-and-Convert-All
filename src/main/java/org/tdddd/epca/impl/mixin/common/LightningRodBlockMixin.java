@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.mixin.common;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -19,12 +20,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.items.item.InfestedRedstone;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-
 
 @Mixin(LightningRodBlock.class)
 public class LightningRodBlockMixin {
@@ -43,7 +42,7 @@ public class LightningRodBlockMixin {
         int total = items.stream().mapToInt(e -> e.getItem().getCount()).sum();
 
         if (total >= 64) {
-            
+
             int toConsume = 64;
             for (ItemEntity itemEntity : items) {
                 if (toConsume <= 0) break;
@@ -75,7 +74,7 @@ public class LightningRodBlockMixin {
         int range = 64;
         AABB effectBox = new AABB(pos).inflate(range);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, effectBox,
-                e -> e instanceof IParasite);
+                e -> ParasiteEvents.isParasiteEntity(e));
 
         ThreadLocalRandom rand = ThreadLocalRandom.current();
         int baseLevel = rand.nextInt(1, 4);
@@ -83,7 +82,7 @@ public class LightningRodBlockMixin {
 
         for (LivingEntity entity : entities) {
             entity.addEffect(new MobEffectInstance(ModEffects.RAGE, 600, finalLevel - 1, false, true));
-            
+
             entity.addEffect(new MobEffectInstance(MobEffects.HASTE, 600, finalLevel - 1, false, true));
             entity.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 600, finalLevel - 1, false, true));
         }

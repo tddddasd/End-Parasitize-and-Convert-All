@@ -9,7 +9,6 @@ import org.tdddd.epca.impl.network.ModNetwork;
 
 import java.util.UUID;
 
-
 public class EnderErosionSyncPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<EnderErosionSyncPacket> TYPE =

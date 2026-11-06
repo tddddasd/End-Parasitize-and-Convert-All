@@ -7,19 +7,18 @@ import net.minecraft.util.RandomSource;
 import net.neoforged.api.distmarker.Dist;
 import org.tdddd.epca.impl.epca;
 
-// 26.1.2: TextureSheetParticle -> SingleQuadParticle.
 public class LivingFleshParticle extends SingleQuadParticle {
-    private final SpriteSet spriteSet; 
+    private final SpriteSet spriteSet;
 
     protected LivingFleshParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet spriteSet) {
         super(level, x, y, z, xd, yd, zd, spriteSet.first());
-        this.spriteSet = spriteSet; 
+        this.spriteSet = spriteSet;
         this.friction = 0.9F;
         this.gravity = 0.3F;
         this.speedUpWhenYMotionIsBlocked = true;
         this.quadSize = 0.18F;
-        this.lifetime = 40; 
-        this.setSpriteFromAge(spriteSet); 
+        this.lifetime = 40;
+        this.setSpriteFromAge(spriteSet);
     }
 
     @Override
@@ -30,10 +29,9 @@ public class LivingFleshParticle extends SingleQuadParticle {
     @Override
     public void tick() {
         super.tick();
-        this.setSpriteFromAge(this.spriteSet); 
+        this.setSpriteFromAge(this.spriteSet);
     }
 
-    
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet spriteSet;
 

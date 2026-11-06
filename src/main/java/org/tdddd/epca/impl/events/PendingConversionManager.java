@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
 @EventBusSubscriber(modid = epca.MODID)
 public final class PendingConversionManager {
 
@@ -29,7 +28,7 @@ public final class PendingConversionManager {
         final ParaCurseEffect.ConversionPlan plan;
         int remainingTicks;
         final int totalTicks;
-        
+
         final boolean wasInvulnerable;
         final boolean wasNoAi;
 
@@ -44,7 +43,6 @@ public final class PendingConversionManager {
         }
     }
 
-    
     public static void schedule(LivingEntity entity, ParaCurseEffect.ConversionPlan plan, int delayTicks) {
         if (entity == null || entity.level().isClientSide()) {
             return;
@@ -85,8 +83,6 @@ public final class PendingConversionManager {
         }
     }
 
-    
-    
     private static void holdAlive(LivingEntity entity, boolean wasInvulnerable) {
         setNoAi(entity, true);
         if (entity instanceof Mob mob) {
@@ -102,7 +98,7 @@ public final class PendingConversionManager {
             entity.setInvulnerable(true);
         }
     }
-    
+
     private static void releaseAfterPending(LivingEntity entity, boolean wasInvulnerable, boolean wasNoAi) {
         setNoAi(entity, wasNoAi);
         if (!wasInvulnerable) {
@@ -110,8 +106,6 @@ public final class PendingConversionManager {
         }
     }
 
-    
-    
     public static boolean isPending(LivingEntity entity) {
         if (entity == null || PENDING.isEmpty()) {
             return false;
@@ -139,7 +133,6 @@ public final class PendingConversionManager {
                 continue;
             }
 
-            
             holdAlive(e, p.wasInvulnerable);
             if (!e.isOnFire()) {
                 float min = e.getMaxHealth() * MIN_HEALTH_FRACTION;
@@ -159,7 +152,6 @@ public final class PendingConversionManager {
         }
     }
 
-    
     public static void clear() {
         PENDING.clear();
     }

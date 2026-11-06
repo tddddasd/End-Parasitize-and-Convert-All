@@ -10,7 +10,6 @@ import org.tdddd.epca.impl.network.ModNetwork;
 
 import java.util.UUID;
 
-
 public class PlayerMotionPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<PlayerMotionPacket> TYPE =

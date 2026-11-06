@@ -16,10 +16,6 @@ import org.tdddd.epca.impl.overworld.data.LikeBiome;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeSavedData;
 
-/**
- * {@code /epca_biome_like} - stack a biome on top of the real one for the 4x4x4 section the command runs
- * in. The biome like never replaces the real one.
- */
 public final class LikeBiomeCommand {
 
     private LikeBiomeCommand() {

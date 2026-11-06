@@ -11,7 +11,6 @@ import org.tdddd.epca.impl.network.ModNetwork;
 import java.util.ArrayList;
 import java.util.Collection;
 
-
 public class SyncAllInfestedSourcesPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncAllInfestedSourcesPacket> TYPE =

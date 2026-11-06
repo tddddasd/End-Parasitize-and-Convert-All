@@ -11,20 +11,12 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * World-saved record of every active raid barrier.
- *
- * <p>The barrier is not a vanilla mechanic, so it has to survive a restart on its own. It stores wall
- * clock timestamps (not game time) because the spec asks for a real-world hour: pausing the single player
- * game or stopping the server must not extend the barrier.</p>
- */
 public class InfestedRaidBarrierData extends SavedData {
-    public static final long DURATION_MILLIS = 60L * 60L * 1000L; // one real hour
+    public static final long DURATION_MILLIS = 60L * 60L * 1000L;
     public static final double RADIUS = 64.0D;
 
     private static final Identifier DATA_ID = Identifier.fromNamespaceAndPath("epca", "infested_raid_barriers");
 
-    /** One barrier sphere. */
     public record Barrier(Identifier dimension, BlockPos center, double radius, long startMillis, long endMillis) {
         public static final Codec<Barrier> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Identifier.CODEC.fieldOf("dimension").forGetter(Barrier::dimension),
@@ -38,7 +30,6 @@ public class InfestedRaidBarrierData extends SavedData {
             return System.currentTimeMillis() < this.endMillis;
         }
 
-        /** 0..1 fade weights, so the client can draw the same in/out ramp as the server. */
         public float fade(long now) {
             long total = Math.max(1L, this.endMillis - this.startMillis);
             long elapsed = now - this.startMillis;
@@ -89,7 +80,6 @@ public class InfestedRaidBarrierData extends SavedData {
         this.setDirty();
     }
 
-    /** Drops everything that has expired (and reports whether anything changed). */
     public boolean prune() {
         long now = System.currentTimeMillis();
         if (this.barriers.removeIf(b -> !b.active())) {
@@ -99,7 +89,6 @@ public class InfestedRaidBarrierData extends SavedData {
         return false;
     }
 
-    /** Barriers that are active and located in the given dimension. */
     public List<Barrier> activeIn(ServerLevel level) {
         Identifier dim = level.dimension().identifier();
         long now = System.currentTimeMillis();
@@ -110,12 +99,10 @@ public class InfestedRaidBarrierData extends SavedData {
         return out;
     }
 
-    /** How many barriers are stored at all (used for logging). */
     public int count() {
         return this.barriers.size();
     }
 
-    /** Read-only view for the client sync packet. */
     public static List<Barrier> activeIn(List<Barrier> all, Identifier dimension, long now) {
         List<Barrier> out = new ArrayList<>();
         for (Barrier b : all) {

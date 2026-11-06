@@ -18,13 +18,10 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-// 26.1.2: EntityRenderer<T, S> + extract/submit; the item is resolved into an ItemStackRenderState by
-// ItemModelResolver (ItemRenderer#renderStatic is gone).
 public class InfestedThrownEnderPearlRenderer
         extends EntityRenderer<InfestedThrownEnderPearl, InfestedThrownEnderPearlRenderer.PearlRenderState> {
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(epca.MODID, "textures/item/infested_ender_pearl.png");
 
-    /** 26.1.2 render state: resolved ender-pearl item model + the interpolated yaw used by the old render(). */
     public static class PearlRenderState extends EntityRenderState {
         public final ItemStackRenderState item = new ItemStackRenderState();
         public float yaw;
@@ -64,10 +61,6 @@ public class InfestedThrownEnderPearlRenderer
         super.submit(state, poseStack, submitNodeCollector, camera);
     }
 
-    /**
-     * 26.1.2: {@code EntityRenderer} no longer declares {@code getTextureLocation}; this renderer draws an item
-     * model, so the override was dropped and the constant is kept for reference.
-     */
     public static Identifier textureLocation() {
         return TEXTURE;
     }

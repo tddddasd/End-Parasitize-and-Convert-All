@@ -13,14 +13,6 @@ import org.tdddd.epca.impl.client.entity.layer.EndermanAfterimageLayer;
 import org.tdddd.epca.impl.client.entity.model.InfestedEndermiteModel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedEndermite;
 
-/**
- * Renderer for the infested endermite.
- *
- * <h2>GeckoLib 4  5.5.2</h2>
- * <p>The deleted {@code render(...)} override only drew an extra glow pass; in GeckoLib 5 that is
- * a {@link IGeoLayerProvider} re-submitting the model with {@code RenderTypes.eyes(glowTexture)}.
- * The afterimage layer keeps working through the same delegate layer.</p>
- */
 public class InfestedEndermiteRenderer extends EpcaGeoRenderer<InfestedEndermite> {
 
     private static final EndermanAfterimageLayer AFTERIMAGE_LAYER = new EndermanAfterimageLayer();
@@ -31,7 +23,6 @@ public class InfestedEndermiteRenderer extends EpcaGeoRenderer<InfestedEndermite
         addLayerProvider(new GlowLayer());
     }
 
-    /** Glow overlay: the unstable variant renders again with its emissive texture. */
     private static final class GlowLayer implements IGeoLayerProvider {
         @Override
         public void submitLayer(RenderPassInfo passInfo, SubmitNodeCollector collector) {
@@ -51,4 +42,3 @@ public class InfestedEndermiteRenderer extends EpcaGeoRenderer<InfestedEndermite
         }
     }
 }
-

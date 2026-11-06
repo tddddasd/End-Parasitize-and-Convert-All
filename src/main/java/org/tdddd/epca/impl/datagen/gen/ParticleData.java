@@ -8,7 +8,6 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 
-
 public class ParticleData extends ParticleDescriptionProvider {
 
     public ParticleData(PackOutput output) {
@@ -17,7 +16,7 @@ public class ParticleData extends ParticleDescriptionProvider {
 
     @Override
     protected void addDescriptions() {
-        
+
         addParticle(ModParticles.SPLASHI, "splashi");
         addParticle(ModParticles.PARA_CURSE, "para_curse");
         addParticle(ModParticles.BLEEDING, "bleeding");
@@ -33,7 +32,7 @@ public class ParticleData extends ParticleDescriptionProvider {
     }
 
     private void addParticle(DeferredHolder<net.minecraft.core.particles.ParticleType<?>, SimpleParticleType> particle, String textureName) {
-        
+
         spriteSet(particle.get(), Identifier.fromNamespaceAndPath(epca.MODID, textureName));
     }
 }

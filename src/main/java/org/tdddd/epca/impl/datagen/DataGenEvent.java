@@ -6,13 +6,11 @@ import org.tdddd.epca.impl.datagen.gen.*;
 import org.tdddd.epca.impl.datagen.gen.lang.LangDataCN;
 import org.tdddd.epca.impl.datagen.gen.lang.LangDataEN;
 
-
 public final class DataGenEvent {
 
     private DataGenEvent() {
     }
 
-    
     public static void gatherClientData(GatherDataEvent.Client event) {
         PackOutput out = event.getGenerator().getPackOutput();
         var lp = event.getLookupProvider();
@@ -26,7 +24,6 @@ public final class DataGenEvent {
         event.getGenerator().addProvider(true, new EffectSpriteData(out, lp));
     }
 
-    
     public static void gatherServerData(GatherDataEvent.Server event) {
         PackOutput out = event.getGenerator().getPackOutput();
         var lp = event.getLookupProvider();
@@ -40,7 +37,6 @@ public final class DataGenEvent {
         event.getGenerator().addProvider(true, new RecipeProviderData.Runner(out, lp));
         event.getGenerator().addProvider(true, new HallWorldGenData(out, lp));
 
-        
         event.getGenerator().addProvider(true,
                 new CustomDataProviders.EntityConversionDataProvider(out));
         event.getGenerator().addProvider(true,

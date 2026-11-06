@@ -10,7 +10,6 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.concurrent.CompletableFuture;
 
-
 public class EffectSpriteData extends SpriteSourceProvider {
 
     public EffectSpriteData(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
@@ -19,16 +18,15 @@ public class EffectSpriteData extends SpriteSourceProvider {
 
     @Override
     protected void gather() {
-        
+
         Identifier effectsAtlas = AtlasIds.GUI;
 
-        
         String[] effectTextures = {
                 "bleeding", "viral", "fear", "para_curse",
                 "contempt_inorganic", "corrosive", "rage", "needler",
                 "deep_sneak", "solidify", "ender_erosion",
                 "camouflage", "spirit", "soul_protection",
-                // Hyperplasia and Symbiosis Lie icons (same list the 1.20.1 build uses).
+
                 "hyperplasia", "symbiosis_lie"
         };
 

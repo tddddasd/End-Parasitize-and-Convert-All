@@ -23,40 +23,38 @@ public class EvolutionManager {
         }
     }
 
-    
     public static final int[] STAGE_THRESHOLDS = {
-            -100,      
-            -50,       
-            0,         
-            400,       
-            800,       
-            1800,      
-            20000,     
-            200000,    
-            5000000,   
-            25000000,  
-            500000000, 
+            -100,
+            -50,
+            0,
+            400,
+            800,
+            1800,
+            20000,
+            200000,
+            5000000,
+            25000000,
+            500000000,
             1000000000,
-            1800000000 
+            1800000000
     };
 
     private static final int COOLDOWN_TICKS = 20 * 60 * 20;
 
     private long cooldownEndTime;
 
-    
     private static final SoundEvent[] STAGE_SOUNDS = {
             ModSoundEvents.PHASE0.get(),
-            ModSoundEvents.PHASE1.get(),   
-            ModSoundEvents.PHASE2.get(),   
-            ModSoundEvents.PHASE3.get(),   
-            ModSoundEvents.PHASE4.get(),   
-            ModSoundEvents.PHASE5.get(),   
-            ModSoundEvents.PHASE6.get(),   
-            ModSoundEvents.PHASE7.get(),   
-            ModSoundEvents.PHASE8.get(),   
-            ModSoundEvents.PHASE9.get(),   
-            ModSoundEvents.PHASE10.get()   
+            ModSoundEvents.PHASE1.get(),
+            ModSoundEvents.PHASE2.get(),
+            ModSoundEvents.PHASE3.get(),
+            ModSoundEvents.PHASE4.get(),
+            ModSoundEvents.PHASE5.get(),
+            ModSoundEvents.PHASE6.get(),
+            ModSoundEvents.PHASE7.get(),
+            ModSoundEvents.PHASE8.get(),
+            ModSoundEvents.PHASE9.get(),
+            ModSoundEvents.PHASE10.get()
     };
 
     public static Component getStageDisplayName(int stage) {
@@ -71,7 +69,6 @@ public class EvolutionManager {
     private final ServerLevel level;
     private final EvolutionDataStorage dataStorage;
 
-    
     public static EvolutionManager forOverworld(ServerLevel level) {
         return new EvolutionManager(level, 0);
     }
@@ -85,30 +82,25 @@ public class EvolutionManager {
     }
 
     public static EvolutionManager forTwilightForest(ServerLevel level) {return new EvolutionManager(level, -50);}
-    
-    
+
     public void addPoints(int amount) {
-        
+
         if (isInCooldown()) {
             return;
         }
 
         int oldStage = getStage();
 
-        
         if (oldStage == -2) {
             return;
         }
 
-        // Early erosion stages grow more slowly: stage 0 gains only a quarter of the points,
-        // stage 1 half, stage 2 three quarters (rounded up). From stage 3 on the gain is unchanged.
         if (amount > 0) {
             amount = scalePointGain(amount, oldStage);
         }
 
         int newPoints = evolutionPoints + amount;
 
-        
         if (oldStage >= 0 && newPoints < 0) {
             newPoints = 0;
         }
@@ -118,10 +110,6 @@ public class EvolutionManager {
         checkForStageChange(oldStage);
     }
 
-    /**
-     * Multiplier applied to positive erosion point gains at the three earliest erosion stages.
-     * Rounded up so a gain always adds at least one point when it would otherwise be fractional.
-     */
     private static int scalePointGain(int amount, int stage) {
         double multiplier = switch (stage) {
             case 0 -> 0.25D;
@@ -135,32 +123,29 @@ public class EvolutionManager {
         return (int) Math.ceil(amount * multiplier);
     }
 
-    
     public void setPoints(int points) {
         int oldStage = getStage();
         evolutionPoints = clampPoints(points);
         dataStorage.setPointsForDimension(level.dimension(), evolutionPoints);
         checkForStageChange(oldStage);
 
-        
         int newStage = getStage();
         if (newStage >= 5 && newStage <= 13) {
             grantProgressToAllPlayers(newStage);
         }
     }
 
-    
     private void grantSenseOfCrisisAdvancement(ServerPlayer player) {
         try {
-            
+
             AdvancementHolder advancement = player.level().getServer().getAdvancements()
                     .get(Identifier.fromNamespaceAndPath("epca", "sense_of_crisis"));
 
             if (advancement != null) {
-                
+
                 AdvancementProgress progress = player.getAdvancements().getOrStartProgress(advancement);
                 if (!progress.isDone()) {
-                    
+
                     player.getAdvancements().award(advancement, "unlock");
                 }
             }
@@ -169,44 +154,39 @@ public class EvolutionManager {
         }
     }
 
-    
     private void grantProgressToAllPlayers(int stage) {
-        if (stage < 5 || stage > 13) return; 
+        if (stage < 5 || stage > 13) return;
 
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            
+
             grantSenseOfCrisisAdvancement(player);
         }
     }
 
-    
     public int getPoints() {
         return evolutionPoints;
     }
 
-    
     private boolean isInCooldown() {
         long currentTime = level.getGameTime();
         return currentTime < cooldownEndTime;
     }
 
-    
     private void startCooldown() {
         long currentTime = level.getGameTime();
         cooldownEndTime = currentTime + COOLDOWN_TICKS;
-        
+
         dataStorage.setCooldownEndForDimension(level.dimension(), cooldownEndTime);
     }
 
-    
     private void notifyStageChange(int newStage) {
-        
+
         Component message = Component.translatable("epca.stage." + newStage);
 
         for (ServerPlayer player : level.players()) {
             if (player.level().dimension().equals(level.dimension())) {
                 player.sendSystemMessage(message, false);
-                
+
                 if (newStage >= 0 && newStage <= 10) {
                     SoundEvent sound = getStageSound(newStage);
                     if (sound != null) {
@@ -218,26 +198,23 @@ public class EvolutionManager {
         }
     }
 
-    
     private SoundEvent getStageSound(int stage) {
-        
+
         if (stage >= 0 && stage <= 10) {
             return STAGE_SOUNDS[stage - 0];
         }
-        return null; 
+        return null;
     }
-    
+
     private int clampPoints(int points) {
         return Math.min(Math.max(points, MIN_EVOLUTION_POINTS), MAX_EVOLUTION_POINTS);
     }
 
-    
     private static boolean isTwilightForestDimension(ServerLevel level) {
         return isTwilightForestInstalled() &&
                 level.dimension().identifier().toString().equals("twilightforest:twilight_forest");
     }
 
-    
     public String getDimensionName() {
         if (level.dimension().equals(Level.OVERWORLD)) {
             return "主世界";
@@ -267,7 +244,7 @@ public class EvolutionManager {
 
     public static int getStageForDimension(Level level) {
         if (!(level instanceof ServerLevel serverLevel)) {
-            return 0; 
+            return 0;
         }
 
         if (serverLevel.dimension().equals(Level.OVERWORLD)) {
@@ -285,7 +262,7 @@ public class EvolutionManager {
 
     public static int getPointsForDimension(Level level) {
         if (!(level instanceof ServerLevel serverLevel)) {
-            return 0; 
+            return 0;
         }
 
         if (serverLevel.dimension().equals(Level.OVERWORLD)) {
@@ -301,7 +278,6 @@ public class EvolutionManager {
         }
     }
 
-    
     private void broadcastCurrentStage() {
         Identifier dimId = level.dimension().identifier();
         int stage = getStage();
@@ -314,9 +290,8 @@ public class EvolutionManager {
         ModNetwork.sendToPlayer(player, new SyncEvolutionStagePacket(dimId, stage));
     }
 
-    private Integer overriddenStage = null;  
+    private Integer overriddenStage = null;
 
-    
     public EvolutionManager(ServerLevel level, int initialPoints) {
         this.level = level;
         this.dataStorage = EvolutionDataStorage.get(level);
@@ -325,12 +300,11 @@ public class EvolutionManager {
             this.evolutionPoints = initialPoints;
             dataStorage.setPointsForDimension(level.dimension(), this.evolutionPoints);
         }
-        
+
         this.overriddenStage = dataStorage.getOverriddenStage(level.dimension());
         this.lastStage = getStage();
         this.cooldownEndTime = dataStorage.getCooldownEndForDimension(level.dimension());
     }
-
 
     public int getStage() {
         if (overriddenStage != null) {
@@ -347,20 +321,19 @@ public class EvolutionManager {
     }
 
     public void setOverriddenStage(int stage) {
-        int oldStage = getStage();                      
+        int oldStage = getStage();
         this.overriddenStage = stage;
         dataStorage.setOverriddenStage(level.dimension(), stage);
-        checkForStageChange(oldStage);                  
+        checkForStageChange(oldStage);
     }
 
     public void clearOverriddenStage() {
-        int oldStage = getStage();                      
+        int oldStage = getStage();
         this.overriddenStage = null;
         dataStorage.clearOverriddenStage(level.dimension());
-        checkForStageChange(oldStage);                  
+        checkForStageChange(oldStage);
     }
 
-    
     private void checkForStageChange(int oldStage) {
         int newStage = getStage();
         if (newStage != oldStage) {
@@ -375,7 +348,6 @@ public class EvolutionManager {
         lastStage = newStage;
     }
 
-    
     public double getParasiteDamageMultiplier() {
         int stage = getStage();
         switch (stage) {

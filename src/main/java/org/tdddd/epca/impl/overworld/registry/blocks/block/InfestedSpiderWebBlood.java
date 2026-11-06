@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.entity.InsideBlockEffectApplier;
@@ -25,7 +26,6 @@ import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,18 +34,12 @@ import java.util.Objects;
 
 public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInterface {
     public static final BooleanProperty SPIDER = BooleanProperty.create("spider");
-    /**
-     * Absolute game tick at which a mob-placed web expires, or {@link #PLACED_NEVER} when it was not
-     * mob-placed. Kept as BLOCKSTATE data because block state is serialised with the chunk, so the
-     * countdown survives save/load and chunk unload/reload. The old static
-     * {@code HashMap<BlockPos, Long>} did not, which is why the timer restarted after a reload.
-     */
-    /** Must exceed DECAY_TICKS (1200) so a stamp cannot collide within one web lifetime. */
+
     public static final int PLACED_CYCLE = 2048;
     public static final IntegerProperty PLACED_AT = IntegerProperty.create("placed_at", 0, PLACED_CYCLE - 1);
-    /** Sentinel for {@link #PLACED_AT}: not a mob-placed web. */
+
     public static final int PLACED_NEVER = 0;
-    /** The decay duration. Unchanged: 60 seconds. */
+
     public static final int DECAY_TICKS = 20 * 60;
 
     public InfestedSpiderWebBlood(Properties properties) {
@@ -60,10 +54,6 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
         builder.add(SPIDER, PLACED_AT);
     }
 
-    /**
-     * Reads the {@code spider} flag defensively. See {@code InfestedSpiderWeb#isSpiderWeb} for why
-     * {@code getValue} must not be called directly on this property.
-     */
     public static boolean isSpiderWeb(BlockState state) {
         if (state == null || !state.hasProperty(SPIDER)) {
             return false;
@@ -72,34 +62,12 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
         return spider != null && spider;
     }
 
-    /**
-     * Returns {@code state} with the {@code spider} flag set, or {@code state} unchanged when the
-     * property is absent. Never call {@code setValue} on this property directly.
-     */
     public static BlockState markSpiderWeb(BlockState state, boolean spider) {
         if (state == null || !state.hasProperty(SPIDER)) {
             return state;
         }
         return state.setValue(SPIDER, spider);
     }
-
-    /**
-     * Reads the spider flag defensively.
-     *
-     * <p>BlockState#getValue throws IllegalArgumentException when the property is not part of the
-     * state, so a state that somehow lacks it must degrade to false-like behaviour instead of taking
-     * the server down.</p>
-     */
-    
-
-    /**
-     * Returns state with the spider flag set, or state unchanged when the property is absent.
-     *
-     * <p>This is the only sanctioned way to set the flag: BlockState#setValue throws when the
-     * property is missing, and that exception is a hard server crash inside entity ticking. The
-     * projectiles and the walking head's self-destruct all go through it.</p>
-     */
-    
 
     public void entityInside(BlockState blockState, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         entity.makeStuckInBlock(blockState, new Vec3(0.5, 0.05000000074505806 * 2, 0.5));
@@ -110,8 +78,7 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
         super.onPlace(state, level, pos, oldState, isMoving);
         if (!level.isClientSide()) {
             if (isSpiderWeb(state)) {
-                // Guard against recursion: setBlock below re-enters onPlace, and by then the stamp is
-                // already written, so the second pass falls straight through.
+
                 if (state.hasProperty(PLACED_AT) && state.getValue(PLACED_AT) != PLACED_NEVER) {
                     return;
                 }
@@ -126,22 +93,16 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
         }
     }
 
-    /** The absolute expiry tick truncated into {@link #PLACED_AT}'s range. See the base web class. */
     public static int expiryStamp(long gameTime) {
         int stamp = (int) ((gameTime + DECAY_TICKS) % PLACED_CYCLE);
         return stamp == PLACED_NEVER ? 1 : stamp;
     }
 
-    /** The current tick in the same truncated space as {@link #expiryStamp}. */
     public static int nowStamp(long gameTime) {
         int stamp = (int) (gameTime % PLACED_CYCLE);
         return stamp == PLACED_NEVER ? 1 : stamp;
     }
 
-    /**
-     * True when a web stamped {@code stamp} has reached or passed its expiry. Uses modular elapsed
-     * time so it still fires when the expiry went by while the chunk was unloaded.
-     */
     public static boolean stampDue(long gameTime, int stamp) {
         int now = nowStamp(gameTime);
         long elapsed = (now - (stamp - DECAY_TICKS)) % PLACED_CYCLE;
@@ -155,8 +116,6 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
     public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         processEntitiesInBlock(state, level, pos);
 
-        // Decay, driven by the PERSISTED blockstate stamp. Runs on the 1-tick re-schedule below, so a
-        // web whose expiry passed while unloaded vanishes on the first tick after it loads.
         if (isSpiderWeb(state) && state.hasProperty(PLACED_AT)) {
             int stamp = state.getValue(PLACED_AT);
             if (stamp != PLACED_NEVER && stampDue(level.getGameTime(), stamp)) {
@@ -170,21 +129,13 @@ public class InfestedSpiderWebBlood extends WebBlock implements InfestedBlockInt
         }
     }
 
-    /**
-     *  PARA_CURSE +  {@code InfestedSpiderWeb#processEntitiesInBlock}
-     *
-     * <p><b> 1.20.1 </b>
-     *  {@link IParasite#isParasiteByTagOrInterface}  +
-     *
-     * {@code living instanceof IParasite && living instanceof Player} </p>
-     */
     private void processEntitiesInBlock(BlockState state, ServerLevel level, BlockPos pos) {
         AABB box = new AABB(pos).inflate(0.1);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box,
                 Objects::nonNull);
 
         for (LivingEntity living : entities) {
-            if (IParasite.isParasiteByTagOrInterface(living)) {
+            if (ParasiteEvents.isParasiteByTagOrInterface(living)) {
                 continue;
             }
             applyParaCurseAndDamage(living, level);

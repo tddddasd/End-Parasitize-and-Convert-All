@@ -9,13 +9,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.client.LikeBiomeClientEffects;
 
-/**
- * Recolours water, grass and foliage from the like biome.
- *
- * <p>Verified against the 26.1.2 client jar: {@code BiomeColors.getAverageWaterColor},
- * {@code getAverageGrassColor} and {@code getAverageFoliageColor} all take
- * {@code (BlockAndTintGetter, BlockPos)} and return {@code int}.</p>
- */
 @Mixin(BiomeColors.class)
 public abstract class BiomeColorsLikeBiomeMixin {
 

@@ -34,7 +34,7 @@ public class RageEffect extends MobEffect implements RemovableEffect {
 
     @Override
     public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
-        return true; 
+        return true;
     }
 
     @Override

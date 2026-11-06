@@ -15,7 +15,6 @@ import java.util.Random;
 
 public class EntityConversionUtil {
 
-    /** Number of meat particles spawned on a conversion (3~5). */
     private static final int MIN_MEAT_PARTICLES = 3;
     private static final int MEAT_PARTICLE_VARIANCE = 3;
 
@@ -26,9 +25,6 @@ public class EntityConversionUtil {
         entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 SoundEvents.ZOMBIE_INFECT, SoundSource.HOSTILE, 1.0F, 1.0F);
 
-        // 26.1.2: Level#addParticle is client-only, so the equivalent EPCA meat particles are
-        // emitted from the server through ServerLevel#sendParticles. The former vanilla
-        // ParticleTypes.EXPLOSION burst is replaced by 3~5 living-flesh particles.
         spawnMeatParticles(entity);
 
         LivingEntity newEntity = targetType.create(entity.level(), EntitySpawnReason.CONVERSION);
@@ -45,12 +41,6 @@ public class EntityConversionUtil {
 
             newEntity.snapTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
 
-            // create()
-            // MAX_HEALTH LivingEntity  setHealth(getMaxHealth())
-            //  MAX_HEALTH  0 0
-            // isDeadOrDying() == true LivingEntity#hurt  false
-            // LivingEntity#aiStep  isImmobile()
-            // ConvertedEntitySupport  +  +  AI
             ConvertedEntitySupport.initializeConvertedEntity(newEntity);
 
             entity.level().addFreshEntity(newEntity);
@@ -76,4 +66,3 @@ public class EntityConversionUtil {
                 count, 0.5, 0.5, 0.5, 0.05);
     }
 }
-

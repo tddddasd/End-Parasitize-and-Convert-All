@@ -11,12 +11,6 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Stores which 4x4x4 sections carry which like biome, per dimension.
- *
- * <p>26.1.2 saves through a {@link SavedDataType} codec instead of the 1.20.1 {@code CompoundTag} pair, so
- * the map is stored as {@code {"entries": {"<sectionKey>": {...}}}}.</p>
- */
 public class LikeBiomeSavedData extends SavedData {
 
     private static final Identifier DATA_ID = Identifier.fromNamespaceAndPath("epca", "like_biomes");
@@ -29,7 +23,7 @@ public class LikeBiomeSavedData extends SavedData {
                             try {
                                 data.bySection.put(Long.parseLong(key), value);
                             } catch (NumberFormatException ignored) {
-                                // a corrupt key is dropped rather than failing the whole save
+
                             }
                         });
                         return data;

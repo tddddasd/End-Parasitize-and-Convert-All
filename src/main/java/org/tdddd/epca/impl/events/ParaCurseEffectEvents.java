@@ -10,18 +10,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
-import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 @EventBusSubscriber
 public class ParaCurseEffectEvents {
     @SubscribeEvent
     public static void onEffectApplicable(MobEffectEvent.Applicable event) {
-        
+
         if (event.getEffectInstance().getEffect() != ModEffects.PARA_CURSE) {
             return;
         }
@@ -32,7 +30,6 @@ public class ParaCurseEffectEvents {
 
         MobEffectInstance existingEffect = entity.getEffect(ModEffects.PARA_CURSE);
 
-        
         if (existingEffect != null && newAmplifier <= existingEffect.getAmplifier()) {
             event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
         }

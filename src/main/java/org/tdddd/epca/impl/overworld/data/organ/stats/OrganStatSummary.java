@@ -28,83 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- *  52  /
- * SPEC  1  C8C9
- *
- * <h2></h2>
- * <p>{@link #compute}  {@link HiveLeaderOrganData}  {@link OrganStatManager}  JSON
- *  {@code OrganStatSummary}
- * </p>
- *
- * <h2>STAGE B</h2>
- * <p> {@link #countOf(Identifier)}
- * / 33
- *  {@link #compute} <b></b>
- * {@code groupItemCounts} -&gt;  id -&gt;
- *  {@link #countIn(OrganSlotGroup, Identifier)}
- * </p>
- * <p>""{@code countOf}
- *  52 {@code countIn}  8  {@code countOf}</p>
- *
- * <h2> SPEC C8 / C9 </h2>
- * <ul>
- *   <li><b></b> 6 <b></b>
- *        {@link OrganStatProfile}
- *       {@code OrganStatManager.OrganStatEntry#profileAt(OrganSlotGroup)}
- *       STAGE A <b></b>
- *       {@code base + outer + arm} {@code base + head_inner}
- *       {@code OrganSlotCondition}</li>
- *   <li><b></b> {@code minimum_damage} </li>
- *   <li><b></b> {@link OrganStatDefaults#DEFAULT_INTERVAL_TICKS}2
- *        {@code minimum_damage_interval_ticks} <b></b>
- *       SPEC </li>
- *   <li><b>STAGE A </b>
- *       {@code _(  )}
- *        =  /
- *         {@link #outerShareWeight(int, int)}
- *        {@code adaptation_reduction}
- *        =  Rn/N SPEC </li>
- *   <li><b></b> /  0.25
- *       {@link OrganStatMath#roundsForShares} {@code adaptation_rounds.<>}
- *       <b></b>
- *        {@code _defaults.json}
- *        {@code OrganStatManager#adaptationRoundsForItem(Identifier, OrganSlotGroup)}
- *       {@code adaptation_rounds_tags.<tag>}  tag
- *        id{@link #adaptationRoundsDisplay(Registry)}</li>
- *   <li><b></b> 100%{@link OrganStatDefaults#adaptationChance()}</li>
- *   <li><b></b>{@link OrganStatDefaults.DamageTypeDefaults#adaptable()}  false
- *        id {@code #minecraft:is_fire}</li>
- *   <li><b>STAGE A </b>{@code _defaults.json}
- *       +  {@code damage_taken_add}
- *       <b></b>
- *        {@code "#minecraft:is_fall": -0.1}  0.9
- *       </li>
- * </ul>
- *
- * <h2></h2>
- * <p> {@code HiveLeaderOrganEffects#tick(Player)}  tick
- *  {@code HiveLeaderOrganDamageHandler} + {@code HiveLeaderOrganAdaptation}
- * {@link #minimumDamage()} / {@link #minimumDamageIntervalTicks()} / {@link #adaptationReduction()} /
- * {@link #adaptationRequiredHits()} / {@link #adaptationChance()} /
- * {@link #nonAdaptableDamageTypes()} / {@link #damageTakenMultipliers()}+
- * {@link #damageTakenFallbackMultiplier()}</p>
- *
- * <h2>1.20.1 -&gt; 26.1.2  API </h2>
- * <ul>
- *   <li>{@code ResourceLocation} -&gt; {@code Identifier}{@code ForgeRegistries.ITEMS} -&gt;
- *       {@code BuiltInRegistries.ITEM}</li>
- *   <li>{@code ForgeMod.SWIM_SPEED.get()} -&gt; {@code NeoForgeMod.SWIM_SPEED}26.1.2
- *        {@code Holder<Attribute>} {@code LivingEntity}  354 / 2452 / 2573
- *       {@code ForgeMod.ENTITY_REACH} -&gt; {@code Attributes.ENTITY_INTERACTION_RANGE}
- *       {@code ForgeMod.BLOCK_REACH} -&gt; {@code Attributes.BLOCK_INTERACTION_RANGE}
- *       {@code ForgeMod.ENTITY_GRAVITY} -&gt; {@code Attributes.GRAVITY}JSON
- *       {@code entity_gravity}</li>
- *   <li>{@code ResourceKey#location()} -&gt; {@code ResourceKey#identifier()}26.1.2
- *       {@code Attributes.*}  {@code Holder<Attribute>} {@code getAttributeValue}
- *        {@code AttributeInstance}  Holder</li>
- * </ul>
- */
 public record OrganStatSummary(
         OrganStatProfile purpleBonus,
         OrganStatProfile torsoInnerBonus,
@@ -121,19 +44,11 @@ public record OrganStatSummary(
         Map<Identifier, Integer> slotItemCounts,
         Map<OrganSlotGroup, Map<Identifier, Integer>> groupItemCounts) {
 
-    /**
-     *  -&gt;
-     *
-     * <p> {@link #STAT_ATTRIBUTE_KEYS} {@code entity_gravity}
-     *  -2% </p>
-     */
     private static final Map<String, Holder<Attribute>> ATTRIBUTE_KEYS = buildAttributeKeys();
 
-    /** {@code key}  {@code #tag} /  id /  */
     public record DamageTakenDisplay(String key, double multiplier, boolean fallback) {
     }
 
-    /**  id  */
     public record DamageTypeDisplay(String key, int requiredHits) {
     }
 
@@ -148,8 +63,7 @@ public record OrganStatSummary(
                 ? List.of() : List.copyOf(damageTakenMultipliers);
         purpleItems = purpleItems == null ? List.of() : List.copyOf(purpleItems);
         slotItemCounts = slotItemCounts == null ? Map.of() : Map.copyOf(slotItemCounts);
-        // STAGE B`countIn`  map
-        //  record  Map.copyOf
+
         if (groupItemCounts == null || groupItemCounts.isEmpty()) {
             groupItemCounts = Map.of();
         } else {
@@ -162,7 +76,6 @@ public record OrganStatSummary(
         }
     }
 
-    /**  0 /  NaN  */
     public static OrganStatSummary empty() {
         OrganStatDefaults defaults = OrganStatManager.defaults();
         List<DamageTakenDisplay> taken = effectiveDamageTaken(defaults, Map.of());
@@ -187,20 +100,8 @@ public record OrganStatSummary(
                 Map.of());
     }
 
-
-    /**
-     *  + {@code outer}
-     *
-     * <p> {@code HEAD} <b></b>
-     * </p>
-     *
-     * <p><b></b> {@code adaptation_reduction} / {@code adaptation_rounds}
-     *  {@code arm}
-     *  TODO</p>
-     */
     private static final OrganSlotGroup OUTER_PROBE_GROUP = OrganSlotGroup.HEAD;
 
-    /**  null */
     public static OrganStatSummary compute(@Nullable HiveLeaderOrganData data) {
         if (data == null) return empty();
 
@@ -211,14 +112,11 @@ public record OrganStatSummary(
 
         List<ItemStack> purpleItems = new ArrayList<>();
         Map<Identifier, Integer> counts = new LinkedHashMap<>();
-        // STAGE B `countIn(group, item)`
-        //   `countOf`
+
         Map<OrganSlotGroup, Map<Identifier, Integer>> groupCounts = new LinkedHashMap<>();
-        //  ->
-        // key  idvalue  +  STAGE A
+
         Map<Identifier, Integer> purpleCounts = new LinkedHashMap<>();
-        // STAGE Akey  JSON  fallbackvalue  1
-        //  1
+
         Map<String, Double> damageTakenAdd = new LinkedHashMap<>();
         int purpleTotal = 0;
         int minimumIntervalTicks = defaults.minimumDamageIntervalTicks();
@@ -231,10 +129,7 @@ public record OrganStatSummary(
                 if (stack == null || stack.isEmpty()) continue;
 
                 Identifier itemId = itemIdOf(stack);
-                //  -
-                //  -
-                //  counts /  groupCounts
-                //  `countOf`  `countIn`
+
                 boolean participates = group.kind().isInnerGrid() || data.isUnlocked(index);
                 if (itemId != null && participates) {
                     counts.merge(itemId, 1, Integer::sum);
@@ -244,8 +139,7 @@ public record OrganStatSummary(
 
                 OrganStatManager.OrganStatEntry entry = OrganStatManager.entryOf(itemId);
                 if (group.kind().isInnerGrid()) {
-                    // SPEC D3/D4
-                    //  +8%
+
                     if (group == OrganSlotGroup.TORSO_INNER) {
                         torsoInner.add(entry.profileAt(group));
                     } else {
@@ -280,9 +174,6 @@ public record OrganStatSummary(
 
         OrganStatProfile purpleBonus = purple.toImmutable();
 
-        // STAGE A outerShareWeight
-        //   _ (  )
-        //      =  /
         double reduction = 0.0D;
         for (Map.Entry<Identifier, Integer> entry : purpleCounts.entrySet()) {
             double perOrganReduction = OrganStatManager.entryOf(entry.getKey())
@@ -295,22 +186,13 @@ public record OrganStatSummary(
         for (Map.Entry<Identifier, Integer> entry : purpleCounts.entrySet()) {
             double strength = OrganStatMath.roundsForShares(entry.getValue(), purpleTotal);
 
-            //  ->  adaptation_rounds +
-            //  _defaults.json  adaptation_rounds
-            //  OrganStatManager#adaptationRoundsForItem(Identifier, OrganSlotGroup)
-            //  map key  idbyType tagbyTag
-            //  ->  roundsAt
-            //  0 roundsForTiers
             OrganStatManager.RoundsTable table =
                     OrganStatManager.adaptationRoundsForItem(entry.getKey(), OUTER_PROBE_GROUP);
             for (Map.Entry<String, Map<String, Integer>> typeEntry : table.byType().entrySet()) {
                 int rounds = roundsForTiers(typeEntry.getValue(), strength);
                 if (rounds > 0) requiredHits.merge(typeEntry.getKey(), rounds, Integer::sum);
             }
-            // tag  ->  tag ****
-            //  id  tagcompute
-            //  tag  adaptationRoundsDisplay(registry)
-            //  tag
+
             for (Map.Entry<String, Map<String, Integer>> tagEntry : table.byTag().entrySet()) {
                 int rounds = roundsForTiers(tagEntry.getValue(), strength);
                 if (rounds > 0) requiredHitsTags.merge(tagEntry.getKey(), rounds, Integer::sum);
@@ -341,7 +223,6 @@ public record OrganStatSummary(
                 groupCounts);
     }
 
-    /** =  1  */
     private static void accumulateDamageTakenAdd(Map<String, Double> accumulator,
                                                  OrganStatManager.OrganStatEntry entry) {
         if (entry == null || entry.damageTakenAdd().isEmpty()) return;
@@ -351,35 +232,8 @@ public record OrganStatSummary(
         });
     }
 
-    //  STAGE A
-
-    /**
-     *   <b></b>
-     *
-     * <ul>
-     *   <li>{@code true} = <b></b>
-     *        {@link #compute}  {@code purpleTotal}<b></b>
-     *        16 /16
-     *       </li>
-     *   <li>{@code false} =  {@link OrganSlotGroup#OUTER_SLOT_COUNT}1.20.1  16
-     *        SPEC  / 16
-     *       /</li>
-     * </ul>
-     *
-     * <p></p>
-     */
     private static final boolean SHARE_DENOMINATOR_USES_OCCUPIED_SLOTS = true;
 
-    /**
-     * {@code  / }
-     *
-     * <p>SPEC
-     *  {@code   } 1
-     *  60%  60%</p>
-     *
-     * @param itemOccupiedOuterSlots
-     * @param totalOccupiedOuterSlots =
-     */
     static double outerShareWeight(int itemOccupiedOuterSlots, int totalOccupiedOuterSlots) {
         if (itemOccupiedOuterSlots <= 0) return 0.0D;
         int denominator = SHARE_DENOMINATOR_USES_OCCUPIED_SLOTS
@@ -389,9 +243,6 @@ public record OrganStatSummary(
         return (double) itemOccupiedOuterSlots / (double) denominator;
     }
 
-    //  STAGE A +
-
-    /**  */
     private static final class MutableMultiplier {
         private final String key;
         private final boolean fallback;
@@ -404,24 +255,6 @@ public record OrganStatSummary(
         }
     }
 
-    /**
-     *  = {@code _defaults.json}  +  {@code damage_taken_add}
-     *
-     * <p></p>
-     * <ol>
-     *   <li></li>
-     *   <li>{@code #ns:path}  {@code #} {@code DamageSource#is(TagKey)}
-     *        id id {@code getMsgId()}
-     *       {@code fallback} / {@code other} / {@code *} / </li>
-     *   <li><b></b></li>
-     *   <li> {@code #minecraft:is_fall}<b></b>
-     *       <b></b>
-     *       </li>
-     *   <li></li>
-     * </ol>
-     *
-     * @param additions  -&gt;
-     */
     static List<DamageTakenDisplay> effectiveDamageTaken(OrganStatDefaults defaults,
                                                          Map<String, Double> additions) {
         List<MutableMultiplier> rows = new ArrayList<>();
@@ -442,8 +275,7 @@ public record OrganStatSummary(
 
             int insertAt = indexOfFallback(rows);
             if (insertAt < 0) insertAt = rows.size();
-            //  = <b></b> fallback
-            //  map
+
             double fallbackBase = fallbackMultiplier(rows);
             for (Map.Entry<String, Double> addition : newKeys) {
                 String key = normalizeDamageKey(addition.getKey());
@@ -475,7 +307,6 @@ public record OrganStatSummary(
         return result;
     }
 
-    /** {@code #ns:path} / {@code ns:path}  {@code null} */
     @Nullable
     private static String normalizeDamageKey(@Nullable String raw) {
         if (raw == null) return null;
@@ -510,13 +341,6 @@ public record OrganStatSummary(
         return null;
     }
 
-    /**
-     *  +  {@code fallback}
-     *
-     * <p> {@link OrganStatDefaults#DEFAULT_OTHER_MULTIPLIER}
-     *  {@code _defaults.json}  {@code multiplier}
-     *  1.0</p>
-     */
     public double damageTakenFallbackMultiplier() {
         for (DamageTakenDisplay entry : damageTakenMultipliers) {
             if (entry.fallback()) return entry.multiplier();
@@ -524,18 +348,13 @@ public record OrganStatSummary(
         return OrganStatDefaults.DEFAULT_OTHER_MULTIPLIER;
     }
 
-    //  C8
-
-    /** / */
     public static double currentAttributeValue(LivingEntity entity, String attributeKey) {
         Holder<Attribute> attribute = ATTRIBUTE_KEYS.get(attributeKey);
         if (entity == null || attribute == null) return 0.0D;
-        // 26.1.2Attributes.*  NeoForgeMod.SWIM_SPEED  Holder<Attribute>
-        // getAttributeValue  Holder _tmp_26src LivingEntity  2452
+
         return entity.getAttributeValue(attribute);
     }
 
-    /**  +  */
     public double bonusFor(String attributeKey) {
         OrganStatProfile total = totalBonus();
         return switch (attributeKey) {
@@ -553,7 +372,6 @@ public record OrganStatSummary(
         };
     }
 
-    /** +  {@code entity_gravity} */
     public OrganStatProfile totalBonus() {
         OrganStatProfile.Accumulator accumulator = new OrganStatProfile.Accumulator();
         accumulator.add(purpleBonus);
@@ -562,19 +380,10 @@ public record OrganStatSummary(
         return accumulator.toImmutable();
     }
 
-    /**
-     *
-     *
-     * <p>STAGE A  7  <b>9 </b> {@code armor_toughness} {@code armor}
-     *  {@code swim_speed} {@code movement_speed}
-     *  {@code entity_gravity} <b></b>
-     * </p>
-     */
     public static final List<String> STAT_ATTRIBUTE_KEYS = List.of(
             "health", "armor", "armor_toughness", "attack_damage", "knockback_resistance",
             "movement_speed", "swim_speed", "attack_range", "block_reach");
 
-    /**  lang  {@code epca.organ_gui.attribute.<key>.name} */
     public static String attributeDisplayName(String attributeKey) {
         return switch (attributeKey) {
             case "health" -> "最大生命值";
@@ -590,31 +399,13 @@ public record OrganStatSummary(
         };
     }
 
-    //  C9
-
-    /**
-     *  id /  tag
-     *
-     * <p><b>tag </b>{@code adaptation_rounds_tags}  -&gt;
-     *  tag <b></b> id  tag
-     * <b> id</b>
-     *  {@link #nonAdaptableDisplay(Registry)}
-     * {@code null} tag
-     *  tag {@code #namespace:path}</p>
-     *
-     * <p> id
-     * </p>
-     *
-     * @param registry  tag  {@code null}
-     */
     public List<DamageTypeDisplay> adaptationRoundsDisplay(@Nullable Registry<DamageType> registry) {
         Map<String, Integer> merged = new LinkedHashMap<>();
         for (Map.Entry<String, Integer> entry : adaptationRequiredHits.entrySet()) {
             merged.merge(entry.getKey(), entry.getValue(), Integer::sum);
         }
         for (Map.Entry<String, Integer> entry : adaptationRequiredHitsTags.entrySet()) {
-            // tag  tag  id
-            //  tag
+
             List<String> members = tagMemberIds(registry, entry.getKey());
             if (members.isEmpty()) {
                 merged.merge("#" + stripHash(entry.getKey()), entry.getValue(), Integer::sum);
@@ -625,8 +416,6 @@ public record OrganStatSummary(
             }
         }
 
-        //  JSON  _defaults.json
-        //  0 =  0
         if (merged.isEmpty()) {
             for (OrganStatDefaults.DamageTypeDefaults type : OrganStatManager.defaults().damageTypes()) {
                 if (!type.adaptable()) continue;
@@ -660,7 +449,6 @@ public record OrganStatSummary(
         return value.startsWith("#") ? value.substring(1) : value;
     }
 
-    /**  3  id */
     public List<String> nonAdaptableDisplay(@Nullable Registry<DamageType> registry) {
         Set<String> result = new TreeSet<>();
         for (OrganStatDefaults.DamageTypeDefaults type : OrganStatManager.defaults().damageTypes()) {
@@ -680,14 +468,6 @@ public record OrganStatSummary(
         return new ArrayList<>(result);
     }
 
-    /**
-     *  id id
-     *
-     * <p>26.1.2{@code Registry}  {@code HolderLookup.RegistryLookup}
-     *  {@code get(TagKey)} -&gt; {@code Optional<HolderSet.Named<T>>}
-     *  _tmp_26src HolderLookup.java  138  1.20.1  {@code Registry#getTag}
-     * {@code ResourceKey#location()}  {@code identifier()}ResourceKey.java  55 </p>
-     */
     private static List<String> tagMemberIds(Registry<DamageType> registry, TagKey<DamageType> tag) {
         List<String> ids = new ArrayList<>();
         Optional<HolderSet.Named<DamageType>> named = registry.get(tag);
@@ -702,11 +482,6 @@ public record OrganStatSummary(
         return ids;
     }
 
-    /**
-     *  JSON  tag {@code minecraft:is_fire}  {@code #minecraft:is_fire}
-     *  id /  /
-     *  tag
-     */
     private static List<String> tagMemberIds(@Nullable Registry<DamageType> registry, String tag) {
         if (registry == null || tag == null || tag.isBlank()) return List.of();
         Identifier location = Identifier.tryParse(stripHash(tag));
@@ -714,27 +489,21 @@ public record OrganStatSummary(
         return tagMemberIds(registry, TagKey.create(Registries.DAMAGE_TYPE, location));
     }
 
-
     private static Map<String, Holder<Attribute>> buildAttributeKeys() {
         Map<String, Holder<Attribute>> keys = new LinkedHashMap<>();
         keys.put("health", Attributes.MAX_HEALTH);
         keys.put("armor", Attributes.ARMOR);
-        // STAGE A
+
         keys.put("armor_toughness", Attributes.ARMOR_TOUGHNESS);
         keys.put("attack_damage", Attributes.ATTACK_DAMAGE);
         keys.put("knockback_resistance", Attributes.KNOCKBACK_RESISTANCE);
         keys.put("movement_speed", Attributes.MOVEMENT_SPEED);
-        // STAGE A26.1.2  NeoForgeMod.SWIM_SPEED  Holder<Attribute>
-        //  _tmp_26src LivingEntity.java  354  add(NeoForgeMod.SWIM_SPEED)
-        //  1.20.1  ForgeMod.SWIM_SPEED.get()  .get()
+
         keys.put("swim_speed", NeoForgeMod.SWIM_SPEED);
-        // 26.1.2 1.20.1  forge:entity_reach / forge:block_reach
-        // minecraft:entity_interaction_range / minecraft:block_interaction_range
+
         keys.put("attack_range", Attributes.ENTITY_INTERACTION_RANGE);
         keys.put("block_reach", Attributes.BLOCK_INTERACTION_RANGE);
-        //  -2%
-        // 26.1.2 forge:entity_gravity -> minecraft:gravity 0.08
-        // JSON  entity_gravity
+
         keys.put("entity_gravity", Attributes.GRAVITY);
         return Map.copyOf(keys);
     }
@@ -742,7 +511,7 @@ public record OrganStatSummary(
     @Nullable
     private static Identifier itemIdOf(ItemStack stack) {
         Item item = stack.getItem();
-        // 1.20.1: ForgeRegistries.ITEMS.getKey(item) / 26.1.2: BuiltInRegistries.ITEM.getKey(item)
+
         return item == null ? null : BuiltInRegistries.ITEM.getKey(item);
     }
 
@@ -754,16 +523,11 @@ public record OrganStatSummary(
         }
     }
 
-    /**  -&gt;  0 */
     private static int roundsAt(Map.Entry<String, Integer> round, double strength) {
         if (parseDouble(round.getKey()) > strength + 1.0E-9D) return 0;
         return Math.max(0, round.getValue());
     }
 
-    /**
-     *  -&gt;  {@link #roundsAt}
-     *  0
-     */
     private static int roundsForTiers(@Nullable Map<String, Integer> table, double strength) {
         if (table == null || table.isEmpty()) return 0;
         int total = 0;
@@ -773,7 +537,6 @@ public record OrganStatSummary(
         return total;
     }
 
-    /**  */
     @Override
     public String toString() {
         return "OrganStatSummary[purple=" + purpleBonus.describeNonZero()
@@ -784,32 +547,13 @@ public record OrganStatSummary(
                 + ", purpleItems=" + purpleItems.size() + "]";
     }
 
-    /**  52  */
     public int countOf(Identifier itemId) {
         return itemId == null ? 0 : slotItemCounts.getOrDefault(itemId, 0);
     }
 
-    /**
-     * STAGE B<b></b>
-     *
-     * <p></p>
-     * <ul>
-     *   <li> / <b></b>
-     *       {@code countIn(OrganSlotGroup.LEFT_ARM, ...) + countIn(OrganSlotGroup.RIGHT_ARM, ...)}</li>
-     *   <li> 33  2
-     *        {@code countIn(OrganSlotGroup.HEAD_INNER, ...) >= 2}</li>
-     * </ul>
-     *
-     * <p>{@link #countOf(Identifier)}
-     *  {@link #compute} </p>
-     *
-     * @param group  {@code null}  0
-     * @param itemId  id{@code null}  0
-     */
     public int countIn(@Nullable OrganSlotGroup group, @Nullable Identifier itemId) {
         if (group == null || itemId == null) return 0;
         Map<Identifier, Integer> perGroup = groupItemCounts.get(group);
         return perGroup == null ? 0 : perGroup.getOrDefault(itemId, 0);
     }
 }
-

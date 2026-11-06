@@ -21,7 +21,6 @@ public class WorldLoadHandler {
             WorldDifficultyData data = WorldDifficultyData.get(serverLevel);
             DifficultyLevel pending = null;
 
-
             if (FMLEnvironment.getDist() == Dist.CLIENT) {
                 try {
 
@@ -29,7 +28,6 @@ public class WorldLoadHandler {
                     Method getMethod = helperClass.getMethod("getPendingDifficulty");
                     pending = (DifficultyLevel) getMethod.invoke(null);
                 } catch (Exception e) {
-
 
                 }
             }

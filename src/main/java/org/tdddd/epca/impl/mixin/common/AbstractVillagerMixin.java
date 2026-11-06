@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.utils.MerchantOfferMixinAccess;
 
-
 @Mixin(AbstractVillager.class)
 public class AbstractVillagerMixin {
 
@@ -19,14 +18,14 @@ public class AbstractVillagerMixin {
             at = @At("HEAD")
     )
     private void onNotifyTrade(MerchantOffer offer, CallbackInfo ci) {
-        
-        if (offer instanceof MerchantOfferMixinAccess) { 
+
+        if (offer instanceof MerchantOfferMixinAccess) {
             MerchantOfferMixinAccess access = (MerchantOfferMixinAccess) offer;
             if (access.epca$hasUsedInfestedEmerald()) {
-                
-                MobEffectInstance effect = new MobEffectInstance(ModEffects.PARA_CURSE, 1200, 2); 
+
+                MobEffectInstance effect = new MobEffectInstance(ModEffects.PARA_CURSE, 1200, 2);
                 ((AbstractVillager) (Object) this).addEffect(effect);
-                
+
                 access.epca$clearInfestedEmeraldFlag();
             }
         }

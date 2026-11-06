@@ -8,7 +8,6 @@ import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IServerDataProvider;
 
-
 public class BiomassCountEntityDataProvider implements IServerDataProvider<EntityAccessor> {
 
     public static final BiomassCountEntityDataProvider INSTANCE = new BiomassCountEntityDataProvider();

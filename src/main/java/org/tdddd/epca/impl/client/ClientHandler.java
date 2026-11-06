@@ -39,16 +39,12 @@ public class ClientHandler {
     @SubscribeEvent
     public static void onRegisterRenderers(final EntityRenderersEvent.RegisterRenderers event) {
 
-        //  Auto-registered renderers (all entities via EpcaEntityManager.registerMobWithRender)
-        // These use EpcaGeoModel/EpcaGeoRenderer  reads model/texture/animation
-        // from EpcaEntityManager by entity type. No per-entity model class needed.
         for (EntityType<?> type : EpcaEntityManager.consumeRenderTypes()) {
             @SuppressWarnings({"unchecked", "rawtypes"})
             EntityType rawType = type;
             event.registerEntityRenderer(rawType, EpcaGeoRenderer::new);
         }
 
-        //  Custom renderers ONLY (entities with special rendering: non-GeckoLib, shaders, etc.)
         event.registerEntityRenderer(ModEntities.CONTAMINATED_WATER.get(), ContaminatedWaterRenderer::new);
         event.registerEntityRenderer(ModEntities.YAWNING_NYA.get(), YawningNyaRenderer::new);
         event.registerEntityRenderer(ModEntities.BONE_FRAGMENT.get(), BoneFragmentRenderer::new);
@@ -61,8 +57,7 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.WALKING_ENDERMAN_HEAD.get(), WalkingEndermanHeadRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_ZOMBIE.get(), InfestedZombieRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_LONGARMS.get(), ReshapeLongarmsRenderer::new);
-        // The yelloweye renderer is the same EpcaGeoRenderer the auto-registration above installs,
-        // specialised so the shader gas cloud layer can be attached (see ReshapeYelloweyeRenderer).
+
         event.registerEntityRenderer(ModEntities.RESHAPE_YELLOWEYE.get(), ReshapeYelloweyeRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_PART.get(), ReshapeLongarmsCustomPartRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_BAT.get(), InfestedBatRenderer::new);
@@ -73,7 +68,7 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.INFESTED_FOX.get(), ctx -> new EpcaGeoRenderer<>(ctx, new InfestedFoxModel()));
         event.registerEntityRenderer(ModEntities.WALKING_FOX_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingFoxHeadModel()));
         event.registerEntityRenderer(ModEntities.INFESTED_SKELETON.get(), ctx -> new EpcaGeoRenderer<>(ctx, new InfestedSkeletonModel()));
-        // Variant spiders: one model / animation file each, texture resolved per entity variant.
+
         event.registerEntityRenderer(ModEntities.INFESTED_SPIDER.get(), ctx -> new EpcaGeoRenderer<>(ctx, new InfestedSpiderModel()));
         event.registerEntityRenderer(ModEntities.WALKING_SPIDER_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingSpiderHeadModel()));
         event.registerEntityRenderer(ModEntities.WALKING_SKELETON_HEAD.get(), ctx -> new EpcaGeoRenderer<>(ctx, new WalkingSkeletonHeadModel()));
@@ -92,28 +87,17 @@ public class ClientHandler {
 
         event.registerBlockEntityRenderer(ModBlockEntities.SWALLOW_CYST.get(),
                 ctx -> new GeoBlockRenderer<>(ctx, new SwallowCystModel()));
-        // ModBlockEntities.INFESTED_SWEET_BERRY_BUSH
-        //  tick""
+
         event.registerBlockEntityRenderer(ModBlockEntities.INFESTED_SWEET_BERRY_BUSH.get(),
                 InfestedSweetBerryBushGlowRenderer::new);
     }
 
-    /**
-     * 26.1.2 replaced {@code ItemProperties.register(...)} with data-driven item model
-     * properties: the property itself is registered on the mod bus and the item model JSON
-     * dispatches on it with {@code minecraft:range_dispatch}.
-     *
-     * <p>The two EPCA properties keep their exact names ({@code epca:living},
-     * {@code epca:age}) and values, so the item model JSON only has to name them  recorded as a
-     * datagen change request.</p>
-     */
     @SubscribeEvent
     public static void onRegisterItemModelProperties(RegisterRangeSelectItemModelPropertyEvent event) {
         event.register(Identifier.fromNamespaceAndPath(epca.MODID, "living"), LivingProperty.CODEC);
         event.register(Identifier.fromNamespaceAndPath(epca.MODID, "age"), AgeProperty.CODEC);
     }
 
-    /** {@code epca:living}  1.0 while the swallow cyst holds its "Living" flag, else 0.0. */
     public record LivingProperty() implements RangeSelectItemModelProperty {
         public static final MapCodec<LivingProperty> CODEC = MapCodec.unit(new LivingProperty());
 
@@ -123,7 +107,7 @@ public class ClientHandler {
             if (!tag.isEmpty() && tag.contains("Living")) {
                 return tag.getBooleanOr("Living", false) ? 1.0F : 0.0F;
             }
-            // 1.20.1: with no predicate present the value was 0, i.e. the dead model.
+
             return 0.0F;
         }
 
@@ -133,7 +117,6 @@ public class ClientHandler {
         }
     }
 
-    /** {@code epca:age}  the infested sweet berry bush growth stage. */
     public record AgeProperty() implements RangeSelectItemModelProperty {
         public static final MapCodec<AgeProperty> CODEC = MapCodec.unit(new AgeProperty());
 
@@ -152,45 +135,28 @@ public class ClientHandler {
         }
     }
 
-    /**
-     * 26.1.2 replaced {@code ShaderInstance} + {@code RegisterShadersEvent} with
-     * {@code RenderPipeline} + {@link RegisterRenderPipelinesEvent}. The gas cloud shader is a real
-     * custom core shader ({@code assets/epca/shaders/core/gas_cloud.vsh/.fsh}); its pipeline carries
-     * the blend/depth/cull/vertex-format render state that used to live in the 1.20.1
-     * {@code shaders/core/gas_cloud.json}.
-     */
     @SubscribeEvent
     public static void onRegisterRenderPipelines(RegisterRenderPipelinesEvent event) {
-        // Registers the translucent gas cloud / speck pipeline and its additive twin; the twin is
-        // what draws the emissive soul protection flame. No existing pipeline changes.
+
         GasCloudRenderType.registerPipeline(event);
-        // Registers the world barrier rupture (sky shattering) pipeline. It is a separate pipeline
-        // because it draws a screen-space quad with its own vertex format, blend and depth state.
+
         org.tdddd.epca.impl.client.render.sky.SkyRuptureShaders.registerPipeline(event);
-        // Registers the item shader layer pipeline (the corruption / decay overlay). It uses the
-        // six-element vertex format that VertexConsumer#putBakedQuad writes.
+
         org.tdddd.epca.impl.client.render.ItemShaderPipelines.registerPipeline(event);
-        // Registers the sacrifice-ritual aura pipeline: plain POSITION_COLOR quads with the vanilla
-        // position_color program, drawn through the aura's own render type. The aura used the gas
-        // cloud pipeline first and drew nothing with it at the level stage it is drawn at.
+
         org.tdddd.epca.impl.client.render.ritual.RitualQuadRenderType.registerPipeline(event);
-        // Registers the Alayavijnana slash pipeline: POSITION_COLOR_TEX with the mod's own araya_slash
-        // program and one sampler, the per-frame copy of the frame the slash's border refracts.
+
         org.tdddd.epca.impl.client.render.araya.ArayaSlashRenderType.registerPipeline(event);
-        // Registers the fire pipeline of the same feature: the vanilla terrain state with culling off and
-        // a translucent blend, for the render-only fire blocks the aura spawns.
+
         org.tdddd.epca.impl.client.render.araya.ArayaFireRenderType.registerPipeline(event);
-        // Registers the emissive block overlay pipeline used by the ripe infested sweet berry bush fruit
-        // layer. It re-emits the block's own baked quads, unlit, through the vanilla entity emissive state.
+
         EmissiveBlockRenderType.registerPipeline(event);
     }
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        // 26.1.2: item model properties moved to RegisterRangeSelectItemModelPropertyEvent,
-        // so nothing is left to do here. Kept as the FMLClientSetupEvent entry point.
+
         event.enqueueWork(() -> {
         });
     }
 }
-

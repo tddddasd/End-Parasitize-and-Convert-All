@@ -15,193 +15,89 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.tdddd.epca.impl.client.effect.SacrificeRitualClientCache;
 
-/**
- * Draws the sacrifice-ritual aura: a bright purple pillar from the altar to the sky, two 45-degree
- * squares of glowing purple lines around it, and an expanding diagonal wavefield in the air and on the
- * nearby block tops - plus the purple sky the whole thing fades into.
- *
- * <h2>Geometry (all constants tunable below)</h2>
- * <ul>
- *   <li><b>Pillar</b>: two crossed vertical panels {@link #PILLAR_WIDTH} wide with a wider, dimmer
- *       {@link #PILLAR_GLOW_WIDTH} layer each, from the altar top up to {@link #PILLAR_HEIGHT}, fading
- *       out towards the top so it does not look cut off.</li>
- *   <li><b>Squares</b>: a horizontal square rotated 45 degrees, drawn as four glowing prism edges
- *       with a {@link #SQUARE_THICKNESS} x {@link #SQUARE_THICKNESS} block cross-section, centred on
- *       the pillar axis. The lower one sits {@link #SQUARE_LOW_OFFSET} above the altar top with side
- *       {@link #SQUARE_LOW_SIDE}, the upper one {@link #SQUARE_HIGH_OFFSET} with side
- *       {@link #SQUARE_HIGH_SIDE}.</li>
- *   <li><b>Wavefield</b>: {@link #RING_COUNT} diagonal rings {@link #RING_LINE_WIDTH} wide that expand
- *       from radius 0 to {@link #RING_MAX_RADIUS} over {@link #RING_PERIOD_TICKS} ticks and fade as
- *       they grow. They are drawn in the air just above the altar top, and - clipped exactly to the
- *       cell the diagonal crosses - on the nearest block top surface of every block column the ring
- *       passes through, which is what makes the wave appear on the ground in patches and, further
- *       out, as half a diamond at a time (the opposite half lands in the mirror cell).</li>
- *   <li><b>Sky</b>: one huge {@link #SKY_DISTANCE} away, camera facing, filled with
- *       {@link #SKY_RED}/{@link #SKY_GREEN}/{@link #SKY_BLUE} at up to {@link #SKY_MAX_ALPHA}. It is
- *       drawn at the level's own sky stage, so terrain, entities and the aura itself are all painted
- *       on top of it.</li>
- * </ul>
- *
- * <h2>Timing</h2>
- * <p>The aura follows {@code SacrificeRitualClientCache}: it fades in over
- * {@code FADE_IN_TICKS} once the server reports the ritual, stays while it is reported, and fades out
- * over {@code FADE_OUT_TICKS} after it stops - which is exactly when the ritual's lightning falls.
- * The pillar and the squares additionally breathe with {@link #PULSE_DEPTH} over
- * {@link #PULSE_PERIOD_TICKS} (the interval dimming/brightening the request asks for).</p>
- *
- * <h2>Rendering (1.20.1 -&gt; 26.1.2)</h2>
- * <p>1.20.1 draws the geometry at {@code AFTER_PARTICLES} and the sky cover at {@code AFTER_SKY};
- * 26.1.2 has one event class per stage, so the two entry points are hooked to
- * {@code RenderLevelStageEvent.AfterTranslucentParticles} (dispatched by {@code LevelRenderer} right
- * after {@code renderTranslucentParticles()}, i.e. after the whole world) and
- * {@code RenderLevelStageEvent.AfterSky} (the same slot the tree's own sky-rupture renderer uses).
- * Two details of the 26 render system differ and are handled here:</p>
- * <ul>
- *   <li>26.1.2 subtracts the camera position per object instead of using a translated level pose stack
- *       (see {@code LevelRenderer#submitEntities}, which translates by {@code state.x - camX}), and it
- *       hands {@code AfterSky} a <b>null</b> pose stack because no world geometry is normally drawn
- *       there. Both entry points therefore push {@code -cameraPosition} onto a pose stack of their own
- *       when the event has none, and emit <b>absolute world coordinates</b>. Inside that block the
- *       stack is exactly the camera-relative world space the 1.20.1 twin draws in.</li>
- *   <li>The stage event no longer carries the partial tick or a camera; the partial tick comes from
- *       {@code minecraft.getDeltaTracker()} and the look vector from the main camera.</li>
- * </ul>
- * <p>Like the 1.20.1 twin, everything is drawn through {@link RitualQuadRenderType}: plain
- * {@code POSITION_COLOR} quads with the <b>vanilla</b> {@code position_color} program, translucent
- * blending, depth test on, depth writes off and culling off, still depth tested so hills occlude the
- * pillar correctly. The mod's custom {@code gas_cloud} pipeline was tried first and drew nothing at
- * this level stage; see {@link RitualQuadRenderType} for the evidence and the full reasoning.</p>
- */
 public final class SacrificeRitualRenderer {
 
-    // ---- pillar -----------------------------------------------------------------------------------
-
-    /** Width of one of the two crossed pillar panels. */
     public static final float PILLAR_WIDTH = 0.30F;
-    /** Width of the wider, dimmer halo layer behind each panel. */
+
     public static final float PILLAR_GLOW_WIDTH = 1.05F;
-    /** Opacity of the halo layer relative to the core layer. */
+
     public static final float PILLAR_GLOW_ALPHA = 0.32F;
-    /** How far the pillar reaches above the altar top. */
+
     public static final float PILLAR_HEIGHT = 128.0F;
-    /** Opacity of the pillar at its foot. */
+
     public static final float PILLAR_ALPHA = 0.85F;
-    /** Opacity of the pillar right below its top. */
+
     public static final float PILLAR_TOP_ALPHA = 0.0F;
 
-    // ---- the two 45-degree squares -----------------------------------------------------------------
-
-    /** Height of the lower square above the altar top. */
     public static final float SQUARE_LOW_OFFSET = 1.25F;
-    /** Side length of the lower square. */
+
     public static final float SQUARE_LOW_SIDE = 2.5F;
-    /** Height of the upper square above the altar top. */
+
     public static final float SQUARE_HIGH_OFFSET = 3.25F;
-    /** Side length of the upper square. */
+
     public static final float SQUARE_HIGH_SIDE = 4.0F;
-    /**
-     * Cross-section of one glowing square edge: it is a square prism, {@code SQUARE_THICKNESS} wide and
-     * {@code SQUARE_THICKNESS} tall, not a flat quad.
-     */
+
     public static final float SQUARE_THICKNESS = 0.20F;
-    /** Opacity of the square edges at full visibility. */
+
     public static final float SQUARE_ALPHA = 0.85F;
 
-    // ---- wavefield ---------------------------------------------------------------------------------
-
-    /** Ticks one ring needs to travel from the centre to {@link #RING_MAX_RADIUS}. */
     public static final int RING_PERIOD_TICKS = 40;
-    /** How many rings are in flight at once, evenly phase shifted. */
+
     public static final int RING_COUNT = 3;
-    /** Largest ring radius, in blocks. */
+
     public static final float RING_MAX_RADIUS = 16.0F;
-    /** Thickness of one ring line. */
+
     public static final float RING_LINE_WIDTH = 0.07F;
-    /** Opacity of the air rings. */
+
     public static final float RING_ALPHA = 0.35F;
-    /** Opacity of the ring segments on the block top surfaces. */
+
     public static final float WAVE_SURFACE_ALPHA = 0.50F;
-    /** Height above the altar top the air rings are drawn at. */
+
     public static final float RING_OFFSET = 0.08F;
-    /** Height above a block's top surface its wave segment is drawn at. */
+
     public static final float WAVE_SURFACE_OFFSET = 0.03F;
 
-    // ---- pulsing -----------------------------------------------------------------------------------
-
-    /** Ticks of one bright/dim cycle. */
     public static final int PULSE_PERIOD_TICKS = 40;
-    /** How much the pillar and the square lines dim at the dark end of the cycle. */
+
     public static final float PULSE_DEPTH = 0.45F;
 
-    // ---- colours -----------------------------------------------------------------------------------
-
-    /** Core purple of the pillar and the square lines. */
     public static final float CORE_RED = 0.72F;
     public static final float CORE_GREEN = 0.26F;
     public static final float CORE_BLUE = 1.00F;
-    /** Brighter, whiter purple of the expanding wavefield lines. */
+
     public static final float WAVE_RED = 0.84F;
     public static final float WAVE_GREEN = 0.52F;
     public static final float WAVE_BLUE = 1.00F;
-    /**
-     * The sky fades to this purple. Deliberately a soft, low-saturation lavender rather than a fully
-     * saturated violet: the cover is a huge, evenly lit quad, so a saturated colour reads as a flat
-     * filter over the whole sky instead of a tinted sky.
-     */
+
     public static final float SKY_RED = 0.62F;
     public static final float SKY_GREEN = 0.36F;
     public static final float SKY_BLUE = 0.94F;
 
-    // ---- sky cover ---------------------------------------------------------------------------------
-
-    /**
-     * Distance of the sky quad from the camera, in blocks. Small on purpose: the quad is only an
-     * underlay (everything later draws over it), and it has to stay well inside the projection's far
-     * plane - {@code GameRenderer.getDepthFar()} is {@code effectiveRenderDistance * 64} blocks, so a
-     * value in the hundreds would be clipped away at the lower render distances.
-     */
     public static final float SKY_DISTANCE = 96.0F;
-    /** Size of the sky quad; wide enough to cover the frustum at {@link #SKY_DISTANCE}. */
+
     public static final float SKY_SIZE = 4000.0F;
-    /** Opacity of the fully ramped purple sky: a tint over the vanilla sky, not a lid. */
+
     public static final float SKY_MAX_ALPHA = 0.72F;
 
-    /** Skip segments farther than this from the camera (blocks). */
     public static final double MAX_SEGMENT_DISTANCE = 160.0D;
 
-    /** Skip whole pillars whose foot is farther than this from the camera (blocks). */
     public static final double MAX_PILLAR_DISTANCE = 192.0D;
 
-    /**
-     * The pipeline every ritual quad is drawn through: {@link RitualQuadRenderType#get()}, i.e. plain
-     * {@code POSITION_COLOR} quads with the vanilla {@code position_color} program, translucent blending,
-     * depth test on, depth writes off and culling off.
-     *
-     * <p>The mod's custom {@code gas_cloud} pipeline was tried first and produced nothing at this level
-     * stage. A white control quad drawn through the built-in {@code RenderType.debugQuads()} at the very
-     * same pose stack, stage and buffer source did show, which proves the draw call, the pose space, the
-     * camera math and the render target; only the custom program or its state was at fault. This type
-     * reuses the vanilla program (what the working control quad used) and adds the culling-off the aura
-     * needs, because its quads are seen from above and from below.</p>
-     */
     private static final RenderType QUAD_RENDER_TYPE = RitualQuadRenderType.get();
 
-    /** Width factor of the dim halo quad emitted behind every glowing line. */
     public static final float LINE_HALO_WIDTH = 2.6F;
 
-    /** Opacity factor of that halo quad. */
     public static final float LINE_HALO_ALPHA = 0.30F;
 
     private SacrificeRitualRenderer() {
     }
 
-    /** Entry point for the aura geometry, from {@code SacrificeRitualStageListener}. */
     public static void renderGeometry(RenderLevelStageEvent.AfterTranslucentParticles event) {
         if (!SacrificeRitualClientCache.hasAny()) {
             return;
         }
         if (!RitualQuadRenderType.isPipelineRegistered()) {
-            // Resource reload or a very early frame: the ritual pipeline is not there yet.
+
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -210,17 +106,12 @@ public final class SacrificeRitualRenderer {
             return;
         }
 
-        // World time drives the pulse and the rings, so the animation is smooth and frame rate
-        // independent; the partial tick keeps it continuous between ticks. 1.20.1 read both from the
-        // event (level.getGameTime() + event.getPartialTick()), 26.1.2 from the delta tracker.
         float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
         float time = level.getGameTime() + partialTick;
         Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
 
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-        // A level stage's pose stack is world space in 26.1.2 too (the camera offset is applied per
-        // object, as LevelRenderer.submitEntities proves), so shift it to the camera-relative frame the
-        // custom pipeline expects and emit absolute world coordinates.
+
         PoseStack poseStack = cameraRelativeStack(event.getPoseStack(), camera);
         Matrix4f matrix = poseStack.last().pose();
         VertexConsumer consumer = buffers.getBuffer(QUAD_RENDER_TYPE);
@@ -233,15 +124,6 @@ public final class SacrificeRitualRenderer {
         }
     }
 
-    /**
-     * Entry point for the purple sky, from {@code SacrificeRitualStageListener}
-     * ({@code RenderLevelStageEvent.AfterSky}, the earliest world stage).
-     *
-     * <p>Deliberately the earliest stage: whatever is drawn afterwards - terrain, entities, the aura's
-     * own geometry - is simply drawn on top, which is what "the sky turns purple" has to look like. The
-     * quad sits well inside the projection's far plane ({@link #SKY_DISTANCE}), so it can never be
-     * clipped; being an underlay it does not have to be at the horizon either.</p>
-     */
     public static void renderSky(RenderLevelStageEvent.AfterSky event) {
         if (!SacrificeRitualClientCache.hasAny()) {
             return;
@@ -267,13 +149,6 @@ public final class SacrificeRitualRenderer {
         }
     }
 
-    /**
-     * Builds the camera-relative world matrix of one stage on top of the event's pose stack.
-     *
-     * <p>26.1.2 hands {@code AfterSky} a <b>null</b> pose stack (see {@code LevelRenderer}, which posts
-     * it with {@code null} because no world geometry is drawn there) and an empty one everywhere else,
-     * so a missing stack is replaced by a fresh one; the caller pops exactly what was pushed here.</p>
-     */
     private static PoseStack cameraRelativeStack(PoseStack eventStack, Vec3 camera) {
         PoseStack poseStack = eventStack != null ? eventStack : new PoseStack();
         poseStack.pushPose();
@@ -281,30 +156,23 @@ public final class SacrificeRitualRenderer {
         return poseStack;
     }
 
-    // ===============================================================================================
-    //  Sky
-    // ===============================================================================================
-
-    /** The purple sky cover: one huge camera-facing quad, drawn first so everything else covers it. */
     private static void drawSky(VertexConsumer consumer, Matrix4f matrix, Vec3 camera, float fade) {
         float alpha = fade * SKY_MAX_ALPHA;
         if (alpha <= 0.004F) {
             return;
         }
-        // 1.20.1 read the look vector from the level stage event's camera; 26.1.2 only exposes the
-        // camera through the frame's live main camera.
+
         Vector3f look = new Vector3f(
                 Minecraft.getInstance().gameRenderer.getMainCamera().forwardVector());
         Vector3f up = new Vector3f(0.0F, 1.0F, 0.0F);
         Vector3f right = new Vector3f(look).cross(up);
         if (right.lengthSquared() < 1.0E-6F) {
-            // Looking straight up or down: any horizontal axis will do.
+
             right.set(1.0F, 0.0F, 0.0F);
         }
         right.normalize();
         Vector3f realUp = new Vector3f(right).cross(look).normalize();
 
-        // Absolute world coordinates (the caller already shifted the pose stack to camera-relative).
         float centreX = (float) camera.x + look.x * SKY_DISTANCE;
         float centreY = (float) camera.y + look.y * SKY_DISTANCE;
         float centreZ = (float) camera.z + look.z * SKY_DISTANCE;
@@ -316,7 +184,6 @@ public final class SacrificeRitualRenderer {
         float uy = realUp.y * half;
         float uz = realUp.z * half;
 
-        // All four corners use V = 0.5, which the glow profile leaves at full strength -> flat fill.
         vertex(consumer, matrix, centreX - rx - ux, centreY - ry - uy, centreZ - rz - uz,
                 SKY_RED, SKY_GREEN, SKY_BLUE, alpha, 0.5F);
         vertex(consumer, matrix, centreX + rx - ux, centreY + ry - uy, centreZ + rz - uz,
@@ -327,28 +194,19 @@ public final class SacrificeRitualRenderer {
                 SKY_RED, SKY_GREEN, SKY_BLUE, alpha, 0.5F);
     }
 
-    // ===============================================================================================
-    //  One ritual
-    // ===============================================================================================
-
     private static void drawRitual(VertexConsumer consumer, Matrix4f matrix, ClientLevel level,
                                    BlockPos center, float fade, float time, Vec3 camera) {
         if (fade <= 0.004F) {
             return;
         }
 
-        // The altar's top face is the anchor of the whole look: the pillar starts there, the squares
-        // and the wavefield are measured from it.
         double baseX = center.getX() + 0.5D;
         double baseY = center.getY() + 1.0D;
         double baseZ = center.getZ() + 0.5D;
 
-        // Pulsing: the sine is cubed, so the aura spends most of the cycle at full strength and only
-        // dips sharply at the dark end - a punchier breathing than the plain linear sine ramp.
         float swing = 0.5F + 0.5F * Mth.sin(time * (float) (Math.PI * 2.0D) / PULSE_PERIOD_TICKS);
         float pulse = 1.0F - PULSE_DEPTH * swing * swing * swing;
-        // Entrance: ease-out cubic, so the aura slams in and then settles instead of fading in linearly
-        // (1 - (1 - x)^3).
+
         float auraFade = easeOutCubic(fade) * pulse;
 
         drawPillar(consumer, matrix, baseX, baseY, baseZ, camera, auraFade);
@@ -359,12 +217,10 @@ public final class SacrificeRitualRenderer {
         drawRings(consumer, matrix, level, center, baseX, baseY, baseZ, camera, fade, time);
     }
 
-    /** Two crossed panels (plus their halo layers) from the altar top up into the sky. */
     private static void drawPillar(VertexConsumer consumer, Matrix4f matrix,
                                    double x, double y0, double z, Vec3 camera, float alpha) {
         double top = y0 + PILLAR_HEIGHT;
-        // Panel A spans X (its normal is Z), panel B spans Z (its normal is X): crossed, so the beam
-        // reads as a column from any direction, exactly like a beacon beam.
+
         emitVerticalPanel(consumer, matrix, x, y0, z, camera, 1.0D, 0.0D, PILLAR_WIDTH,
                 alpha * PILLAR_ALPHA, alpha * PILLAR_TOP_ALPHA);
         emitVerticalPanel(consumer, matrix, x, y0, z, camera, 0.0D, 1.0D, PILLAR_WIDTH,
@@ -375,22 +231,12 @@ public final class SacrificeRitualRenderer {
                 alpha * PILLAR_ALPHA * PILLAR_GLOW_ALPHA, alpha * PILLAR_TOP_ALPHA);
     }
 
-    /**
-     * One horizontal square rotated 45 degrees: four glowing prism edges with the corners on the axes.
-     *
-     * <p>The edges are solid bars now, not flat quads: each one is emitted by {@link #emitEdgePrism}
-     * with a {@link #SQUARE_THICKNESS} x {@link #SQUARE_THICKNESS} block cross-section, so the square
-     * has real volume from every viewing angle. A second, wider and much dimmer prism keeps the same
-     * halo the flat lines had.</p>
-     */
     private static void drawSquare(VertexConsumer consumer, Matrix4f matrix,
                                    double x, double y, double z, float side, Vec3 camera, float alpha) {
-        // A 45-degree square of side `side` has its corners at +-side/sqrt(2) on the two horizontal
-        // axes, i.e. a diamond whose half diagonal is side / sqrt(2).
+
         double half = side / Math.sqrt(2.0D);
         float a = alpha * SQUARE_ALPHA;
-        // Core prism half extents, and the halo prism's: LINE_HALO_WIDTH/LINE_HALO_ALPHA keep working
-        // exactly as they did for the flat lines.
+
         float core = SQUARE_THICKNESS * 0.5F;
         float halo = SQUARE_THICKNESS * LINE_HALO_WIDTH * 0.5F;
         emitEdgePrism(consumer, matrix, x + half, y, z, x, y, z + half, core, core,
@@ -411,23 +257,19 @@ public final class SacrificeRitualRenderer {
                 CORE_RED, CORE_GREEN, CORE_BLUE, a * LINE_HALO_ALPHA, camera);
     }
 
-    /** The expanding diagonal wavefield: {@link #RING_COUNT} rings in the air and on the block tops. */
     private static void drawRings(VertexConsumer consumer, Matrix4f matrix, ClientLevel level,
                                   BlockPos center, double x, double y, double z, Vec3 camera,
                                   float fade, float time) {
         for (int ring = 0; ring < RING_COUNT; ring++) {
-            // Each ring owns a phase slot, so they leave the centre one after another.
+
             float phase = wrap01(time / RING_PERIOD_TICKS + (float) ring / RING_COUNT);
-            // Two speed curves for force: the radius uses the ease-out cubic (1 - (1 - x)^3), so the
-            // ring shoots out of the altar and then slows down towards RING_MAX_RADIUS, and the fade is
-            // quadratic, so the ring stays bright while it races and vanishes snappily at the rim.
+
             float radius = easeOutCubic(phase) * RING_MAX_RADIUS;
             float ringFade = (1.0F - phase) * (1.0F - phase) * fade;
             if (ringFade <= 0.02F || radius <= 0.05F) {
                 continue;
             }
 
-            // (1) the ring itself, floating in the air just above the altar top.
             double half = radius;
             float airAlpha = ringFade * RING_ALPHA;
             emitSegment(consumer, matrix, x + half, y + RING_OFFSET, z, x, y + RING_OFFSET, z + half,
@@ -439,11 +281,6 @@ public final class SacrificeRitualRenderer {
             emitSegment(consumer, matrix, x, y + RING_OFFSET, z - half, x + half, y + RING_OFFSET, z,
                     RING_LINE_WIDTH, WAVE_RED, WAVE_GREEN, WAVE_BLUE, airAlpha, camera);
 
-            // (2) the same diagonal projected onto the nearby block top surfaces. A block column counts
-            // when the diamond |X| + |Z| = radius actually crosses its cell; the piece inside the cell
-            // is found by clipping the line exactly and interpolating it linearly, so the pieces of
-            // neighbouring cells join up into one straight diamond line (and, once the ring is wide, a
-            // single edge or a diamond corner per cell with the mirrored half in the cell opposite).
             int reach = Mth.ceil(radius) + 1;
             float surfaceAlpha = ringFade * WAVE_SURFACE_ALPHA;
             for (int dx = -reach; dx <= reach; dx++) {
@@ -453,7 +290,7 @@ public final class SacrificeRitualRenderer {
                     }
                     BlockPos column = center.offset(dx, 0, dz);
                     BlockPos top = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, column);
-                    // 1.20.1 asked for getMinBuildHeight(); the 26.1.2 name of the same value is getMinY().
+
                     if (top.getY() <= level.getMinY()) {
                         continue;
                     }
@@ -465,12 +302,6 @@ public final class SacrificeRitualRenderer {
         }
     }
 
-    /**
-     * True when the diamond {@code |X| + |Z| = radius} may cross the cell
-     * {@code [dx, dx + 1] x [dz, dz + 1]}: the radius has to lie between the smallest and the largest
-     * corner diagonal of that cell. The test is deliberately a conservative bound - a cell it lets
-     * through that the line misses simply emits nothing.
-     */
     private static boolean cellCrossesDiamond(int dx, int dz, double radius) {
         double minDiagonal = Double.MAX_VALUE;
         double maxDiagonal = -Double.MAX_VALUE;
@@ -484,19 +315,10 @@ public final class SacrificeRitualRenderer {
         return radius >= minDiagonal && radius <= maxDiagonal;
     }
 
-    /**
-     * Emits the piece of the diamond edge that crosses one block cell.
-     *
-     * <p>The edge inside the cell is not approximated by a segment through the cell centre along the
-     * local tangent any more: the edge line of the cell's quadrant is clipped to the cell exactly and
-     * its two end points are obtained by <b>linear interpolation</b> along the line, so the pieces of
-     * neighbouring cells line up into a single straight diamond edge instead of a stepped chain.</p>
-     */
     private static void emitDiagonalCell(VertexConsumer consumer, Matrix4f matrix,
                                          double cellOriginX, double surfaceY, double cellOriginZ,
                                          int dx, int dz, double radius, float alpha, Vec3 camera) {
-        // A cell lies in exactly one quadrant (dx == 0 and dx == -1 only touch the axis with an edge),
-        // so only that quadrant's edge of the diamond can cross it: sx * X + sz * Z = radius.
+
         double sx = dx >= 0 ? 1.0D : -1.0D;
         double sz = dz >= 0 ? 1.0D : -1.0D;
         double x0 = dx;
@@ -504,14 +326,12 @@ public final class SacrificeRitualRenderer {
         double z0 = dz;
         double z1 = dz + 1.0D;
 
-        // Walk the edge over the cell's X range and interpolate Z linearly on it.
         double ax = x0;
         double bx = x1;
         double az = (radius - sx * ax) / sz;
         double bz = (radius - sx * bx) / sz;
         double zSpan = bz - az;
 
-        // Clip the parameter range [0,1] to the part where the interpolated Z stays inside the cell.
         double t0 = 0.0D;
         double t1 = 1.0D;
         if (Math.abs(zSpan) > 1.0E-9D) {
@@ -526,7 +346,6 @@ public final class SacrificeRitualRenderer {
             return;
         }
 
-        // Both end points, linearly interpolated between the cell's X bounds.
         double px0 = ax + (bx - ax) * t0;
         double pz0 = az + zSpan * t0;
         double px1 = ax + (bx - ax) * t1;
@@ -537,15 +356,6 @@ public final class SacrificeRitualRenderer {
                 RING_LINE_WIDTH, WAVE_RED, WAVE_GREEN, WAVE_BLUE, alpha, camera);
     }
 
-    // ===============================================================================================
-    //  Quad emitters
-    // ===============================================================================================
-
-    /**
-     * One vertical panel of the given width, centred on {@code (x, z)} and spanning {@code y0..y0+}
-     * {@link #PILLAR_HEIGHT}, with its normal along {@code (normalX, normalZ)}. The bottom vertices get
-     * {@code bottomAlpha}, the top ones {@code topAlpha}, so the panel fades along its length.
-     */
     private static void emitVerticalPanel(VertexConsumer consumer, Matrix4f matrix,
                                           double x, double y0, double z, Vec3 camera,
                                           double normalX, double normalZ, float width,
@@ -570,12 +380,6 @@ public final class SacrificeRitualRenderer {
                 topAlpha, 0.0F);
     }
 
-    /**
-     * One horizontal glowing segment of the given width, from {@code (x1, y, z1)} to
-     * {@code (x2, y, z2)}. The quad's V axis only feeds the shader's glow profile in the 1.20.1 twin;
-     * here the width alone carries the look, and every line is emitted twice (core plus a wider,
-     * dimmer halo) so a hard-edged quad still reads as a glow.
-     */
     private static void emitSegment(VertexConsumer consumer, Matrix4f matrix,
                                     double x1, double y1, double z1,
                                     double x2, double y2, double z2,
@@ -587,8 +391,7 @@ public final class SacrificeRitualRenderer {
         if (length < 1.0E-5D) {
             return;
         }
-        // Cheap distance probe: a ritual the server does not even announce from far away never costs
-        // more than this one test.
+
         double midX = (x1 + x2) * 0.5D - camera.x;
         double midY = y1 - camera.y;
         double midZ = (z1 + z2) * 0.5D - camera.z;
@@ -596,12 +399,11 @@ public final class SacrificeRitualRenderer {
             return;
         }
         emitSegmentQuad(consumer, matrix, x1, y1, z1, x2, y2, z2, width, red, green, blue, alpha);
-        // Halo: the same line, wider and much dimmer, so a hard-edged quad still reads as a glow.
+
         emitSegmentQuad(consumer, matrix, x1, y1, z1, x2, y2, z2,
                 width * LINE_HALO_WIDTH, red, green, blue, alpha * LINE_HALO_ALPHA);
     }
 
-    /** One flat quad of the given width from {@code (x1, y1, z1)} to {@code (x2, y2, z2)}. */
     private static void emitSegmentQuad(VertexConsumer consumer, Matrix4f matrix,
                                         double x1, double y1, double z1,
                                         double x2, double y2, double z2,
@@ -621,15 +423,6 @@ public final class SacrificeRitualRenderer {
         vertex(consumer, matrix, x1 + offsetX, y1, z1 + offsetZ, red, green, blue, alpha, 1.0F);
     }
 
-    /**
-     * One square prism along the horizontal edge {@code (x1, y1, z1) -> (x2, y2, z2)}: the four side
-     * faces of a bar whose cross-section is {@code 2 * halfThickness} wide and {@code 2 * halfHeight}
-     * tall (the two are equal for the {@link #SQUARE_THICKNESS} squares).
-     *
-     * <p>The perpendicular is the horizontal unit vector {@code (-dz, dx) / length}, i.e. the same
-     * offset direction {@link #emitSegmentQuad} uses, and the faces are emitted as plain winding-less
-     * quads - the pipeline has culling off, so the order of the faces does not matter.</p>
-     */
     private static void emitEdgePrism(VertexConsumer consumer, Matrix4f matrix,
                                       double x1, double y1, double z1,
                                       double x2, double y2, double z2,
@@ -641,8 +434,7 @@ public final class SacrificeRitualRenderer {
         if (length < 1.0E-5D) {
             return;
         }
-        // Same cheap distance probe the flat segment emitter does: a ritual the server does not even
-        // announce from far away never costs more than this one test.
+
         double midX = (x1 + x2) * 0.5D - camera.x;
         double midY = (y1 + y2) * 0.5D - camera.y;
         double midZ = (z1 + z2) * 0.5D - camera.z;
@@ -654,38 +446,27 @@ public final class SacrificeRitualRenderer {
         double ox = nx * halfThickness;
         double oz = nz * halfThickness;
 
-        // Top face, at y + halfHeight, from -n to +n.
         vertex(consumer, matrix, x1 - ox, y1 + halfHeight, z1 - oz, red, green, blue, alpha, 0.0F);
         vertex(consumer, matrix, x2 - ox, y2 + halfHeight, z2 - oz, red, green, blue, alpha, 0.0F);
         vertex(consumer, matrix, x2 + ox, y2 + halfHeight, z2 + oz, red, green, blue, alpha, 1.0F);
         vertex(consumer, matrix, x1 + ox, y1 + halfHeight, z1 + oz, red, green, blue, alpha, 1.0F);
-        // Bottom face, at y - halfHeight.
+
         vertex(consumer, matrix, x1 - ox, y1 - halfHeight, z1 - oz, red, green, blue, alpha, 0.0F);
         vertex(consumer, matrix, x1 + ox, y1 - halfHeight, z1 + oz, red, green, blue, alpha, 1.0F);
         vertex(consumer, matrix, x2 + ox, y2 - halfHeight, z2 + oz, red, green, blue, alpha, 1.0F);
         vertex(consumer, matrix, x2 - ox, y2 - halfHeight, z2 - oz, red, green, blue, alpha, 0.0F);
-        // Side face on +n, spanning y - halfHeight .. y + halfHeight.
+
         vertex(consumer, matrix, x1 + ox, y1 - halfHeight, z1 + oz, red, green, blue, alpha, 0.0F);
         vertex(consumer, matrix, x2 + ox, y2 - halfHeight, z2 + oz, red, green, blue, alpha, 0.0F);
         vertex(consumer, matrix, x2 + ox, y2 + halfHeight, z2 + oz, red, green, blue, alpha, 1.0F);
         vertex(consumer, matrix, x1 + ox, y1 + halfHeight, z1 + oz, red, green, blue, alpha, 1.0F);
-        // Side face on -n.
+
         vertex(consumer, matrix, x1 - ox, y1 - halfHeight, z1 - oz, red, green, blue, alpha, 1.0F);
         vertex(consumer, matrix, x1 - ox, y1 + halfHeight, z1 - oz, red, green, blue, alpha, 1.0F);
         vertex(consumer, matrix, x2 - ox, y2 + halfHeight, z2 - oz, red, green, blue, alpha, 1.0F);
         vertex(consumer, matrix, x2 - ox, y2 - halfHeight, z2 - oz, red, green, blue, alpha, 1.0F);
     }
 
-    /**
-     * Emits one vertex in camera-relative world space.
-     *
-     * <p>The pipeline's format is {@code POSITION_COLOR}, so only the position and the colour are
-     * written; {@code v} is kept in the signature because every caller already computes the width
-     * coordinate (and a future soft profile could use it again). The matrix is applied on the CPU by
-     * {@code VertexConsumer#addVertex(Matrix4fc, ...)}, exactly as the 1.20.1 twin's
-     * {@code VertexConsumer#vertex(Matrix4f, ...)} did, and 26.1.2 has no {@code endVertex()} any more:
-     * the builder flushes the vertex when the next one starts.</p>
-     */
     private static void vertex(VertexConsumer consumer, Matrix4f matrix,
                                double x, double y, double z,
                                float red, float green, float blue, float alpha, float v) {
@@ -693,17 +474,11 @@ public final class SacrificeRitualRenderer {
                 .setColor(red, green, blue, alpha);
     }
 
-    /** Wraps any value into {@code [0,1)}. */
     private static float wrap01(float value) {
         float wrapped = value % 1.0F;
         return wrapped < 0.0F ? wrapped + 1.0F : wrapped;
     }
 
-    /**
-     * The "1 - (1 - x)^3" speed curve the request asks for: a fast start that gently settles into the
-     * end value, which is what makes a motion driven by it read as a punch instead of a linear ramp.
-     * Defined for {@code x} in {@code [0,1]}.
-     */
     private static float easeOutCubic(float x) {
         float c = 1.0F - x;
         return 1.0F - c * c * c;

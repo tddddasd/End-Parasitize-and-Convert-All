@@ -20,13 +20,11 @@ public class AdaptationEffectListener {
     @SubscribeEvent
     public static void onAdaptationEffect(AdaptationEffectEvent event) {
         LivingEntity entity = event.getEntity();
-        if (entity.level().isClientSide()) return; 
+        if (entity.level().isClientSide()) return;
 
-        
         entity.hurtTime = 0;
         entity.hurtDuration = 0;
 
-        
         int packetType = event.getEffectType() == AdaptationEffectEvent.Type.PARTIAL_ADAPTATION ? 0 : 1;
         ModNetwork.sendToAllTracking(new ColorEffectPacket(entity, packetType), entity);
 
@@ -34,11 +32,11 @@ public class AdaptationEffectListener {
 
         switch (event.getEffectType()) {
             case PARTIAL_ADAPTATION:
-                
+
                 serverLevel.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                         ModSoundEvents.PARCIAL_ADAPTATION.get(), SoundSource.NEUTRAL,
                         1.0F, 0.5F + entity.getRandom().nextFloat() * 0.5F);
-                
+
                 sendPAdaptationParticles(serverLevel, entity);
                 break;
             case FULL_ADAPTATION:
@@ -51,7 +49,7 @@ public class AdaptationEffectListener {
     }
 
     private static void sendPAdaptationParticles(ServerLevel level, LivingEntity entity) {
-        
+
         AABB bb = entity.getBoundingBox();
         var random = entity.getRandom();
         int count = 3 + random.nextInt(3);
@@ -64,7 +62,7 @@ public class AdaptationEffectListener {
     }
 
     private static void sendFAdaptationParticles(ServerLevel level, LivingEntity entity) {
-        
+
         AABB bb = entity.getBoundingBox();
         var random = entity.getRandom();
         int count = 3 + random.nextInt(3);

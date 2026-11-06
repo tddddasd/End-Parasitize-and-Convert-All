@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.fluid;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -19,7 +20,6 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidType;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.network.ModNetwork;
 import org.tdddd.epca.impl.network.packet.s2c.AcidWaterColorPacket;
 import org.tdddd.yawning_neko_api.damages.ModDamageTypes;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class AcidSolutionBlock extends LiquidBlock {
-    
+
     public AcidSolutionBlock(Supplier<? extends FlowingFluid> fluid, Properties properties) {
         super(fluid.get(), properties);
     }
@@ -39,10 +39,9 @@ public class AcidSolutionBlock extends LiquidBlock {
         super.onPlace(state, level, pos, oldState, isMoving);
 
         if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
-            
+
             List<BlockPos> affectedWaters = findWaterInRange(level, pos, 8);
 
-            
             for (BlockPos waterPos : affectedWaters) {
                 int distance = Math.abs(pos.getX() - waterPos.getX()) +
                         Math.abs(pos.getY() - waterPos.getY()) +
@@ -62,10 +61,9 @@ public class AcidSolutionBlock extends LiquidBlock {
         super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
 
         if (!level.isClientSide()) {
-            
+
             List<BlockPos> affectedWaters = findWaterInRange(level, pos, 8);
 
-            
             for (BlockPos waterPos : affectedWaters) {
                 AcidWaterColorPacket packet = new AcidWaterColorPacket(
                         waterPos, pos, 0, false
@@ -76,7 +74,6 @@ public class AcidSolutionBlock extends LiquidBlock {
         }
     }
 
-    
     private List<BlockPos> findWaterInRange(Level level, BlockPos center, int range) {
         List<BlockPos> result = new ArrayList<>();
 
@@ -99,15 +96,13 @@ public class AcidSolutionBlock extends LiquidBlock {
         return result;
     }
 
-    
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
                                 net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
 
-        
         if (!level.isClientSide() && entity instanceof LivingEntity livingEntity) {
-            if (!IParasite.isParasiteByTagOrInterface(livingEntity)
+            if (!ParasiteEvents.isParasiteByTagOrInterface(livingEntity)
                     && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity)) {
                 applyAcidSolutionEffects(livingEntity);
             }
@@ -118,25 +113,23 @@ public class AcidSolutionBlock extends LiquidBlock {
         Level level = entity.level();
 
         if (level.getGameTime() % 5 == 0) {
-            
+
             entity.addEffect(new MobEffectInstance(
                     ModEffects.PARA_CURSE,
-                    1200, 
-                    1,    
+                    1200,
+                    1,
                     false,
                     true
             ));
 
-            
             entity.addEffect(new MobEffectInstance(
                     ModEffects.CORROSIVE,
-                    300, 
-                    0,   
+                    300,
+                    0,
                     false,
                     true
             ));
 
-            
             entity.hurt(entity.damageSources().magic(), 1.0F);
 
             Registry<DamageType> registry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);

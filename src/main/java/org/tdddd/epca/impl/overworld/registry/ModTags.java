@@ -13,13 +13,19 @@ public class ModTags {
     public static final TagKey<EntityType<?>> INFESTED_UNDEAD =
             TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, "infested_undead"));
 
-    /**
-     * {@code epca:organ_part} GUI
-     *
-     * <p>SPEC  1  D1 {@code } tag
-     *  tag
-     * {@code ItemAndEntityTagsData.ItemTagsGen} 1.20.1 </p>
-     */
+    public static final TagKey<EntityType<?>> PARASITE =
+            TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, "parasite"));
+    public static final TagKey<EntityType<?>> INFESTED =
+            TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, "infested"));
+    public static final TagKey<EntityType<?>> ONESENT =
+            TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, "onesent"));
+    public static final TagKey<EntityType<?>> POVERTY =
+            TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, "poverty"));
+    public static final TagKey<EntityType<?>> RESHAPE =
+            TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, "reshape"));
+    public static final TagKey<EntityType<?>> LINK =
+            TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, "link"));
+
     public static final TagKey<Item> ORGAN_PART =
             TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(epca.MODID, "organ_part"));
 }

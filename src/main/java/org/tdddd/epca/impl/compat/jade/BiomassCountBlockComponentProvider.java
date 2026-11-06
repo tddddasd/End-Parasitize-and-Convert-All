@@ -9,7 +9,6 @@ import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.ui.JadeUI;
 
-
 public class BiomassCountBlockComponentProvider implements IBlockComponentProvider {
 
     public static final BiomassCountBlockComponentProvider INSTANCE = new BiomassCountBlockComponentProvider();

@@ -10,77 +10,23 @@ import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganGate;
 import org.tdddd.epca.impl.overworld.data.organ.OrganSlotGroup;
 import org.tdddd.epca.impl.overworld.data.organ.OrganSlotUnlock;
 
-/**
- * {@link HiveLeaderOrganActionPacket} <b></b>
- * STAGE 2  SPEC D
- *
- * <h2></h2>
- * <ol>
- *   <li><b></b>{@code 0 <= slot < data.size()}
- *       {@link OrganSlotGroup#byGlobalIndex(int)} </li>
- *   <li><b></b> {@code data.isUnlocked(slot)}
- *       "" {@link OrganSlotUnlock#tryUnlock}
- *       SPEC D2</li>
- *   <li><b></b>{@link OrganSlotGroup}
- *        {@link HiveLeaderOrganGate#canModifySlot}
- *       39  777 33 SPEC D3/D4
- *       SPEC </li>
- *   <li><b></b> {@link HiveLeaderOrganData#acceptsItem}
- *       {@code epca:organ_part}SPEC D1</li>
- *   <li><b></b></li>
- * </ol>
- * <p><b></b>
- * {@code HiveLeaderOrganActionPacket#handle}
- * </p>
- *
- * <h2></h2>
- * <p> {@link HiveLeaderOrganCarry}
- * <b></b>GUI
- *
- *  return </p>
- *
- * <h2>1.20.1 -&gt; 26.1.2  API </h2>
- * <ul>
- *   <li>{@code Inventory#items}1.20.1  {@code NonNullList} 26.1.2
- *       <b></b>_tmp_26src Inventory.java  55
- *       {@code Inventory#getItem(int)} / {@code #setItem(int, ItemStack)}
- *        430 / 377  {@code #getNonEquipmentItems()} 90
- *        {@code inventory.items.get/set(...)}
- *       {@code inventory.getItem(...)} / {@code inventory.setItem(...)}
- *       {@code Inventory#setChanged()} 457 </li>
- *   <li>{@code ItemStack#isSameItemSameTags(a, b)}  26.1.2
- *       {@code ItemStack#isSameItemSameComponents(a, b)}
- *       _tmp_26src ItemStack.java  684  1.20.5  components</li>
- *   <li>{@code Player#displayClientMessage(Component, true)}
- *       {@code ServerPlayer#sendSystemMessage(Component, boolean)} ServerPlayer</li>
- * </ul>
- */
 public final class HiveLeaderOrganActionHandler {
 
     private HiveLeaderOrganActionHandler() {
     }
 
-    /**
-     *
-     *
-     * @param player
-     * @param data
-     * @param msg
-     */
     public static void handle(ServerPlayer player, HiveLeaderOrganData data,
                               HiveLeaderOrganActionPacket msg) {
         if (player == null || data == null || msg == null) return;
 
         if (msg.action() == HiveLeaderOrganActionPacket.Action.RETURN_CARRIED) {
-            // GUI
+
             HiveLeaderOrganCarry.returnToPlayer(player);
             return;
         }
 
         if (msg.action() == HiveLeaderOrganActionPacket.Action.INVENTORY_SLOT) {
-            //  Inventory 035
-            //  tag /  / 777  canModify
-            // Shift  = INVENTORY_SLOT + BUTTON_MIDDLE
+
             if (msg.button() == HiveLeaderOrganActionPacket.BUTTON_MIDDLE) {
                 quickMoveFromInventory(player, data, msg.slot());
             } else {
@@ -103,34 +49,17 @@ public final class HiveLeaderOrganActionHandler {
             case QUICK_MOVE -> quickMove(player, data, slot, group);
             case CLEAR -> clear(player, data, slot, group);
             case INVENTORY_SLOT -> {
-                //  =  handle()
-                //  clickInventory
+
             }
             default -> {
-                // RETURN_CARRIED
+
             }
         }
     }
 
-    //  SPEC GUI
-
-    /**
-     *  035 39  + 9
-     *
-     * <p> {@code AbstractContainerMenu#doClick}  {@code ClickType.PICKUP} </p>
-     * <ul>
-     *   <li> + {@code (count + 1) / 2}</li>
-     *   <li> +  1 </li>
-     *   <li> +  /  1 </li>
-     * </ul>
-     * <p><b></b> {@code ServerPlayer#getInventory()}
-     *  tick  {@code containerMenu.broadcastChanges()}
-     * {@code remoteSlots}
-     *  tick  S2C </p>
-     */
     private static void clickInventory(ServerPlayer player, HiveLeaderOrganData data, int slot, int button) {
         Inventory inventory = player.getInventory();
-        // Inventory#INVENTORY_SIZE = 36 30
+
         if (slot < 0 || slot >= HiveLeaderOrganActionPacket.INVENTORY_SLOT_COUNT
                 || slot >= inventory.getNonEquipmentItems().size()) {
             return;
@@ -162,7 +91,6 @@ public final class HiveLeaderOrganActionHandler {
             return;
         }
 
-        // 26.1.2isSameItemSameTags -> isSameItemSameComponentsItemStack.java  684
         if (ItemStack.isSameItemSameComponents(inSlot, carried)) {
             int space = inSlot.getMaxStackSize() - inSlot.getCount();
             if (space <= 0) return;
@@ -174,19 +102,11 @@ public final class HiveLeaderOrganActionHandler {
             return;
         }
 
-        //  1
         HiveLeaderOrganCarry.set(player, inSlot.copy());
         inventory.setItem(slot, carried.copy());
         inventory.setChanged();
     }
 
-    /**
-     * Shift <b></b><b></b>
-     *
-     * <p>
-     *  777
-     * </p>
-     */
     private static void quickMoveInventoryToOrgan(ServerPlayer player, HiveLeaderOrganData data, int fromSlot) {
         Inventory inventory = player.getInventory();
         if (fromSlot < 0 || fromSlot >= HiveLeaderOrganActionPacket.INVENTORY_SLOT_COUNT
@@ -205,7 +125,7 @@ public final class HiveLeaderOrganActionHandler {
 
                 ItemStack target = data.getItem(index);
                 if (target.isEmpty()) {
-                    // /
+
                     int amount = Math.min(inSlot.getCount(), inSlot.getMaxStackSize());
                     data.setItem(index, inSlot.copyWithCount(amount));
                     inSlot.shrink(amount);
@@ -230,12 +150,6 @@ public final class HiveLeaderOrganActionHandler {
         }
     }
 
-    /**
-     * Shift shift
-     *
-     * <p>quickMoveStack
-     * </p>
-     */
     private static void quickMoveFromInventory(ServerPlayer player, HiveLeaderOrganData data, int slot) {
         if (!HiveLeaderOrganCarry.get(player).isEmpty()) {
             HiveLeaderOrganCarry.returnToPlayer(player);
@@ -244,8 +158,6 @@ public final class HiveLeaderOrganActionHandler {
         quickMoveInventoryToOrgan(player, data, slot);
     }
 
-
-    /**  */
     private static boolean canInsertIntoOrgan(ServerPlayer player, HiveLeaderOrganData data,
                                               int index, OrganSlotGroup group) {
         if (group.kind().isInnerGrid()) {
@@ -254,39 +166,20 @@ public final class HiveLeaderOrganActionHandler {
         return data.isUnlocked(index);
     }
 
-    //   /
-
-    /**
-     *
-     * <ul>
-     *   <li><b> +  + </b>
-     *       SPEC D2</li>
-     *   <li> +  /  1</li>
-     *   <li> +  /  1 </li>
-     *   <li> +  1
-     *       </li>
-     * </ul>
-     *
-     * <p><b> return</b>
-     * {@code canModify}
-     * {@code carried.isEmpty() && inSlot.isEmpty()}
-     *  SPEC D2 </p>
-     */
     private static void click(ServerPlayer player, HiveLeaderOrganData data, int slot,
                               OrganSlotGroup group, int button) {
         ItemStack carried = HiveLeaderOrganCarry.get(player);
         ItemStack inSlot = data.getItem(slot);
 
         if (carried.isEmpty()) {
-            //  SPEC D2
+
             boolean lockedOuterSlot = group.kind().needsUnlock() && !data.isUnlocked(slot);
             if (inSlot.isEmpty() && lockedOuterSlot) {
-                //  =
-                //  =
+
                 tryUnlockSlot(player, data, slot, group);
                 return;
             }
-            //   + ""
+
             if (inSlot.isEmpty()) return;
             if (!canModify(player, data, slot, group, false)) return;
 
@@ -328,8 +221,6 @@ public final class HiveLeaderOrganActionHandler {
             return;
         }
 
-        //  1
-        // ""
         if (!HiveLeaderOrganData.acceptsItem(inSlot)) {
             return;
         }
@@ -338,16 +229,6 @@ public final class HiveLeaderOrganActionHandler {
         HiveLeaderOrganCarry.set(player, old);
     }
 
-    //  Shift
-
-    /**
-     * Shift
-     *
-     * <p> {@code QUICK_MOVE}
-     * <b></b>
-     *  {@link HiveLeaderOrganCarry#giveBack}
-     *  Shift  = Shift  = </p>
-     */
     private static void quickMove(ServerPlayer player, HiveLeaderOrganData data, int slot,
                                   OrganSlotGroup group) {
         ItemStack carried = HiveLeaderOrganCarry.get(player);
@@ -378,7 +259,7 @@ public final class HiveLeaderOrganActionHandler {
             return;
         }
         if (!ItemStack.isSameItemSameComponents(inSlot, carried)) {
-            // Shift
+
             return;
         }
         int space = inSlot.getMaxStackSize() - inSlot.getCount();
@@ -388,8 +269,6 @@ public final class HiveLeaderOrganActionHandler {
         shrinkCarried(player, carried, amount);
     }
 
-
-    /**  */
     private static void clear(ServerPlayer player, HiveLeaderOrganData data, int slot,
                               OrganSlotGroup group) {
         ItemStack inSlot = data.getItem(slot);
@@ -400,11 +279,6 @@ public final class HiveLeaderOrganActionHandler {
         HiveLeaderOrganCarry.giveBack(player, taken);
     }
 
-
-    /**
-     * {@code wantsInsert} "/"
-     * SPEC D2
-     */
     private static boolean canModify(ServerPlayer player, HiveLeaderOrganData data, int slot,
                                      OrganSlotGroup group, boolean wantsInsert) {
         if (group.kind().isInnerGrid()) {
@@ -421,24 +295,13 @@ public final class HiveLeaderOrganActionHandler {
             return true;
         }
         if (!wantsInsert) {
-            // ""
+
             return false;
         }
 
         return tryUnlockSlot(player, data, slot, group);
     }
 
-    /**
-     * SPEC D2
-     *
-     * <p> /  /  {@code BiomassSyncPacket}  {@link OrganSlotUnlock#tryUnlock}
-     * 26.1.2
-     * {@code ServerPlayer#sendSystemMessage(Component, true)}
-     *  {@link OrganSlotUnlock.Result#reason()}
-     * {@code  5 2}</p>
-     *
-     * @return  true false
-     */
     private static boolean tryUnlockSlot(ServerPlayer player, HiveLeaderOrganData data, int slot,
                                          OrganSlotGroup group) {
         OrganSlotUnlock.Result result = OrganSlotUnlock.tryUnlock(player, data, slot);
@@ -452,7 +315,6 @@ public final class HiveLeaderOrganActionHandler {
         return true;
     }
 
-    /**  {@code amount} */
     private static void shrinkCarried(ServerPlayer player, ItemStack carried, int amount) {
         carried.shrink(amount);
         if (carried.isEmpty()) {
@@ -460,4 +322,3 @@ public final class HiveLeaderOrganActionHandler {
         }
     }
 }
-

@@ -5,7 +5,6 @@ import net.minecraft.client.particle.*;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 
-// 26.1.2: TextureSheetParticle -> SingleQuadParticle.
 public class BleedingParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
 
@@ -15,10 +14,10 @@ public class BleedingParticle extends SingleQuadParticle {
         this.lifetime = 7;
         this.setSpriteFromAge(sprites);
         this.speedUpWhenYMotionIsBlocked = true;
-        
+
         this.gravity = 0.6F;
-        
-        this.quadSize = 0.1F; 
+
+        this.quadSize = 0.1F;
     }
 
     @Override
@@ -34,7 +33,6 @@ public class BleedingParticle extends SingleQuadParticle {
         return SingleQuadParticle.Layer.OPAQUE;
     }
 
-    
     public static class BleedingParticleProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 

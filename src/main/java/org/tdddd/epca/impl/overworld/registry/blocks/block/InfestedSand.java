@@ -89,9 +89,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
 
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        // Random ticks are extremely common once a large area is infested, and each one used to try
-        // several plants with dozens of candidate positions. Skipping the body most of the time keeps
-        // growth working while cutting the per tick block operations by an order of magnitude.
+
         if (random.nextFloat() > 0.08F) {
             return;
         }
@@ -100,29 +98,20 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
             spawnCactus(level, pos, random);
         }
 
-        // Infested dry grass: a sparse 0.5 % roll that only ever fires in desert / badlands type biomes,
-        // 5~9 plants per attempt of which 2~4 are the tall variant.
         if (random.nextFloat() < 0.005f) {
             spawnDryGrasses(level, pos, random);
         }
 
         if (hasWaterAround(level, pos) && level.getBlockState(pos.above()).isAir()) {
             if (random.nextFloat() < 0.0075f) {
-                spawnSugarCanes(level, pos, random, 5 + random.nextInt(2), 2, 1, 2); 
+                spawnSugarCanes(level, pos, random, 5 + random.nextInt(2), 2, 1, 2);
             }
             if (random.nextFloat() < 0.005f) {
-                spawnSugarCanes(level, pos, random, 2 + random.nextInt(3), 1, 1, 1); 
+                spawnSugarCanes(level, pos, random, 2 + random.nextInt(3), 1, 1, 1);
             }
         }
     }
 
-    /**
-     * Sows infested short / tall dry grass on the infested sand around {@code pos}.
-     *
-     * <p>Only desert and badlands type biomes qualify. The presence scan covers a radius of 12 blocks,
-     * plants are only ever placed inside a radius of 8 blocks, and one attempt sows 5~9 plants of which
-     * 2~4 are {@link ModBlocks#INFESTED_TALL_DRY_GRASS}.
-     */
     private void spawnDryGrasses(ServerLevel level, BlockPos pos, RandomSource random) {
         if (!isDryGrassBiome(level, pos)) return;
 
@@ -141,8 +130,8 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                     }
                 });
 
-        int count = 5 + random.nextInt(5); // 5~9
-        int tallCount = 2 + random.nextInt(3); // 2~4 of them are the tall variant
+        int count = 5 + random.nextInt(5);
+        int tallCount = 2 + random.nextInt(3);
         List<Integer> tallIndices = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             tallIndices.add(i);
@@ -184,7 +173,6 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
         }
     }
 
-    /** True when the biome at {@code pos} is a desert or a badlands type biome. */
     private boolean isDryGrassBiome(ServerLevel level, BlockPos pos) {
         Holder<Biome> biome = level.getBiome(pos);
         return biome.unwrapKey()
@@ -204,7 +192,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                     }
                 });
 
-        int count = 1 + random.nextInt(3); // 1~2
+        int count = 1 + random.nextInt(3);
         for (int i = 0; i < count; i++) {
             for (int attempt = 0; attempt < 20; attempt++) {
                 int dx = random.nextInt(25) - 12;
@@ -214,7 +202,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                 if (!level.isEmptyBlock(targetPos)) continue;
 
                 Biome biome = level.getBiome(targetPos).value();
-                
+
                 Registry<Biome> biomeRegistry = level.registryAccess().lookupOrThrow(Registries.BIOME);
 
                 Holder<Biome> holder = biomeRegistry.getOrThrow(biomeRegistry.getResourceKey(biome).get());
@@ -230,9 +218,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                     canPlace = true;
                 } else {
                     Block aboveBlock = ModBlocks.INFESTED_CACTUS.get();
-// 26.1.2: Forge's IPlantable is gone. NeoForge exposes
-                    // IBlockStateExtension#canSustainPlant(BlockGetter, BlockPos, Direction, BlockState),
-                    // which returns a TriState (DEFAULT = "let the plant decide").
+
                     var soilDecision = belowState.canSustainPlant(level, below, Direction.UP,
                             aboveBlock.defaultBlockState());
                     if (!soilDecision.isDefault()) {
@@ -259,7 +245,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
     }
 
     private void spawnSugarCanes(ServerLevel level, BlockPos center, RandomSource random, int count, int rangeX, int rangeY, int rangeZ) {
-        
+
         Set<BlockPos> existingCanes = new HashSet<>();
         BlockPos.betweenClosedStream(center.offset(-48, -48, -48), center.offset(48, 48, 48))
                 .forEach(p -> {
@@ -269,7 +255,7 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                 });
 
         int placed = 0;
-        for (int i = 0; i < count * 20; i++) { 
+        for (int i = 0; i < count * 20; i++) {
             if (placed >= count) break;
 
             int dx = random.nextInt(2 * rangeX + 1) - rangeX;
@@ -277,10 +263,8 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
             int dz = random.nextInt(2 * rangeZ + 1) - rangeZ;
             BlockPos targetPos = center.offset(dx, dy, dz);
 
-            
             if (!level.isEmptyBlock(targetPos)) continue;
 
-            
             BlockPos below = targetPos.below();
             BlockState belowState = level.getBlockState(below);
             if (!(belowState.getBlock() == ModBlocks.INFESTED_DIRT.get() ||
@@ -288,10 +272,8 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
                 continue;
             }
 
-            
             if (!hasWaterAround(level, targetPos.below())) continue;
 
-            
             boolean tooClose = false;
             for (BlockPos canePos : existingCanes) {
                 if (canePos.distSqr(targetPos) < 48 * 48) {
@@ -301,7 +283,6 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
             }
             if (tooClose) continue;
 
-            
             level.setBlock(targetPos, ModBlocks.INFESTED_SUGAR_CANE.get()
                     .defaultBlockState()
                     .setValue(InfestedSugarCane.AGE, 0)
@@ -312,7 +293,6 @@ public class InfestedSand extends Block implements InfestedBlockInterface {
         }
     }
 
-    
     private boolean hasWaterAround(LevelReader level, BlockPos pos) {
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             BlockState sideState = level.getBlockState(pos.relative(dir));

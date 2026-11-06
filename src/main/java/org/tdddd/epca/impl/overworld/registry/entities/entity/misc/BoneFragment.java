@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -18,7 +19,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 
@@ -29,16 +29,14 @@ public class BoneFragment extends ThrowableProjectile {
     }
 
     public BoneFragment(Level level, LivingEntity shooter) {
-        // 26.1.2: ThrowableProjectile has no (type, LivingEntity, Level) constructor any more.
+
         super(ModEntities.BONE_FRAGMENT.get(), shooter.getX(), shooter.getEyeY() - 0.1, shooter.getZ(), level);
         this.setOwner(shooter);
     }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        // 26.1.2: Entity#defineSynchedData is abstract and neither Projectile nor
-        // ThrowableProjectile implements it, so super.defineSynchedData(...) cannot be called.
-        // There is nothing to define: throwable projectiles keep no synched data of their own.
+
     }
 
     @Override
@@ -55,7 +53,6 @@ public class BoneFragment extends ThrowableProjectile {
     public void tick() {
         super.tick();
 
-        
         if (level().isClientSide()) {
             ItemStack infestedBone = new ItemStack(ModItems.INFESTED_BONE.get());
             level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, ItemStackTemplate.fromNonEmptyStack(infestedBone)),
@@ -71,23 +68,20 @@ public class BoneFragment extends ThrowableProjectile {
     protected void onHitEntity(EntityHitResult result) {
         if (!level().isClientSide()) {
             var target = result.getEntity();
-            
-            if (IParasite.isParasiteNoLivingByTagOrInterface(target)) {
-                
+
+            if (ParasiteEvents.isParasiteNoLivingByTagOrInterface(target)) {
+
                 return;
             }
-            
-            // 26.1.2: Entity#hurt is final void; hurtOrSimulate is the boolean entry point.
+
             boolean damageApplied = target.hurtOrSimulate(this.damageSources().generic(), 1.0F);
             if (damageApplied && target instanceof LivingEntity livingTarget) {
                 applyParaCurseEffect(livingTarget);
 
-                
                 if (this.random.nextFloat() < 0.1f) {
                     livingTarget.addEffect(new MobEffectInstance(ModEffects.BLEEDING, 5 * 20, 0));
                 }
 
-                
                 if (target instanceof LivingEntity living && this.getPersistentData().getBoolean("InfestedFireArrow").orElse(false)) {
                     living.setRemainingFireTicks(160);
                 }
@@ -96,16 +90,14 @@ public class BoneFragment extends ThrowableProjectile {
         discardAndEffect();
     }
 
-    
     private void applyParaCurseEffect(LivingEntity target) {
         var existingEffect = target.getEffect(ModEffects.PARA_CURSE);
 
         if (existingEffect != null) {
-            
+
             target.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 30 * 20, 0));
         }
     }
-
 
     @Override
     protected void onHitBlock(BlockHitResult result) {

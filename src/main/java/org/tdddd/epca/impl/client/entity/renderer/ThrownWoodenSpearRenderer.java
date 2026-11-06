@@ -16,11 +16,8 @@ import net.minecraft.world.item.ItemDisplayContext;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.ThrownWoodenSpear;
 import org.tdddd.epca.impl.epca;
 
-// 26.1.2: EntityRenderer<T, S> + extract/submit; items are drawn through ItemModelResolver ->
-// ItemStackRenderState#submit instead of the deleted ItemRenderer#renderStatic.
 public class ThrownWoodenSpearRenderer extends EntityRenderer<ThrownWoodenSpear, ThrownWoodenSpearRenderer.SpearRenderState> {
 
-    /** 26.1.2 render state: the resolved item model plus the motion angles computed in the extract phase. */
     public static class SpearRenderState extends EntityRenderState {
         public final ItemStackRenderState item = new ItemStackRenderState();
         public float yaw;
@@ -48,9 +45,7 @@ public class ThrownWoodenSpearRenderer extends EntityRenderer<ThrownWoodenSpear,
         double motionZ = entity.getDeltaMovement().z;
 
         if (motionX * motionX + motionY * motionY + motionZ * motionZ < 1.0E-6) {
-            // Landed / stuck: the entity zeroes its motion and freezes its own rotation, so
-            // atan2(0, 0) would snap every stuck spear to a fixed -90/225 pose. Reuse the
-            // orientation it had in flight - exactly what vanilla arrows/tridents render from.
+
             state.yaw = Mth.lerp(partialTick, entity.yRotO, entity.getYRot()) - 90.0F;
             state.pitch = Mth.lerp(partialTick, entity.xRotO, entity.getXRot()) + 225.0F;
         } else {
@@ -77,10 +72,6 @@ public class ThrownWoodenSpearRenderer extends EntityRenderer<ThrownWoodenSpear,
         super.submit(state, poseStack, submitNodeCollector, camera);
     }
 
-    /**
-     * 26.1.2: {@code EntityRenderer} no longer declares {@code getTextureLocation}. This renderer never used the
-     * texture (it draws an item model), so the override was dropped; the constant is kept for reference.
-     */
     public static Identifier textureLocation() {
         return Identifier.fromNamespaceAndPath(epca.MODID, "textures/entity/wooden_spear.png");
     }

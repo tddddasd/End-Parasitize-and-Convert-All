@@ -12,20 +12,6 @@ import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 
-/**
- * Wing chestplate base.
- *
- * <h2>26.1.2: {@code ArmorItem} no longer exists</h2>
- * <p>Armour became data-driven: {@code net.minecraft.world.item.ArmorItem} and its nested
- * {@code ArmorItem.Type} are deleted. The same treatment as {@code LivingArmorItem} is applied -
- * extend a plain {@link Item} and let the constructor install
- * {@code Item.Properties#humanoidArmor(ArmorMaterial, ArmorType)}, where {@link ArmorType} is the
- * replacement enum for the old {@code ArmorItem.Type}.</p>
- *
- * <h2>26.1.2: item NBT is gone</h2>
- * <p>{@code ItemStack#getOrCreateTag()} is deleted; per-stack custom data lives in the
- * {@code minecraft:custom_data} component and is written through {@link CustomData#update}.</p>
- */
 public abstract class WingChestItem extends Item {
     public final WingChestManager.WingType wingType;
 
@@ -37,9 +23,7 @@ public abstract class WingChestItem extends Item {
     @Override
     public void onCraftedBy(ItemStack stack, Player player) {
         super.onCraftedBy(stack, player);
-        
-        // 1.20.1: CompoundTag tag = stack.getOrCreateTag();
-        //         if (!tag.contains("AdaptationCount")) tag.putInt("AdaptationCount", 0);
+
         CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
             if (!tag.contains("AdaptationCount")) {
                 tag.putInt("AdaptationCount", 0);
@@ -53,7 +37,6 @@ public abstract class WingChestItem extends Item {
         Player player = event.getEntity();
         ItemStack chestItem = player.getItemBySlot(EquipmentSlot.CHEST);
 
-        
         if (chestItem.getItem() == this &&
                 !WingChestManager.activeWingTypes.containsKey(player.getUUID())) {
             WingChestManager.registerWingPlayer(player, wingType);

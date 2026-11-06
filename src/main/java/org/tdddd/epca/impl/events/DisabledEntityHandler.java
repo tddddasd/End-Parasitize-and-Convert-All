@@ -12,20 +12,18 @@ public class DisabledEntityHandler {
     @SubscribeEvent
     public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
         if (event.getLevel().isClientSide()) {
-            return; 
+            return;
         }
 
         Entity entity = event.getEntity();
 
-        
         if (entity instanceof LivingEntity) {
             LivingEntity livingEntity = (LivingEntity) entity;
 
-            
             if (ModConfig.isInDisabledEntitiesWhitelist(livingEntity)) {
-                
+
                 entity.discard();
-                event.setCanceled(true); 
+                event.setCanceled(true);
             }
         }
     }

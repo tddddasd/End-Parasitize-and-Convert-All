@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.events;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
@@ -19,7 +21,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
@@ -36,17 +37,14 @@ public class ParasiteNbtEffectHandler {
     private static final String LAST_FORCED_SWITCH_TICK_KEY = "lastForcedSwitchTick";
     private static final int FORCED_TARGET_COOLDOWN_SECONDS = 12;
 
-    
-
     @SubscribeEvent
     public static void onParasiteAttack(LivingIncomingDamageEvent event) {
-        
+
         if (!(event.getSource().getEntity() instanceof LivingEntity attacker)) return;
-        
+
         LivingEntity victim = event.getEntity();
 
-        
-        if (IParasite.isParasiteByTagOrInterface(attacker) && IParasite.isParasiteByTagOrInterface(victim)) {
+        if (ParasiteEvents.isParasiteByTagOrInterface(attacker) && ParasiteEvents.isParasiteByTagOrInterface(victim)) {
             event.setCanceled(true);
         }
     }
@@ -54,25 +52,22 @@ public class ParasiteNbtEffectHandler {
     @SubscribeEvent
     public static void onParasiteTargetChange(LivingChangeTargetEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!IParasite.isParasiteByTagOrInterface(entity)) return;
+        if (!ParasiteEvents.isParasiteByTagOrInterface(entity)) return;
 
         LivingEntity newTarget = event.getNewAboutToBeSetTarget();
-        if (newTarget != null && IParasite.isParasiteByTagOrInterface(newTarget)) {
-            event.setCanceled(true);  
+        if (newTarget != null && ParasiteEvents.isParasiteByTagOrInterface(newTarget)) {
+            event.setCanceled(true);
         }
     }
-
-
 
     @SubscribeEvent
     public static void onEntityJoin(EntityJoinLevelEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
-        if (!IParasite.isParasiteByTagOrInterface(entity)) return;
+        if (!ParasiteEvents.isParasiteByTagOrInterface(entity)) return;
 
-        
-        if (entity instanceof IParasite) {
+        if (ParasiteEvents.isParasiteEntity(entity)) {
             entity.getPersistentData().putBoolean("Parasite", true);
-            
+
             if (entity instanceof Mob mob) {
                 boolean hasPriorityGoal = mob.targetSelector.getAvailableGoals().stream()
                         .anyMatch(g -> g.getGoal() instanceof PriorityTargetGoal);
@@ -81,9 +76,9 @@ public class ParasiteNbtEffectHandler {
                 }
             }
         }
-        
+
         else {
-            
+
             float multiplier = DifficultyEffects.getParasiteStatMultiplier(entity.level());
             double newMaxHealth = entity.getMaxHealth() * multiplier;
             entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newMaxHealth);
@@ -103,29 +98,25 @@ public class ParasiteNbtEffectHandler {
         }
     }
 
-    
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onHurt(LivingIncomingDamageEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!IParasite.isParasiteByTagOrInterface(entity)) return;
-        if (entity instanceof IParasite) return; 
+        if (!ParasiteEvents.isParasiteByTagOrInterface(entity)) return;
+        if (ParasiteEvents.isParasiteEntity(entity)) return;
 
         DamageSource source = event.getSource();
         float amount = event.getAmount();
 
-        
         if (isDamageAdaptationInvulnerable(entity)) {
             event.setCanceled(true);
             return;
         }
 
-        
-        if (source.getEntity() instanceof LivingEntity attacker && IParasite.isParasiteByTagOrInterface(attacker)) {
+        if (source.getEntity() instanceof LivingEntity attacker && ParasiteEvents.isParasiteByTagOrInterface(attacker)) {
             event.setCanceled(true);
             return;
         }
 
-        
         if (source.is(DamageTypeTags.IS_FIRE)) {
             Level level = entity.level();
             int currentTick = (int) level.getGameTime();
@@ -139,13 +130,12 @@ public class ParasiteNbtEffectHandler {
         }
     }
 
-    
     @SubscribeEvent
     public static void onKill(LivingDeathEvent event) {
         DamageSource source = event.getSource();
         if (!(source.getEntity() instanceof LivingEntity killer)) return;
-        if (!IParasite.isParasiteByTagOrInterface(killer)) return;
-        if (killer instanceof IParasite) return;
+        if (!ParasiteEvents.isParasiteByTagOrInterface(killer)) return;
+        if (ParasiteEvents.isParasiteEntity(killer)) return;
 
         Level level = killer.level();
         if (!(level instanceof ServerLevel serverLevel)) return;
@@ -153,14 +143,13 @@ public class ParasiteNbtEffectHandler {
         evolutionManager.addPoints(1);
     }
 
-    
     @SubscribeEvent
     public static void onAttack(LivingIncomingDamageEvent event) {
         LivingEntity target = event.getEntity();
-        if (!IParasite.isParasiteByTagOrInterface(target)) return;
-        if (target instanceof IParasite) return;
+        if (!ParasiteEvents.isParasiteByTagOrInterface(target)) return;
+        if (ParasiteEvents.isParasiteEntity(target)) return;
 
-        if (event.getSource().getEntity() instanceof LivingEntity attacker && !IParasite.isParasiteByTagOrInterface(attacker)) {
+        if (event.getSource().getEntity() instanceof LivingEntity attacker && !ParasiteEvents.isParasiteByTagOrInterface(attacker)) {
             trySwitchForcedTargetOnAttacked(target, attacker);
         }
     }
@@ -168,20 +157,19 @@ public class ParasiteNbtEffectHandler {
     private static void trySwitchForcedTargetOnAttacked(LivingEntity self, LivingEntity attacker) {
         Level level = self.level();
         if (level.isClientSide()) return;
-        if (attacker != null && !IParasite.isParasiteByTagOrInterface(attacker)) {
-            
+        if (attacker != null && !ParasiteEvents.isParasiteByTagOrInterface(attacker)) {
+
             long lastSwitch = self.getPersistentData().getLong(LAST_FORCED_SWITCH_TICK_KEY).orElse(0L);
             long now = level.getGameTime();
             if (now - lastSwitch < FORCED_TARGET_COOLDOWN_SECONDS * 20L) return;
             double distSq = self.distanceToSqr(attacker);
             if (distSq > 16 * 16) return;
-            
+
             self.getPersistentData().putString(FORCED_TARGET_UUID_KEY, attacker.getUUID().toString());
             self.getPersistentData().putLong(LAST_FORCED_SWITCH_TICK_KEY, now);
         }
     }
 
-    
     private static boolean isDamageAdaptationInvulnerable(LivingEntity entity) {
         var entityId = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         var config = DamageAdaptationManager.getConfig(entityId);

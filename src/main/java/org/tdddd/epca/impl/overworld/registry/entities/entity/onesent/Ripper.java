@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.onesent;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.world.entity.animal.feline.Ocelot;
 import net.minecraft.world.entity.animal.rabbit.Rabbit;
 import net.minecraft.world.entity.animal.panda.Panda;
@@ -54,8 +57,6 @@ import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.data.HiveLeaderManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IOnesent;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
@@ -74,7 +75,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnesent, Enemy {
+public class Ripper extends PathfinderMob implements GeoEntity, Enemy {
 
     @Override
     public boolean onClimbable() {
@@ -107,10 +108,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return new GroundPathNavigation(this, level);
     }
 
-    // 26.1.2: MobType and Mob#getMobType() no longer exist. Undead classification is
-    // data-driven through the vanilla #minecraft:undead entity_type tag, so these mobs need
-    // that tag in a datapack (see the shared change request).
-
     public enum Variant {
         DEFAULT,
         BLEED,
@@ -132,9 +129,9 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     private int jumpCooldown = 0;
     private static final int CLIMB_COOLDOWN_TICKS = 200;
     private int climbCooldown = 0;
-    /** Ripper count below which a Ripper actively flees non-Nest-Leader players. */
+
     private static final int EVADE_NON_LEADER_MAX_RIPPER_COUNT = 3;
-    /** Ticks between two recomputations of {@link #cachedNearbyRipperCount} (throttle). */
+
     private static final int RIPPER_COUNT_CACHE_TICKS = 15;
     private int cachedNearbyRipperCount = 1;
     private int nearbyRipperCountCacheTicker = 0;
@@ -155,7 +152,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
@@ -163,7 +159,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         entityData.define(DATA_IS_LEAPING, false);
     }
 
-    
     public Variant getVariant() {
         Integer variantOrdinal = this.entityData.get(DATA_VARIANT);
         if (variantOrdinal == null) {
@@ -196,7 +191,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    
     public void setLeaping(boolean leaping) {
         this.entityData.set(DATA_IS_LEAPING, leaping);
     }
@@ -209,7 +203,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         this.leapDirectionTicks = ticks;
     }
 
-    
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 10.0D)
@@ -221,7 +214,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                 .build();
     }
 
-    
     public static boolean checkRupterSpawnRules(
             EntityType<Ripper> entityType,
             ServerLevelAccessor levelAccessor,
@@ -238,14 +230,10 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return levelAccessor.getMaxLocalRawBrightness(pos) < 8;
     }
 
-    
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        // Priority 0: while fewer than 3 Rippers are nearby, fleeing a non-Nest-Leader player
-        // outranks every other movement goal (panic/climb/leap at 1, stroll at 2,
-        // follow/melee at 3, beckon at 4, float at 5). It stops on its own as soon as the
-        // local Ripper count reaches 3, restoring all normal behaviour.
+
         this.goalSelector.addGoal(0, new AvoidNonLeaderPlayersGoal(this));
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
@@ -314,13 +302,13 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
         private boolean findClimbableWall() {
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-            
+
             for (int dx = -5; dx <= 5; dx++) {
                 for (int dz = -5; dz <= 5; dz++) {
                     pos.set(ripper.blockPosition().offset(dx, 0, dz));
                     BlockState state = ripper.level().getBlockState(pos);
                     if (state.isSolid() && ripper.level().getBlockState(pos.above()).isAir()) {
-                        
+
                         wallBase = pos.immutable();
                         return true;
                     }
@@ -332,7 +320,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         @Override
         public void start() {
             if (wallBase != null) {
-                
+
                 Vec3 targetPos = new Vec3(wallBase.getX() + 0.5, wallBase.getY(), wallBase.getZ() + 0.5);
                 ripper.getNavigation().moveTo(targetPos.x, targetPos.y, targetPos.z, 1.2);
             }
@@ -340,7 +328,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
         @Override
         public boolean canContinueToUse() {
-            
+
             return !ripper.isNearWall() &&
                     ripper.getTarget() != null &&
                     ripper.getTarget().isAlive() &&
@@ -354,7 +342,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    
     @Override
     public void tick() {
         super.tick();
@@ -402,7 +389,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                         e -> e != null &&
                                 e.isAlive() &&
                                 e != this &&
-                                !IParasite.isParasiteByTagOrInterface(e)
+                                !ParasiteEvents.isParasiteByTagOrInterface(e)
                 )) {
                     applyViralEffect(entity);
                 }
@@ -504,7 +491,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         if (distanceSqr > 9.0) {
             return false;
         }
-        if (IParasite.isParasiteByTagOrInterface(target)) {
+        if (ParasiteEvents.isParasiteByTagOrInterface(target)) {
             return false;
         }
         return super.canAttack(target);
@@ -520,7 +507,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                 case VIRAL -> applyViralEffect(livingTarget);
             }
             if (!this.level().isClientSide()) {
-                if (!(livingTarget instanceof Ripper) && !IParasite.isParasiteByTagOrInterface(livingTarget)) {
+                if (!(livingTarget instanceof Ripper) && !ParasiteEvents.isParasiteByTagOrInterface(livingTarget)) {
                     alertNearbyRupters(livingTarget);
                 }
             }
@@ -531,24 +518,22 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker) {
-            if (shouldIgnoreDamageFrom(attacker)) {
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
                 return false;
             }
         }
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
+        boolean result = super.hurtServer(level, source, amount);
         if (!this.level().isClientSide() && result && source.getEntity() instanceof LivingEntity attacker) {
-            if (!IParasite.isParasiteByTagOrInterface(attacker)) {
+            if (!ParasiteEvents.isParasiteByTagOrInterface(attacker)) {
                 alertNearbyRupters(attacker);
             }
         }
         return result;
     }
 
-    
     private void applyBleedingEffect(LivingEntity target) {
         MobEffectInstance existingEffect = target.getEffect(ModEffects.BLEEDING);
         int newAmplifier = 0;
@@ -577,13 +562,12 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         ));
     }
 
-    
     private void checkPassiveEntityContact() {
         List<Entity> entities = this.level().getEntities(this, this.getBoundingBox());
         for (Entity entity : entities) {
             if (entity instanceof LivingEntity living &&
                     entity.isAlive() &&
-                    !IParasite.isParasiteByTagOrInterface(living) &&
+                    !ParasiteEvents.isParasiteByTagOrInterface(living) &&
                     isPassiveOrNeutral(living) &&
                     !isAggressiveUtilityMob(living) &&
                     para_curseCloudCooldown <= 0) {
@@ -622,7 +606,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    
     private boolean isPassiveOrNeutral(LivingEntity entity) {
         return entity instanceof Animal ||
                 entity instanceof Villager ||
@@ -642,7 +625,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     private boolean isAggressiveUtilityMob(LivingEntity entity) {
         return entity instanceof IronGolem ||
                 entity instanceof SnowGolem ||
-                IParasite.isParasiteByTagOrInterface(entity);
+                ParasiteEvents.isParasiteByTagOrInterface(entity);
     }
 
     private void alertNearbyRupters(LivingEntity target) {
@@ -657,7 +640,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         )) {
             if (rupter.getTarget() == null || !rupter.getTarget().isAlive()) {
                 rupter.setTarget(target);
-            } else if (rupter.getTarget() instanceof Ripper || IParasite.isParasiteByTagOrInterface(rupter.getTarget())) {
+            } else if (rupter.getTarget() instanceof Ripper || ParasiteEvents.isParasiteByTagOrInterface(rupter.getTarget())) {
                 rupter.setTarget(target);
             }
         }
@@ -685,15 +668,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         ).size();
     }
 
-    /**
-     * Throttled, server-side view of {@link #getNearbyRupterCount()} used by every goal that needs
-     * the local pack size.
-     *
-     * <p>The entity lookup is refreshed at most once every {@link #RIPPER_COUNT_CACHE_TICKS} ticks
-     * instead of once per goal query per tick, so the cost stays bounded no matter how many goals
-     * ask for it. The counting Ripper is part of its own bounding-box query, so a lone Ripper
-     * reports 1 and is therefore below {@link #EVADE_NON_LEADER_MAX_RIPPER_COUNT}.</p>
-     */
     private int getCachedNearbyRipperCount() {
         if (--this.nearbyRipperCountCacheTicker > 0) {
             return this.cachedNearbyRipperCount;
@@ -706,7 +680,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return this.cachedNearbyRipperCount;
     }
 
-    /** True while this Ripper is outnumbered, i.e. fewer than 3 Rippers are nearby. */
     private boolean isBelowRipperPackThreshold() {
         return this.getCachedNearbyRipperCount() < EVADE_NON_LEADER_MAX_RIPPER_COUNT;
     }
@@ -732,11 +705,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6;
     }
 
-    /**
-     * Target filter for {@link AvoidNonLeaderPlayersGoal}: only players who are not Nest Leaders
-     * are avoided. Nest Leaders stay exempt, which matches the rest of the mod, where
-     * {@code IParasite.isParasiteByTagOrInterface} treats every Nest Leader as friendly.
-     */
     private boolean isNonLeaderPlayer(LivingEntity entity) {
         if (!(entity instanceof Player player)) {
             return false;
@@ -747,7 +715,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return !HiveLeaderManager.isHiveLeader(player.getUUID());
     }
 
-    
     static class MoveToPassiveGoal extends Goal {
         public final Ripper rupter;
         private final double speedModifier;
@@ -812,7 +779,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
             if (entity == null ||
                     !entity.isAlive() ||
                     entity == rupter ||
-                    IParasite.isParasiteByTagOrInterface(entity) ||
+                    ParasiteEvents.isParasiteByTagOrInterface(entity) ||
                     (entity instanceof Player player && !(player.isCreative() || player.isSpectator())) ||
                     rupter.isAggressiveUtilityMob(entity)) {
                 return false;
@@ -875,7 +842,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                 return false;
             }
             return entity != rupter &&
-                    !IParasite.isParasiteByTagOrInterface(entity) &&
+                    !ParasiteEvents.isParasiteByTagOrInterface(entity) &&
                     !(entity instanceof Creeper) &&
                     EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity);
         }
@@ -899,17 +866,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    /**
-     * Active only while fewer than 3 Rippers are nearby: the Ripper runs away from any player who
-     * is not a Nest Leader ({@code HiveLeaderManager.isHiveLeader(UUID)}). Nest Leaders are never
-     * avoided, and once the local pack reaches 3 Rippers the goal stops on its own and every other
-     * goal behaves exactly as before.
-     *
-     * <p>Built on the vanilla {@link AvoidEntityGoal} (avoid-predicate constructor) so the vanilla
-     * flee pathing, sprint and line-of-sight handling are reused instead of re-implemented. The
-     * walking speed follows the Ripper's existing panic flee speed (1.5D walk / 1.5D sprint); its
-     * base MOVEMENT_SPEED attribute is 0.3D, see {@code Ripper#setAttributes()}.</p>
-     */
     static class AvoidNonLeaderPlayersGoal extends AvoidEntityGoal<Player> {
         private final Ripper rupter;
 
@@ -951,7 +907,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         private static final Predicate<LivingEntity> TARGET_PREDICATE = entity -> {
             if (entity == null || !entity.isAlive() || entity.isRemoved())
                 return false;
-            if (IParasite.isParasiteByTagOrInterface(entity) || entity instanceof Creeper) {
+            if (ParasiteEvents.isParasiteByTagOrInterface(entity) || entity instanceof Creeper) {
                 return false;
             }
             if (entity instanceof Animal ||
@@ -982,7 +938,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         protected void findTarget() {
             super.findTarget();
             if (target != null && (target instanceof Creeper ||
-                    IParasite.isParasiteByTagOrInterface(target))) {
+                    ParasiteEvents.isParasiteByTagOrInterface(target))) {
                 target = null;
             }
         }
@@ -1009,7 +965,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
 
         @Override
         public boolean canUse() {
-            
+
             if (rupter.isClimbing()) {
                 return false;
             }
@@ -1023,7 +979,7 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
                 return false;
             }
             if (target instanceof Creeper ||
-                    IParasite.isParasiteByTagOrInterface(target)) {
+                    ParasiteEvents.isParasiteByTagOrInterface(target)) {
                 return false;
             }
             if (leapCooldown > 0) {
@@ -1120,11 +1076,10 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    
     private boolean isNearWall() {
         AABB bb = this.getBoundingBox();
         AABB expanded = bb.inflate(0.05);
-        
+
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             BlockPos neighbor = this.blockPosition().relative(dir);
             BlockState state = this.level().getBlockState(neighbor);
@@ -1141,7 +1096,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return false;
     }
 
-    
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         AnimationController<Ripper> controller = new AnimationController<>("controller", EpcaAnimations.GEO_TRANSITION_TICKS, event -> {
@@ -1171,7 +1125,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return this.factory;
     }
 
-    
     @Override
     protected SoundEvent getDeathSound() {
         return ModSoundEvents.RIPPER_DEATH.get();
@@ -1182,7 +1135,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         return ModSoundEvents.RIPPER_HUNT.get();
     }
 
-    
     public Identifier getTextureResource() {
         switch (getVariant()) {
             case BLEED:
@@ -1194,7 +1146,6 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
         }
     }
 
-    
     private static boolean isAprilFoolsDay() {
         return LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
     }
@@ -1218,17 +1169,14 @@ public class Ripper extends PathfinderMob implements GeoEntity, IParasite, IOnes
     @Override
     public void die(DamageSource source) {
         super.die(source);
-        this.onDeath(source);
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
         if (!this.level().isClientSide()) {
-            IParasite.super.onKillEntity(killedEntity);
+            ParasiteEvents.onKillEntity(this, killedEntity);
         }
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
         return true;
     }

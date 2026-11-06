@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/**
- * Client-side registry for model behaviors and render layers.
- * Allows entities to register custom model animations or additional render layers.
- */
 public class EpcaRenderRegistry {
 
     @FunctionalInterface

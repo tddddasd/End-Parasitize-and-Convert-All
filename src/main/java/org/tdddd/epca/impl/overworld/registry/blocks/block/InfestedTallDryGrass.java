@@ -13,15 +13,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 
-/**
- * Infested tall dry grass (虫染高枯草丛).
- *
- * <p>Despite the name it is a <b>one block high</b> plant, exactly like
- * {@link InfestedShortDryGrass} and exactly like the vanilla {@code minecraft:tall_dry_grass},
- * whose own blockstate is a plain single {@code minecraft:block/cross} model. It is <b>not</b> a
- * {@link InfestedDoublePlantBlock} and has no {@code half} property. Only the registry id, the
- * texture and the model differ from the short variant.
- */
 public class InfestedTallDryGrass extends BushBlock implements InfestedBlockInterface {
     protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
 

@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -30,8 +33,6 @@ import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
@@ -52,7 +53,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
 import java.util.EnumSet;
 
-public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
+public class InfestedBat extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH =
             SynchedEntityData.defineId(InfestedBat.class, EntityDataSerializers.BOOLEAN);
@@ -60,10 +61,9 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
             SynchedEntityData.defineId(InfestedBat.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_CURRENT_STATE =
             SynchedEntityData.defineId(InfestedBat.class, EntityDataSerializers.INT);
-    
+
     private static final EntityDataAccessor<Boolean> DATA_IS_RESTING =
             SynchedEntityData.defineId(InfestedBat.class, EntityDataSerializers.BOOLEAN);
-    // ==================================
 
     public enum BatState {
         IDLE,
@@ -120,9 +120,9 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         entityData.define(DATA_IS_FAKING_DEATH, false);
         entityData.define(DATA_IS_INVULNERABLE, false);
         entityData.define(DATA_CURRENT_STATE, BatState.IDLE.ordinal());
-        
+
         entityData.define(DATA_IS_RESTING, false);
-        // ===========================
+
     }
 
     public BatState getCurrentState() {
@@ -153,7 +153,6 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         this.entityData.set(DATA_IS_INVULNERABLE, invulnerable);
     }
 
-    
     public boolean isResting() {
         return this.entityData.get(DATA_IS_RESTING);
     }
@@ -194,7 +193,6 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         }
         return true;
     }
-    // ========================================
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
@@ -202,7 +200,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
             return false;
         }
         if (source.getEntity() instanceof LivingEntity attacker) {
-            if (shouldIgnoreDamageFrom(attacker)) {
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
                 return false;
             }
         }
@@ -215,18 +213,15 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
 
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-        return result;
+        return super.hurtServer(level, source, amount);
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
         if (!this.level().isClientSide()) {
-            IParasite.super.onKillEntity(killedEntity);
+            ParasiteEvents.onKillEntity(this, killedEntity);
             this.addEffect(new MobEffectInstance(
                     MobEffects.REGENERATION,
                     60,
@@ -261,7 +256,7 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
             int minKills = 0;
             if (minKills > 0) {
                 int currentDeaths = 0;
-                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
+                if (false) {
                     ;
                     this.setHealth(this.getMaxHealth());
                     return;
@@ -271,16 +266,13 @@ public class InfestedBat extends PathfinderMob implements GeoEntity, IParasite, 
 
         if (this.isOnFire()) {
             super.die(source);
-            this.onDeath(source);
             return;
         }
 
         if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 1.0f) {
             triggerFakeDeath(source);
-            this.onDeath(source);
         } else {
             super.die(source);
-            this.onDeath(source);
         }
     }
 
@@ -371,7 +363,7 @@ this.discard();
                             Math.sin(pitch),
                             Math.sin(yaw) * Math.cos(pitch)
                     ).normalize();
-                    flyTimer = 40 + this.random.nextInt(40); 
+                    flyTimer = 40 + this.random.nextInt(40);
                 } else {
                     flyTimer--;
                 }

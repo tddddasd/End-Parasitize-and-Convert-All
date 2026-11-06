@@ -12,15 +12,14 @@ import org.tdddd.epca.impl.network.packet.s2c.SyncNoteTabsPacket;
 
 @EventBusSubscriber(modid = epca.MODID)
 public class ServerNoteEvents {
-    
+
     @SubscribeEvent
     public static void onServerStarting(ServerStartingEvent event) {
-        
+
         EPCANoteTabData.reloadFromServerResources(event.getServer());
-        
+
     }
 
-    
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {

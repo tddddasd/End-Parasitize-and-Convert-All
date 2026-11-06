@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.client.DifficultyScreenHandler;
 
-
 @Mixin(CreateWorldScreen.class)
 public class CreateWorldScreenMixin {
 

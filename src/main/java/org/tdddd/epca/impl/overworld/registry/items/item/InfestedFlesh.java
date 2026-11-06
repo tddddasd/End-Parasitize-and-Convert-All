@@ -14,27 +14,26 @@ public class InfestedFlesh extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(5)  
-                .saturationModifier(0.1F)  
+                .nutrition(5)
+                .saturationModifier(0.1F)
                 .build();
     }
 
     private static Consumable createConsumable() {
-        // 26.1.2: food effects moved from FoodProperties.Builder#effect(...) (deleted)
-        // to the CONSUMABLE data component, applied on consume with the same probability.
+
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.PARA_CURSE,  
-                        15 * 20,  
-                        0  
-                ), 0.7F))  
+                        ModEffects.PARA_CURSE,
+                        15 * 20,
+                        0
+                ), 0.7F))
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        MobEffects.POISON,  
-                        5 * 20,  
-                        0  
-                ), 0.9F))  
+                        MobEffects.POISON,
+                        5 * 20,
+                        0
+                ), 0.9F))
                 .build();
     }
 }

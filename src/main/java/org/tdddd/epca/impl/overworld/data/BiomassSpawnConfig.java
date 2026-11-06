@@ -10,12 +10,12 @@ public class BiomassSpawnConfig {
     public List<SpawnEntry> getLandSpawns() { return land_spawns; }
 
     public static class SpawnEntry {
-        private String entity;               
-        private int weight;                   
-        private int min_count;                 
-        private int max_count;                 
-        private int life_time;                 
-        private List<EffectEntry> effects;     
+        private String entity;
+        private int weight;
+        private int min_count;
+        private int max_count;
+        private int life_time;
+        private List<EffectEntry> effects;
 
         public String getEntity() { return entity; }
         public int getWeight() { return weight; }
@@ -26,12 +26,12 @@ public class BiomassSpawnConfig {
     }
 
     public static class EffectEntry {
-        private String effect;                 
-        private int duration;                   
-        private int amplifier;                   
-        private boolean ambient;                 
-        private boolean visible;                  
-        private boolean icon;                     
+        private String effect;
+        private int duration;
+        private int amplifier;
+        private boolean ambient;
+        private boolean visible;
+        private boolean icon;
 
         public String getEffect() { return effect; }
         public int getDuration() { return duration; }

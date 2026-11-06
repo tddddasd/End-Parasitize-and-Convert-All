@@ -37,15 +37,6 @@ public class InfestedBatRenderer extends EpcaGeoRenderer<InfestedBat> {
         super(renderManager, new InfestedBatModel());
     }
 
-    /**
-     * 26.1.2: the GeckoLib 4 {@code render(entity, entityYaw, )} override is gone (the pipeline
-     * is extract-then-submit now). The resting flip and the {@code LEAVING} sprint pose this
-     * class used to apply to the pose stack before calling {@code super.render()} move to
-     * {@link EpcaGeoRenderer#adjustRenderPose}, the GeckoLib 5 hook that runs inside the render
-     * pass with the same pose stack, so the transform order is unchanged.
-     *
-     * <p>{@code RenderPassInfo} is raw for the reason documented on {@link EpcaGeoRenderer}.</p>
-     */
     @SuppressWarnings("rawtypes")
     @Override
     public void adjustRenderPose(RenderPassInfo passInfo) {

@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.mixin.client;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -11,16 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
-/**
- * Skips rendering a parasite the camera cannot see.
- *
- * <p>Verified against the 26.1.2 jar:
- * {@code EntityRenderDispatcher.shouldRender(E, Frustum, double, double, double)}. Pure client side: no
- * entity data is touched and the server is unaffected, so despawn, targeting and hitboxes behave exactly
- * as before.</p>
- */
 @Mixin(EntityRenderDispatcher.class)
 public abstract class ParasiteOcclusionMixin {
 
@@ -28,7 +20,7 @@ public abstract class ParasiteOcclusionMixin {
     private void epca$cullHiddenParasite(Entity entity, Frustum frustum,
                                          double camX, double camY, double camZ,
                                          CallbackInfoReturnable<Boolean> cir) {
-        if (!(entity instanceof IParasite)) {
+        if (!ParasiteEvents.isParasiteEntity(entity)) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();

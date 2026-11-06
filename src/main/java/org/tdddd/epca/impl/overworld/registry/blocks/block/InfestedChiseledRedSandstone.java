@@ -48,7 +48,6 @@ public class InfestedChiseledRedSandstone extends Block implements InfestedBlock
         return Blocks.STONE.getSoundType(Blocks.STONE.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {

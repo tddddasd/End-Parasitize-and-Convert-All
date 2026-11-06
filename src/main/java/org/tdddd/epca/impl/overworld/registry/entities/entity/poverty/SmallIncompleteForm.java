@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.poverty;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -19,8 +22,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
-import org.tdddd.epca.impl.overworld.registry.entities.IPoverty;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
@@ -36,7 +37,7 @@ import com.geckolib.animation.RawAnimation;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.util.GeckoLibUtil;
 
-public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IParasite, IPoverty, Enemy {
+public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int particleCooldown = 0;
     private static final int MIN_PARTICLE_INTERVAL = 20;
@@ -47,21 +48,20 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         this.xpReward = 5;
         var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
         if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
-        
+
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 9.0D) 
-                .add(Attributes.MOVEMENT_SPEED, 0.15D) 
-                .add(Attributes.ATTACK_DAMAGE, 5.0D) 
-                .add(Attributes.FOLLOW_RANGE, 16.0D) 
+                .add(Attributes.MAX_HEALTH, 9.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.15D)
+                .add(Attributes.ATTACK_DAMAGE, 5.0D)
+                .add(Attributes.FOLLOW_RANGE, 16.0D)
                 .build();
     }
 
@@ -70,7 +70,7 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         super.registerGoals();
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
-        
+
         this.goalSelector.addGoal(5, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
@@ -89,12 +89,12 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
                 particleCooldown--;
             } else {
                 generateParticles();
-                
+
                 particleCooldown = this.random.nextInt(MAX_PARTICLE_INTERVAL - MIN_PARTICLE_INTERVAL + 1) + MIN_PARTICLE_INTERVAL;
             }
         }
         if (!this.level().isClientSide()) {
-            
+
             updateFloating();
         }
     }
@@ -129,7 +129,7 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         }
     }
     private void generateParticles() {
-        
+
         if (!this.level().isClientSide()) return;
 
         ParticleOptions particle = ModParticles.SPLASHI.get();
@@ -143,27 +143,24 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             this.level().addParticle(
                     particle,
                     x, y, z,
-                    0, -0.15, 0  
+                    0, -0.15, 0
             );
         }
     }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -193,7 +190,7 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return ModSoundEvents.INCOMPLETE_FORM_DEATH.get();
     }
     public static boolean checkSmallIncompleteFormSpawnRules(
@@ -203,7 +200,7 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
 
@@ -212,7 +209,7 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -220,7 +217,7 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -230,24 +227,22 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     @Override
     public void die(DamageSource source) {
         super.die(source);
-        this.onDeath(source); 
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        
+
         if (!this.level().isClientSide()) {
-            
-            IParasite.super.onKillEntity(killedEntity);
+
+            ParasiteEvents.onKillEntity(this, killedEntity);
         }
     }
     private int floatingTime;
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
             this.floatingTime++;
@@ -262,7 +257,7 @@ public class SmallIncompleteForm extends PathfinderMob implements GeoEntity, IPa
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));

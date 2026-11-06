@@ -1,6 +1,5 @@
 package org.tdddd.epca.impl.events;
 
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -34,12 +33,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @EventBusSubscriber(modid = epca.MODID)
 public class InfestedLilyPadHandler {
-    
+
     private static final Map<UUID, BlockPos> PLAYER_LAST_LILY = new ConcurrentHashMap<>();
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
-        
 
         for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
             Level level = player.level();
@@ -48,11 +46,9 @@ public class InfestedLilyPadHandler {
             UUID uuid = player.getUUID();
             BlockPos lastPos = PLAYER_LAST_LILY.get(uuid);
 
-            
             AABB boundingBox = player.getBoundingBox().inflate(0.05);
             BlockPos foundLilyPos = null;
 
-            
             int minX = (int) Math.floor(boundingBox.minX);
             int minY = (int) Math.floor(boundingBox.minY);
             int minZ = (int) Math.floor(boundingBox.minZ);
@@ -77,14 +73,14 @@ public class InfestedLilyPadHandler {
 
             if (foundLilyPos != null) {
                 if (lastPos == null || !lastPos.equals(foundLilyPos)) {
-                    
+
                     if (level.getRandom().nextFloat() < 0.5f) {
                         level.destroyBlock(foundLilyPos, false);
                     }
                     PLAYER_LAST_LILY.put(uuid, foundLilyPos);
                 }
             } else {
-                
+
                 if (lastPos != null) {
                     PLAYER_LAST_LILY.remove(uuid);
                 }
@@ -94,40 +90,37 @@ public class InfestedLilyPadHandler {
 
     @SubscribeEvent
     public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
-        
+
         if (event.getEntity() == null || event.getEntity().level().isClientSide()) return;
         Level level = event.getEntity().level();
         if (!(level instanceof ServerLevel)) return;
 
         BlockState placedState = event.getPlacedBlock();
-        
+
         if (!placedState.is(Blocks.LILY_PAD)) return;
 
         BlockPos pos = event.getPos();
         BlockConversionManager manager = BlockConversionManager.getInstance();
 
-        
         BlockState infestedBelow = manager.findInfestedBlockBelow(level, pos, 7);
         if (infestedBelow == null) return;
 
-        
         Block targetBlock = manager.getTargetLilyPadBlock();
         if (targetBlock == null || targetBlock == Blocks.AIR) return;
 
-        
         BlockState newState = targetBlock.defaultBlockState();
 
         if (newState.hasProperty(InfestedLilyPad.NATURAL_SPAWN)) {
             newState = newState.setValue(InfestedLilyPad.NATURAL_SPAWN, true);
         }
 
-        event.setCanceled(true); 
-        level.setBlock(pos, newState, 3); 
+        event.setCanceled(true);
+        level.setBlock(pos, newState, 3);
     }
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        
+
         if (event.getSide().isClient()) return;
 
         Player player = event.getEntity();
@@ -140,14 +133,13 @@ public class InfestedLilyPadHandler {
         Direction face = event.getFace();
         if (face == null) return;
 
-        
         BlockState targetState = level.getBlockState(targetPos);
         FluidState fluid = targetState.getFluidState();
         boolean isWaterSource = fluid.getType() == Fluids.WATER && fluid.isSource();
 
         BlockPos placePos;
         if (isWaterSource) {
-            
+
             if (face == Direction.UP) {
                 placePos = targetPos.above();
             } else {
@@ -155,12 +147,12 @@ public class InfestedLilyPadHandler {
                 return;
             }
         } else {
-            
+
             if (face == Direction.UP) {
-                
+
                 placePos = targetPos.above(2);
             } else if (face.getAxis().isHorizontal()) {
-                
+
                 placePos = targetPos.relative(face).above();
             } else {
                 event.setCanceled(true);
@@ -168,37 +160,32 @@ public class InfestedLilyPadHandler {
             }
         }
 
-        
         if (!isValidPlacement(level, placePos)) {
             event.setCanceled(true);
             return;
         }
 
-        
         BlockState newState = ((InfestedLilyPad) blockItem.getBlock()).defaultBlockState()
                 .setValue(InfestedLilyPad.NATURAL_SPAWN, false);
         level.setBlock(placePos, newState, 3);
         sendInfestedPacketToClients((ServerLevel) level, targetPos, true);
 
-        
         SoundType soundType = newState.getSoundType(level, placePos, player);
         level.playSound(null, placePos, soundType.getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
 
-        
         if (!player.isCreative()) {
             stack.shrink(1);
         }
 
-        
         event.setCanceled(true);
     }
 
     private static boolean isValidPlacement(Level level, BlockPos pos) {
-        
+
         BlockState below = level.getBlockState(pos.below());
         FluidState fluid = below.getFluidState();
         if (fluid.getType() != Fluids.WATER || !fluid.isSource()) return false;
-        
+
         return level.getBlockState(pos).isAir();
     }
 

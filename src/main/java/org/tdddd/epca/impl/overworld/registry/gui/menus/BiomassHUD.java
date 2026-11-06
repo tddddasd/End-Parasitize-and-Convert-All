@@ -44,13 +44,10 @@ public class BiomassHUD {
         int iconX = foodX + 81;
         int iconY = foodY;
 
-        // 26.1.2: GuiGraphics#blit(Identifier, x, y, u, v, w, h, texW, texH) gained a leading RenderPipeline and
-        // the texture is bound by the extraction, so RenderSystem#setShaderTexture(...) is gone.
         gui.blit(RenderPipelines.GUI_TEXTURED, ICON, iconX, iconY, 0.0F, 0.0F, 9, 9, 9, 9);
         String pointsText = String.valueOf(points);
         gui.text(mc.font, pointsText, iconX + 12, iconY + 1, 0xFFFFFF);
 
-        // 26.1.2: CompoundTag#getLong returns Optional<Long>; getLongOr keeps the 1.20.1 default of 0.
         long currentTick = mc.player.level().getGameTime();
         long beckonCooldownTick = mc.player.getPersistentData().getLongOr("BeckonPlaceCooldown", 0L);
         long beckonRemaining = Math.max(0, (beckonCooldownTick + BECKON_COOLDOWN_TICKS - currentTick));
@@ -129,7 +126,6 @@ public class BiomassHUD {
         int trackerX = baseX + 20;
         int trackerY = baseY;
 
-        // 26.1.2: GuiGraphics#pose() returns a Matrix3x2fStack (pushMatrix/popMatrix, 2D transforms only).
         var pose = gui.pose();
         pose.pushMatrix();
         pose.translate(trackerX, trackerY);

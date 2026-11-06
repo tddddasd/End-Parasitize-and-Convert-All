@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
@@ -19,8 +22,6 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PlaceBeckonCoreGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.PriorityTargetGoal;
@@ -34,30 +35,29 @@ import com.geckolib.animation.RawAnimation;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.util.GeckoLibUtil;
 
-public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
+public class WalkingHuskHead extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private int ambientSoundTime;
-    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20; 
-    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20; 
+    private static final int MIN_AMBIENT_SOUND_DELAY = 5 * 20;
+    private static final int MAX_AMBIENT_SOUND_DELAY = 8 * 20;
 
     public WalkingHuskHead(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
-        
+
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     public static AttributeSupplier setAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 5.2D) 
-                .add(Attributes.MOVEMENT_SPEED, 0.28D) 
-                .add(Attributes.ATTACK_DAMAGE, 3.5D) 
+                .add(Attributes.MAX_HEALTH, 5.2D)
+                .add(Attributes.MOVEMENT_SPEED, 0.28D)
+                .add(Attributes.ATTACK_DAMAGE, 3.5D)
                 .add(Attributes.FOLLOW_RANGE, 16.0D)
                 .build();
     }
@@ -67,7 +67,7 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
         super.registerGoals();
         this.goalSelector.addGoal(4, new PlaceBeckonCoreGoal(this));
         this.goalSelector.addGoal(5, new GoToBeckonCoreGoal(this));
-        
+
         this.goalSelector.addGoal(5, new FloatGoal(this));
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
@@ -84,12 +84,12 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
         if (!this.level().isClientSide()) {
             if (this.getTarget() == null) {
                 if (--this.ambientSoundTime <= 0) {
-                    
+
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
                     playAmbientSound();
                 }
             }
-            
+
             updateFloating();
         }
     }
@@ -105,26 +105,23 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return ModSoundEvents.WALKING_HEAD_DEATH.get();
     }
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -132,23 +129,23 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
     }
 
     private PlayState animationPredicate(AnimationTest<WalkingHuskHead> event) {
-        
+
         boolean inWater = this.isInWater();
 
         if (inWater) {
             if (event.isMoving()) {
-                
+
                 event.setAnimation(RawAnimation.begin().thenLoop("walk_water"));
             } else {
-                
+
                 event.setAnimation(RawAnimation.begin().thenLoop("idle_water"));
             }
         } else {
             if (event.isMoving()) {
-                
+
                 event.setAnimation(RawAnimation.begin().thenLoop("walk_husk"));
             } else {
-                
+
                 event.setAnimation(RawAnimation.begin().thenLoop("idle_husk"));
             }
         }
@@ -163,9 +160,9 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
-            
+
             int stage = EvolutionManager.getStageForDimension(level.getLevel());
             if (stage < 2 || stage > 4) {
                 return false;
@@ -175,7 +172,7 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -183,7 +180,7 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -198,15 +195,14 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
     @Override
     public void die(DamageSource source) {
         super.die(source);
-        this.onDeath(source); 
     }
     private int floatingTime;
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
             this.floatingTime++;
@@ -221,7 +217,7 @@ public class WalkingHuskHead extends PathfinderMob implements GeoEntity, IParasi
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));

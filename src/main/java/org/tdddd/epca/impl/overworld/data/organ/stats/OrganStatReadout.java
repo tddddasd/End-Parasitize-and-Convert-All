@@ -10,92 +10,36 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *  {@link OrganStatSummary} <b></b>SPEC C8  / C9
- *
- * <p>
- * STAGE 3  {@link OrganStatSummary}
- * </p>
- *
- * <h2></h2>
- * <p>{@code maxLines} <b></b>
- *  {@code }</p>
- * <ul>
- *   <li>SPEC C8  + STAGE A  /
- *
- *       <b></b> +
- *        0 </li>
- *   <li><b></b> {@link #damageLines}</li>
- * </ul>
- * <p> +  12  {@value #DEFAULT_STATS_MAX_LINES}
- * </p>
- *
- * <p>1.20.1 -&gt; 26.1.2 {@link Component}  {@link Registry}
- *  26.1.2 {@code Component.literal} / {@code Component#getString}
- *  1.20.1 </p>
- */
 public final class OrganStatReadout {
 
-    /**
-     *
-     *
-     * <p>STAGE A  7  9 9  + 3 = <b>12</b>
-     *  12 {@code STATS_MAX_LINES}
-     * 12  10  12</p>
-     */
     public static final int DEFAULT_STATS_MAX_LINES = 12;
-    /**  */
+
     public static final int DEFAULT_DAMAGE_MAX_LINES = 10;
-    /**
-     * <b></b>
-     *
-     * <p>/{@link #damageLines} </p>
-     */
+
     public static final int DAMAGE_LINE_COUNT = 2;
-    /**  */
+
     public static final String ELLIPSIS = "…";
 
     private OrganStatReadout() {
     }
 
-
-    /**
-     * <b></b> /  /  /
-     *
-     * <p> {@code Component.translatable}
-     *  {@code impl.overworld.data.organ.stats} +
-     * {@code HiveLeaderOrganScreen}
-     *  {@link Component} </p>
-     *
-     * <p> {@link Component}  {@code String} +  +
-     *  {@link Component}
-     *  {@code " {0}"}</p>
-     */
     public interface ReadoutLabels {
 
-        /** {@code health} / {@code armor} / {@code armor_toughness} /  */
         Component attributeName(String attributeKey);
 
-        /**  */
         Component sourcePurple();
 
-        /**  */
         Component sourceTorsoInner();
 
-        /**  */
         Component sourceHeadInner();
 
-        /**  1  */
         Component adaptationChance();
 
-        /**  2  */
         Component adaptationReduction();
 
-        /**  */
         Component percentUnit();
     }
 
-    /**  debug  */
     private static final ReadoutLabels FALLBACK_LABELS = new ReadoutLabels() {
         @Override
         public Component attributeName(String attributeKey) {
@@ -133,63 +77,36 @@ public final class OrganStatReadout {
         }
     };
 
-    //  C8
-
-    /**  */
     public static List<String> statsLines(@Nullable LivingEntity entity, OrganStatSummary summary) {
         return statsLines(entity, summary, DEFAULT_STATS_MAX_LINES);
     }
 
-    /**  */
     public static List<String> statsLines(@Nullable LivingEntity entity, OrganStatSummary summary,
                                          int maxLines) {
         return statsLines(entity, summary, maxLines, FALLBACK_LABELS);
     }
 
-    /**  */
     public static List<String> statsLines(@Nullable LivingEntity entity, OrganStatSummary summary,
                                          int maxLines, ReadoutLabels labels) {
         OrganStatSummary safe = summary == null ? OrganStatSummary.empty() : summary;
         ReadoutLabels text = labels == null ? FALLBACK_LABELS : labels;
         List<String> all = new ArrayList<>();
 
-        // SPEC C8 +  SPEC  + STAGE A
         for (String key : OrganStatSummary.STAT_ATTRIBUTE_KEYS) {
             double current = OrganStatSummary.currentAttributeValue(entity, key);
             double bonus = safe.bonusFor(key);
-            //  C8  +
+
             all.add(text.attributeName(key).getString()
                     + " " + OrganStatDefaults.format(current)
                     + "（" + OrganStatDefaults.formatSigned(bonus) + "）");
         }
 
-        // **** 0  lang 2
-        //  OrganStatProfile#describeNonZero() Map  toString
-        //  ` {health=2, armor=1}`  Java map
         appendSourceLine(all, text.sourcePurple(), safe.purpleBonus(), text);
         appendSourceLine(all, text.sourceTorsoInner(), safe.torsoInnerBonus(), text);
         appendSourceLine(all, text.sourceHeadInner(), safe.headInnerBonus(), text);
         return trim(all, maxLines);
     }
 
-    /**
-     * {@code   +  + }
-     *
-     * <ul>
-     *   <li> {@link ReadoutLabels#attributeName(String)}
-     *       {@code epca.organ_gui.attribute.<key>.name}
-     *       {@link OrganStatDefaults#formatSigned(double)} 2 </li>
-     *   <li> {@link OrganStatSummary#STAT_ATTRIBUTE_KEYS}
-     *       {@code minimum_damage} / {@code adaptation_reduction}
-     *
-     *        {@code entity_gravity} </li>
-     *   <li> 2  0  {@code describeNonZero()} </li>
-     *   <li><b> 0 </b> {@code  {}} </li>
-     * </ul>
-     *
-     * <p> {@link #trim(List, int)}
-     *  {@code }</p>
-     */
     private static void appendSourceLine(List<String> out, Component label,
                                          OrganStatProfile profile, ReadoutLabels text) {
         if (profile == null) return;
@@ -206,7 +123,6 @@ public final class OrganStatReadout {
         out.add(label.getString() + " " + builder);
     }
 
-    /**  0 */
     private static double attributeDelta(OrganStatProfile profile, String attributeKey) {
         return switch (attributeKey) {
             case "health" -> profile.health();
@@ -218,57 +134,22 @@ public final class OrganStatReadout {
             case "swim_speed" -> profile.swimSpeed();
             case "attack_range" -> profile.attackRange();
             case "block_reach" -> profile.blockReach();
-            // entity_gravity  STAT_ATTRIBUTE_KEYS
+
             default -> 0.0D;
         };
     }
 
-    //  C9
-
-    /** SPEC C9{@code registry}  null */
     public static List<String> damageLines(OrganStatSummary summary,
                                            @Nullable Registry<DamageType> registry) {
         return damageLines(summary, registry, DEFAULT_DAMAGE_MAX_LINES);
     }
 
-    /**
-     * <b></b>
-     *
-     * <ol>
-     *   <li>{@code  100%}  SPEC C9  100%</li>
-     *   <li>{@code  30%}  SPEC C9
-     *       STAGE A <b></b>
-     *       {@code (  )}
-     *        {@link OrganStatSummary#compute}  {@code outerShareWeight}
-     *        {@code adaptation_reduction} </li>
-     * </ol>
-     *
-     * <p><b></b>2
-     * <b></b>
-     * 40t<b></b>
-     *  2 </p>
-     *
-     * <p> {@link OrganStatSummary}
-     * STAGE 3 </p>
-     *
-     * <p>{@code maxLines}  1
-     *  {@link OrganStatDefaults#format(double)} 2 </p>
-     *
-     * @param registry
-     */
     public static List<String> damageLines(OrganStatSummary summary,
                                            @Nullable Registry<DamageType> registry,
                                            int maxLines) {
         return damageLines(summary, registry, maxLines, FALLBACK_LABELS);
     }
 
-    /**
-     *
-     *
-     * <p> {@link OrganStatDefaults#formatPercent(double)}
-     *  {@link ReadoutLabels#percentUnit()}
-     *  2 /</p>
-     */
     public static List<String> damageLines(OrganStatSummary summary,
                                            @Nullable Registry<DamageType> registry,
                                            int maxLines, ReadoutLabels labels) {
@@ -285,11 +166,6 @@ public final class OrganStatReadout {
         return trim(all, Math.min(maxLines, DAMAGE_LINE_COUNT));
     }
 
-
-    /**
-     *  {@code \n}
-     *
-     */
     private static List<String> trim(List<String> lines, int maxLines) {
         if (maxLines <= 0) return List.of();
         List<String> flattened = new ArrayList<>();
@@ -304,15 +180,12 @@ public final class OrganStatReadout {
         return trimmed;
     }
 
-    /**  */
     public static List<String> statsLines(@Nullable LivingEntity entity, @Nullable HiveLeaderOrganData data) {
         return statsLines(entity, OrganStatSummary.compute(data));
     }
 
-    /**  */
     public static List<String> damageLines(@Nullable HiveLeaderOrganData data,
                                            @Nullable Registry<DamageType> registry) {
         return damageLines(OrganStatSummary.compute(data), registry);
     }
 }
-

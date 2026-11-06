@@ -13,25 +13,25 @@ public class ParasiteViscera extends Item {
     }
 
     private static FoodProperties createFoodProperties() {
-        
+
         return new FoodProperties.Builder()
-                .nutrition(1)  
-                .saturationModifier(0.0F)  
+                .nutrition(1)
+                .saturationModifier(0.0F)
                 .build();
     }
 
     private static Consumable createConsumable() {
         return Consumable.builder()
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.PARA_CURSE,  
-                        30 * 20,  
-                        0  
-                ), 0.95F))  
+                        ModEffects.PARA_CURSE,
+                        30 * 20,
+                        0
+                ), 0.95F))
                 .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(
-                        ModEffects.VIRAL,  
-                        5 * 20,  
-                        0  
-                ), 0.2F))  
+                        ModEffects.VIRAL,
+                        5 * 20,
+                        0
+                ), 0.2F))
                 .build();
     }
 }

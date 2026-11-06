@@ -15,12 +15,6 @@ import org.tdddd.epca.impl.overworld.raid.InfestedRaidBarrierData;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Server to client: replace the client's whole set of raid barriers.
- *
- * <p>A full state replace (rather than add/remove deltas) keeps the client in sync after a restart, a
- * dimension change or an expiry without needing sequence numbers.</p>
- */
 public class RaidBarrierS2CPacket implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<RaidBarrierS2CPacket> TYPE =
             new CustomPacketPayload.Type<>(ModNetwork.id("raid_barriers"));
@@ -68,7 +62,6 @@ public class RaidBarrierS2CPacket implements CustomPacketPayload {
         ctx.enqueueWork(() -> ClientRaidBarriers.replace(packet.barriers));
     }
 
-    /** Pushes the current barrier set of one level to everyone in it. */
     public static void sync(ServerLevel level, InfestedRaidBarrierData data) {
         PacketDistributor.sendToPlayersInDimension(level, new RaidBarrierS2CPacket(data.all()));
     }

@@ -12,12 +12,12 @@ import net.minecraft.world.item.ItemStack;
 public class LivingArmorAdaptation {
     private static final EquipmentSlot[] ARMOR_SLOTS =
             new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-    private static final int MAX_ADAPTATIONS_PER_PIECE = 9; 
-    private static final float ADAPTATION_REDUCTION_PER_STACK = 0.0125f; 
-    private static final float MAX_REDUCTION = 0.45f; 
+    private static final int MAX_ADAPTATIONS_PER_PIECE = 9;
+    private static final float ADAPTATION_REDUCTION_PER_STACK = 0.0125f;
+    private static final float MAX_REDUCTION = 0.45f;
 
     public static float getLimitedDamage(Player player, DamageSource source, float damage) {
-        
+
         if (isFireDamage(source)) {
             return damage;
         }
@@ -29,9 +29,8 @@ public class LivingArmorAdaptation {
         return Math.min(damage, Math.max(reducedDamage, minDamage));
     }
 
-    
     public static void addAdaptation(ItemStack armorStack) {
-        // 26.1.2: item NBT is replaced by the minecraft:custom_data component.
+
         int currentCount = getAdaptationCountForArmor(armorStack);
 
         if (currentCount < MAX_ADAPTATIONS_PER_PIECE) {
@@ -40,13 +39,11 @@ public class LivingArmorAdaptation {
         }
     }
 
-    
     public static int getAdaptationCountForArmor(ItemStack armorStack) {
         CompoundTag tag = armorStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         return tag.getIntOr("AdaptationCount", 0);
     }
 
-    
     public static int getTotalAdaptationCount(Player player) {
         int total = 0;
         for (EquipmentSlot slot : ARMOR_SLOTS) {
@@ -58,13 +55,11 @@ public class LivingArmorAdaptation {
         return total;
     }
 
-    
     public static float getDamageReduction(Player player) {
         int adaptationCount = getTotalAdaptationCount(player);
         return Math.min(adaptationCount * ADAPTATION_REDUCTION_PER_STACK, MAX_REDUCTION);
     }
 
-    
     public static int getLivingArmorCount(Player player) {
         int count = 0;
         for (EquipmentSlot slot : ARMOR_SLOTS) {
@@ -76,9 +71,8 @@ public class LivingArmorAdaptation {
         return count;
     }
 
-    
     public static boolean isFireDamage(DamageSource source) {
-        
+
         return source.is(DamageTypeTags.IS_FIRE);
     }
 }

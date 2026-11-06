@@ -9,7 +9,6 @@ import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.ui.JadeUI;
 
-/** Shows a hive node's stored biomass as "current / 64". */
 public class HiveNodeBiomassCountProvider implements IBlockComponentProvider {
 
     public static final HiveNodeBiomassCountProvider INSTANCE = new HiveNodeBiomassCountProvider();

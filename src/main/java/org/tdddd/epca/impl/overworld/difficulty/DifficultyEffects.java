@@ -6,19 +6,17 @@ import org.tdddd.epca.impl.overworld.data.WorldDifficultyData;
 
 public class DifficultyEffects {
 
-    
     public static DifficultyLevel getEffectiveDifficulty(Level level) {
         if (level.isClientSide()) return DifficultyLevel.NORMAL;
         WorldDifficultyData data = WorldDifficultyData.get((ServerLevel) level);
         DifficultyLevel diff = data.getDifficulty();
         if (diff == DifficultyLevel.CUSTOM) {
-            
+
             return data.getCustomBaseDifficulty();
         }
         return diff;
     }
 
-    
     public static float getSpawnRateMultiplier(Level level) {
         if (level.isClientSide()) return 1.0f;
         WorldDifficultyData data = WorldDifficultyData.get((ServerLevel) level);
@@ -28,9 +26,6 @@ public class DifficultyEffects {
         return 1.0f;
     }
 
-    
-    
-    
     public static boolean isRewardEnabled(Level level) {
         if (level.isClientSide()) return true;
         WorldDifficultyData data = WorldDifficultyData.get((ServerLevel) level);
@@ -38,11 +33,10 @@ public class DifficultyEffects {
         if (diff == DifficultyLevel.CUSTOM) {
             return data.isCustomRewardEnabled();
         }
-        
+
         return true;
     }
 
-    
     public static float getParasiteStatMultiplier(Level level) {
         DifficultyLevel diff = getEffectiveDifficulty(level);
         return switch (diff) {
@@ -68,7 +62,6 @@ public class DifficultyEffects {
         };
     }
 
-    
     public static float getExtraLootChance(Level level) {
         if (!isRewardEnabled(level)) return 0f;
         DifficultyLevel diff = getEffectiveDifficulty(level);
@@ -85,7 +78,6 @@ public class DifficultyEffects {
         return diff == DifficultyLevel.MASTER ? 1.5f : 1.0f;
     }
 
-    
     public static boolean shouldDropLoot(Level level) {
         DifficultyLevel diff = getEffectiveDifficulty(level);
         if (diff == DifficultyLevel.EASY && level.getRandom().nextFloat() < 0.25f) {

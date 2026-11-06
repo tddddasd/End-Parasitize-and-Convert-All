@@ -6,20 +6,16 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.RandomSource;
 import org.joml.Matrix4fc;
 
-
 public final class PurpleLightningGeometry implements SubmitNodeCollector.CustomGeometryRenderer {
 
-    
     public static final float VANILLA_RED = 0.45F;
     public static final float VANILLA_GREEN = 0.45F;
     public static final float VANILLA_BLUE = 0.5F;
 
-    
     public static final float PURPLE_RED = 0.8F;
     public static final float PURPLE_GREEN = 0.2F;
     public static final float PURPLE_BLUE = 1.0F;
 
-    
     private static final float BOLT_ALPHA = 0.3F;
 
     private final long seed;
@@ -27,7 +23,6 @@ public final class PurpleLightningGeometry implements SubmitNodeCollector.Custom
     private final float green;
     private final float blue;
 
-    
     public PurpleLightningGeometry(long seed) {
         this(seed, PURPLE_RED, PURPLE_GREEN, PURPLE_BLUE);
     }
@@ -109,7 +104,6 @@ public final class PurpleLightningGeometry implements SubmitNodeCollector.Custom
         }
     }
 
-    
     private static void quad(Matrix4fc pose, VertexConsumer buffer,
                              float xo0, float zo0, int h, float xo1, float zo1,
                              float boltRed, float boltGreen, float boltBlue,

@@ -4,7 +4,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.common.util.ValueIOSerializable;
 
-
 public class ShieldCapability implements IShieldCapability, ValueIOSerializable {
     private float shield = 0.0f;
 

@@ -27,17 +27,17 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 
 public class ThrownDiamondSpear extends AbstractArrow {
-    private static final float CUSTOM_GRAVITY = 0.0325f; 
+    private static final float CUSTOM_GRAVITY = 0.0325f;
     private ItemStack spearItem;
     private boolean dealtDamage = false;
     private int returnTimer = 0;
-    private final boolean wasCreativeThrower; 
+    private final boolean wasCreativeThrower;
 
     public ThrownDiamondSpear(EntityType<? extends ThrownDiamondSpear> type, Level level) {
         super(type, level);
         this.spearItem = new ItemStack(ModItems.DIAMOND_SPEAR.get());
-        this.setNoGravity(true); 
-        this.wasCreativeThrower = false;   
+        this.setNoGravity(true);
+        this.wasCreativeThrower = false;
     }
 
     public ThrownDiamondSpear(Level level, LivingEntity shooter, ItemStack stack, boolean isCreative) {
@@ -45,20 +45,18 @@ public class ThrownDiamondSpear extends AbstractArrow {
         this.spearItem = stack.copy();
         this.setNoGravity(true);
         this.wasCreativeThrower = isCreative;
-        
+
         int fireAspect = enchantmentLevel(Enchantments.FIRE_ASPECT);
         if (fireAspect > 0) {
             this.igniteForSeconds(5.0F);
         }
     }
 
-    
     @Override
     protected ItemStack getDefaultPickupItem() {
         return new ItemStack(ModItems.DIAMOND_SPEAR.get());
     }
 
-    /** 26.1.2: enchantments are datapack registry entries, so a level lookup needs a Holder. */
     private int enchantmentLevel(ResourceKey<Enchantment> enchantment) {
         Holder<Enchantment> holder = this.level().registryAccess()
                 .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(enchantment);
@@ -67,16 +65,16 @@ public class ThrownDiamondSpear extends AbstractArrow {
 
     @Override
     public void tick() {
-        
+
         if (this.returnTimer > 0) {
             Entity owner = this.getOwner();
             if (owner instanceof Player player && !this.level().isClientSide()) {
-                    
+
                     if (!this.wasCreativeThrower) {
                         if (!player.getInventory().add(this.spearItem)) {
                             player.drop(this.spearItem, false);
                         } else {
-                            
+
                             this.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                                     SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, 1.0F);
                         }
@@ -88,16 +86,15 @@ public class ThrownDiamondSpear extends AbstractArrow {
             } else {
                 this.discard();
             }
-            return; 
+            return;
         }
         super.tick();
-        
+
         if (!this.isNoPhysics() && !this.isInGround() && this.returnTimer == 0) {
             Vec3 motion = this.getDeltaMovement();
             this.setDeltaMovement(motion.x, motion.y - CUSTOM_GRAVITY, motion.z);
         }
 
-        
         Vec3 motion = this.getDeltaMovement();
         if (!(motion.x == 0 && motion.z == 0 && motion.y == 0) && !this.isInGround() && this.returnTimer == 0) {
             float yaw = (float) (Math.atan2(motion.x, motion.z) * 180.0 / Math.PI);
@@ -109,12 +106,11 @@ public class ThrownDiamondSpear extends AbstractArrow {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
-        if (this.returnTimer > 0) return; 
+        if (this.returnTimer > 0) return;
         Entity target = result.getEntity();
         Entity shooter = this.getOwner();
         float damage = 8.0f;
 
-        
         int sharpness = enchantmentLevel(Enchantments.SHARPNESS);
         int smite = enchantmentLevel(Enchantments.SMITE);
         int bane = enchantmentLevel(Enchantments.BANE_OF_ARTHROPODS);
@@ -139,36 +135,34 @@ public class ThrownDiamondSpear extends AbstractArrow {
             }
             this.dealtDamage = true;
 
-            
             int loyalty = enchantmentLevel(Enchantments.LOYALTY);
             if (loyalty > 0) {
-                
+
                 this.returnTimer = 1;
-                this.setNoPhysics(true);  
-                this.setNoGravity(true);  
+                this.setNoPhysics(true);
+                this.setNoGravity(true);
                 this.setDeltaMovement(Vec3.ZERO);
-                
+
                 this.setInGround(false);
-                
+
             } else {
-                
+
                 this.setDeltaMovement(Vec3.ZERO);
                 this.setNoPhysics(false);
                 this.setInGround(false);
                 this.pickup = Pickup.ALLOWED;
                 this.setNoGravity(false);
-                // 26.1.2: AbstractArrow#setPierceLevel is private and has no public setter;
-                // the level is already 0 because this spear passes a null firedFromWeapon.
+
             }
         }
-        
+
     }
 
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        if (this.returnTimer > 0) return; 
-        super.onHitBlock(result); 
-        
+        if (this.returnTimer > 0) return;
+        super.onHitBlock(result);
+
         if (!wasCreativeThrower && !spearItem.isEmpty()) {
             Entity shooter = this.getOwner();
             if (shooter instanceof Player player) {
@@ -181,18 +175,17 @@ public class ThrownDiamondSpear extends AbstractArrow {
                 return;
             }
         }
-        
+
         int loyalty = enchantmentLevel(Enchantments.LOYALTY);
         if (loyalty > 0 && !this.dealtDamage) {
             this.returnTimer = 1;
-            
-            this.setNoPhysics(true);  
-            this.setNoGravity(true);  
+
+            this.setNoPhysics(true);
+            this.setNoGravity(true);
             this.setDeltaMovement(Vec3.ZERO);
             this.setInGround(false);
         } else {
-            
-            
+
             this.pickup = Pickup.ALLOWED;
         }
     }
@@ -205,7 +198,7 @@ public class ThrownDiamondSpear extends AbstractArrow {
     @Override
     public void playerTouch(Player player) {
         if (this.returnTimer > 0) return;
-        
+
         if (!this.level().isClientSide() && this.pickup == Pickup.ALLOWED) {
             if (this.wasCreativeThrower) return;
             if (player.getInventory().add(this.spearItem)) {
@@ -216,7 +209,6 @@ public class ThrownDiamondSpear extends AbstractArrow {
         }
     }
 
-    
     @Override
     public boolean isNoPhysics() {
         return this.returnTimer > 0;

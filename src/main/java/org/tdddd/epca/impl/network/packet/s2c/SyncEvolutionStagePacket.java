@@ -8,7 +8,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.ClientEvolutionData;
 import org.tdddd.epca.impl.network.ModNetwork;
 
-
 public class SyncEvolutionStagePacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncEvolutionStagePacket> TYPE =

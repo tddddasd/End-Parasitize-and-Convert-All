@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
 import org.tdddd.epca.impl.client.entity.IMotionAligned;
@@ -19,7 +20,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.block.state.BlockState;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.fluid.ModFluids;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -40,21 +40,21 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
         super.onHit(result);
 
         if (!this.level().isClientSide()) {
-            
+
             spawnAcidSolution(result.getLocation());
 
             if (result.getType() == HitResult.Type.ENTITY) {
                 EntityHitResult entityHit = (EntityHitResult) result;
                 Entity target = entityHit.getEntity();
 
-                if (target instanceof LivingEntity livingTarget && !IParasite.isParasiteByTagOrInterface(livingTarget)) {
-                    
+                if (target instanceof LivingEntity livingTarget && !ParasiteEvents.isParasiteByTagOrInterface(livingTarget)) {
+
                     livingTarget.hurtOrSimulate(livingTarget.damageSources().magic(), 4.0F);
                     for (EquipmentSlot slot : EquipmentSlot.values()) {
                         if (slot.isArmor()) {
                             ItemStack armor = livingTarget.getItemBySlot(slot);
                             if (!armor.isEmpty() && armor.isDamageableItem()) {
-                                
+
                                 int damageAmount = 16;
 
                                 armor.hurtAndBreak(damageAmount, livingTarget, slot);
@@ -75,7 +75,7 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
                         0.0, 0.5, 0.0);
             }
 
-            this.discard(); 
+            this.discard();
         }
     }
 
@@ -83,7 +83,7 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
         BlockPos pos = new BlockPos((int)location.x, (int)location.y, (int)location.z);
         BlockState currentState = this.level().getBlockState(pos);
         if (currentState.isAir() || currentState.canBeReplaced()) {
-            
+
             FluidState acidFluid = ModFluids.FLOWING_ACID_SOLUTION.get().getFlowing(7, false);
             BlockState fluidBlockState = acidFluid.createLegacyBlock();
             this.level().setBlock(pos, fluidBlockState, 3);
@@ -91,9 +91,9 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
             trySpreadAcid(pos.south());
             trySpreadAcid(pos.east());
             trySpreadAcid(pos.west());
-            trySpreadAcid(pos.below()); 
+            trySpreadAcid(pos.below());
         } else {
-            
+
             trySpreadAcid(pos.above());
             trySpreadAcid(pos.north());
             trySpreadAcid(pos.south());
@@ -105,7 +105,7 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
     private void trySpreadAcid(BlockPos pos) {
         BlockState currentState = this.level().getBlockState(pos);
         if (this.random.nextFloat() < 1.0f && (currentState.isAir() || currentState.canBeReplaced())) {
-            
+
             int fluidLevel = 7;
             FluidState acidFluid = ModFluids.FLOWING_ACID_SOLUTION.get().getFlowing(fluidLevel, false);
 
@@ -135,7 +135,7 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
         }
 
         if (this.level().isClientSide() && ticksInAir > 2) {
-            
+
             ParticleOptions particle = ParticleTypes.ITEM_SLIME;
             for (int i = 0; i < 2; i++) {
                 double offsetX = (this.random.nextDouble() - 0.5) * 0.1;
@@ -146,7 +146,7 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
                         this.getX() + offsetX,
                         this.getY() + offsetY,
                         this.getZ() + offsetZ,
-                        0.0, 0.0, 0.0); 
+                        0.0, 0.0, 0.0);
             }
             if (this.random.nextFloat() < 0.1f) {
                 for (int i = 0; i < 5; i++) {
@@ -164,21 +164,9 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
         }
     }
 
-    /**
-     * Deliberately empty: the acid bullet renders statically.
-     *
-     * <p>There is no {@code assets/epca/geckolib/animations/acid_bullet.animation.json}  not in
-     * the 26.1.2 tree and not in the 1.20.1 baseline either  so every {@code RawAnimation} stage a
-     * controller asked for would resolve to {@code null}. GeckoLib 5.5.2 then ends up with an
-     * empty stage list in {@code AnimationTimeline.create} and calls {@code List#getLast()} on it
-     * whenever the controller's transition length is non-zero, throwing
-     * {@code NoSuchElementException} while the render state is being extracted. Registering no
-     * controller is what keeps GeckoLib from ever building a timeline for this entity; the
-     * {@code EpcaGeoRenderer}/{@code EpcaGeoModel} model + texture still render normally.</p>
-     */
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        // no controllers: the acid bullet is a static model
+
     }
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -188,4 +176,3 @@ public class AcidBullet extends ThrowableProjectile implements GeoEntity, IMotio
         return this.cache;
     }
 }
-

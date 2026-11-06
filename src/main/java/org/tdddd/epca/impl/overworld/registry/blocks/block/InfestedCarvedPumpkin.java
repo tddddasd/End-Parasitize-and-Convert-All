@@ -75,24 +75,10 @@ public class InfestedCarvedPumpkin extends HorizontalDirectionalBlock implements
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        // Normal placement is enough (no sneak requirement); placing only puts down the
-        // plain block, it never spawns the physics pumpkin.
+
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    /**
-     * 26.1.2: {@code onRemove(state, level, pos, newState, moved)} was replaced by
-     * {@code affectNeighborsAfterRemoval(BlockState,ServerLevel,BlockPos,boolean)}, which drops the
-     * incoming state; "was this really replaced?" is read back from the level.
-     *
-     * <p>Kit 4: the {@code ModEntities.INFESTED_PUMPKIN_HEAD} spawn call that kit 2 had put here is
-     * gone together with that entity and its renderer.  This matches the original 1.20.1 behaviour
-     * (that version had no pumpkin-head mob at all), so destroying the carved pumpkin now only
-     * performs the neighbour updates below and then falls through to the vanilla block-break path:
-     * the block is removed, the loot table {@code data/epca/loot_table/blocks/infested_carved_pumpkin.json}
-     * decides the drop (the block itself), and the CARVED_PUMPKIN break sound/particles play.
-     * No entity is created and no extra drop is added or removed.</p>
-     */
     @Override
     public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
         if (!level.getBlockState(pos).is(state.getBlock())) {

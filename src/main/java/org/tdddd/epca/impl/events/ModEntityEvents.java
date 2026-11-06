@@ -23,11 +23,6 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 @EventBusSubscriber(modid = epca.MODID)
 public class ModEntityEvents {
 
-    /**
-     * All entity attributes are now routed through EpcaEntityManager.
-     * ModEntities.registerMobAttributes() adds each type  EpcaEntityManager.registerMobNoRender()
-     * stores the attribute supplier. Then this single call processes them all.
-     */
     @SubscribeEvent
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
         EpcaEntityManager.createAttributes(event);
@@ -97,5 +92,3 @@ public class ModEntityEvents {
         event.register(ModEntities.INFESTED_BAT.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedBat::checkInfestedBatSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
     }
 }
-
-

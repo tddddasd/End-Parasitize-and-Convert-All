@@ -7,7 +7,6 @@ import org.tdddd.epca.impl.overworld.raid.InfestedRaidBarrierData;
 
 import java.util.List;
 
-/** Client-side mirror of the raid barriers the server has told us about. */
 @OnlyIn(Dist.CLIENT)
 public final class ClientRaidBarriers {
     private static volatile List<InfestedRaidBarrierData.Barrier> barriers = List.of();
@@ -22,7 +21,6 @@ public final class ClientRaidBarriers {
         return barriers;
     }
 
-    /** Barriers that belong to the given dimension and have not expired yet. */
     public static List<InfestedRaidBarrierData.Barrier> activeIn(Identifier dimension) {
         long now = System.currentTimeMillis();
         return barriers.stream()

@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.events;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -12,7 +13,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 
 @EventBusSubscriber(modid = epca.MODID)
 public class InfestedBlockHandler {
@@ -21,7 +21,7 @@ public class InfestedBlockHandler {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
         if (entity == null || !entity.isAlive()) return;
 
-        if (IParasite.isParasiteByTagOrInterface(entity)) return;
+        if (ParasiteEvents.isParasiteByTagOrInterface(entity)) return;
 
         BlockPos pos = entity.getOnPos();
         BlockState state = entity.level().getBlockState(pos);

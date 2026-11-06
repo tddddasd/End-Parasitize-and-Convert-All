@@ -7,13 +7,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.tdddd.epca.impl.client.LikeBiomeClientEffects;
 
-/**
- * Lets a like biome recolour the sky.
- *
- * <p>Verified against the 26.1.2 client jar: the sky disc is drawn by
- * {@code SkyRenderer.renderSkyDisc(int)}, whose single argument is the sky colour packed as RGB. Replacing
- * that argument is the narrowest hook, and it only touches the disc, not the clouds or the sun/moon.</p>
- */
 @Mixin(SkyRenderer.class)
 public abstract class SkyRendererLikeBiomeMixin {
 

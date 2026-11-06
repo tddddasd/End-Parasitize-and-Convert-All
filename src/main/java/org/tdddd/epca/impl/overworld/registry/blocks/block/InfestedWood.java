@@ -35,10 +35,10 @@ public class InfestedWood extends Block implements InfestedBlockInterface {
 
     public InfestedWood(Properties properties) {
         super(properties);
-        
+
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(AXIS, Direction.Axis.Y)
-                .setValue(NATURAL_SPAWN, true)); 
+                .setValue(NATURAL_SPAWN, true));
     }
 
     @Override
@@ -52,7 +52,6 @@ public class InfestedWood extends Block implements InfestedBlockInterface {
         return simpleCodec(InfestedWood::new);
     }
 
-    
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
 
@@ -68,7 +67,7 @@ public class InfestedWood extends Block implements InfestedBlockInterface {
 
     @Override
     public SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
-        
+
         return Blocks.OAK_WOOD.getSoundType(Blocks.OAK_WOOD.defaultBlockState(), level, pos, entity);
     }
 
@@ -77,34 +76,32 @@ public class InfestedWood extends Block implements InfestedBlockInterface {
             super(block, properties);
         }
 
-        
         @Override
         public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType, net.minecraft.world.level.block.entity.FuelValues fuelValues) {
-            return 225; 
+            return 225;
         }
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 
     @Override
     public int getFlammability(BlockState state, BlockGetter level, BlockPos pos, Direction face) {
-        return 20;  
+        return 20;
     }
 
     @Override
     public int getFireSpreadSpeed(BlockState state, BlockGetter level, BlockPos pos, Direction face) {
-        return 5;   
+        return 5;
     }
 }

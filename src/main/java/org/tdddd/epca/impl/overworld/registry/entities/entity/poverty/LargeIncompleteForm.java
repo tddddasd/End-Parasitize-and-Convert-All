@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.poverty;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -27,8 +30,6 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.EpcaAnimations;
-import org.tdddd.epca.impl.overworld.registry.entities.IPoverty;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
@@ -47,7 +48,7 @@ import com.geckolib.animation.RawAnimation;
 import com.geckolib.animation.object.PlayState;
 import com.geckolib.util.GeckoLibUtil;
 
-public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IParasite, IPoverty, Enemy {
+public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_EXPLODING = SynchedEntityData.defineId(LargeIncompleteForm.class, EntityDataSerializers.BOOLEAN);
 
@@ -72,7 +73,6 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
         return true;
     }
@@ -125,9 +125,9 @@ public class LargeIncompleteForm extends PathfinderMob implements GeoEntity, IPa
         if (!this.level().isClientSide()) {
             Player nearestPlayer = this.level().getNearestPlayer(this, 64.0D);
             if (nearestPlayer == null) {
-                
+
                 if (this.tickCount % 5 != 0) {
-                    
+
                     updateFloating();
                     return;
                 }
@@ -168,7 +168,7 @@ this.discard();
         }
     }
     private void generateParticles() {
-        
+
         if (!this.level().isClientSide()) return;
 
         ParticleOptions particle = ModParticles.SPLASHI.get();
@@ -182,13 +182,13 @@ this.discard();
             this.level().addParticle(
                     particle,
                     x, y, z,
-                    0, -0.15, 0  
+                    0, -0.15, 0
             );
         }
     }
     private void executeExplosionEffects() {
         if (this.level() instanceof ServerLevel serverLevel) {
-            
+
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.BIG_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
@@ -205,7 +205,7 @@ this.discard();
                     10, 0.6, 0.4, 0.6, 0.3);
             AABB explosionArea = this.getBoundingBox().inflate(4.0);
             for (LivingEntity entity : this.level().getEntitiesOfClass(LivingEntity.class, explosionArea)) {
-                if (entity != null && entity.isAlive() && entity != this && !IParasite.isParasiteByTagOrInterface(entity)) {
+                if (entity != null && entity.isAlive() && entity != this && !ParasiteEvents.isParasiteByTagOrInterface(entity)) {
                     double distance = this.distanceTo(entity);
                     if (distance <= 4.0) {
                         float damage = 45.0F * (float)(1.0 - distance / 4.0);
@@ -278,14 +278,14 @@ this.discard();
     private void applyContactDamage() {
         if (!this.isAlive()) return;
         AABB contactArea = this.getBoundingBox().inflate(1.5);
-        double maxDistSq = 1.5 * 1.5; 
+        double maxDistSq = 1.5 * 1.5;
 
         for (LivingEntity entity : this.level().getEntitiesOfClass(LivingEntity.class, contactArea)) {
-            
-            if (entity == this || !entity.isAlive() || IParasite.isParasiteByTagOrInterface(entity)) {
+
+            if (entity == this || !entity.isAlive() || ParasiteEvents.isParasiteByTagOrInterface(entity)) {
                 continue;
             }
-            
+
             if (this.distanceToSqr(entity) <= maxDistSq) {
                 entity.hurtOrSimulate(this.damageSources().mobAttack(this), 3.0F);
 
@@ -327,19 +327,16 @@ this.discard();
         }
 
         if (source.getEntity() instanceof LivingEntity attacker) {
-            if (shouldIgnoreDamageFrom(attacker)) {
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
                 return false;
             }
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
 
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -372,7 +369,7 @@ this.discard();
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return ModSoundEvents.INCOMPLETE_FORM_DEATH.get();
     }
     @Override
@@ -387,7 +384,7 @@ this.discard();
             int minKills = 0;
             if (minKills > 0) {
                 int currentDeaths = 0;
-                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
+                if (false) {
                     ;
                     this.setHealth(this.getMaxHealth());
                     return;
@@ -397,16 +394,13 @@ this.discard();
 
         if (this.isOnFire()) {
             super.die(source);
-            this.onDeath(source);
             return;
         }
 
         if (!this.level().isClientSide() && this.getHealth() <= 0.0F) {
             triggerExplosionDeath(source);
-            this.onDeath(source);
         } else {
             super.die(source);
-            this.onDeath(source);
         }
     }
 
@@ -450,10 +444,9 @@ this.discard();
         return super.canRide(entity);
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
         if (!this.level().isClientSide()) {
-            IParasite.super.onKillEntity(killedEntity);
+            ParasiteEvents.onKillEntity(this, killedEntity);
         }
     }
     @Override
@@ -463,10 +456,10 @@ this.discard();
     private int floatingTime;
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
             this.floatingTime++;
@@ -481,7 +474,7 @@ this.discard();
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));

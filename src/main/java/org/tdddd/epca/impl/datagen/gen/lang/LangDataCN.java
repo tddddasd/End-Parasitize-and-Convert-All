@@ -11,23 +11,15 @@ public class LangDataCN extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        
+
         add("itemGroup." + epca.MODID + ".main_tab", "终末-归寄万物");
 
-        
         add("gamerule.epca_hardness_conversion_block", "根据硬度转化模组方块");
         add("gamerule.epca_hardness_conversion_block.description", "当模组方块没有转化配置映射时，是否允许根据硬度将其转化为虫染残渣、类岩、类板等方块");
-        // 26.1.2 resolves a game rule through its REGISTRY key: GameRule.getDescriptionId() is
-        // Util.makeDescriptionId("gamerule", getIdentifier()) = "gamerule.<namespace>.<path>", and
-        // GameRules.registerBoolean(String, ...) registers the rule via
-        // Registry.register(registry, name, rule) -> Identifier.parse(name), which defaults a bare
-        // name to the minecraft namespace. The rule therefore resolves to
-        // "gamerule.minecraft.epca_hardness_conversion_block" (+ ".description"). Both forms are
-        // shipped on purpose: 26.1.2 uses this namespaced pair, the 1.20.1 twin uses the bare pair.
+
         add("gamerule.minecraft.epca_hardness_conversion_block", "根据硬度转化模组方块");
         add("gamerule.minecraft.epca_hardness_conversion_block.description", "当模组方块没有转化配置映射时，是否允许根据硬度将其转化为虫染残渣、类岩、类板等方块");
 
-        
         add("tooltip.epca.max_damage_type", "最大受击倍率伤害类型: %s (\u00d7%s)");
         add("tooltip.epca.min_kill_count", "至少击杀数: %d");
         add("tooltip.epca.broken_adaptation_time", "破适应性剩余: %.1f秒");
@@ -42,11 +34,9 @@ public class LangDataCN extends LanguageProvider {
         add("tooltip.epca.negative", "负面：%s");
         add("tooltip.epca.item_proficiency", "熟练度: %d/%d [伤害 +%s%%]");
 
-        
         add("config.jade.plugin_epca.damage_adaptation_info", "伤害适应性信息");
         add("config.jade.plugin_epca.kill_count_info", "击杀计数信息");
 
-        
         add("advancements.epca.root.description", "末日的开始");
         add("advancements.epca.root.title", "如常？");
         add("advancements.epca.sense_of_crisis.title", "危机感");
@@ -54,10 +44,8 @@ public class LangDataCN extends LanguageProvider {
         add("advancements.epca.master_difficulty.title", "只奉给献的上的人...");
         add("advancements.epca.master_difficulty.description", "在未开启作弊的情况下进入困难模式-大师难度的世界");
 
-        
         add("biome.epca.parasite_biome", "寄生体生物群系");
 
-        
         add("item.epca.category.spawn_eggs", "\u00a7l刷怪蛋");
         add("item.epca.category.materials_gear", "\u00a7l材料与装备");
         add("item.epca.category.blocks", "\u00a7l方块");
@@ -67,11 +55,9 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.category_reshape", "种阶：重塑");
         add("item.epca.category_link", "种阶：连结");
 
-        
         add("epca.tab.parent.main_tab", "寄生体图鉴");
         add("epca.tab.child.onesent", "初探种");
 
-        
         add("entity.epca.yawning_nya.join", "\u00a7eYawning_Nya加入了世界");
         add("entity.epca.yawning_nya", "Yawning_Nya");
         add("entity.epca.curbug", "诅虫");
@@ -138,7 +124,6 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.infested_cave_spider_web_projectile", "虫染洞穴蜘蛛网团");
         add("entity.epca.infested_bat", "虫染蝙蝠");
 
-        
         add("entity.epca.thrown_wooden_spear", "木矛");
         add("entity.epca.thrown_stone_spear", "石矛");
         add("entity.epca.thrown_flint_spear", "燧石矛");
@@ -148,7 +133,6 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.thrown_diamond_spear", "钻石矛");
         add("entity.epca.thrown_netherite_spear", "下界合金矛");
 
-        
         add("effect.epca.bleeding", "流血");
         add("effect.epca.link", "连结");
         add("effect.epca.hyperplasia", "增生");
@@ -168,17 +152,14 @@ public class LangDataCN extends LanguageProvider {
         add("effect.epca.soul_protection", "灵魂格护");
         add("effect.epca.fear.message", "你正处于恐慌状态！");
 
-        // 视频设置滑动选项（碎块爆发）
         add("epca.option.gib_limit", "生物碎块数量");
         add("epca.option.gib_limit.max", "最大（无限）");
         add("epca.option.gib_multiplier", "碎块倍率（调试）");
 
-        // 虫染袭击
         add("effect.epca.infested_omen", "虫染不详之兆");
         add("epca.raid.bar", "虫染袭击 - 第 %s/%s 波");
         add("epca.raid.started", "虫染袭击开始了！");
 
-        
         add("item.epca.wooden_spear", "木矛");
         add("item.epca.stone_spear", "石矛");
         add("item.epca.flint_spear", "燧石矛");
@@ -188,7 +169,6 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.diamond_spear", "钻石矛");
         add("item.epca.netherite_spear", "下界合金矛");
 
-        
         add("item.epca.ripper_spawn_egg", "裂兽刷怪蛋");
         add("item.epca.curbug_spawn_egg", "诅虫刷怪蛋");
         add("item.epca.small_incomplete_form_spawn_egg", "小块未成形寄生体刷怪蛋");
@@ -210,6 +190,10 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.walking_villager_head_spawn_egg", "虫染村民头颅刷怪蛋");
         add("item.epca.infested_zombie_villager_spawn_egg", "虫染僵尸村民刷怪蛋");
         add("item.epca.walking_zombie_villager_head_spawn_egg", "虫染僵尸村民头颅刷怪蛋");
+        add("item.epca.infested_spider_spawn_egg", "虫染蜘蛛刷怪蛋");
+        add("item.epca.infested_cave_spider_spawn_egg", "虫染洞穴蜘蛛刷怪蛋");
+        add("item.epca.walking_spider_head_spawn_egg", "虫染蜘蛛头颅刷怪蛋");
+        add("item.epca.walking_cave_spider_head_spawn_egg", "虫染洞穴蜘蛛头颅刷怪蛋");
         add("item.epca.fins_spawn_egg", "鳍兽刷怪蛋");
         add("item.epca.infested_pig_spawn_egg", "虫染猪刷怪蛋");
         add("item.epca.walking_pig_head_spawn_egg", "虫染猪头颅刷怪蛋");
@@ -238,7 +222,6 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.walking_fox_head_spawn_egg", "虫染狐狸头颅刷怪蛋");
         add("item.epca.infested_bat_spawn_egg", "虫染蝙蝠刷怪蛋");
 
-        
         add("item.epca.parasite_viscera", "寄体内脏");
         add("item.epca.infested_bone", "虫染骨");
         add("item.epca.weird_minced_flesh", "怪异肉沫");
@@ -261,7 +244,6 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.living_armor_box_module", "盔甲盒模块");
         add("item.epca.infested_sweet_berries", "虫染甜浆果");
 
-        
         add("item.epca.living_armor_box.tooltip.storage_info", "存储信息:");
         add("item.epca.living_armor_box.tooltip.storage_space", "  %s/%s 个物品");
         add("item.epca.living_armor_box.tooltip.stored_items", "存储的物品:");
@@ -279,13 +261,11 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.living_armor_box.tooltip.state_equipped", "已装备");
         add("item.epca.living_armor_box.tooltip.state_unequipped", "未装备");
 
-        
         add("item.epca.living_helmet", "活体头盔");
         add("item.epca.living_chestplate", "活体胸甲");
         add("item.epca.living_leggings", "活体护腿");
         add("item.epca.living_boots", "活体靴子");
 
-        
         add("item.epca.acid_bucket", "酸液桶");
         add("item.epca.infested_rubbish", "虫染垃圾");
         add("item.epca.infested_stick", "虫染木棍");
@@ -305,7 +285,6 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.infested_ender_pearl", "虫染末影珍珠");
         add("item.epca.ender_blade_scrap", "影刃残片");
 
-        
         add("block.epca.infested_dirt", "虫染泥土");
         add("block.epca.hive_node", "虫巢节点");
         add("block.epca.infested_sand", "虫染沙子");
@@ -406,9 +385,7 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.infested_heavy_bricks_wall", "虫染重质砖墙");
         add("block.epca.infested_lily_pad", "虫染睡莲");
         add("block.epca.infested_carved_pumpkin", "虫染雕刻南瓜");
-        
-        
-        
+
         add("item.epca.infested_carved_pumpkin", "虫染雕刻南瓜");
         add("block.epca.infested_pumpkin", "虫染南瓜");
         add("block.epca.infested_moss_block", "\u866b\u67d3\u82d4\u85d3\u5757");
@@ -435,7 +412,6 @@ public class LangDataCN extends LanguageProvider {
         add("block.epca.acid_solution", "酸液");
         add("fluid_type.epca.acid_solution", "酸液");
 
-        
         add("commands.negativedamage.damage.success", "成功使用 %3$s 对 %1$s 造成了 %2$s 点伤害");
         add("commands.negativedamage.damage.success.unknown", "成功对 %1$s 造成了 %2$s 点伤害");
         add("commands.negativedamage.damage.success.simple", "对 %1$s 造成了 %2$s 点伤害");
@@ -447,7 +423,6 @@ public class LangDataCN extends LanguageProvider {
         add("commands.negativedamage.heal.success.simple", "对 %1$s 造成了 %2$s 点伤害");
         add("commands.negativedamage.no_entities", "未找到有效的生物实体");
 
-        
         add("epca.stage.-2", "世界结界完好无损");
         add("epca.stage.-1", "世界结界完好无损");
         add("epca.stage.0", "世界结界出现松动...");
@@ -465,7 +440,6 @@ public class LangDataCN extends LanguageProvider {
         add("epca.stage.12", "世界结界完整度<1%");
         add("epca.stage.13", "世界结界已完全损坏...");
 
-        
         add("epca.difficulty.button", "额外难度 - %s");
         add("epca.difficulty.easy", "简单");
         add("epca.difficulty.normal", "普通");
@@ -479,41 +453,30 @@ public class LangDataCN extends LanguageProvider {
         add("key.epca.follow", "寄生虫跟随");
         add("key.epca.follow_cancel", "取消寄生体跟随");
 
-        //   GUI + 26  1.20.1
-        // 26.1.2  KeyMapping.Category  Identifier
-        //   Category#label() = Component.translatable(id.toLanguageKey("key.category"))
-        //  epca:keys  lang  key.category.epca.keys
-        // 1.20.1  key.categories.epca  26.1.2
         add("key.category.epca.keys", "终末-归寄万物");
         add("key.epca.open_organs", "打开领巢者器官界面");
-        // STAGE B HiveLeaderOrganKeys#TELEPORT
+
         add("key.epca.organ_teleport", "器官瞬移（末影珍珠）");
-        //  HiveLeaderOrganKeys#DECOMPOSE_PARASITE
+
         add("key.epca.decompose_parasite", "分解寄生体（准星指向寄生体）");
         add("tag.epca.organ_part", "器官部位");
 
-        // zh_cn  en_us
         add("epca.organ_gui.title", "领巢者器官");
 
-        // %s =
         add("epca.organ_gui.biomass", "生物质：%s");
 
-        //  +
         add("epca.organ_gui.hint.drag", "拖动左键旋转模型");
         add("epca.organ_gui.hint.quick_move", "Shift 点击快速移动");
         add("epca.organ_gui.hint.transfer", "背包与槽位可互相搬运");
         add("epca.organ_gui.hint.close", "ESC 关闭");
         add("epca.organ_gui.hint.separator", "　·　");
 
-        //  /
         add("epca.organ_gui.waiting_data", "等待服务端槽位数据…");
         add("epca.organ_gui.model.none", "（无玩家模型）");
 
-        //  /
         add("epca.organ_gui.inventory", "背包");
         add("epca.organ_gui.hotbar", "快捷栏");
 
-        //  6  +  2  OrganSlotGroup
         add("epca.organ_gui.group.head", "头部");
         add("epca.organ_gui.group.torso", "躯干");
         add("epca.organ_gui.group.left_arm", "左臂");
@@ -523,9 +486,6 @@ public class LangDataCN extends LanguageProvider {
         add("epca.organ_gui.group.torso_inner", "躯干内部");
         add("epca.organ_gui.group.head_inner", "头部内部");
 
-        //  +
-        //  +  OrganStatDefaults  2
-        // STAGE A 7  9  /  en_us
         add("epca.organ_gui.attribute.health.name", "最大生命值");
         add("epca.organ_gui.attribute.armor.name", "护甲值");
         add("epca.organ_gui.attribute.armor_toughness.name", "盔甲韧性");
@@ -542,12 +502,9 @@ public class LangDataCN extends LanguageProvider {
         add("epca.organ_gui.readout.adaptation_reduction", "适应满减免");
         add("epca.organ_gui.readout.percent", "%");
 
-        
         add("epca.note.title", "寄巢笔记");
         add("epca.message.stage_too_low", "这里的侵蚀阶段小于3级...");
 
-        
-        
         add("altar_debug.epca.not_structure", "当前方块不属于任何有效祭坛结构");
         add("altar_debug.epca.pedestal_count", "总祭台数: %s");
         add("altar_debug.epca.pedestals_with_item", "有物品的祭台数: %s");
@@ -556,7 +513,6 @@ public class LangDataCN extends LanguageProvider {
         add("altar_debug.epca.status.invalid", "状态: 无效");
         add("altar_debug.epca.reason", "原因: %s");
 
-        
         add("ritual.epca.no_base", "献祭失败：祭坛下方需要信标底座方块（铁/金/钻石/绿宝石/下界合金块）");
         add("ritual.epca.no_gem", "献祭失败：祭台上需要放置钻石块、绿宝石块或紫水晶块");
         add("ritual.epca.parasite_present", "献祭失败：附近存在寄生体");
@@ -572,7 +528,6 @@ public class LangDataCN extends LanguageProvider {
         add("ritual.epca.cancelled", "仪式已取消（发起者离开了）");
         add("ritual.epca.resumed", "检测到未完成的献祭仪式，已从 %s%% 处继续");
 
-        
         add("epca.content.onesent",
                 "§l§0初探种§r\n$[page]$\n§0诅虫\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0上图中是一只诅虫。");
         add("epca.content.test3",

@@ -34,7 +34,7 @@ public class EntityIntegrationEvents {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH = Paths.get("config", "E-PCA", "entity_check_namespaces.json");
-    private static Set<String> checkedNamespaces = new HashSet<>(Collections.singletonList("epca")); 
+    private static Set<String> checkedNamespaces = new HashSet<>(Collections.singletonList("epca"));
     private static long lastConfigLoadTime = -1;
     private static final long CONFIG_RELOAD_INTERVAL = 1200;
 
@@ -91,11 +91,7 @@ public class EntityIntegrationEvents {
     }
 
     private static void checkWorldForIntegrations(ServerLevel level) {
-        // 26.1.2: the world-border collision box is far too large for the entity section index
-        // (section keys overflowed and EntitySectionStorage threw "Start element ... is larger than
-        // end element ..."). Iterating the level's loaded entities avoids the AABB math entirely.
-        // Only epca's own mobs can appear in an integration rule, so everything else is skipped here
-        // instead of being fed to every rule (each matching rule then does its own area query).
+
         List<Mob> allEntities = new java.util.ArrayList<>();
         for (Entity scanned : level.getAllEntities()) {
             if (scanned instanceof Mob mob && mob.isAlive()) {
@@ -188,7 +184,7 @@ public class EntityIntegrationEvents {
         if (event.getEntity() instanceof Mob mob &&
                 mob.level() instanceof ServerLevel serverLevel) {
             String entityId = getEntityId(mob);
-            
+
             String namespace = entityId.contains(":") ? entityId.split(":")[0] : "";
             if (checkedNamespaces.contains(namespace)) {
                 if (serverLevel.getGameTime() % 5 == 0) {

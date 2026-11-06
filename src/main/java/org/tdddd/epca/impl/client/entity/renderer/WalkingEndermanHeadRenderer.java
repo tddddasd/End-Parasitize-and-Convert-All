@@ -14,16 +14,6 @@ import org.tdddd.epca.impl.client.entity.layer.EndermanAfterimageLayer;
 import org.tdddd.epca.impl.client.entity.model.WalkingEndermanHeadModel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingEndermanHead;
 
-/**
- * Renderer for the walking enderman head.
- *
- * <h2>GeckoLib 4  5.5.2</h2>
- * <p>The deleted {@code render(...)} override did two things; both were re-expressed on GeckoLib 5
- * hooks: the carried entity is positioned through a
- * {@code RenderPassInfo.BonePositionListener} added in {@link #preRenderPass}, and the glow pass
- * became a {@link IGeoLayerProvider} that re-submits the model with
- * {@code RenderTypes.eyes(glowTexture)}.</p>
- */
 public class WalkingEndermanHeadRenderer extends EpcaGeoRenderer<WalkingEndermanHead> {
 
     private static final EndermanAfterimageLayer AFTERIMAGE_LAYER = new EndermanAfterimageLayer();
@@ -47,7 +37,6 @@ public class WalkingEndermanHeadRenderer extends EpcaGeoRenderer<WalkingEnderman
         }
     }
 
-    /** Glow overlay: the unstable variant renders again with its emissive texture. */
     private static final class GlowLayer implements IGeoLayerProvider {
         @Override
         public void submitLayer(RenderPassInfo passInfo, SubmitNodeCollector collector) {
@@ -67,4 +56,3 @@ public class WalkingEndermanHeadRenderer extends EpcaGeoRenderer<WalkingEnderman
         }
     }
 }
-

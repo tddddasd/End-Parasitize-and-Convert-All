@@ -65,7 +65,6 @@ public class EPCANoteTabData {
         }
     }
 
-    
     public static void reloadFromServerResources(MinecraftServer server) {
         ResourceManager resourceManager = server.getResourceManager();
         Map<Identifier, Resource> resources =
@@ -83,7 +82,6 @@ public class EPCANoteTabData {
         Map<String, ParentTab> parentMap = new LinkedHashMap<>();
         List<ParentTab> baseOrder = new ArrayList<>();
 
-        
         for (var loc : sorted) {
             String fileName = loc.getPath().substring(loc.getPath().lastIndexOf('/') + 1);
             if (fileName.endsWith("_add.json")) continue;
@@ -103,7 +101,6 @@ public class EPCANoteTabData {
             } catch (Exception ignored) {}
         }
 
-        
         for (var loc : sorted) {
             String fileName = loc.getPath().substring(loc.getPath().lastIndexOf('/') + 1);
             if (!fileName.endsWith("_add.json")) continue;
@@ -125,7 +122,6 @@ public class EPCANoteTabData {
         currentParentTabs = Collections.unmodifiableList(baseOrder);
     }
 
-    
     public static void writeParentTabList(FriendlyByteBuf buf, List<ParentTab> list) {
         buf.writeInt(list.size());
         for (ParentTab pt : list) {
@@ -169,7 +165,6 @@ public class EPCANoteTabData {
         return list;
     }
 
-    
     public static List<ParentTab> getCurrentTabs() {
         return currentParentTabs;
     }
@@ -178,7 +173,6 @@ public class EPCANoteTabData {
         currentParentTabs = Collections.unmodifiableList(new ArrayList<>(tabs));
     }
 
-    
     public static List<ParentTab> getVisibleTabsForPlayer() {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return getCurrentTabs();
@@ -221,10 +215,8 @@ public class EPCANoteTabData {
         AdvancementHolder advancement = advancements.get(id);
         if (advancement == null) return false;
 
-        
         try {
-            // 26.1.2: ClientAdvancements holds the progress map in the private field "progress"
-            // (1.20.1 called it "advancements") and exposes no public accessor for it.
+
             Field field = ClientAdvancements.class.getDeclaredField("progress");
             field.setAccessible(true);
             Map<AdvancementHolder, AdvancementProgress> progressMap =
@@ -232,7 +224,7 @@ public class EPCANoteTabData {
             AdvancementProgress progress = progressMap.get(advancement);
             return progress != null && progress.isDone();
         } catch (Exception e) {
-            
+
             return true;
         }
     }

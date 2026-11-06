@@ -14,17 +14,15 @@ import java.util.List;
 import java.util.Set;
 
 public class InfestedBlockSavedData extends SavedData {
-    /** 1.20.1 stored this as "epca_infested_blocks"; it stays a valid Identifier path. */
+
     private static final Identifier DATA_ID = Identifier.fromNamespaceAndPath("epca", "epca_infested_blocks");
 
-    /** Same X/Y/Z compound shape that the removed NbtUtils.writeBlockPos/readBlockPos used in 1.20.1. */
     private static final Codec<BlockPos> BLOCK_POS_CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.INT.fieldOf("X").forGetter(BlockPos::getX),
             Codec.INT.fieldOf("Y").forGetter(BlockPos::getY),
             Codec.INT.fieldOf("Z").forGetter(BlockPos::getZ)
     ).apply(i, BlockPos::new));
 
-    /** Legacy field name "blocks" kept, so an old data compound can be moved under {"data": ...} unchanged. */
     public static final Codec<InfestedBlockSavedData> CODEC = RecordCodecBuilder.create(i -> i.group(
             BLOCK_POS_CODEC.listOf().optionalFieldOf("blocks", List.of())
                     .forGetter(InfestedBlockSavedData::blockList)
@@ -37,7 +35,6 @@ public class InfestedBlockSavedData extends SavedData {
 
     public InfestedBlockSavedData() {}
 
-    /** Codec decode constructor. */
     private InfestedBlockSavedData(List<BlockPos> blocks) {
         for (BlockPos pos : blocks) {
             infestedBlocks.add(pos.immutable());

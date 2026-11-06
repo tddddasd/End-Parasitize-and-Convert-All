@@ -15,16 +15,13 @@ public class LivingHurtEventHandler {
     public static void onLivingHurt(LivingIncomingDamageEvent event) {
         LivingEntity entity = event.getEntity();
 
-        
         MobEffectInstance effectInstance = entity.getEffect(ModEffects.VIRAL);
         if (effectInstance == null) return;
 
         int amplifier = effectInstance.getAmplifier();
 
-        
         float damageMultiplier = 1.0f + (amplifier + 1) * 0.5f;
 
-        
         float originalDamage = event.getAmount();
         float newDamage = originalDamage * damageMultiplier;
         event.setAmount(newDamage);

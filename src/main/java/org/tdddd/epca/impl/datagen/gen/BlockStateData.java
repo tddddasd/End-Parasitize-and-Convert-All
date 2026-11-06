@@ -23,10 +23,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-
 public class BlockStateData extends ModelProvider {
 
-    
     private static final Set<String> MANUAL_BLOCKS = Set.of(
             "infested_dirt", "infested_log", "infested_stone", "infested_heavy_stone","infested_wood", "infested_stripped_wood",
             "infested_snow", "infested_spider_web", "infested_spider_web_blood", "infested_cave_spider_web",
@@ -46,8 +44,6 @@ public class BlockStateData extends ModelProvider {
         super(output, epca.MODID);
     }
 
-    
-
     @Override
     protected Stream<? extends Holder<Block>> getKnownBlocks() {
         return BuiltInRegistries.BLOCK.listElements()
@@ -57,8 +53,7 @@ public class BlockStateData extends ModelProvider {
 
     @Override
     protected Stream<? extends Holder<Item>> getKnownItems() {
-        
-        
+
         return BuiltInRegistries.ITEM.listElements()
                 .filter(holder -> holder.getKey().identifier().getNamespace().equals(epca.MODID))
                 .filter(holder -> holder.value() instanceof BlockItem blockItem && isGenerated(blockItem.getBlock()));
@@ -81,7 +76,7 @@ public class BlockStateData extends ModelProvider {
                 || block instanceof PressurePlateBlock
                 || block instanceof IronBarsBlock
                 || block instanceof BushBlock
-                || true; 
+                || true;
     }
 
     @Override
@@ -99,7 +94,6 @@ public class BlockStateData extends ModelProvider {
                 });
     }
 
-    
     private void generateBlock(BlockModelGenerators g, Block block) {
         if (block instanceof SlabBlock slab) {
             slabBlockWithItem(g, slab);
@@ -128,14 +122,11 @@ public class BlockStateData extends ModelProvider {
         } else if (block instanceof BushBlock) {
             crossBlockWithItem(g, block);
         } else {
-            
+
             simpleBlockWithItem(g, block);
         }
     }
 
-    
-
-    
     private Block findParentBlock(Block child, String... suffixes) {
         String childName = name(child);
         for (String suffix : suffixes) {
@@ -147,19 +138,15 @@ public class BlockStateData extends ModelProvider {
                 }
             }
         }
-        // fallback: use the child's own texture
+
         return child;
     }
 
-    
-
-    
     protected void simpleBlockWithItem(BlockModelGenerators g, Block block) {
         blockTextureModel(g, block, ModelTemplates.CUBE_ALL);
         g.registerSimpleItemModel(block, modelId(block));
     }
 
-    
     private void slabBlockWithItem(BlockModelGenerators g, SlabBlock slab) {
         Block fullBlock = findParentBlock(slab, "_slab");
         TextureMapping tex = TextureMapping.cube(blockTexture(fullBlock));
@@ -173,7 +160,6 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(slab, bottom);
     }
 
-    
     private void stairsBlockWithItem(BlockModelGenerators g, StairBlock stair) {
         Block fullBlock = findParentBlock(stair, "_stairs");
         TextureMapping tex = TextureMapping.cube(blockTexture(fullBlock));
@@ -187,7 +173,6 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(stair, straight);
     }
 
-    
     private void wallBlockWithItem(BlockModelGenerators g, WallBlock wall) {
         Block fullBlock = findParentBlock(wall, "_wall");
         Material tex = blockTexture(fullBlock);
@@ -203,7 +188,6 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(wall, inventory);
     }
 
-    
     private void fenceBlockWithItem(BlockModelGenerators g, FenceBlock fence) {
         Block plank = findParentBlock(fence, "_fence");
         Material tex = blockTexture(plank);
@@ -217,7 +201,6 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(fence, inventory);
     }
 
-    
     protected void logBlockWithItem(BlockModelGenerators g, Block block) {
         Material side = blockTexture(block);
         Material end = blockTexture(block, "_top");
@@ -228,24 +211,20 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(block, model);
     }
 
-    
     private void leavesBlockWithItem(BlockModelGenerators g, Block block) {
         blockTextureModel(g, block, ModelTemplates.LEAVES);
         g.registerSimpleItemModel(block, modelId(block));
     }
 
-    
     protected void crossBlockWithItem(BlockModelGenerators g, Block block) {
         TextureMapping mapping = TextureMapping.cross(blockTexture(block));
         Identifier model = ModelTemplates.CROSS.create(block, mapping, g.modelOutput);
         g.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(block,
                 BlockModelGenerators.plainVariant(model)));
-        
-        
+
         g.registerSimpleFlatItemModel(block);
     }
 
-    
     private void fenceGateBlockWithItem(BlockModelGenerators g, FenceGateBlock gate) {
         Block plank = findParentBlock(gate, "_fence_gate");
         Material tex = blockTexture(plank);
@@ -263,12 +242,10 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(gate, closed);
     }
 
-    
     private void doorBlockWithItem(BlockModelGenerators g, DoorBlock door) {
         g.createDoor(door);
     }
 
-    
     private void trapdoorBlockWithItem(BlockModelGenerators g, TrapDoorBlock trapdoor) {
         Block plank = findParentBlock(trapdoor, "_trapdoor");
         Material tex = blockTexture(plank);
@@ -283,7 +260,6 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(trapdoor, bottom);
     }
 
-    
     private void buttonBlockWithItem(BlockModelGenerators g, ButtonBlock button) {
         Block plank = findParentBlock(button, "_button");
         Material tex = blockTexture(plank);
@@ -297,7 +273,6 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(button, inventory);
     }
 
-    
     private void pressurePlateBlockWithItem(BlockModelGenerators g, PressurePlateBlock plate) {
         Block plank = findParentBlock(plate, "_pressure_plate");
         Material tex = blockTexture(plank);
@@ -310,14 +285,10 @@ public class BlockStateData extends ModelProvider {
         g.registerSimpleItemModel(plate, off);
     }
 
-    
     private void paneBlockWithItem(BlockModelGenerators g, IronBarsBlock pane) {
         g.createBarsAndItem(pane);
     }
 
-    
-
-    
     private void blockTextureModel(BlockModelGenerators g, Block block, ModelTemplate template) {
         TextureMapping mapping = TextureMapping.cube(blockTexture(block));
         template.create(block, mapping, g.modelOutput);
@@ -329,12 +300,10 @@ public class BlockStateData extends ModelProvider {
         return Objects.requireNonNull(BuiltInRegistries.BLOCK.getKey(block)).getPath();
     }
 
-    
     protected Material blockTexture(Block block) {
         return new Material(Identifier.fromNamespaceAndPath(epca.MODID, "block/" + name(block)));
     }
 
-    
     protected Material blockTexture(Block block, String suffix) {
         return new Material(Identifier.fromNamespaceAndPath(epca.MODID, "block/" + name(block) + suffix));
     }
@@ -343,7 +312,6 @@ public class BlockStateData extends ModelProvider {
         return Identifier.fromNamespaceAndPath(epca.MODID, "block/" + name(block));
     }
 
-    
     public static List<Block> generatedBlocks() {
         List<Block> result = new ArrayList<>();
         BuiltInRegistries.BLOCK.listElements()

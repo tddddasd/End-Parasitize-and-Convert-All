@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.events;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.Holder;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
@@ -17,7 +18,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedNetherseaBrandGrown;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedNetherseaBrandSolid;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
 import java.lang.reflect.Method;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -36,7 +36,7 @@ public class InfestedNetherseaBrandEventHandler {
             deductMethod = clazz.getMethod("execute", Entity.class, double.class);
             sanityAvailable = true;
         } catch (Exception e) {
-            // Ignore, sanity system not available
+
         }
     }
 
@@ -45,11 +45,10 @@ public class InfestedNetherseaBrandEventHandler {
         try {
             deductMethod.invoke(null, target, amount);
         } catch (Exception e) {
-            // Ignore
+
         }
     }
 
-    
     private static void removeEffect(Player player, String modid, String path) {
         Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.get(Identifier.fromNamespaceAndPath(modid, path)).orElse(null);
         if (effect != null) {
@@ -63,13 +62,12 @@ public class InfestedNetherseaBrandEventHandler {
         }
     }
 
-    
     @SubscribeEvent
     public static void onBlockBreak(BreakBlockEvent event) {
         BlockState state = event.getState();
         if (state.getBlock() instanceof InfestedNetherseaBrandGrown || state.getBlock() instanceof InfestedNetherseaBrandSolid) {
             LivingEntity livingEntity = event.getPlayer();
-            if (livingEntity != null && !(IParasite.isParasiteByTagOrInterface(livingEntity))) {
+            if (livingEntity != null && !(ParasiteEvents.isParasiteByTagOrInterface(livingEntity))) {
                 LevelAccessor levelAccessor = event.getLevel();
                 if (levelAccessor instanceof Level level) {
                     applySanityDamage(livingEntity, level, 16 + level.getRandom().nextInt(33));
@@ -78,36 +76,32 @@ public class InfestedNetherseaBrandEventHandler {
         }
     }
 
-    
     @SubscribeEvent
     public static void onPlayerEat(LivingEntityUseItemEvent.Finish event) {
         if (event.getEntity().level().isClientSide()) return;
         if (!(event.getEntity() instanceof Player player)) return;
 
-        
         if (event.getItem().getItem() == ModItems.INFESTED_NETHERSEA_ICECREAM.get()) {
             if (sanityAvailable) {
-                
+
                 var data = player.getPersistentData();
                 data.putInt("icecream_damage_remaining", 10);
                 data.putInt("icecream_damage_cooldown", 5);
             }
-            
+
             removeEffect(player, "caerula_arbor", "frozen");
             removeEffect(player, "epca", "deep_sneak");
 
             giveItem(player, new ItemStack(ModItems.RESHAPE_SHELL.get()));
 
-            return; 
+            return;
         }
 
-        
         if (event.getItem().getItem() == ModItems.INFESTED_NETHERSEA_BRAND_MOR.get() && sanityAvailable) {
             applySanityDamage(player, player.level(), 50.0);
         }
     }
 
-    
     @SubscribeEvent
     public static void onLivingTick(EntityTickEvent.Post event) {
         if (event.getEntity().level().isClientSide()) return;
@@ -116,7 +110,7 @@ public class InfestedNetherseaBrandEventHandler {
         var data = player.getPersistentData();
         int remaining = data.getInt("icecream_damage_remaining").orElse(0);
         if (remaining <= 0) {
-            
+
             if (data.contains("icecream_damage_remaining")) {
                 data.remove("icecream_damage_remaining");
                 data.remove("icecream_damage_cooldown");
@@ -124,18 +118,16 @@ public class InfestedNetherseaBrandEventHandler {
             return;
         }
 
-        
         int cooldown = data.getInt("icecream_damage_cooldown").orElse(0);
         cooldown--;
         if (cooldown <= 0) {
-            
+
             applySanityDamage(player, player.level(), 5.0);
             remaining--;
-            
+
             cooldown = 5;
         }
 
-        
         data.putInt("icecream_damage_remaining", remaining);
         data.putInt("icecream_damage_cooldown", cooldown);
     }

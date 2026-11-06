@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.poverty;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -25,7 +28,6 @@ import org.tdddd.epca.impl.overworld.registry.capability.LifetimeCapability;
 import org.tdddd.epca.impl.overworld.data.BiomassSpawnConfig;
 import org.tdddd.epca.impl.overworld.data.BiomassSpawnManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
 import com.geckolib.animatable.manager.AnimatableManager;
@@ -38,18 +40,18 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 
-public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite, Enemy {
+public class BiomassMedium extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Integer> TICK_COUNT = SynchedEntityData.defineId(BiomassMedium.class, EntityDataSerializers.INT);
     private static final RawAnimation SPAWN_ANIMATION = RawAnimation.begin().thenPlay("spawn");
     private static final RawAnimation BOOM_ANIMATION = RawAnimation.begin().thenPlay("boom");
     private static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenPlay("idle");
-    private static final int SPAWN_ANIMATION_DURATION = 10; 
-    private static final int TOTAL_LIFETIME = 30; 
-    private static final int PARTICLE_INTERVAL = 4; 
-    private static final float PARTICLE_SPEED = 0.02F; 
-    private static final double MAX_ANGLE_RADIANS = Math.toRadians(35); 
-    private static final double SPAWN_HEIGHT_OFFSET = 1.0; 
+    private static final int SPAWN_ANIMATION_DURATION = 10;
+    private static final int TOTAL_LIFETIME = 30;
+    private static final int PARTICLE_INTERVAL = 4;
+    private static final float PARTICLE_SPEED = 0.02F;
+    private static final double MAX_ANGLE_RADIANS = Math.toRadians(35);
+    private static final double SPAWN_HEIGHT_OFFSET = 1.0;
 
     public BiomassMedium(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -77,7 +79,7 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
         super.tick();
 
         this.fallDistance = 0.0F;
-        
+
         int currentTick = this.entityData.get(TICK_COUNT);
         this.entityData.set(TICK_COUNT, currentTick + 1);
         if (!this.level().isClientSide()) {
@@ -89,7 +91,7 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
                 this.heal(1.0F);
             }
             if (this.tickCount % 10 == 0) {
-                
+
                 List<LivingEntity> entities = this.level().getEntitiesOfClass(
                         LivingEntity.class,
                         this.getBoundingBox().inflate(1.5),
@@ -98,21 +100,21 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
                 for (LivingEntity entity : entities) {
                     entity.addEffect(new MobEffectInstance(
                             ModEffects.PARA_CURSE,
-                            3600,  
+                            3600,
                             1
                     ));
                 }
             }
         } else {
-            
+
             spawnParticles(currentTick);
         }
     }
     private void spawnParticles(int currentTick) {
-        
+
         if (currentTick == TOTAL_LIFETIME - 2) {
-            
-            int particleCount = 3 + this.random.nextInt(3); 
+
+            int particleCount = 3 + this.random.nextInt(3);
 
             for (int i = 0; i < particleCount; i++) {
                 AABB boundingBox = this.getBoundingBox();
@@ -142,8 +144,8 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
         }
 
         if (currentTick == TOTAL_LIFETIME - 1) {
-            
-            int particleCount = 7 + this.random.nextInt(4); 
+
+            int particleCount = 7 + this.random.nextInt(4);
 
             for (int i = 0; i < particleCount; i++) {
                 AABB boundingBox = this.getBoundingBox();
@@ -172,13 +174,13 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
             }
         }
         if (currentTick % PARTICLE_INTERVAL == 0) {
-            
+
             int particleCount = 1 + this.random.nextInt(2);
 
             for (int i = 0; i < particleCount; i++) {
-                
-                double angleYaw = this.random.nextDouble() * 2 * Math.PI; 
-                double anglePitch = this.random.nextDouble() * MAX_ANGLE_RADIANS; 
+
+                double angleYaw = this.random.nextDouble() * 2 * Math.PI;
+                double anglePitch = this.random.nextDouble() * MAX_ANGLE_RADIANS;
                 double speedX = Math.sin(angleYaw) * Math.cos(anglePitch) * PARTICLE_SPEED;
                 double speedY = Math.sin(anglePitch) * PARTICLE_SPEED;
                 double speedZ = Math.cos(angleYaw) * Math.cos(anglePitch) * PARTICLE_SPEED;
@@ -275,8 +277,7 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
                 }
             }
 
-            //  IParasite#BIOMASS_SPAWNED_KEY
-            IParasite.markBiomassSpawned(living);
+            ParasiteEvents.markBiomassSpawned(living);
 
             this.level().addFreshEntity(living);
         }
@@ -286,17 +287,14 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-        
+
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -335,7 +333,7 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -343,7 +341,7 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -356,7 +354,7 @@ public class BiomassMedium extends PathfinderMob implements GeoEntity, IParasite
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         return level.getMaxLocalRawBrightness(pos) < 0;
     }
 }

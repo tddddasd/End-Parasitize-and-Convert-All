@@ -26,11 +26,11 @@ public abstract class MerchantOfferMixin implements MerchantOfferMixinAccess {
             )
     )
     private boolean redirectIsSameItem(ItemStack provided, ItemStack required) {
-        
+
         if (required.getItem() == Items.EMERALD && provided.getItem() instanceof InfestedEmerald) {
             return true;
         }
-        
+
         return ItemStack.isSameItem(provided, required);
     }
 
@@ -43,13 +43,11 @@ public abstract class MerchantOfferMixin implements MerchantOfferMixinAccess {
         }
     }
 
-    
     @Unique
     public boolean epca$hasUsedInfestedEmerald() {
         return epca$usedInfestedEmerald;
     }
 
-    
     @Unique
     public void epca$clearInfestedEmeraldFlag() {
         epca$usedInfestedEmerald = false;

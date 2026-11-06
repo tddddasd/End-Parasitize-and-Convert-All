@@ -6,17 +6,10 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Utility methods for entity movement - floating, water travel, cliff jumping, etc.
- */
 public final class EntityMovementUtils {
 
     private EntityMovementUtils() {}
 
-    /**
-     * Apply floating behavior for entities in water.
-     * Call from tick() to make entity float in water instead of sinking.
-     */
     public static void updateWaterFloating(LivingEntity entity, FloatingState state) {
         if (!entity.isInWater()) {
             state.floatingTime = 0;
@@ -35,20 +28,12 @@ public final class EntityMovementUtils {
         }
     }
 
-    /**
-     * Apply water travel (slow movement while in water).
-     * Call from travel() override.
-     */
     public static void applyWaterTravel(LivingEntity entity, Vec3 travelVector) {
         entity.moveRelative(0.01F, travelVector);
         entity.move(MoverType.SELF, entity.getDeltaMovement());
         entity.setDeltaMovement(entity.getDeltaMovement().scale(0.9D));
     }
 
-    /**
-     * Attempt to jump over a cliff towards a target.
-     * Returns true if a jump was performed.
-     */
     public static boolean tryCliffJump(LivingEntity entity, LivingEntity target,
                                         BlockPos currentPos, double jumpPower, double horizontalSpeed) {
         if (target == null || !entity.onGround() || entity.isInWater()) return false;
@@ -60,7 +45,6 @@ public final class EntityMovementUtils {
 
         Vec3 dir = new Vec3(dx, 0, dz).normalize();
 
-        // Check if forward is clear and ground drops ahead (cliff)
         Level level = entity.level();
         double forward1Y = EntityBreakUtils.getGroundHeightAt(level,
                 BlockPos.containing(entity.getX() + dir.x, entity.getY(), entity.getZ() + dir.z), 5);
@@ -76,9 +60,6 @@ public final class EntityMovementUtils {
         return true;
     }
 
-    /**
-     * State holder for floating behavior. Store one instance per entity.
-     */
     public static class FloatingState {
         public int floatingTime;
     }

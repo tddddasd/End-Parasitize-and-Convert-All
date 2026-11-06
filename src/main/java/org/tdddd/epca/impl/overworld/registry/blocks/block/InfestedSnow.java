@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -24,18 +25,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedSnow extends SnowLayerBlock implements InfestedBlockInterface {
-    private static final int LIGHT_MELT_THRESHOLD = 10;        
+    private static final int LIGHT_MELT_THRESHOLD = 10;
 
-    
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedSnow(Properties properties) {
         super(properties);
-        
+
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(LAYERS, 1)
                 .setValue(NATURAL_SPAWN, true));
@@ -43,7 +42,7 @@ public class InfestedSnow extends SnowLayerBlock implements InfestedBlockInterfa
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        super.createBlockStateDefinition(builder); 
+        super.createBlockStateDefinition(builder);
         builder.add(NATURAL_SPAWN);
     }
 
@@ -59,7 +58,6 @@ public class InfestedSnow extends SnowLayerBlock implements InfestedBlockInterfa
         return Blocks.SNOW.getSoundType(Blocks.SNOW.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public boolean isRandomlyTicking(BlockState state) {
         return true;
@@ -67,40 +65,38 @@ public class InfestedSnow extends SnowLayerBlock implements InfestedBlockInterfa
 
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        
+
         int light = level.getMaxLocalRawBrightness(pos);
         if (light >= LIGHT_MELT_THRESHOLD) {
             int layers = state.getValue(LAYERS);
             if (layers > 1) {
-                
+
                 level.setBlock(pos, state.setValue(LAYERS, layers - 1), 3);
             } else {
-                
+
                 level.removeBlock(pos, false);
             }
-            
+
         }
     }
 
-    
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
                              net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         if (!level.isClientSide() && entity instanceof LivingEntity living) {
-            
-            if (!(IParasite.isParasiteByTagOrInterface(living))) {
-                
+
+            if (!(ParasiteEvents.isParasiteByTagOrInterface(living))) {
+
                 living.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-                        ModEffects.PARA_CURSE,           
-                        1200,                         
-                        0                                 
+                        ModEffects.PARA_CURSE,
+                        1200,
+                        0
                 ));
             }
         }
         super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (context instanceof EntityCollisionContext entityCtx) {

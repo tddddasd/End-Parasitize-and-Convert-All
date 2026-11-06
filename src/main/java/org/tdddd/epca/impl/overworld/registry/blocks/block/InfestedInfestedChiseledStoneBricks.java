@@ -28,11 +28,11 @@ import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedInfestedChiseledStoneBricks extends Block implements InfestedBlockInterface {
-    
+
     public static final BooleanProperty NATURAL_SPAWN = BooleanProperty.create("natural_spawn");
 
     public InfestedInfestedChiseledStoneBricks(Properties properties) {
-        
+
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(NATURAL_SPAWN, true));
     }
@@ -56,11 +56,7 @@ public class InfestedInfestedChiseledStoneBricks extends Block implements Infest
     }
 
     @Override
-    /**
-     * 26.1.2: {@code onRemove(BlockState,Level,BlockPos,BlockState,boolean)} became
-     * {@code affectNeighborsAfterRemoval(BlockState,ServerLevel,BlockPos,boolean)}, which no longer
-     * receives the incoming state.
-     */
+
     public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         if (movedByPiston) {
             super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
@@ -68,18 +64,18 @@ public class InfestedInfestedChiseledStoneBricks extends Block implements Infest
         }
 
         if (!level.isClientSide()) {
-            
+
             if (!movedByPiston) {
-                
+
                 Player nearestPlayer = level.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 5.0, false);
                 boolean shouldSpawn = true;
 
                 if (nearestPlayer != null) {
-                    
+
                     if (nearestPlayer.isCreative()) {
                         shouldSpawn = false;
                     } else {
-                        
+
                         ItemStack mainHand = nearestPlayer.getMainHandItem();
 if (net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLevel(
                                 level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
@@ -90,7 +86,7 @@ if (net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLev
                 }
 
                 if (shouldSpawn) {
-                    
+
                     EntityType<?> infestedSilverfishEntityType = ModEntities.INFESTED_SILVERFISH.get();
 Entity infestedSilverfish = infestedSilverfishEntityType.create(level, net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
                     if (infestedSilverfish != null) {
@@ -102,7 +98,6 @@ Entity infestedSilverfish = infestedSilverfishEntityType.create(level, net.minec
                         level.addFreshEntity(infestedSilverfish);
                     }
 
-                    
                     ((ServerLevel) level).sendParticles(ParticleTypes.POOF,
                             pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                             10, 0.2, 0.2, 0.2, 0.0);
@@ -116,17 +111,16 @@ Entity infestedSilverfish = infestedSilverfishEntityType.create(level, net.minec
         return Blocks.STONE.getSoundType(Blocks.STONE.defaultBlockState(), level, pos, entity);
     }
 
-    
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        
+
         if (context instanceof EntityCollisionContext entityCtx) {
             Entity entity = entityCtx.getEntity();
             if (entity instanceof InfestedSilverfish) {
-                return Shapes.empty(); 
+                return Shapes.empty();
             }
         }
-        
+
         return super.getCollisionShape(state, level, pos, context);
     }
 }

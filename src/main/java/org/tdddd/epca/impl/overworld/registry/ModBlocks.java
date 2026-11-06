@@ -330,12 +330,6 @@ public class ModBlocks {
             () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SWEET_BERRY_BUSH).ignitedByLava()
     );
 
-    // 26.1.2: these six blocks must be registered through BLOCKS.registerBlock(name, Function<Properties,B>),
-    // which is the only overload that calls Properties#setId(...). Registering them through the inherited
-    // register(String, Supplier) overload compiles fine and then aborts the whole block registry event at
-    // runtime with "NullPointerException: Block id not set" (observed for mod eej), cascading into
-    // "Trying to access unbound value: ResourceKey[.../block/...]" for every later registry.
-    // The Properties bodies reproduce what each class's own no-arg constructor used to build.
     public static final DeferredBlock<Block> INFESTED_REMAINS_SMALL = BLOCKS.registerBlock(
             "infested_remains_small",
             InfestedRemainsSmall::new,
@@ -498,8 +492,6 @@ public class ModBlocks {
             InfestedPointedDripstone::new,
             () -> BlockBehaviour.Properties.ofFullCopy(Blocks.POINTED_DRIPSTONE).mapColor(DyeColor.LIGHT_GRAY)
     );
-
-    
 
     public static final DeferredBlock<Block> BECKON_CORE = BLOCKS.registerBlock(
             "beckon_core",

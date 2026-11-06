@@ -1,5 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.reshape;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -49,8 +52,6 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.SwallowCyst;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
-import org.tdddd.epca.impl.overworld.registry.entities.IReshape;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.GoToBeckonCoreGoal;
@@ -73,40 +74,40 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParasite, IReshape, Enemy {
-    
+public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, Enemy {
+
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> DATA_IS_EXPLODING = SynchedEntityData.defineId(ReshapeYelloweye.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_BOOMING  = SynchedEntityData.defineId(ReshapeYelloweye.class, EntityDataSerializers.BOOLEAN);
-    
+
     public static final EntityDataAccessor<Integer> DATA_SHOOT_ANIM_TIMER = SynchedEntityData.defineId(ReshapeYelloweye.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> DATA_IS_GASSING = SynchedEntityData.defineId(ReshapeYelloweye.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Integer> DATA_GASSING_TIMER =
             SynchedEntityData.defineId(ReshapeYelloweye.class, EntityDataSerializers.INT);
-    
+
     private int explosionTimer = 24;
     private BlockPos deathPosition;
     private int boomAnimationTimer = 0;
     private boolean isBoomTriggered = false;
-    private int shootCooldown = 0;          
-    private int shootDelayTimer = 0;        
+    private int shootCooldown = 0;
+    private int shootDelayTimer = 0;
     private boolean isRetreating = false;
     private int retreatCooldown = 0;
     private Vec3 retreatDirection = Vec3.ZERO;
-    private static final double SAFE_DISTANCE = 18.0D;            
-    private static final int RETREAT_COOLDOWN = 5;               
-    private static final double RETREAT_SPEED = 0.4D;            
-    private int floorCheckCooldown = 0;      
-    private double floorY = Double.NEGATIVE_INFINITY;  
+    private static final double SAFE_DISTANCE = 18.0D;
+    private static final int RETREAT_COOLDOWN = 5;
+    private static final double RETREAT_SPEED = 0.4D;
+    private int floorCheckCooldown = 0;
+    private double floorY = Double.NEGATIVE_INFINITY;
     private int touchCooldown = 0;
-    private static final int TOUCH_COOLDOWN_MAX = 10; 
+    private static final int TOUCH_COOLDOWN_MAX = 10;
 
-    private int gassingTimer = 0;          
-    private int gassingCooldown = 0;       
-    public static final int GASSING_DURATION = 30;      
-    private static final int GASSING_COOLDOWN_MAX = 160; 
-    private boolean hasGassingPush = false; 
-    
+    private int gassingTimer = 0;
+    private int gassingCooldown = 0;
+    public static final int GASSING_DURATION = 30;
+    private static final int GASSING_COOLDOWN_MAX = 160;
+    private boolean hasGassingPush = false;
+
     private List<BlockPos> blocksToDestroy = new ArrayList<>();
     private int destructionIndex = 0;
     private int blockBreakTimer = 0;
@@ -114,10 +115,9 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         super(type, level);
         this.xpReward = 15;
         this.moveControl = new FlyingMoveControl(this, 20, true);
-        this.setNoGravity(true);   
+        this.setNoGravity(true);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
         return true;
     }
@@ -176,13 +176,12 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
         deathPosition = this.blockPosition();
         this.setHealth(org.tdddd.epca.impl.utils.EntityHealthUtils.burstHealth(this, 0.02F));
         this.setNoAi(true);
-        this.setInvulnerable(true);
         this.setTarget(null);
         this.entityData.set(DATA_IS_BOOMING, false);
     }
     private void executeExplosionEffects() {
         if (this.level() instanceof ServerLevel serverLevel) {
-            
+
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSoundEvents.BIG_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 
@@ -206,16 +205,15 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 200, 0, false, true));
             serverLevel.addFreshEntity(cloud);
 
-            
-            int count = 4 + this.random.nextInt(2); 
-            Vec3 origin = this.position().add(0, 0.5, 0); 
+            int count = 4 + this.random.nextInt(2);
+            Vec3 origin = this.position().add(0, 0.5, 0);
             for (int i = 0; i < count; i++) {
-                
+
                 float yaw = this.random.nextFloat() * 2 * (float) Math.PI;
-                
-                float pitchDeg = -90 + this.random.nextFloat() * 50; // [-90, -40]
+
+                float pitchDeg = -90 + this.random.nextFloat() * 50;
                 float pitch = (float) Math.toRadians(pitchDeg);
-                
+
                 Vec3 direction = new Vec3(
                         Math.cos(pitch) * Math.sin(yaw),
                         Math.sin(pitch),
@@ -255,15 +253,15 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.DROWN)) return false;
         if (isExploding()) return false;
-        if (source.getEntity() instanceof LivingEntity attacker && shouldIgnoreDamageFrom(attacker)) return false;
+        if (source.getEntity() instanceof LivingEntity attacker && ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) return false;
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
         float finalAmount = amount;
         if (!this.level().isClientSide() && source.getEntity() instanceof Player player) {
-            Vec3 attackerPos = source.getSourcePosition(); 
+            Vec3 attackerPos = source.getSourcePosition();
             if (attackerPos != null) {
-                
+
                 double bottomThreshold = this.getY() + this.getBbHeight() * 0.25;
                 if (attackerPos.y < bottomThreshold) {
                     finalAmount = amount * 2.0f;
@@ -271,31 +269,27 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             }
         }
 
-        float adjustedAmount = ((IParasite) this).onHurt(source, finalAmount);
-        return super.hurtServer(level, source, adjustedAmount);
+        return super.hurtServer(level, source, finalAmount);
     }
     @Override
     public void die(DamageSource source) {
         if (this.isOnFire()) {
-            
+
             super.die(source);
-            this.onDeath(source);
             return;
         }
 
         if (!this.level().isClientSide() && !this.isExploding()) {
             handleInventoryOnDeath();
             triggerExplosionDeath(source);
-            this.onDeath(source);
         } else {
             super.die(source);
-            this.onDeath(source);
         }
     }
 
     @Override
     public boolean isAffectedByFluids() {
-        return false;   
+        return false;
     }
     @Override
     public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource damageSource) {
@@ -306,7 +300,8 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
     @Override
     public void tick() {
         super.tick();
-        
+        if (!this.level().isClientSide() && !isExploding() && this.isInvulnerable()) { this.setInvulnerable(false); }
+
         if (blockBreakTimer > 0) blockBreakTimer--;
         if (!isExploding() && blockBreakTimer <= 0) {
             handleBlockBreaking();
@@ -315,7 +310,7 @@ public class ReshapeYelloweye extends PathfinderMob implements GeoEntity, IParas
             destroyNextBlock();
         }
         if (this.level().isClientSide()) {
-            
+
             if (this.entityData.get(DATA_IS_BOOMING)) {
                 if (clientBoomTimer <= 0) clientBoomTimer = 20;
                 if (clientBoomTimer > 0) clientBoomTimer--;
@@ -343,15 +338,15 @@ this.discard();
             return;
         }
         if (!this.level().isClientSide()) {
-            
+
             if (touchCooldown > 0) touchCooldown--;
             if (touchCooldown == 0) {
-                AABB bottomBox = this.getBoundingBox().contract(0.2, 0, 0.2) 
-                        .move(0, -0.2, 0); 
+                AABB bottomBox = this.getBoundingBox().contract(0.2, 0, 0.2)
+                        .move(0, -0.2, 0);
                 List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, bottomBox,
-                        e -> e != this && !IParasite.isParasiteByTagOrInterface(e) && e.isAlive());
+                        e -> e != this && !ParasiteEvents.isParasiteByTagOrInterface(e) && e.isAlive());
                 if (!entities.isEmpty()) {
-                    
+
                     for (LivingEntity e : entities) {
                         e.addEffect(new MobEffectInstance(MobEffects.NAUSEA, 60, 0));
                         e.addEffect(new MobEffectInstance(ModEffects.CORROSIVE, 60, 0));
@@ -362,11 +357,11 @@ this.discard();
             if (shootCooldown > 0) shootCooldown--;
             if (shootDelayTimer > 0) {
                 shootDelayTimer--;
-                
+
                 if (shootDelayTimer == 0) {
                     LivingEntity target = this.getTarget();
                     if (target != null && target.isAlive()) {
-                        
+
                         if (target.getY() <= this.getY() + 0.5) {
                             shootAcidBullet(target);
                         }
@@ -391,7 +386,7 @@ this.discard();
                 if (gassingTimer > 0) {
                     gassingTimer--;
                     this.entityData.set(DATA_GASSING_TIMER, gassingTimer);
-                    
+
                     if (!hasGassingPush && gassingTimer <= GASSING_DURATION - 10) {
                         applyGassingPush();
                         hasGassingPush = true;
@@ -401,7 +396,7 @@ this.discard();
                         stopGassing();
                     }
                 } else {
-                    
+
                     stopGassing();
                 }
             }
@@ -414,15 +409,15 @@ this.discard();
             LivingEntity target = this.getTarget();
             if (target != null && target.isAlive()) {
                 double distance = this.distanceTo(target);
-                
+
                 boolean canShoot = shootCooldown == 0 && shootDelayTimer == 0 &&
-                        target.getY() <= this.getY() + 0.5;   
+                        target.getY() <= this.getY() + 0.5;
 
                 if (canShoot) {
-                    
-                    this.entityData.set(DATA_SHOOT_ANIM_TIMER, 10);   
-                    shootDelayTimer = 5;      
-                    shootCooldown = 120;      
+
+                    this.entityData.set(DATA_SHOOT_ANIM_TIMER, 10);
+                    shootDelayTimer = 5;
+                    shootCooldown = 120;
                 }
 
                 if (retreatCooldown > 0) retreatCooldown--;
@@ -432,9 +427,9 @@ this.discard();
 
                 boolean yClose = (this.getY() + this.getBbHeight()) >= (target.getY() - 1.0);
                 if (isBelow && !yClose) {
-                    double targetSize = target.getBbWidth();   
+                    double targetSize = target.getBbWidth();
                     double dynamicDist = Math.max(targetSize * 2.0, 3.0);
-                    currentSafeDistance = dynamicDist;         
+                    currentSafeDistance = dynamicDist;
                 }
 
                 if (distance < currentSafeDistance) {
@@ -477,7 +472,7 @@ this.discard();
         gassingTimer = GASSING_DURATION;
         hasGassingPush = false;
         gassingCooldown = GASSING_COOLDOWN_MAX;
-        
+
         this.entityData.set(DATA_GASSING_TIMER, gassingTimer);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 ModSoundEvents.RESHAPE_YELLOWEYE_GASSING.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
@@ -491,8 +486,8 @@ this.discard();
     }
     private void applyGassingPush() {
         Vec3 lookVec = this.getLookAngle();
-        Vec3 push = new Vec3(lookVec.x, 0.6, lookVec.z).normalize().scale(0.3); 
-        push = push.add(0, 0.15, 0); 
+        Vec3 push = new Vec3(lookVec.x, 0.6, lookVec.z).normalize().scale(0.3);
+        push = push.add(0, 0.15, 0);
         this.setDeltaMovement(this.getDeltaMovement().add(push));
         this.hurtMarked = true;
     }
@@ -502,11 +497,11 @@ this.discard();
         List<LivingEntity> entities = this.level().getEntitiesOfClass(LivingEntity.class, effectBox,
                 e -> e.isAlive());
         for (LivingEntity e : entities) {
-            if (IParasite.isParasiteByTagOrInterface(e)) {
-                e.addEffect(new MobEffectInstance(MobEffects.SPEED, 400, 0)); 
+            if (ParasiteEvents.isParasiteByTagOrInterface(e)) {
+                e.addEffect(new MobEffectInstance(MobEffects.SPEED, 400, 0));
             } else if (e != this) {
-                e.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 2));     
-                e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 400, 0));       
+                e.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 2));
+                e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 400, 0));
             }
         }
     }
@@ -539,7 +534,7 @@ this.discard();
             for (int y = (int) this.getY(); y > this.getY() - 64; y--) {
                 pos.set(this.getX(), y, this.getZ());
                 if (!this.level().isEmptyBlock(pos) && !this.level().getBlockState(pos).isAir()) {
-                    floorY = y + 1.0;  
+                    floorY = y + 1.0;
                     break;
                 }
             }
@@ -551,7 +546,7 @@ this.discard();
         double floor = getFloorY();
         double maxY = floor + 48.0;
         if (this.getY() > maxY) {
-            
+
             this.setPos(this.getX(), maxY, this.getZ());
             Vec3 mot = this.getDeltaMovement();
             if (mot.y > 0) this.setDeltaMovement(mot.x, 0, mot.z);
@@ -593,7 +588,7 @@ this.discard();
     private boolean isMoving() {
         return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6;
     }
-    
+
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
         if (vehicle instanceof Boat || vehicle instanceof Minecart) return false;
@@ -605,12 +600,8 @@ this.discard();
         return super.canRide(entity);
     }
 
-        // 26.1.2: Mob#shouldDespawnInPeaceful() was removed. Peaceful-mode removal is expressed by
-    // handling it in checkDespawn(), which is where vanilla consults the difficulty.
-
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
-        if (!this.level().isClientSide()) IParasite.super.onKillEntity(killedEntity);
+        if (!this.level().isClientSide()) ParasiteEvents.onKillEntity(this, killedEntity);
     }
     private static void spawnRemainsBlocksAt(ServerLevel level, BlockPos deathPos, RandomSource rand) {
         if (level.isClientSide() || deathPos == null) return;
@@ -703,7 +694,7 @@ this.discard();
 
     private boolean tryPlaceCystAndTransfer() {
         if (level().isClientSide()) return false;
-        
+
         boolean hasItems = false;
         for (int i = 0; i < inventory.getSlots(); i++) {
             if (!inventory.getStackInSlot(i).isEmpty()) {
@@ -804,7 +795,7 @@ this.discard();
     private boolean isBreakableBlock(BlockPos pos) {
         BlockState state = level().getBlockState(pos);
         if (state.isAir() || state.canBeReplaced()) return false;
-        
+
         float hardness = state.getDestroySpeed(level(), pos);
         return hardness >= 0 && hardness <= 1.0f;
     }
@@ -814,7 +805,7 @@ this.discard();
             BlockEntity be = level().getBlockEntity(pos);
             LootParams.Builder builder = new LootParams.Builder(serverLevel)
                     .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
-                    .withParameter(LootContextParams.TOOL, ItemStack.EMPTY) 
+                    .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
                     .withOptionalParameter(LootContextParams.BLOCK_ENTITY, be);
             return state.getDrops(builder);
         }
@@ -849,7 +840,7 @@ this.discard();
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (y == minY) continue; 
+                    if (y == minY) continue;
                     if (isBreakableBlock(pos)) {
                         toDestroy.add(pos);
                     }

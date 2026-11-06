@@ -9,7 +9,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import org.tdddd.epca.impl.overworld.registry.particles.ConversionParticleOptions;
 
-/** 10-frame, 15 FPS conversion burst (1.333 ticks per frame). */
 public class ConversionParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
     private final boolean tint;
@@ -33,16 +32,10 @@ public class ConversionParticle extends SingleQuadParticle {
         super.tick();
         int frame = Mth.clamp((int) (this.age * 0.75F), 0, 9);
         this.setSprite(sprites.get(frame, 10));
-        // Opaque: no alpha fade-out - the burst keeps the sprite's own (fully opaque) pixels.
+
         this.setAlpha(1.0F);
     }
 
-    /**
-     * Fully opaque burst: the vertex alpha stays at 1.0 for the particle's whole life instead of
-     * fading out. The translucent layer is kept on purpose - the convert_* sheet is a cut-out
-     * (its transparent texels carry black RGB and there is no partial alpha), so an opaque pipeline
-     * would draw those texels as a black box around the burst.
-     */
     @Override protected Layer getLayer() { return Layer.TRANSLUCENT; }
 
     public static class Provider implements ParticleProvider<ConversionParticleOptions> {

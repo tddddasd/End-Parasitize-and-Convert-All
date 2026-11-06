@@ -14,16 +14,15 @@ import net.minecraft.sounds.SoundSource;
 @EventBusSubscriber(modid = epca.MODID)
 public class SafetyDayHandler {
 
-    
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
         for (ServerLevel level : event.getServer().getAllLevels()) {
             if (!ModConfig.isSafetyDayEnabled()) continue;
             SafetyDaySavedData data = SafetyDaySavedData.get(level);
             long currentTick = level.getGameTime();
-            
+
             if (data.isSafetyDayFinished(currentTick) && !data.isEffectTriggered()) {
-                data.markEffectTriggered();  
+                data.markEffectTriggered();
                 playEndSound(level);
             }
         }
@@ -36,7 +35,6 @@ public class SafetyDayHandler {
         }
     }
 
-    
     @SubscribeEvent
     public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity().level().isClientSide()) return;

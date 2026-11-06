@@ -13,13 +13,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.client.LikeBiomeClientEffects;
 
-/**
- * Applies the like biome fog colour.
- *
- * <p>Verified against the 26.1.2 client jar: {@code FogRenderer.setupFog(Camera, int, DeltaTracker, float,
- * ClientLevel)} returns a freshly allocated {@code FogData} whose colour field is an
- * {@code org.joml.Vector4f}; the method is an instance method.</p>
- */
 @Mixin(FogRenderer.class)
 public abstract class FogRendererLikeBiomeMixin {
 

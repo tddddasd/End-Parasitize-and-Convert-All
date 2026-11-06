@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -27,7 +28,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSilverfish;
 
 public class InfestedCactus extends Block implements InfestedBlockInterface {
@@ -82,7 +82,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
         }
 
         if (entity instanceof LivingEntity living) {
-            if (IParasite.isParasiteByTagOrInterface(living)) {
+            if (ParasiteEvents.isParasiteByTagOrInterface(living)) {
                 return;
             }
             living.hurt(entity.damageSources().cactus(), 1.5F);
@@ -97,7 +97,7 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
     }
 
     @Override
-    // 26.1.2: Block#playerWillDestroy now returns the (possibly transformed) BlockState.
+
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide()) {
             if (player.getMainHandItem().isEmpty()) {
@@ -136,7 +136,6 @@ public class InfestedCactus extends Block implements InfestedBlockInterface {
         return true;
     }
 
-    // 26.1.2: the neighbour position was replaced by the redstone Orientation.
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
                                 net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
         if (!state.canSurvive(level, pos)) {

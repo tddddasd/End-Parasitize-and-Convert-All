@@ -29,30 +29,25 @@ public class NetheriteModuleEventHandler {
     private static final String MOVEMENT_SPEED_MODIFIER_NAME = "NetheriteMovementSpeedReduction";
     private static final String ARMOR_MODIFIER_NAME = "NetheriteArmorBonus";
 
-    
     private static final int CHECK_INTERVAL = 10;
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
 
-        
         if (player.level().isClientSide()) {
             return;
         }
 
-        
         if (player.tickCount % CHECK_INTERVAL != 0) {
             return;
         }
 
-        
         if (!isWearingFullLivingArmor(player)) {
             removeAttributeModifiers(player);
             return;
         }
 
-        
         ItemStack boxStack = findLivingArmorBox(player);
         if (boxStack.isEmpty()) {
             removeAttributeModifiers(player);
@@ -61,19 +56,16 @@ public class NetheriteModuleEventHandler {
 
         LivingArmorBox boxItem = (LivingArmorBox) boxStack.getItem();
 
-        
         if (!boxItem.getState(boxStack)) {
             removeAttributeModifiers(player);
             return;
         }
 
-        
         if (!hasNetheriteModuleI(boxStack)) {
             removeAttributeModifiers(player);
             return;
         }
 
-        
         applyAttributeModifiers(player);
     }
 
@@ -83,17 +75,14 @@ public class NetheriteModuleEventHandler {
             return;
         }
 
-        
         if (player.level().isClientSide()) {
             return;
         }
 
-        
         if (!isWearingFullLivingArmor(player)) {
             return;
         }
 
-        
         ItemStack boxStack = findLivingArmorBox(player);
         if (boxStack.isEmpty()) {
             return;
@@ -101,26 +90,22 @@ public class NetheriteModuleEventHandler {
 
         LivingArmorBox boxItem = (LivingArmorBox) boxStack.getItem();
 
-        
         if (!boxItem.getState(boxStack)) {
             return;
         }
 
-        
         if (!hasNetheriteModuleI(boxStack)) {
             return;
         }
 
-        
         DamageSource source = event.getSource();
         if (isFireDamage(source)) {
-            
+
             float reducedDamage = event.getAmount() / 4.0f;
             event.setAmount(reducedDamage);
         }
     }
 
-    
     private static boolean isWearingFullLivingArmor(Player player) {
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
         ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
@@ -133,14 +118,12 @@ public class NetheriteModuleEventHandler {
                 isLivingArmor(boots);
     }
 
-    
     private static boolean isLivingArmor(ItemStack stack) {
         return stack.getItem() instanceof LivingArmorItem;
     }
 
-    
     private static ItemStack findLivingArmorBox(Player player) {
-        
+
         ItemStack mainHand = player.getMainHandItem();
         ItemStack offHand = player.getOffhandItem();
 
@@ -151,7 +134,6 @@ public class NetheriteModuleEventHandler {
             return offHand;
         }
 
-        
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() instanceof LivingArmorBox) {
@@ -162,7 +144,6 @@ public class NetheriteModuleEventHandler {
         return ItemStack.EMPTY;
     }
 
-    
     private static boolean hasNetheriteModuleI(ItemStack boxStack) {
         if (!(boxStack.getItem() instanceof LivingArmorBox)) {
             return false;
@@ -180,23 +161,18 @@ public class NetheriteModuleEventHandler {
         return false;
     }
 
-    
     private static boolean isFireDamage(DamageSource source) {
         return source.is(DamageTypeTags.IS_FIRE);
     }
 
-    
     private static void applyAttributeModifiers(Player player) {
-        
+
         removeAttributeModifiers(player);
 
-        
         AttributeModifier speedModifier = new AttributeModifier(MOVEMENT_SPEED_MODIFIER_ID, -0.01, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
-        
         AttributeModifier armorModifier = new AttributeModifier(ARMOR_MODIFIER_ID, 2.0, AttributeModifier.Operation.ADD_VALUE);
 
-        
         if (!player.getAttribute(Attributes.MOVEMENT_SPEED).hasModifier(speedModifier.id())) {
             player.getAttribute(Attributes.MOVEMENT_SPEED).addTransientModifier(speedModifier);
         }
@@ -206,7 +182,6 @@ public class NetheriteModuleEventHandler {
         }
     }
 
-    
     private static void removeAttributeModifiers(Player player) {
         if (player.getAttribute(Attributes.MOVEMENT_SPEED).getModifier(MOVEMENT_SPEED_MODIFIER_ID) != null) {
             player.getAttribute(Attributes.MOVEMENT_SPEED).removeModifier(MOVEMENT_SPEED_MODIFIER_ID);

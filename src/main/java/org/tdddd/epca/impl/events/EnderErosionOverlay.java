@@ -1,5 +1,7 @@
 package org.tdddd.epca.impl.events;
 
+import net.minecraft.world.entity.LivingEntity;
+
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -26,20 +28,11 @@ public class EnderErosionOverlay implements GuiLayer {
     private static final float MAX_BRIGHTNESS = 1.0f;
     private static final float CYCLE_SECONDS = 0.8f;
 
-    /**
-     * 26.1.2: the Forge {@code IGuiOverlay#render(ForgeGui, GuiGraphics, partialTick, screenWidth, screenHeight)}
-     * signature became {@code GuiLayer#render(GuiGraphicsExtractor, DeltaTracker)}. The screen size now comes from
-     * {@code GuiGraphicsExtractor#guiWidth()/guiHeight()}; {@code RenderSystem#setShaderColor} is gone, so the
-     * brightness tint is folded into the blit colour (the old code also left the shader colour at
-     * (1,1,1,0.9) afterwards -> tint colour * 0.9 alpha).
-     */
     @Override
     public void render(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
 
-        // 26.1.2: LivingEntity#getEffect takes a Holder<MobEffect>. DeferredHolder#get() yields the raw value,
-        // so the holder view has to be requested explicitly through getDelegate().
         MobEffectInstance effect = player.getEffect(ModEffects.ENDER_EROSION.getDelegate());
         if (effect == null) return;
 
@@ -58,7 +51,7 @@ public class EnderErosionOverlay implements GuiLayer {
 
     @SubscribeEvent
     public static void registerOverlays(RegisterGuiLayersEvent event) {
-        // 26.1.2: layer ids are Identifiers instead of plain strings.
+
         event.registerBelowAll(Identifier.fromNamespaceAndPath(epca.MODID, "ender_erosion"), new EnderErosionOverlay());
     }
 }

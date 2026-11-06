@@ -10,41 +10,6 @@ import org.tdddd.epca.impl.client.organ.HiveLeaderOrganClientData;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganData;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganGate;
 
-/**
- *  -&gt;  GUI  /  /
- * SPEC  2  1{@code S2C  + }
- *
- * <h2></h2>
- * <p> {@link HiveLeaderOrganData}  {@code writeNbt}
- *  {@code Items}52  {@code ItemStack#save}
- * {@code Unlocked}52 52 " + 52 "
- *  27  {@code FriendlyByteBuf#readNbt()}
- * </p>
- *
- * <p>26.1.2{@code FriendlyByteBuf#writeNbt(Tag)} / {@code #readNbt()}
- * _tmp_26src FriendlyByteBuf.java  517 / 534  1.20.1 </p>
- *
- * <h2>{@code openScreen}</h2>
- * <p>STAGE 2 <b></b>
- *  {@code setScreen(new HiveLeaderOrganScreen())}
- * </p>
- * <ul>
- *   <li>{@code openScreen = true}""
- *        + </li>
- *   <li>{@code openScreen = false}
- *       //</li>
- * </ul>
- *
- * <h2></h2>
- * <ol>
- *   <li></li>
- *   <li>{@code openScreen}  true  {@code HiveLeaderOrganScreen}</li>
- * </ol>
- * <p> {@code org.tdddd.epca.impl.client.organ.HiveLeaderOrganClientData}
- *  {@code handle}  {@code enqueueWork} lambda <b></b>
- *  {@code BiomassSyncPacket}  {@code BiomassClientData}
- * </p>
- */
 public class SyncHiveLeaderOrgansPacket implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SyncHiveLeaderOrgansPacket> TYPE =
@@ -59,7 +24,6 @@ public class SyncHiveLeaderOrgansPacket implements CustomPacketPayload {
     private final boolean headInnerOpen;
     private final boolean openScreen;
 
-    /**  */
     public SyncHiveLeaderOrgansPacket(HiveLeaderOrganData data, HiveLeaderOrganGate.Gates gates) {
         this(data, gates, true);
     }
@@ -112,8 +76,7 @@ public class SyncHiveLeaderOrgansPacket implements CustomPacketPayload {
 
     public static void handle(SyncHiveLeaderOrgansPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            // =
-            //  setScreen
+
             boolean screenAlreadyOpen = HiveLeaderOrganClientData.isScreenOpen();
             HiveLeaderOrganClientData.onSync(packet.organData, packet.torsoInnerOpen, packet.headInnerOpen,
                     screenAlreadyOpen);
@@ -123,4 +86,3 @@ public class SyncHiveLeaderOrgansPacket implements CustomPacketPayload {
         });
     }
 }
-

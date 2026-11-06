@@ -1,6 +1,5 @@
 package org.tdddd.epca.impl.client;
 
-
 import net.minecraft.resources.Identifier;
 
 public interface IGuiTexture {

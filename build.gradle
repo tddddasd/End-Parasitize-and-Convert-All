@@ -86,7 +86,7 @@ dependencies {
     runtimeOnly files('libs/Jade-mc26.1-NeoForge-26.1.11.jar')
 
     // Sibling mods, ported and built for 26.1.2 in this same session.
-    jarJar(implementation files('libs/yawning_neko_api-1.0.5.jar'))
+    jarJar(implementation files('libs/yawning_neko_api-1.0.7.jar'))
     implementation files('libs/eej-26.1.2.jar')
 
     // EPCA-Physics - hard prerequisite: the physicalized infested carved pumpkin (the
@@ -95,7 +95,7 @@ dependencies {
     // src/main/templates/META-INF/neoforge.mods.toml, mirroring the eej / yawning_neko_api entries.
     implementation files('libs/epca_physics-1.0.0.jar')
 
-    // ... and, exactly like `yawning_neko_api-1.0.5.jar` above, the physics mod is embedded in this
+    // ... and, exactly like `yawning_neko_api-1.0.7.jar` above, the physics mod is embedded in this
     // tree's own output as a jar-in-jar so the packed build ships it.
     jarJar(implementation files('libs/epca_physics-1.0.0.jar'))
 

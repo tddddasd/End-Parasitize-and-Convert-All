@@ -18,11 +18,9 @@ import org.tdddd.epca.impl.client.PurpleLightningGeometry;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.utils.IPurpleLightningBolt;
 
-
 @Mixin(LightningBoltRenderer.class)
 public class LightningBoltRendererMixin {
 
-    
     @Inject(
             method = "extractRenderState(Lnet/minecraft/world/entity/LightningBolt;Lnet/minecraft/client/renderer/entity/state/LightningBoltRenderState;F)V",
             at = @At("HEAD")
@@ -33,7 +31,7 @@ public class LightningBoltRendererMixin {
         if (entity != null && state != null) {
             Level level = entity.level();
             if (level != null) {
-                
+
                 BlockPos below = entity.blockPosition().below();
                 purple = level.getBlockState(below).getBlock() instanceof InfestedBlockInterface;
             }
@@ -41,7 +39,6 @@ public class LightningBoltRendererMixin {
         ((IPurpleLightningBolt) (Object) state).epca$setPurpleBolt(purple);
     }
 
-    
     @Redirect(
             method = "submit(Lnet/minecraft/client/renderer/entity/state/LightningBoltRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V",
             at = @At(
@@ -54,11 +51,11 @@ public class LightningBoltRendererMixin {
                                  LightningBoltRenderState state, PoseStack submitPoseStack,
                                  SubmitNodeCollector submitCollector, CameraRenderState camera) {
         if (!((IPurpleLightningBolt) (Object) state).epca$isPurpleBolt()) {
-            
+
             collector.submitCustomGeometry(poseStack, renderType, vanillaGeometry);
             return;
         }
-        
+
         collector.submitCustomGeometry(poseStack, renderType, new PurpleLightningGeometry(state.seed));
     }
 }

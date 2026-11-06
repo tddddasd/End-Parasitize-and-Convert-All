@@ -19,42 +19,37 @@ import org.tdddd.epca.impl.epca;
 import java.util.Set;
 import java.util.stream.Stream;
 
-
 public class ItemGenData extends ModelProvider {
 
     public ItemGenData(PackOutput output) {
         super(output, epca.MODID);
     }
 
-    
     private static final Set<String> MANUAL_WHITELIST = Set.of(
-            
+
             "wooden_spear", "stone_spear", "flint_spear", "copper_spear",
             "iron_spear", "golden_spear", "diamond_spear", "netherite_spear",
 
-            
             "erosion_clock",
             "swallow_cyst",
 
-            
             "feeding_module_i", "flesh_armor_module_i",
             "netherite_module_i", "flight_module_i"
     );
 
-    
     private static final Set<String> EXTRA_HANDHELD = Set.of(
             "endless_wand"
     );
 
     @Override
     protected Stream<? extends Holder<Block>> getKnownBlocks() {
-        
+
         return Stream.empty();
     }
 
     @Override
     protected Stream<? extends Holder<Item>> getKnownItems() {
-        
+
         return BuiltInRegistries.ITEM.listElements()
                 .filter(holder -> holder.getKey().identifier().getNamespace().equals(epca.MODID))
                 .filter(holder -> !(holder.value() instanceof BlockItem))
@@ -86,7 +81,7 @@ public class ItemGenData extends ModelProvider {
         if (item instanceof AxeItem || item instanceof ShovelItem || item instanceof HoeItem) {
             return true;
         }
-        
+
         Identifier key = BuiltInRegistries.ITEM.getKey(item);
         if (key == null) return false;
         String path = key.getPath();

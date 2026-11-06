@@ -12,7 +12,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.base.AbstractEpcaEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.*;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIIBeckon;
@@ -28,48 +27,14 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Central entity type registration. All mob entities route through helper methods
- * that also register with {@link EpcaEntityManager} for:
- * <ul>
- *   <li>Automatic attribute creation (no manual event.put calls)</li>
- *   <li>Automatic renderer registration (no per-entity renderer code in ClientHandler)</li>
- * </ul>
- * Only entities with truly custom rendering (non-GeckoLib, special shaders, etc.)
- * stay on manual registration paths.
- */
 public class ModEntities {
     public static final DeferredRegister.Entities ENTITIES =
             DeferredRegister.createEntities(epca.MODID);
 
-    //  Resource helpers
-
     private static ResourceKey<EntityType<?>> entityKey(String name) {
         return ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(epca.MODID, name));
     }
-    /**
-     * GeckoLib 5 asset-path convention. Since 5.0 GeckoLib owns its own sub-tree and
-     * <b>derives</b> the file name from the identifier, so a {@code GeoModel} must return the
-     * <b>bare</b> name and must not repeat the directory or the file suffix:
-     *
-     * <pre>
-     *   getAnimationResource() -&gt; epca:&lt;name&gt;   reads  assets/epca/geckolib/animations/&lt;name&gt;.animation.json
-     *   getModelResource()     -&gt; epca:&lt;name&gt;   reads  assets/epca/geckolib/models/&lt;name&gt;.geo.json
-     * </pre>
-     *
-     * <p>Mechanically ({@code GeckoLibResources} static initialiser) the loader walks
-     * {@code ResourceManager.listResources("geckolib/animations")} and stores every baked file under
-     * {@code GeckoLibResources.stripPrefixAndSuffix(id)}, whose patterns are
-     * {@code PREFIX_STRIPPER = ^(geckolib/)((animations/)|(models/))?} and
-     * {@code SUFFIX_STRIPPER = ((\.geo)|((\.animation)s?))?(\.json)$}. The legacy
-     * {@code epca:geo/entity/x.geo.json} form therefore does <b>not</b> strip to {@code epca:x}
-     * it leaves {@code epca:geo/entity/x}, misses the cache and only produces the
-     * "Superfluous prefix or suffix" error.</p>
-     *
-     * <p>{@link #texLoc} is the deliberate exception: {@code getTextureResource} is a vanilla
-     * {@code Identifier} consumed by the vanilla model/texture pipeline, which still requires the
-     * full {@code textures/...} path <b>and</b> the {@code .png} suffix.</p>
-     */
+
     private static Identifier modelLoc(String name) {
         return Identifier.fromNamespaceAndPath(epca.MODID, "entity/" + name);
     }
@@ -82,34 +47,7 @@ public class ModEntities {
         return Identifier.fromNamespaceAndPath(epca.MODID, name);
     }
 
-    /** Consumer for AbstractEpcaEntity subclasses that sets model/texture/animation on the entity. */
-    public static <T extends AbstractEpcaEntity> Consumer<T> defaultResources(String name) {
-        return entity -> {
-            entity.model = modelLoc(name);
-            entity.texture = texLoc(name);
-            entity.animation = animLoc(name);
-        };
-    }
-
-    //  Registration helpers
-
-    /** Full auto: AbstractEpcaEntity  attributes + auto-renderer (EpcaGeoRenderer). */
-    @SuppressWarnings("unchecked")
-    public static <T extends AbstractEpcaEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMob(
-            String name, float width, float height,
-            EntityType.EntityFactory<T> factory,
-            Supplier<AttributeSupplier> attributes) {
-        // 26.1.2: DeferredRegister#register already infers DeferredHolder<EntityType<?>, EntityType<T>>
-        // from the return type, so the old raw RegistryObject cast is no longer needed.
-        return ENTITIES.register(name, () -> {
-            EntityType<T> type = EntityType.Builder.of(factory, MobCategory.MONSTER)
-                    .sized(width, height).clientTrackingRange(12).build(entityKey(name));
-            return EpcaEntityManager.registerMob(type, attributes);
-        });
-    }
-
-    /** Existing entity (doesn't extend AbstractEpcaEntity)  attributes + auto-renderer via name. */
-    public static <T extends LivingEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMobWithRender(
+    @SuppressWarnings("unchecked")public static <T extends LivingEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMobWithRender(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
             MobCategory category, int trackingRange,
@@ -122,19 +60,6 @@ public class ModEntities {
         });
     }
 
-    /**
-     * Same as the overload above, but pins the registered type's eye height.
-     *
-     * <p>26.1.2 made {@code Entity#getEyeHeight(Pose)} final  it returns
-     * {@code getDimensions(pose).eyeHeight()}  and deleted
-     * {@code LivingEntity#getStandingEyeHeight(Pose, EntityDimensions)}, so an entity can no
-     * longer pick its own eye height. It has to be declared on the {@code EntityType} here.
-     * Without it the value is {@code EntityDimensions#defaultEyeHeight(height)} = {@code height * 0.85F}.</p>
-     *
-     * <p>For a box that has to vary <b>per instance</b> the supported hook is NeoForge's
-     * {@code EntityEvent.Size} (honoured by {@code Entity#refreshDimensions()}); no EPCA entity
-     * needs that today, so this parameter is the whole story.</p>
-     */
     public static <T extends LivingEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMobWithRender(
             String name, float width, float height, float eyeHeight,
             EntityType.EntityFactory<T> factory,
@@ -149,7 +74,6 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity  auto-renderer with separate model/texture/animation base names. */
     public static <T extends LivingEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMobWithCustomModel(
             String name, String modelBase, String texBase, String animBase,
             float width, float height,
@@ -164,7 +88,6 @@ public class ModEntities {
         });
     }
 
-    /** Existing entity with custom renderer  attributes only. */
     public static <T extends LivingEntity> DeferredHolder<EntityType<?>, EntityType<T>> registerMobAttributes(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -177,7 +100,6 @@ public class ModEntities {
         });
     }
 
-    /** Misc entity, no attributes, custom renderer. */
     public static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> registerMisc(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory,
@@ -187,7 +109,6 @@ public class ModEntities {
                         .sized(width, height).clientTrackingRange(12).build(entityKey(name)));
     }
 
-    /** Misc entity with extra config. */
     public static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> registerMiscNoSummon(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory) {
@@ -208,10 +129,6 @@ public class ModEntities {
                         .build(entityKey(name)));
     }
 
-    //  Entity registrations
-    //  All mob entities use registerMobWithRender  auto-render via EpcaTypeGeoRenderer
-
-    // --- Onesent ---
     public static final DeferredHolder<EntityType<?>, EntityType<Curbug>> CURBUG =
             registerMobWithRender("curbug", 0.5F, 0.4F, Curbug::new, MobCategory.MONSTER, 12, Curbug::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<Ripper>> RIPPER =
@@ -225,7 +142,6 @@ public class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<LightCarrier>> LIGHT_CARRIER =
             registerMobWithRender("light_carrier", 0.9F, 1.5F, LightCarrier::new, MobCategory.MONSTER, 12, LightCarrier::setAttributes);
 
-    // --- Poverty ---
     public static final DeferredHolder<EntityType<?>, EntityType<SmallIncompleteForm>> SMALL_INCOMPLETE_FORM =
             registerMobWithRender("small_incomplete_form", 0.6F, 0.8F, SmallIncompleteForm::new, MobCategory.MONSTER, 12, SmallIncompleteForm::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<MediumIncompleteForm>> MEDIUM_INCOMPLETE_FORM =
@@ -247,19 +163,16 @@ public class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<LivingFleshSize4>> LIVING_FLESH_SIZE4 =
             registerMobWithCustomModel("living_flesh_size4", "living_flesh", "living_flesh", "living_flesh", 2.2F, 2.0F, LivingFleshSize4::new, MobCategory.MONSTER, 12, LivingFleshSize4::setAttributes);
 
-    // --- Link ---
     public static final DeferredHolder<EntityType<?>, EntityType<StageIBeckon>> STAGE_I_BECKON =
             registerMobWithRender("stage_i_beckon", 0.6F, 2.2F, StageIBeckon::new, MobCategory.MONSTER, 12, StageIBeckon::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<StageIIBeckon>> STAGE_II_BECKON =
             registerMobWithRender("stage_ii_beckon", 0.75F, 5.0F, StageIIBeckon::new, MobCategory.MONSTER, 12, StageIIBeckon::setAttributes);
 
-    // --- Reshape ---
     public static final DeferredHolder<EntityType<?>, EntityType<ReshapeLongarms>> RESHAPE_LONGARMS =
             registerMobWithRender("reshape_longarms", 2.0F, 4.0F, 3.6F, ReshapeLongarms::new, MobCategory.MONSTER, 16, ReshapeLongarms::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<ReshapeYelloweye>> RESHAPE_YELLOWEYE =
             registerMobWithRender("reshape_yelloweye", 2.75F, 3.5F, ReshapeYelloweye::new, MobCategory.MONSTER, 16, ReshapeYelloweye::setAttributes);
 
-    // --- Infested ---
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedZombie>> INFESTED_ZOMBIE =
             registerMobWithRender("infested_zombie", 0.7F, 1.8F, InfestedZombie::new, MobCategory.MONSTER, 12, InfestedZombie::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<WalkingZombieHead>> WALKING_ZOMBIE_HEAD =
@@ -314,17 +227,14 @@ public class ModEntities {
             registerMobWithRender("infested_fox", 0.8F, 0.9F, InfestedFox::new, MobCategory.MONSTER, 12, InfestedFox::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<WalkingFoxHead>> WALKING_FOX_HEAD =
             registerMobWithRender("walking_fox_head", 0.6F, 0.6F, WalkingFoxHead::new, MobCategory.MONSTER, 12, WalkingFoxHead::setAttributes);
-    // Restored: the infested carved-pumpkin head mob.  The bad transplant replaced this
-    // was an unresolvable symbol in InfestedCarvedPumpkin and InfestedPumpkin.
-    // --- Slimes (createAttributes returns Builder) ---
+
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedSlimeSize0>> INFESTED_SLIME_SIZE0 =
             registerMobWithRender("infested_slime_size0", 0.5F, 0.5F, InfestedSlimeSize0::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize0.createAttributes().build());
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedSlimeSize1>> INFESTED_SLIME_SIZE1 =
             registerMobWithRender("infested_slime_size1", 1.0F, 1.0F, InfestedSlimeSize1::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize1.createAttributes().build());
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedSlimeSize3>> INFESTED_SLIME_SIZE3 =
             registerMobWithRender("infested_slime_size3", 2.5F, 2.5F, InfestedSlimeSize3::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize3.createAttributes().build());
-    // --- Spiders: one entity type per mob. The bleeding / cave forms are a synced Variant on the
-    // same type (the convention Ripper / InfestedFox already use), so no extra type is registered. ---
+
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedSpider>> INFESTED_SPIDER =
             registerMobWithRender("infested_spider", 1.4F, 0.9F, InfestedSpider::new, MobCategory.MONSTER, 12, InfestedSpider::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<WalkingSpiderHead>> WALKING_SPIDER_HEAD =
@@ -332,40 +242,12 @@ public class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedBat>> INFESTED_BAT =
             registerMobWithRender("infested_bat", 0.5F, 0.8F, InfestedBat::new, MobCategory.MONSTER, 12, InfestedBat::setAttributes);
 
-    /**
-     * Misc entity with auto-renderer but no attributes.
-     *
-     * <h2>Invariant: never auto-render something without an animation asset</h2>
-     * <p>These helpers publish a model/texture/animation triple to
-     * {@link EpcaEntityManager} and {@code ClientHandler} then wires every published type to
-     * {@link org.tdddd.epca.impl.client.entity.EpcaGeoRenderer}. GeckoLib 5.5.2 builds the
-     * animation timeline in {@code AnimationProcessor.extractControllerStates}, called at the end
-     * of {@code GeoRendererInternals#captureDefaultRenderState}, from each registered
-     * {@code AnimationController}. {@code AnimationTimeline.create} resolves every
-     * {@code RawAnimation} stage through {@code AnimationProcessor.getOrCreateAnimation} and
-     * silently drops the stages whose animation does not exist in
-     * {@code assets/epca/geckolib/animations/<base>.animation.json}; afterwards, if the
-     * controller's transition length is non-zero, it calls {@code List#getLast()} on that (then
-     * possibly empty) stage list and throws {@code NoSuchElementException}.</p>
-     *
-     * <p>Consequences, both of which this class must respect:</p>
-     * <ul>
-     *   <li>An entity <b>without</b> an animation asset must register <b>no</b> controller at all
-     *       (see {@code AcidBullet}, {@code BoneArrow} and {@code LivingArmorItem}, all of which
-     *       have a deliberately empty {@code registerControllers}).</li>
-     *   <li>An entity that is not a {@code GeoAnimatable} at all  every plain vanilla-rendered
-     *       projectile  must not go through {@link #registerMiscWithRender}/
-     *       {@link #registerMobWithRender}; use {@link #registerMisc} so it never reaches GeckoLib.
-     *       </li>
-     * </ul>
-     */
     public static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> registerMiscWithRender(
             String name, float width, float height,
             EntityType.EntityFactory<T> factory) {
         return registerMiscWithRender(name, name, width, height, factory);
     }
 
-    /** Misc entity with auto-renderer, using custom resource base name. */
     public static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> registerMiscWithRender(
             String name, String resBase, float width, float height,
             EntityType.EntityFactory<T> factory) {
@@ -378,7 +260,6 @@ public class ModEntities {
         });
     }
 
-    // --- Entities with attributes + custom renderers (not auto-rendered) ---
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedVillager>> INFESTED_VILLAGER =
             registerMobWithRender("infested_villager", 0.7F, 1.8F, InfestedVillager::new, MobCategory.MONSTER, 12, InfestedVillager::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedZombieVillager>> INFESTED_ZOMBIE_VILLAGER =
@@ -394,30 +275,18 @@ public class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<YawningNya>> YAWNING_NYA =
             registerMobAttributes("yawning_nya", 0.6F, 1.8F, YawningNya::new, MobCategory.AMBIENT, 8, YawningNya::createAttributes);
 
-    // --- Misc entities (no attributes, custom renderers) ---
     public static final DeferredHolder<EntityType<?>, EntityType<ContaminatedWater>> CONTAMINATED_WATER =
             registerMiscNoSummon("contaminated_water", 5.0F, 5.0F, ContaminatedWater::new);
     public static final DeferredHolder<EntityType<?>, EntityType<SlimeProjectile>> SLIME_PROJECTILE =
             registerMiscWithRender("slime_projectile", 0.3F, 0.3F, SlimeProjectile::new);
-    // --- Misc projectile entities rendered by vanilla renderers (NOT GeckoLib) ---
-    // These three are plain ThrowableItemProjectiles: they are not GeoAnimatables, they have no
-    // geckolib/models/entity/<id>.geo.json and no geckolib/animations/<id>.animation.json, and
-    // ClientHandler renders them with vanilla ThrownItemRenderer. They therefore go through
-    // registerMisc() instead of registerMiscWithRender(): publishing them to
-    // EpcaEntityManager.RENDER_TYPES would have handed them to EpcaGeoRenderer, whose
-    // GeoRendererInternals#captureDefaultRenderState is the only place GeckoLib builds an
-    // animation timeline (AnimationTimeline.create -> AnimationProcessor.getOrCreateAnimation ->
-    // List#getLast on an empty stage list -> NoSuchElementException). See the invariant documented
-    // on registerMiscWithRender above.
+
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedSpiderWebProjectile>> INFESTED_SPIDER_WEB_PROJECTILE =
             registerMisc("infested_spider_web_projectile", 0.3F, 0.3F, InfestedSpiderWebProjectile::new, MobCategory.MISC);
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedSpiderWebBloodProjectile>> INFESTED_SPIDER_WEB_BLOOD_PROJECTILE =
             registerMisc("infested_spider_web_blood_projectile", 0.3F, 0.3F, InfestedSpiderWebBloodProjectile::new, MobCategory.MISC);
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedCaveSpiderWebProjectile>> INFESTED_CAVE_SPIDER_WEB_PROJECTILE =
             registerMisc("infested_cave_spider_web_projectile", 0.3F, 0.3F, InfestedCaveSpiderWebProjectile::new, MobCategory.MISC);
-    // acid_bullet / bone_arrow: GeoAnimatables with a geo model + texture but NO animation asset.
-    // They must stay on the auto-render path (EpcaGeoRenderer draws them) and must never register
-    // an AnimationController - their registerControllers() overrides are deliberately empty.
+
     public static final DeferredHolder<EntityType<?>, EntityType<AcidBullet>> ACID_BULLET =
             registerMiscWithRender("acid_bullet", 0.4F, 0.4F, AcidBullet::new);
     public static final DeferredHolder<EntityType<?>, EntityType<BiomassEgg>> BIOMASS_EGG =
@@ -433,12 +302,11 @@ public class ModEntities {
             ENTITIES.register("reshape_part",
                     () -> EntityType.Builder.<ReshapeLongarms.CustomPart>of(
                                     ReshapeLongarms.CustomPart::new, MobCategory.MISC)
-                            .sized(2.0F, 2.0F) // pre-init placeholder only: ReshapeLongarms.CustomPart#getDimensions supplies the real per-part box
-                            .clientTrackingRange(12) 
+                            .sized(2.0F, 2.0F)
+                            .clientTrackingRange(12)
                             .build(entityKey("reshape_part"))
             );
 
-    // --- Thrown Spears ---
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownWoodenSpear>> THROWN_WOODEN_SPEAR =
             registerMiscTracking("thrown_wooden_spear", 0.5F, 0.5F, ThrownWoodenSpear::new, 4, 20);
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownStoneSpear>> THROWN_STONE_SPEAR =
@@ -456,5 +324,3 @@ public class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownNetheriteSpear>> THROWN_NETHERITE_SPEAR =
             registerMiscTracking("thrown_netherite_spear", 0.5F, 0.5F, ThrownNetheriteSpear::new, 4, 20);
 }
-
-

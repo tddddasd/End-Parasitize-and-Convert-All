@@ -12,11 +12,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.renderstate.RegisterRenderStateModifiersEvent;
 import org.tdddd.epca.impl.epca;
 
-
 @EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public final class ClientEntityTint {
 
-    
     public static final ContextKey<Integer> MODEL_TINT =
             new ContextKey<>(Identifier.fromNamespaceAndPath(epca.MODID, "model_tint"));
 

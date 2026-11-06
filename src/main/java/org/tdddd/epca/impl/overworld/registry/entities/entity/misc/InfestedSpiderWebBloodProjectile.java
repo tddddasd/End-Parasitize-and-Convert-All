@@ -1,5 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.misc;
 
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
@@ -13,7 +14,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.InfestedSpiderWebBlood;
 
 public class InfestedSpiderWebBloodProjectile extends ThrowableItemProjectile {
@@ -45,10 +45,7 @@ public class InfestedSpiderWebBloodProjectile extends ThrowableItemProjectile {
     @Override
     protected void onHitEntity(EntityHitResult result) {
         if (!this.level().isClientSide()) {
-            // User requirement: when this web hits a creature that is NOT a parasite and NOT a nest
-            // leader, the web is generated at THAT CREATURE'S FEET rather than wherever the projectile
-            // happened to be at the moment of impact. Parasites and nest leaders keep the previous
-            // behaviour (the projectile's own position). The block-hit path below is unchanged.
+
             tryPlaceWeb(webTargetFor(result));
             this.discard();
         }
@@ -67,23 +64,9 @@ public class InfestedSpiderWebBloodProjectile extends ThrowableItemProjectile {
         super.onHitBlock(result);
     }
 
-    /**
-     * Resolves where the web should go for a hit on {@code result}'s entity.
-     *
-     * <p>Classification uses the mod's OWN predicate,
-     * IParasite#isParasiteByTagOrInterface, which already covers BOTH halves of the requirement: for a
-     * Player it delegates to HiveLeaderManager#isHiveLeader(uuid), and for every other entity it
-     * checks the IParasite interface or the "Parasite" persistent-data flag. So "not a parasite and
-     * not a nest leader" is exactly the negation of that one call.</p>
-     *
-     * <p>Feet block first, block below as the fallback when the feet block is occupied (the head's
-     * single-web rule). A web block is itself not replaceable, so an entity already standing in a web
-     * resolves to the block below it and a second web is never stacked on an existing one. If both
-     * candidates are blocked, the projectile's own position is used so the shot still leaves a web.</p>
-     */
     private BlockPos webTargetFor(EntityHitResult result) {
         if (result.getEntity() instanceof LivingEntity living
-                && !IParasite.isParasiteByTagOrInterface(living)) {
+                && !ParasiteEvents.isParasiteByTagOrInterface(living)) {
             BlockPos feet = living.blockPosition();
             if (this.level().getBlockState(feet).canBeReplaced()) {
                 return feet;

@@ -1,5 +1,9 @@
 package org.tdddd.epca.impl.overworld.registry.entities.entity.infested;
 
+import net.minecraft.world.entity.LivingEntity;
+
+import org.tdddd.epca.impl.utils.entity.InfestedUtils;
+import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.monster.Enemy;
@@ -42,8 +46,6 @@ import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.IInfested;
-import org.tdddd.epca.impl.overworld.registry.entities.IParasite;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
@@ -60,56 +62,55 @@ import com.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasite, IInfested, Enemy {
+public class InfestedChicken extends PathfinderMob implements GeoEntity, Enemy {
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
     public int tryApplyParaCurseEffect(Mob mob, int currentCooldown) {
         return 0;
     }
     private static final EntityDataAccessor<Boolean> DATA_IS_RUNNING = SynchedEntityData.defineId(InfestedChicken.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(InfestedChicken.class, EntityDataSerializers.BOOLEAN);
-    
+
     private static final EntityDataAccessor<Boolean> DATA_IS_FALLING = SynchedEntityData.defineId(InfestedChicken.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IS_SHOOTING = SynchedEntityData.defineId(InfestedChicken.class, EntityDataSerializers.BOOLEAN);
 
     private static final Identifier WANDER_SPEED_ID = Identifier.fromNamespaceAndPath("epca", "a2766b59-7066-4402-ad81-0e3b7b6c2b9b");
     private static final AttributeModifier WANDER_SPEED_REDUCTION = new AttributeModifier(WANDER_SPEED_ID, -0.35, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
-    
+
     private int ambientSoundTime;
-    private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20; 
-    private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20; 
+    private static final int MIN_AMBIENT_SOUND_DELAY = 12 * 20;
+    private static final int MAX_AMBIENT_SOUND_DELAY = 16 * 20;
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH = SynchedEntityData.defineId(InfestedChicken.class, EntityDataSerializers.BOOLEAN);
     private int fakeDeathTimer = 20;
-    private BlockPos deathPosition; 
-    private int shootCooldown = 0; 
-    private int meleeCooldown = 0; 
-    private static final int NORMAL_SHOOT_COOLDOWN = 20; 
-    private static final int BUFFED_SHOOT_COOLDOWN = 10; 
-    private static final int MELEE_COOLDOWN = 20; 
-    private float bodyRotationX = 0.0F; 
-    
+    private BlockPos deathPosition;
+    private int shootCooldown = 0;
+    private int meleeCooldown = 0;
+    private static final int NORMAL_SHOOT_COOLDOWN = 20;
+    private static final int BUFFED_SHOOT_COOLDOWN = 10;
+    private static final int MELEE_COOLDOWN = 20;
+    private float bodyRotationX = 0.0F;
+
     private int shootAnimationTimer = 0;
-    
-    private static final double SAFE_DISTANCE = 8.0D; 
-    private static final double MAX_CHASE_DISTANCE = 16.0D; 
-    private int retreatCooldown = 0; 
-    private static final int RETREAT_COOLDOWN = 5; 
-    private boolean isRetreating = false; 
-    private Vec3 retreatDirection = Vec3.ZERO; 
+
+    private static final double SAFE_DISTANCE = 8.0D;
+    private static final double MAX_CHASE_DISTANCE = 16.0D;
+    private int retreatCooldown = 0;
+    private static final int RETREAT_COOLDOWN = 5;
+    private boolean isRetreating = false;
+    private Vec3 retreatDirection = Vec3.ZERO;
 
     public InfestedChicken(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
         this.xpReward = 8;
-        
+
         this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
         var epcaStepHeight = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT);
         if (epcaStepHeight != null) epcaStepHeight.setBaseValue(0.5F);
-        
+
         this.navigation = new GroundPathNavigation(this, level);
     }
 
-    @Override
     public boolean canPassThroughInfestedLeaves() {
-        return true; 
+        return true;
     }
 
     private int breakCooldown = 0;
@@ -119,7 +120,7 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
         super.customServerAiStep(level);
 
         if (!this.level().isClientSide()) {
-            breakCooldown = tryBreakLightSources(this, breakCooldown);
+            breakCooldown = InfestedUtils.tryBreakLightSources(this, breakCooldown);
         }
     }
 
@@ -135,8 +136,8 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 5.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.21D)
-                .add(Attributes.ATTACK_DAMAGE, 1.0D) 
-                .add(Attributes.FOLLOW_RANGE, 16.0D) 
+                .add(Attributes.ATTACK_DAMAGE, 1.0D)
+                .add(Attributes.FOLLOW_RANGE, 16.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ARMOR, 1.0D)
                 .build();
@@ -160,11 +161,11 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
     @Override
     public void tick() {
         super.tick();
-        
+
         if (!this.level().isClientSide()) {
-            boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001; 
+            boolean isMoving = this.getDeltaMovement().horizontalDistanceSqr() > 0.001;
             boolean hasTarget = this.getTarget() != null;
-            boolean isFalling = this.getDeltaMovement().y < -0.05 && !this.onGround(); 
+            boolean isFalling = this.getDeltaMovement().y < -0.05 && !this.onGround();
             this.setRunning(isMoving && hasTarget && !isRetreating);
             this.setWalking(isMoving && !hasTarget);
             this.setFalling(isFalling);
@@ -182,23 +183,23 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
             super.tick();
             fakeDeathTimer--;
             if (fakeDeathTimer <= 0) {
-                
+
                 if (!this.level().isClientSide()) {
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                             ModSoundEvents.SMALL_EXPLOSION.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                     if (this.level() instanceof ServerLevel serverLevel) {
-                        
-                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(), 
+
+                        serverLevel.sendParticles(ModParticles.PARA_CURSE.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
-                                10, 
-                                0.3, 0.45, 0.3, 
-                                0.0 
+                                10,
+                                0.3, 0.45, 0.3,
+                                0.0
                         );
                         serverLevel.sendParticles(ModParticles.SPLASHI.get(),
                                 this.getX(), this.getY() + 0.5, this.getZ(),
-                                7, 
-                                0.4, 0.3, 0.4, 
-                                0.2); 
+                                7,
+                                0.4, 0.3, 0.4,
+                                0.2);
                         BlockPos deathPos = this.deathPosition;
                         long seed = this.random.nextLong();
                         int delay = this.random.nextInt(30) + 40;
@@ -211,20 +212,20 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
                         ));
                         AreaEffectCloud cloud = new AreaEffectCloud(serverLevel,
                                 deathPos.getX() + 0.5, deathPos.getY() + 0.5, deathPos.getZ() + 0.5);
-                        cloud.setRadius(1.5F); 
-                        cloud.setDuration(60); 
-                        cloud.setRadiusPerTick(0); 
-                        cloud.setWaitTime(0); 
+                        cloud.setRadius(1.5F);
+                        cloud.setDuration(60);
+                        cloud.setRadiusPerTick(0);
+                        cloud.setWaitTime(0);
                         cloud.addEffect(new MobEffectInstance(
                                 ModEffects.PARA_CURSE,
-                                1200, 
-                                1,    
+                                1200,
+                                1,
                                 false, true
                         ));
                         cloud.addEffect(new MobEffectInstance(
                                 MobEffects.POISON,
-                                200,  
-                                0,    
+                                200,
+                                0,
                                 false, true
                         ));
                         serverLevel.addFreshEntity(cloud);
@@ -233,9 +234,9 @@ public class InfestedChicken extends PathfinderMob implements GeoEntity, IParasi
                 }
                 triggerDismemberment();
 this.discard();
-                return; 
+                return;
             }
-            
+
             return;
         }
 
@@ -247,14 +248,14 @@ this.discard();
             LivingEntity target = this.getTarget();
 
             if (target != null) {
-                
+
                 if (shootCooldown > 0) shootCooldown--;
                 if (meleeCooldown > 0) meleeCooldown--;
-                
+
                 double distance = this.distanceTo(target);
 
                 if (distance < SAFE_DISTANCE) {
-                    
+
                     if (retreatCooldown <= 0) {
                         startRetreating(target);
                         retreatCooldown = RETREAT_COOLDOWN;
@@ -268,7 +269,7 @@ this.discard();
                             shootCooldown = NORMAL_SHOOT_COOLDOWN;
                         }
                     }
-                    
+
                     if (isRetreating) {
                         updateRetreatMovement();
                     }
@@ -301,7 +302,7 @@ this.discard();
                     stopRetreating();
                 }
             } else {
-                
+
                 stopRetreating();
             }
         }
@@ -311,19 +312,19 @@ this.discard();
             movementAttribute.removeModifier(WANDER_SPEED_ID);
 
             if (isRetreating) {
-                
+
                 movementAttribute.setBaseValue(baseSpeed * 0.7D);
             } else if (hasTarget) {
-                
+
                 movementAttribute.setBaseValue(chaseSpeed);
             } else {
-                
+
                 movementAttribute.setBaseValue(baseSpeed);
                 movementAttribute.addTransientModifier(WANDER_SPEED_REDUCTION);
             }
             if (!this.level().isClientSide()) {
                 double horizontalMovement = this.getDeltaMovement().horizontalDistance();
-                boolean isActuallyMoving = horizontalMovement > 0.01; 
+                boolean isActuallyMoving = horizontalMovement > 0.01;
                 boolean isFalling = this.getDeltaMovement().y < -0.05;
                 if (isRetreating) {
                     this.setWalking(true);
@@ -343,12 +344,12 @@ this.discard();
         if (!this.level().isClientSide()) {
             if (this.getTarget() == null && !isRetreating) {
                 if (--this.ambientSoundTime <= 0) {
-                    
+
                     this.ambientSoundTime = this.random.nextInt(MIN_AMBIENT_SOUND_DELAY, MAX_AMBIENT_SOUND_DELAY);
                     playAmbientSound();
                 }
             }
-            
+
             updateFloating();
         }
     }
@@ -357,22 +358,22 @@ this.discard();
 
         isRetreating = true;
         Vec3 toTarget = target.position().subtract(this.position());
-        retreatDirection = toTarget.normalize().scale(-0.6); 
+        retreatDirection = toTarget.normalize().scale(-0.6);
         this.getNavigation().stop();
     }
     private void updateRetreatMovement() {
         if (!isRetreating || retreatDirection.equals(Vec3.ZERO)) return;
-        Vec3 movement = retreatDirection.scale(0.20D); 
+        Vec3 movement = retreatDirection.scale(0.20D);
         BlockPos checkPos = this.blockPosition().offset(
                 (int)Math.signum(movement.x),
                 0,
                 (int)Math.signum(movement.z)
         );
         if (this.level().getBlockState(checkPos).isSolid()) {
-            
-            Vec3 sideDirection = retreatDirection.yRot((float)Math.PI / 2); 
+
+            Vec3 sideDirection = retreatDirection.yRot((float)Math.PI / 2);
             if (this.random.nextBoolean()) {
-                sideDirection = sideDirection.yRot((float)Math.PI); 
+                sideDirection = sideDirection.yRot((float)Math.PI);
             }
             movement = sideDirection.scale(0.20D);
         }
@@ -394,12 +395,12 @@ this.discard();
             this.getNavigation().stop();
         }
     }
-    
+
     private void shootBiomassEgg(LivingEntity target) {
         if (!this.level().isClientSide()) {
-            
+
             this.triggerAnim("shoot_controller", "shoot");
-            
+
             this.setShooting(true);
             this.playSound(SoundEvents.EGG_THROW, 1.0F, 0.8F);
             Vec3 eyePos = this.getEyePosition();
@@ -412,8 +413,8 @@ this.discard();
             BiomassEgg egg = new BiomassEgg(this.level(), this);
             Vec3 shootPos = eyePos.add(direction.scale(0.5));
             egg.setPos(shootPos.x, shootPos.y - 0.1, shootPos.z);
-            double speed = 1.0; 
-            double gravity = 0.05; 
+            double speed = 1.0;
+            double gravity = 0.05;
             double requiredY = (targetPos.y - shootPos.y) + (gravity * distance * distance) / (2 * speed * speed);
             double requiredYVelocity = requiredY / (distance / speed);
             double maxYVelocity = speed * Math.tan(72.5 * Math.PI / 180.0);
@@ -446,14 +447,14 @@ this.discard();
             }
         }
     }
-    
+
     private void performMeleeAttack(LivingEntity target) {
         if (target.hurtOrSimulate(this.damageSources().mobAttack(this), 2.0F)) {
-            
+
             this.playSound(SoundEvents.CHICKEN_SOUNDS.get(net.minecraft.world.entity.animal.chicken.ChickenSoundVariants.SoundSet.CLASSIC).adultSounds().hurtSound().value(), 0.85F, 0.7F);
         }
     }
-    
+
     private void calculateBodyRotation(LivingEntity target) {
         if (target != null) {
             Vec3 eyePos = this.getEyePosition();
@@ -462,9 +463,9 @@ this.discard();
             double heightDifference = targetPos.y - eyePos.y;
 
             double pitchAngle = -Math.asin(heightDifference / distance) * (180.0 / Math.PI);
-            
+
             pitchAngle = Mth.clamp(pitchAngle, -30.0, 72.5);
-            
+
             this.bodyRotationX = (float) Math.toRadians(pitchAngle);
         } else {
             this.bodyRotationX = 0.0F;
@@ -477,12 +478,12 @@ this.discard();
 
     private static void spawnChickenHeads(ServerLevel level, BlockPos pos, int count) {
         for (int i = 0; i < count; i++) {
-            
+
             EntityType<?> chickenHeadType = ModEntities.WALKING_CHICKEN_HEAD.get();
             Entity chickenHead = chickenHeadType.create(level, EntitySpawnReason.MOB_SUMMONED);
 
             if (chickenHead != null) {
-                
+
                 double offsetX = (level.getRandom().nextDouble() - 0.5) * 0.5;
                 double offsetY = level.getRandom().nextDouble() * 0.5;
                 double offsetZ = (level.getRandom().nextDouble() - 0.5) * 0.5;
@@ -512,64 +513,60 @@ this.discard();
 
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        
+
         return SoundEvents.CHICKEN_SOUNDS.get(net.minecraft.world.entity.animal.chicken.ChickenSoundVariants.SoundSet.CLASSIC).adultSounds().hurtSound().value();
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        
+
         return SoundEvents.CHICKEN_SOUNDS.get(net.minecraft.world.entity.animal.chicken.ChickenSoundVariants.SoundSet.CLASSIC).adultSounds().deathSound().value();
     }
-    
+
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.is(DamageTypes.FALL)) {
-            return false; 
+            return false;
         }
-        
+
         if (source.getEntity() instanceof LivingEntity attacker) {
-            
-            if (shouldIgnoreDamageFrom(attacker)) {
-                return false; 
+
+            if (ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) {
+                return false;
             }
         }
-        
+
         if (isFakingDeath() || isInvulnerable()) {
             return false;
         }
 
         if (!this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
-            this.onAttacked(attacker);
+            ParasiteEvents.onAttacked(this, attacker);
         }
-        float adjustedAmount = ((IParasite) this).onHurt(source, amount);
-        boolean result = super.hurtServer(level, source, adjustedAmount);
-
-        return result;
+        return super.hurtServer(level, source, amount);
     }
 
-    @Override
     public void onKillEntity(LivingEntity killedEntity) {
         if (!this.level().isClientSide()) {
-            IParasite.super.onKillEntity(killedEntity);
+            ParasiteEvents.onKillEntity(this, killedEntity);
             this.addEffect(new MobEffectInstance(
                     MobEffects.REGENERATION,
-                    60,     
-                    0,      
+                    60,
+                    0,
                     false, false, true
             ));
         }
     }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        
+
         controllers.add(new AnimationController<>("main_controller", EpcaAnimations.GEO_TRANSITION_TICKS, this::mainAnimationPredicate));
         AnimationController<InfestedChicken> shootController = new AnimationController<>("shoot_controller", EpcaAnimations.GEO_TRANSITION_TICKS, state -> PlayState.STOP);
         shootController.triggerableAnim("shoot", RawAnimation.begin().thenPlay("shoot"));
         controllers.add(shootController);
     }
     private PlayState mainAnimationPredicate(AnimationTest<InfestedChicken> event) {
-        
+
         if (this.isFakingDeath()) {
             event.setAnimation(RawAnimation.begin().thenLoop("dead"));
             return PlayState.CONTINUE;
@@ -596,9 +593,9 @@ this.discard();
             BlockPos pos,
             RandomSource random
     ) {
-        
+
         if (spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION) {
-            
+
             int stage = EvolutionManager.getStageForDimension(levelAccessor.getLevel());
             if (stage < 2 || stage > 5) {
                 return false;
@@ -609,11 +606,11 @@ this.discard();
         return groundState.is(Blocks.GRASS_BLOCK);
     }
     protected double getDefaultGravity() {
-        
-        return 0.08D; 
+
+        return 0.08D;
     }
-    private double baseSpeed = 0.21D; 
-    private double chaseSpeed = 0.32D; 
+    private double baseSpeed = 0.21D;
+    private double chaseSpeed = 0.32D;
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
@@ -621,7 +618,7 @@ this.discard();
     }
     @Override
     public void die(DamageSource source) {
-        
+
         if (isFakingDeath()) {
             super.die(source);
             return;
@@ -631,31 +628,28 @@ this.discard();
             int minKills = 0;
             if (minKills > 0) {
                 int currentDeaths = 0;
-                if (false) { // disabled: the api LivingDeathEvent handler owns minKillCount
-                    
+                if (false) {
+
                     ;
-                    
+
                     this.setHealth(this.getMaxHealth());
-                    return; 
+                    return;
                 }
             }
         }
 
         if (this.isOnFire()) {
-            
+
             super.die(source);
-            this.onDeath(source);
             return;
         }
         if (!this.level().isClientSide() && this.getHealth() <= 0.0F && this.random.nextFloat() < 0.4f) {
             triggerFakeDeath(source);
-            this.onDeath(source); 
         } else {
-            
+
             super.die(source);
-            this.onDeath(source); 
             if (!this.level().isClientSide()) {
-                
+
                 if (this.random.nextFloat() < 0.3f) {
                     if (this.level() instanceof ServerLevel serverLevel) {
                         spawnChickenHeads(serverLevel, this.blockPosition(), 1);
@@ -671,9 +665,9 @@ this.discard();
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
         entityData.define(DATA_IS_FAKING_DEATH, false);
-        
+
         entityData.define(DATA_IS_INVULNERABLE, false);
-        
+
         entityData.define(DATA_IS_RUNNING, false);
         entityData.define(DATA_IS_WALKING, false);
         entityData.define(DATA_IS_FALLING, false);
@@ -717,7 +711,7 @@ this.discard();
     public void setInvulnerable(boolean invulnerable) {
         this.entityData.set(DATA_IS_INVULNERABLE, invulnerable);
     }
-    
+
     private void triggerFakeDeath(DamageSource source) {
         setFakingDeath(true);
         setInvulnerable(true);
@@ -744,10 +738,10 @@ this.discard();
     private static void placeRemainsBlock(Level level, BlockPos deathPos, BlockPos.MutableBlockPos pos,
                                           RandomSource rand, BlockState state, int count) {
         for (int i = 0; i < count; i++) {
-            
+
             double offsetX = (rand.nextDouble() - 0.5) * 5;
             double offsetZ = (rand.nextDouble() - 0.5) * 5;
-            int offsetY = -rand.nextInt(3); 
+            int offsetY = -rand.nextInt(3);
 
             pos.set(
                     deathPos.getX() + offsetX,
@@ -755,7 +749,7 @@ this.discard();
                     deathPos.getZ() + offsetZ
             );
             if (level.isEmptyBlock(pos)) {
-                
+
                 BlockPos below = pos.below();
                 BlockState belowState = level.getBlockState(below);
                 if (belowState.isFaceSturdy(level, below, Direction.UP)) {
@@ -766,7 +760,7 @@ this.discard();
     }
     @Override
     public boolean startRiding(Entity vehicle, boolean force, boolean sendEventAndTriggers) {
-        
+
         if (vehicle instanceof Entity && (vehicle instanceof Boat || vehicle instanceof Minecart)) {
             return false;
         }
@@ -774,7 +768,7 @@ this.discard();
     }
     @Override
     protected boolean canRide(Entity entity) {
-        
+
         if (entity instanceof Entity && (entity instanceof Boat || entity instanceof Minecart)) {
             return false;
         }
@@ -783,10 +777,10 @@ this.discard();
     private int floatingTime;
     private void updateFloating() {
         if (this.isInWater()) {
-            
+
             Vec3 vec3 = this.getDeltaMovement();
             if (vec3.y < 0.0D) {
-                
+
                 this.setDeltaMovement(vec3.x, Math.max(vec3.y * 0.8D, -0.05D), vec3.z);
             }
             this.floatingTime++;
@@ -801,7 +795,7 @@ this.discard();
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            
+
             this.moveRelative(0.01F, travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));

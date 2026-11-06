@@ -16,13 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.tdddd.epca.impl.overworld.data.LikeBiome;
 import org.tdddd.epca.impl.overworld.data.LikeBiomeManager;
 
-/**
- * Applies the like biome spawn mode.
- *
- * <p>Verified against the 26.1.2 server jar: {@code NaturalSpawner.mobsAt(ServerLevel, StructureManager,
- * ChunkGenerator, MobCategory, BlockPos, Holder&lt;Biome&gt;)} returns a {@code WeightedList} of spawner
- * entries, and the real biome is the last argument, so swapping its result is the narrowest hook.</p>
- */
 @Mixin(net.minecraft.world.level.NaturalSpawner.class)
 public abstract class NaturalSpawnerLikeBiomeMixin {
 

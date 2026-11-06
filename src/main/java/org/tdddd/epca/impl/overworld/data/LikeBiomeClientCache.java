@@ -8,7 +8,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Client copy of the like biome table, filled by {@code SyncLikeBiomesPacket}. */
 public final class LikeBiomeClientCache {
 
     private static final Map<Long, LikeBiome> BY_SECTION = new HashMap<>();
