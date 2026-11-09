@@ -22,6 +22,10 @@ import java.util.*;
 @Mod.EventBusSubscriber
 public class WaterInteractionHandler {
     private static final int DAMAGE_INTERVAL = 10;
+    // How often (in ticks) a mob in water looks for acid within 8 blocks. The scan reads 833 blocks, and doing it every
+    // tick for every mob in water was about 5% of the server thread with many water mobs around. It only decides whether
+    // the water starts turning into acid, so once a second is enough. Staggered by position so mobs don't all scan at once.
+    private static final int ACID_SCAN_INTERVAL = 20;
 
     private static final Map<UUID, Long> lastDamageTickMap = new HashMap<>();
 
@@ -40,7 +44,8 @@ public class WaterInteractionHandler {
             if (AcidDamageSystem.hasAcidDamageAt(level, entityPos)) {
 
                 AcidDamageSystem.applyAcidWaterDamage(entity, level, entityPos);
-            } else if (AcidDamageSystem.isWaterInAcidRange(level, entityPos, 8)) {
+            } else if (Math.floorMod(level.getGameTime() + entityPos.hashCode(), ACID_SCAN_INTERVAL) == 0
+                    && AcidDamageSystem.isWaterInAcidRange(level, entityPos, 8)) {
 
                 registerAcidWaterIfNeeded(level, entityPos);
             }
