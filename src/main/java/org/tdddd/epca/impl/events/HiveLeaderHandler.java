@@ -110,7 +110,7 @@ public class HiveLeaderHandler {
         if (effect == MobEffects.POISON || effect == MobEffects.HUNGER || effect == MobEffects.NAUSEA ||
                 effect == ModEffects.PARA_CURSE || effect == ModEffects.VIRAL || effect == ModEffects.FEAR ||
                 effect == ModEffects.SOLIDIFY || effect == ModEffects.CORROSIVE || effect == ModEffects.CONTEMPT_INORGANIC ||
-                effect == ModEffects.NEEDLER) {
+                effect == ModEffects.SOUL_BREAKING_CURSE) {
             event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
         }
     }

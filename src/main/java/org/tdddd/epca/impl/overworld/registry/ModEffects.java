@@ -42,8 +42,8 @@ public class ModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> RAGE =
             EFFECTS.register("rage", RageEffect::new);
 
-    public static final DeferredHolder<MobEffect, MobEffect> NEEDLER =
-            EFFECTS.register("needler", NeedlerEffect::new);
+    public static final DeferredHolder<MobEffect, MobEffect> SOUL_BREAKING_CURSE =
+            EFFECTS.register("soul_breaking_curse", SoulBreakingCurseEffect::new);
 
     public static final DeferredHolder<MobEffect, MobEffect> DEEP_SNEAK =
             EFFECTS.register("deep_sneak", DeepSneakEffect::new);

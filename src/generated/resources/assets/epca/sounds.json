@@ -454,30 +454,6 @@
     ],
     "subtitle": "subtitles.epca.mozzie_idle"
   },
-  "nullthing_attack0": {
-    "sounds": [
-      "epca:nullthing_attack0"
-    ],
-    "subtitle": "subtitles.epca.nullthing_attack0"
-  },
-  "nullthing_run": {
-    "sounds": [
-      "epca:nullthing_run"
-    ],
-    "subtitle": "subtitles.epca.nullthing_run"
-  },
-  "nullthing_stand1": {
-    "sounds": [
-      "epca:nullthing_stand1"
-    ],
-    "subtitle": "subtitles.epca.nullthing_stand1"
-  },
-  "nullthing_stand2": {
-    "sounds": [
-      "epca:nullthing_stand2"
-    ],
-    "subtitle": "subtitles.epca.nullthing_stand2"
-  },
   "parcial_adaptation": {
     "sounds": [
       "epca:damage/adaptation/parcial_adaptation"

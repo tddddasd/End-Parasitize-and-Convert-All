@@ -17,7 +17,7 @@
     "common.PointedDripstoneBlockMixin",
     "common.SugarCaneBlockMixin",
     "common.LevelRainLikeBiomeMixin",
-    "common.NaturalSpawnerLikeBiomeMixin"
+    "common.LevelChunkLikeBiomeMixin"
   ],
   "client": [
     "client.CreateWorldScreenMixin",

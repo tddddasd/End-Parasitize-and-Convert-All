@@ -1,5 +1,5 @@
 {
   "#epca:parasite": {
-    "immunities": ["epca:para_curse", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:needler", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
+    "immunities": ["epca:para_curse", "epca:contempt_inorganic", "epca:fear", "epca:viral", "epca:soul_breaking_curse", "epca:solidify", "minecraft:poison", "minecraft:slowness", "minecraft:hunger"]
   }
 }

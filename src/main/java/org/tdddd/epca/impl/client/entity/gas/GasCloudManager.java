@@ -757,40 +757,12 @@ public final class GasCloudManager {
 
     private static void refreshPassiveOwners(ClientLevel level) {
         PASSIVE_ACTIVE_OWNERS.clear();
-        Set<Integer> ownersWithBackPart = new HashSet<>();
-        int partEntities = 0;
-        int backParts = 0;
-        int longarmsEntities = 0;
         for (Entity entity : level.entitiesForRendering()) {
-            if (entity instanceof ReshapeLongarms.CustomPart part) {
-                partEntities++;
-                if (part.isBackPart()) {
-                    backParts++;
-                    ownersWithBackPart.add(part.getOwnerEntityId());
-                }
-            }
-        }
-        for (Entity entity : level.entitiesForRendering()) {
-            if (entity instanceof ReshapeLongarms longarms) {
-                longarmsEntities++;
-                if (!ownersWithBackPart.contains(longarms.getId())) {
-                    PASSIVE_ACTIVE_OWNERS.add(longarms.getId());
-                }
-            }
-        }
-        if (DEBUG) {
-
-            long signature = ((long) partEntities << 32) ^ ((long) backParts << 16) ^ longarmsEntities;
-            Long previous = DEBUG_PASSIVE_SIGNATURE;
-            if (previous == null || previous != signature) {
-                DEBUG_PASSIVE_SIGNATURE = signature;
-                epca.LOGGER.info("[gascloud] manager: passive scan parts={} backParts={} longarms={} "
-                                + "ownersWithBackPart={} passiveActive={}",
-                        partEntities, backParts, longarmsEntities, ownersWithBackPart, PASSIVE_ACTIVE_OWNERS);
+            if (entity instanceof ReshapeLongarms longarms && longarms.isBackPartRemoved()) {
+                PASSIVE_ACTIVE_OWNERS.add(longarms.getId());
             }
         }
     }
-
     public static List<GasCloud> getCloudsFor(int ownerEntityId) {
         List<GasCloud> owned = BY_OWNER.get(ownerEntityId);
         return owned == null ? Collections.emptyList() : owned;

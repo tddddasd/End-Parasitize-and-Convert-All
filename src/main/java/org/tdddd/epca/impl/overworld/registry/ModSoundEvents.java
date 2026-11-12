@@ -13,10 +13,6 @@ public class ModSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> SMALL_EXPLOSION = register("small_explosion");
     public static final DeferredHolder<SoundEvent, SoundEvent> BIG_EXPLOSION = register("big_explosion");
     public static final DeferredHolder<SoundEvent, SoundEvent> SLAM = register("slam");
-    public static final DeferredHolder<SoundEvent, SoundEvent> NULLTHING_ATTACK0 = register("nullthing_attack0");
-    public static final DeferredHolder<SoundEvent, SoundEvent> NULLTHING_RUN = register("nullthing_run");
-    public static final DeferredHolder<SoundEvent, SoundEvent> NULLTHING_STAND1 = register("nullthing_stand1");
-    public static final DeferredHolder<SoundEvent, SoundEvent> NULLTHING_STAND2 = register("nullthing_stand2");
     public static final DeferredHolder<SoundEvent, SoundEvent> INCOMPLETE_FORM_IDLE = register("incomplete_form_idle");
     public static final DeferredHolder<SoundEvent, SoundEvent> INCOMPLETE_FORM_HUNT = register("incomplete_form_hurt");
     public static final DeferredHolder<SoundEvent, SoundEvent> INCOMPLETE_FORM_DEATH = register("incomplete_form_death");

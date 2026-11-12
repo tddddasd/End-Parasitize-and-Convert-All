@@ -68,6 +68,10 @@ public class ModNetwork {
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket.TYPE,
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket.STREAM_CODEC,
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::handle);
+        registrar.playToClient(
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket.TYPE,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket.STREAM_CODEC,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket::handle);
         registrar.playToClient(InfestedSourcePacket.AddInfestedSourcePacket.TYPE,
                 InfestedSourcePacket.AddInfestedSourcePacket.STREAM_CODEC,
                 InfestedSourcePacket.AddInfestedSourcePacket::handle);

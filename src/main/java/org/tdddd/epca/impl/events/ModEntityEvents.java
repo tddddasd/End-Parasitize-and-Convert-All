@@ -8,8 +8,6 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.special.Nullthing;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.*;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIIBeckon;
@@ -58,9 +56,7 @@ public class ModEntityEvents {
         event.register(ModEntities.LARGE_INCOMPLETE_FORM.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, LargeIncompleteForm::checkLargeIncompleteFormSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.INFESTED_COW.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedCow::checkInfestedCowSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.WALKING_COW_HEAD.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WalkingCowHead::checkWalkingCowHeadSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
-        event.register(ModEntities.NULLTHING.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Nullthing::checkNullthingSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.MOZZIE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Mozzie::checkGnatSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
-        event.register(ModEntities.YAWNING_NYA.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, YawningNya::checkNyaSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.INFESTED_SLIME_SIZE0.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSlimeSize0::checkInfestedSlimeSize0SpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.INFESTED_SLIME_SIZE1.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSlimeSize1::checkInfestedSlimeSize1SpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);
         event.register(ModEntities.INFESTED_SLIME_SIZE3.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, InfestedSlimeSize3::checkInfestedSlimeSize3SpawnRules, RegisterSpawnPlacementsEvent.Operation.OR);

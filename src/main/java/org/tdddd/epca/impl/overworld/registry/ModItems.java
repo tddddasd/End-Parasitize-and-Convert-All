@@ -146,7 +146,6 @@ public class ModItems {
             ITEMS.registerItem("infested_cave_spider_web_projectile", Item::new);
 
     public static final DeferredItem<Item> BUGLIN_SPAWN_EGG = spawnEgg("curbug", ModEntities.CURBUG);
-    public static final DeferredItem<Item> YAWNING_NYA_SPAWN_EGG = spawnEgg("yawning_nya", ModEntities.YAWNING_NYA);
     public static final DeferredItem<Item> RUPTER_SPAWN_EGG = spawnEgg("ripper", ModEntities.RIPPER);
     public static final DeferredItem<Item> SMALL_INCOMPLETE_FORM_SPAWN_EGG = spawnEgg("small_incomplete_form", ModEntities.SMALL_INCOMPLETE_FORM);
     public static final DeferredItem<Item> MEDIUM_INCOMPLETE_FORM_SPAWN_EGG = spawnEgg("medium_incomplete_form", ModEntities.MEDIUM_INCOMPLETE_FORM);
@@ -173,7 +172,6 @@ public class ModItems {
     public static final DeferredItem<Item> LARGE_INCOMPLETE_FORM_SPAWN_EGG = spawnEgg("large_incomplete_form", ModEntities.LARGE_INCOMPLETE_FORM);
     public static final DeferredItem<Item> INFESTED_COW_SPAWN_EGG = spawnEgg("infested_cow", ModEntities.INFESTED_COW);
     public static final DeferredItem<Item> WALKING_COW_HEAD_SPAWN_EGG = spawnEgg("walking_cow_head", ModEntities.WALKING_COW_HEAD);
-    public static final DeferredItem<Item> NULLTHING_SPAWN_EGG = spawnEgg("nullthing", ModEntities.NULLTHING);
     public static final DeferredItem<Item> MOZZIE_SPAWN_EGG = spawnEgg("mozzie", ModEntities.MOZZIE);
     public static final DeferredItem<Item> INFESTED_WOLF_SPAWN_EGG = spawnEgg("infested_wolf", ModEntities.INFESTED_WOLF);
     public static final DeferredItem<Item> WALKING_WOLF_HEAD_SPAWN_EGG = spawnEgg("walking_wolf_head", ModEntities.WALKING_WOLF_HEAD);

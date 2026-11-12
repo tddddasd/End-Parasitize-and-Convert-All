@@ -15,7 +15,12 @@ public abstract class BiomeColorsLikeBiomeMixin {
     @Inject(method = "getAverageWaterColor", at = @At("RETURN"), cancellable = true, require = 0)
     private static void epca$likeWater(BlockAndTintGetter level, BlockPos pos,
                                        CallbackInfoReturnable<Integer> cir) {
-        Integer like = LikeBiomeClientEffects.waterColor(pos);
+        Integer vanilla = cir.getReturnValue();
+        if (vanilla == null) {
+            return;
+        }
+        // the vanilla colour doubles as the "no like biome" colour of the transition band
+        Integer like = LikeBiomeClientEffects.waterColor(pos, vanilla);
         if (like != null) {
             cir.setReturnValue(like);
         }
@@ -24,7 +29,11 @@ public abstract class BiomeColorsLikeBiomeMixin {
     @Inject(method = "getAverageGrassColor", at = @At("RETURN"), cancellable = true, require = 0)
     private static void epca$likeGrass(BlockAndTintGetter level, BlockPos pos,
                                        CallbackInfoReturnable<Integer> cir) {
-        Integer like = LikeBiomeClientEffects.grassColor(pos);
+        Integer vanilla = cir.getReturnValue();
+        if (vanilla == null) {
+            return;
+        }
+        Integer like = LikeBiomeClientEffects.grassColor(pos, vanilla);
         if (like != null) {
             cir.setReturnValue(like);
         }
@@ -33,7 +42,11 @@ public abstract class BiomeColorsLikeBiomeMixin {
     @Inject(method = "getAverageFoliageColor", at = @At("RETURN"), cancellable = true, require = 0)
     private static void epca$likeFoliage(BlockAndTintGetter level, BlockPos pos,
                                          CallbackInfoReturnable<Integer> cir) {
-        Integer like = LikeBiomeClientEffects.foliageColor(pos);
+        Integer vanilla = cir.getReturnValue();
+        if (vanilla == null) {
+            return;
+        }
+        Integer like = LikeBiomeClientEffects.foliageColor(pos, vanilla);
         if (like != null) {
             cir.setReturnValue(like);
         }

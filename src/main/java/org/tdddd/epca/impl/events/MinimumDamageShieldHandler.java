@@ -17,6 +17,14 @@ public final class MinimumDamageShieldHandler {
         LivingEntity entity = event.getEntity();
         if (entity == null) return;
 
+        float reduced = org.tdddd.epca.impl.soul.SoulSystem.reduceByProtection(entity, event.getAmount());
+        if (reduced <= 0.0F) {
+            event.setCanceled(true);
+            return;
+        }
+        if (reduced < event.getAmount()) {
+            event.setAmount(reduced);
+        }
         float remaining = ShieldProtectionHelper.applyShieldPool(entity, event.getAmount());
         if (remaining <= 0.0F) {
             event.setCanceled(true);

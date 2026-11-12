@@ -14,8 +14,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.tdddd.epca.impl.overworld.registry.effects.RemovableEffect;
 
-public class NeedlerEffect extends MobEffect implements RemovableEffect {
-    public NeedlerEffect() {
+public class SoulBreakingCurseEffect extends MobEffect implements RemovableEffect {
+    public SoulBreakingCurseEffect() {
         super(MobEffectCategory.BENEFICIAL, 0x9932CC);
     }
 

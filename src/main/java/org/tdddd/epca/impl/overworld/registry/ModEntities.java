@@ -21,8 +21,6 @@ import org.tdddd.epca.impl.overworld.registry.entities.entity.poverty.*;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLongarms;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeYelloweye;
 import org.tdddd.epca.impl.epca;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.special.Nullthing;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -270,10 +268,6 @@ public class ModEntities {
             registerMobWithRender("infested_enderman", 0.9F, 2.5F, InfestedEnderman::new, MobCategory.MONSTER, 12, InfestedEnderman::setAttributes);
     public static final DeferredHolder<EntityType<?>, EntityType<WalkingEndermanHead>> WALKING_ENDERMAN_HEAD =
             registerMobWithRender("walking_enderman_head", 0.9F, 0.9F, WalkingEndermanHead::new, MobCategory.MONSTER, 12, WalkingEndermanHead::setAttributes);
-    public static final DeferredHolder<EntityType<?>, EntityType<Nullthing>> NULLTHING =
-            registerMobWithRender("nullthing", 0.9F, 0.9F, Nullthing::new, MobCategory.MONSTER, 12, Nullthing::setAttributes);
-    public static final DeferredHolder<EntityType<?>, EntityType<YawningNya>> YAWNING_NYA =
-            registerMobAttributes("yawning_nya", 0.6F, 1.8F, YawningNya::new, MobCategory.AMBIENT, 8, YawningNya::createAttributes);
 
     public static final DeferredHolder<EntityType<?>, EntityType<ContaminatedWater>> CONTAMINATED_WATER =
             registerMiscNoSummon("contaminated_water", 5.0F, 5.0F, ContaminatedWater::new);
@@ -298,14 +292,7 @@ public class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedThrownEnderPearl>> INFESTED_ENDER_PEARL =
             registerMiscTracking("infested_ender_pearl", 0.5F, 0.5F, InfestedThrownEnderPearl::new, 4, 10);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<ReshapeLongarms.CustomPart>> RESHAPE_PART =
-            ENTITIES.register("reshape_part",
-                    () -> EntityType.Builder.<ReshapeLongarms.CustomPart>of(
-                                    ReshapeLongarms.CustomPart::new, MobCategory.MISC)
-                            .sized(2.0F, 2.0F)
-                            .clientTrackingRange(12)
-                            .build(entityKey("reshape_part"))
-            );
+
 
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownWoodenSpear>> THROWN_WOODEN_SPEAR =
             registerMiscTracking("thrown_wooden_spear", 0.5F, 0.5F, ThrownWoodenSpear::new, 4, 20);

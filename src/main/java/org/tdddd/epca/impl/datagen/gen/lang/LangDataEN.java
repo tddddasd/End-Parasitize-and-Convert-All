@@ -58,8 +58,6 @@ public class LangDataEN extends LanguageProvider {
         add("epca.tab.parent.main_tab", "Parasite Bestiary");
         add("epca.tab.child.onesent", "Onesent");
 
-        add("entity.epca.yawning_nya.join", "\u00a7eYawning_Nya joined the world");
-        add("entity.epca.yawning_nya", "Yawning_Nya");
         add("entity.epca.curbug", "Curbug");
         add("entity.epca.ripper", "Ripper");
         add("entity.epca.small_incomplete_form", "Small Incomplete Form");
@@ -145,7 +143,7 @@ public class LangDataEN extends LanguageProvider {
         add("effect.epca.para_curse", "\u00a7cHive Curse");
         add("effect.epca.corrosive", "Corrosive");
         add("effect.epca.rage", "Rage");
-        add("effect.epca.needler", "Needler");
+        add("effect.epca.soul_breaking_curse", "Soul-Breaking Curse");
         add("effect.epca.deep_sneak", "Deep Sneak");
         add("effect.epca.solidify", "Solidify");
         add("effect.epca.ender_erosion", "Ender Erosion");
@@ -284,7 +282,7 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.infested_diamond", "Infested Diamond");
         add("item.epca.infested_nethersea_brand_mor", "Infested Nethersea Brand Mor");
         add("item.epca.infested_nethersea_icecream", "Infested Nethersea Icecream");
-        add("item.epca.epca_note", "E-PCA Note");
+        add("item.epca.epca_note", "Para Curse Note");
         add("item.epca.infested_ender_pearl", "Infested Ender Pearl");
         add("item.epca.ender_blade_scrap", "Ender Blade Scrap");
 
@@ -505,7 +503,7 @@ public class LangDataEN extends LanguageProvider {
         add("epca.organ_gui.readout.adaptation_reduction", "Adaptation damage reduction");
         add("epca.organ_gui.readout.percent", "%");
 
-        add("epca.note.title", "E-PCA Note");
+        add("epca.note.title", "Para Curse Note");
         add("epca.message.stage_too_low", "The erosion stage here is below level 3...");
 
         add("altar_debug.epca.not_structure", "This block is not part of a valid altar structure");

@@ -48,6 +48,8 @@ public class InfestedBlockManager {
         Pending pending = pendingFor(level);
         pending.removed.remove(immutable);
         pending.added.add(immutable);
+        // a unit holding an infested block always carries the EPCA parasite like biome
+        LikeBiomeManager.markUnitInfested(level, immutable);
     }
 
     public static void removeInfestedBlock(ServerLevel level, BlockPos pos) {
@@ -56,6 +58,8 @@ public class InfestedBlockManager {
         Pending pending = pendingFor(level);
         pending.added.remove(immutable);
         pending.removed.add(immutable);
+        // re-check the unit at the end of the tick: the break event fires before the block is gone
+        LikeBiomeManager.scheduleRefresh(level, immutable);
     }
 
     @SubscribeEvent
