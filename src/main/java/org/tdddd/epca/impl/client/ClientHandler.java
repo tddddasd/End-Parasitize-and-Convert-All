@@ -45,8 +45,6 @@ public class ClientHandler {
         }
 
         event.registerEntityRenderer(ModEntities.CONTAMINATED_WATER.get(), ContaminatedWaterRenderer::new);
-        event.registerEntityRenderer(ModEntities.YAWNING_NYA.get(), YawningNyaRenderer::new);
-        event.registerEntityRenderer(ModEntities.BIO_TORT_INCARNATION.get(), BioTortIncarnationRenderer::new);
         event.registerEntityRenderer(ModEntities.BONE_FRAGMENT.get(), BoneFragmentRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_ENDER_PEARL.get(), InfestedThrownEnderPearlRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_SPIDER_WEB_PROJECTILE.get(), ThrownItemRenderer::new);
@@ -56,9 +54,11 @@ public class ClientHandler {
         event.registerEntityRenderer(ModEntities.INFESTED_ENDERMITE.get(), InfestedEndermiteRenderer::new);
         event.registerEntityRenderer(ModEntities.WALKING_ENDERMAN_HEAD.get(), WalkingEndermanHeadRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_ZOMBIE.get(), InfestedZombieRenderer::new);
+        event.registerEntityRenderer(ModEntities.BLACK_HOLE.get(), org.tdddd.epca.impl.client.blackhole.BlackHoleEntityRenderer::new);
+        event.registerEntityRenderer(ModEntities.ILLUSORY_BUTTERFLY.get(), org.tdddd.epca.impl.client.illusion.IllusoryButterflyRenderer::new);
+        event.registerEntityRenderer(ModEntities.ILLUSORY_SHADOW.get(), org.tdddd.epca.impl.client.illusion.IllusoryShadowRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_LONGARMS.get(), ReshapeLongarmsRenderer::new);
         event.registerEntityRenderer(ModEntities.RESHAPE_YELLOWEYE.get(), ReshapeYelloweyeRenderer::new);
-        event.registerEntityRenderer(ModEntities.RESHAPE_PART.get(), ReshapeLongarmsCustomPartRenderer::new);
         event.registerEntityRenderer(ModEntities.INFESTED_BAT.get(), InfestedBatRenderer::new);
 
         event.registerEntityRenderer(ModEntities.RIPPER.get(), ctx -> new EpcaGeoRenderer<>(ctx, new RipperModel()));

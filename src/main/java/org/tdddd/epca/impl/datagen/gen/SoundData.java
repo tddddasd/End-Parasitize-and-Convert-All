@@ -106,10 +106,6 @@ public class SoundData extends SoundDefinitionsProvider {
         map.put("big_explosion", List.of("random/big_explosion1", "random/big_explosion2"));
         map.put("slam", List.of("random/slam1", "random/slam2", "random/slam3", "random/slam4"));
 
-        map.put("nullthing_attack0", List.of("nullthing_attack0"));
-        map.put("nullthing_run", List.of("nullthing_run"));
-        map.put("nullthing_stand1", List.of("nullthing_stand1"));
-        map.put("nullthing_stand2", List.of("nullthing_stand2"));
 
         map.put("incomplete_form_idle", buildFileList("mob/poverty/incomplete_form/incomplete_form_idle", 1, 4));
         map.put("incomplete_form_hurt", buildFileList("mob/poverty/incomplete_form/incomplete_form_hurt", 1, 4));

@@ -28,3 +28,8 @@ Thumbs.db
 
 # 内部设计文档（只在本地保留，不推送）
 docs/
+*.bak
+*.bak.*
+*.testsnd
+_likebiome_backup/
+_illusory_restore/

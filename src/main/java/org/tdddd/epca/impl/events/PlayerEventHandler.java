@@ -67,6 +67,16 @@ public class PlayerEventHandler {
                 EvolutionManager em = EvolutionManager.forDimension(level);
                 em.syncToPlayer(player);
             }
+            // full like biome snapshot: the client cache starts empty on every login
+            org.tdddd.epca.impl.overworld.data.LikeBiomeManager.syncAllToPlayer(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            // like biome units are per dimension, the client cache has to be replaced
+            org.tdddd.epca.impl.overworld.data.LikeBiomeManager.syncAllToPlayer(player);
         }
     }
 }

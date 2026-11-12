@@ -122,7 +122,7 @@ public class epca {
         event.getDispatcher().register(ParasiteSummonCommand.registerSetParasite());
         HiveLeaderCommand.register(event);
         org.tdddd.epca.impl.commands.LikeBiomeCommand.register(event.getDispatcher());
-        org.tdddd.epca.impl.soul.SoulSystem.register(event.getDispatcher());
+        org.tdddd.epca.impl.commands.ButterflyInfoCommand.register(event.getDispatcher());
     }
 
     @SubscribeEvent

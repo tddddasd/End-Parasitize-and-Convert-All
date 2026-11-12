@@ -61,11 +61,6 @@ public class LangDataEN extends LanguageProvider {
         add("epca.tab.parent.main_tab", "Parasite Bestiary");
         add("epca.tab.child.onesent", "Onesent");
 
-        add("entity.epca.yawning_nya.join", "\u00a7eYawning_Nya joined the world");
-        add("entity.epca.yawning_nya", "Yawning_Nya");
-        add("entity.epca.bio_tort_incarnation.join", "\u00a7eBio-Tort Incarnation joined the world");
-        add("entity.epca.bio_tort_incarnation.phase_two", "\u00a7cThe Bio-Tort Incarnation entered phase 2");
-        add("entity.epca.bio_tort_incarnation", "Bio-Tort Incarnation");
         add("entity.epca.curbug", "Curbug");
         add("entity.epca.ripper", "Ripper");
         add("entity.epca.small_incomplete_form", "Small Incomplete Form");
@@ -151,7 +146,7 @@ public class LangDataEN extends LanguageProvider {
         add("effect.epca.para_curse", "\u00a7cHive Curse");
         add("effect.epca.corrosive", "Corrosive");
         add("effect.epca.rage", "Rage");
-        add("effect.epca.needler", "Needler");
+        add("effect.epca.soul_breaking_curse", "Soul-Breaking Curse");
         add("effect.epca.deep_sneak", "Deep Sneak");
         add("effect.epca.solidify", "Solidify");
         add("effect.epca.ender_erosion", "Ender Erosion");
@@ -180,7 +175,6 @@ public class LangDataEN extends LanguageProvider {
 
         add("item.epca.ripper_spawn_egg", "Ripper Spawn Egg");
         add("item.epca.curbug_spawn_egg", "Curbug Spawn Egg");
-        add("item.epca.bio_tort_incarnation_spawn_egg", "Bio-Tort Incarnation Spawn Egg");
         add("item.epca.small_incomplete_form_spawn_egg", "Small Incomplete Form Spawn Egg");
         add("item.epca.medium_incomplete_form_spawn_egg", "Medium Incomplete Form Spawn Egg");
         add("item.epca.large_incomplete_form_spawn_egg", "Large Incomplete Form Spawn Egg");
@@ -292,7 +286,7 @@ public class LangDataEN extends LanguageProvider {
         add("item.epca.infested_diamond", "Infested Diamond");
         add("item.epca.infested_nethersea_brand_mor", "Infested Nethersea Brand Mor");
         add("item.epca.infested_nethersea_icecream", "Infested Nethersea Icecream");
-        add("item.epca.epca_note", "E-PCA Note");
+        add("item.epca.epca_note", "Para Curse Note");
         add("item.epca.infested_ender_pearl", "Infested Ender Pearl");
         add("item.epca.ender_blade_scrap", "Ender Blade Scrap");
 
@@ -510,7 +504,7 @@ public class LangDataEN extends LanguageProvider {
         add("epca.organ_gui.readout.adaptation_reduction", "Adaptation damage reduction");
         add("epca.organ_gui.readout.percent", "%");
 
-        add("epca.note.title", "E-PCA Note");
+        add("epca.note.title", "Para Curse Note");
         add("epca.message.stage_too_low", "The erosion stage here is below level 3...");
 
         add("epca.content.onesent", "§l§0Onesent§r\n$[page]$\n§0Curbug\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0The image above shows a Curbug.");

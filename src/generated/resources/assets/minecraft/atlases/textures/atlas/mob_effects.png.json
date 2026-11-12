@@ -30,7 +30,7 @@
     },
     {
       "type": "minecraft:single",
-      "resource": "epca:mob_effect/needler"
+      "resource": "epca:mob_effect/soul_breaking_curse"
     },
     {
       "type": "minecraft:single",

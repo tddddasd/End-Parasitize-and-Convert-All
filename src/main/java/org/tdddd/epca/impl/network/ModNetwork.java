@@ -107,6 +107,10 @@ public class ModNetwork {
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::encode,
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::decode,
                 org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomesPacket::handle);
+        INSTANCE.registerMessage(id++, org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket.class,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket::encode,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket::decode,
+                org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket::handle);
         INSTANCE.registerMessage(id++, org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket.class,
                 org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket::encode,
                 org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket::decode,

@@ -1,30 +1,50 @@
 package org.tdddd.epca.impl.overworld.registry;
 
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraft.resources.ResourceLocation;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraft.world.entity.Entity;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraft.world.entity.EntityType;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraft.world.entity.LivingEntity;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraft.world.entity.MobCategory;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraftforge.registries.DeferredRegister;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import net.minecraftforge.registries.RegistryObject;
 
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.illusion.IllusoryButterflyEntity;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.illusion.IllusoryShadowEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.*;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIBeckon;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.link.StageIIBeckon;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.misc.*;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.*;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.poverty.*;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeLongarms;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.reshape.ReshapeYelloweye;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import org.tdddd.epca.impl.epca;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BioTortIncarnation;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.special.Nullthing;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.special.YawningNya;
 
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import java.util.function.Consumer;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BlackHoleEntity;
 import java.util.function.Supplier;
 
 public class ModEntities {
@@ -150,6 +170,13 @@ public class ModEntities {
     public static final RegistryObject<EntityType<StageIIBeckon>> STAGE_II_BECKON =
             registerMobWithRender("stage_ii_beckon", 0.75F, 5.0F, StageIIBeckon::new, MobCategory.MONSTER, 12, StageIIBeckon::setAttributes);
 
+    public static final RegistryObject<EntityType<BlackHoleEntity>> BLACK_HOLE =
+            ENTITIES.register("black_hole",
+                    () -> EntityType.Builder.<BlackHoleEntity>of(BlackHoleEntity::new, MobCategory.MISC)
+                            .sized(1.0F, 1.0F)
+                            .clientTrackingRange(16)
+                            .build("black_hole")
+            );
     public static final RegistryObject<EntityType<ReshapeLongarms>> RESHAPE_LONGARMS =
             registerMobWithRender("reshape_longarms", 2.0F, 3.9F, ReshapeLongarms::new, MobCategory.MONSTER, 16, ReshapeLongarms::setAttributes);
     public static final RegistryObject<EntityType<ReshapeYelloweye>> RESHAPE_YELLOWEYE =
@@ -254,13 +281,7 @@ public class ModEntities {
             registerMobWithRender("infested_enderman", 0.9F, 2.5F, InfestedEnderman::new, MobCategory.MONSTER, 12, InfestedEnderman::setAttributes);
     public static final RegistryObject<EntityType<WalkingEndermanHead>> WALKING_ENDERMAN_HEAD =
             registerMobWithRender("walking_enderman_head", 0.9F, 0.9F, WalkingEndermanHead::new, MobCategory.MONSTER, 12, WalkingEndermanHead::setAttributes);
-    public static final RegistryObject<EntityType<Nullthing>> NULLTHING =
-            registerMobWithRender("nullthing", 0.9F, 0.9F, Nullthing::new, MobCategory.MONSTER, 12, Nullthing::setAttributes);
-    public static final RegistryObject<EntityType<YawningNya>> YAWNING_NYA =
-            registerMobAttributes("yawning_nya", 0.6F, 1.8F, YawningNya::new, MobCategory.AMBIENT, 8, YawningNya::createAttributes);
 
-    public static final RegistryObject<EntityType<BioTortIncarnation>> BIO_TORT_INCARNATION =
-            registerMobAttributes("bio_tort_incarnation", 0.6F, 1.8F, BioTortIncarnation::new, MobCategory.AMBIENT, 8, BioTortIncarnation::createAttributes);
 
     public static final RegistryObject<EntityType<ContaminatedWater>> CONTAMINATED_WATER =
             registerMiscNoSummon("contaminated_water", 5.0F, 5.0F, ContaminatedWater::new);
@@ -283,15 +304,6 @@ public class ModEntities {
     public static final RegistryObject<EntityType<InfestedThrownEnderPearl>> INFESTED_ENDER_PEARL =
             registerMiscTracking("infested_ender_pearl", 0.5F, 0.5F, InfestedThrownEnderPearl::new, 4, 10);
 
-    public static final RegistryObject<EntityType<ReshapeLongarms.CustomPart>> RESHAPE_PART =
-            ENTITIES.register("reshape_part",
-                    () -> EntityType.Builder.<ReshapeLongarms.CustomPart>of(
-                                    ReshapeLongarms.CustomPart::new, MobCategory.MISC)
-                            .sized(2.0F, 2.0F)
-                            .clientTrackingRange(12)
-                            .build("reshape_part")
-            );
-
     public static final RegistryObject<EntityType<ThrownWoodenSpear>> THROWN_WOODEN_SPEAR =
             registerMiscTracking("thrown_wooden_spear", 0.5F, 0.5F, ThrownWoodenSpear::new, 4, 20);
     public static final RegistryObject<EntityType<ThrownStoneSpear>> THROWN_STONE_SPEAR =
@@ -308,4 +320,17 @@ public class ModEntities {
             registerMiscTracking("thrown_diamond_spear", 0.5F, 0.5F, ThrownDiamondSpear::new, 4, 20);
     public static final RegistryObject<EntityType<ThrownNetheriteSpear>> THROWN_NETHERITE_SPEAR =
             registerMiscTracking("thrown_netherite_spear", 0.5F, 0.5F, ThrownNetheriteSpear::new, 4, 20);
+
+    /**
+     * Illusory Butterfly / 虚妄蝶: an invisible 8x8x8 timed boss. Registered through
+     * {@code registerMobAttributes} on purpose - it has no GeckoLib model, texture or animation, its
+     * renderer is registered by hand in {@code ClientHandler}.
+     */
+    public static final RegistryObject<EntityType<IllusoryButterflyEntity>> ILLUSORY_BUTTERFLY =
+            registerMobAttributes("illusory_butterfly", 8.0F, 8.0F, IllusoryButterflyEntity::new,
+                    MobCategory.MONSTER, 16, IllusoryButterflyEntity::setAttributes);
+
+    /** Cosmetic past / future shadow that overlaps the butterfly. */
+    public static final RegistryObject<EntityType<IllusoryShadowEntity>> ILLUSORY_SHADOW =
+            registerMiscTracking("illusory_shadow", 8.0F, 8.0F, IllusoryShadowEntity::new, 16, 3);
 }

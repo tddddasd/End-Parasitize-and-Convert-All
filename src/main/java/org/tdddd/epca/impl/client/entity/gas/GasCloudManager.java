@@ -666,15 +666,8 @@ public final class GasCloudManager {
 
     private static void refreshPassiveOwners(ClientLevel level) {
         PASSIVE_ACTIVE_OWNERS.clear();
-        Set<Integer> ownersWithBackPart = new HashSet<>();
         for (Entity entity : level.entitiesForRendering()) {
-            if (entity instanceof ReshapeLongarms.CustomPart part && part.isBackPart()) {
-                ownersWithBackPart.add(part.getOwnerEntityId());
-            }
-        }
-        for (Entity entity : level.entitiesForRendering()) {
-            if (entity instanceof ReshapeLongarms longarms
-                    && !ownersWithBackPart.contains(longarms.getId())) {
+            if (entity instanceof ReshapeLongarms longarms && longarms.isBackPartRemoved()) {
                 PASSIVE_ACTIVE_OWNERS.add(longarms.getId());
             }
         }

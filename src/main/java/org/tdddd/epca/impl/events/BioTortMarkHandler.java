@@ -52,11 +52,11 @@ public final class BioTortMarkHandler {
             return;
         }
         livingAttacker.addEffect(new MobEffectInstance(
-                ModEffects.NEEDLER.get(),
-                BioTortSkillConstants.NEEDLER_DURATION_TICKS,
-                BioTortSkillConstants.NEEDLER_AMPLIFIER,
+                ModEffects.SOUL_BREAKING_CURSE.get(),
+                BioTortSkillConstants.SOUL_BREAKING_CURSE_DURATION_TICKS,
+                BioTortSkillConstants.SOUL_BREAKING_CURSE_AMPLIFIER,
                 false,
                 true));
-        epca.LOGGER.debug("[epca-bio-tort] 被标记的生物 {} 发动攻击，施加穿刺 V", livingAttacker.getName().getString());
+        epca.LOGGER.debug("[epca-bio-tort] 被标记的生物 {} 发动攻击，施加破魂咒印 V", livingAttacker.getName().getString());
     }
 }

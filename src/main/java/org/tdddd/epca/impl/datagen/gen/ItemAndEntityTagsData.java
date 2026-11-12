@@ -120,7 +120,7 @@ public class ItemAndEntityTagsData {
                     .add(modEntity("stage_i_beckon"), modEntity("stage_ii_beckon"));
 
             tag(ModTags.PARASITE)
-                    .add(modEntity("bio_tort_incarnation"), modEntity("biomass_medium"), modEntity("biomass_small"),
+                    .add(
                          modEntity("curbug"), modEntity("fins"), modEntity("flying_carrier"),
                          modEntity("infested_bat"), modEntity("infested_chicken"), modEntity("infested_cow"),
                          modEntity("infested_drowned"), modEntity("infested_enderman"),
@@ -143,8 +143,7 @@ public class ItemAndEntityTagsData {
                          modEntity("walking_pillager_head"), modEntity("walking_sheep_head"),
                          modEntity("walking_skeleton_head"), modEntity("walking_spider_head"),
                          modEntity("walking_villager_head"), modEntity("walking_vindicator_head"),
-                         modEntity("walking_wolf_head"), modEntity("walking_zombie_head"),
-                         modEntity("walking_zombie_villager_head"), modEntity("yawning_nya"));
+                         modEntity("walking_wolf_head"), modEntity("walking_zombie_head"));
         }
 
         @SuppressWarnings("unchecked")

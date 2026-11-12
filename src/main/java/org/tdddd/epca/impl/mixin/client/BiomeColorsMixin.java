@@ -25,19 +25,19 @@ public abstract class BiomeColorsMixin {
     ) {
         if (level == null || pos == null) return;
 
-        Integer likeWater = LikeBiomeClientEffects.waterColor(pos);
-        if (likeWater != null) {
-            cir.setReturnValue(likeWater);
-            return;
-        }
-
         Integer originalColor = cir.getReturnValue();
         if (originalColor == null) {
             originalColor = 0x3F76E4;
         }
 
-        int finalColor = WaterColorEffectsManager.getWaterColor(pos, originalColor);
-        cir.setReturnValue(finalColor);
+        // the vanilla colour doubles as the "no like biome" colour of the transition band
+        Integer likeWater = LikeBiomeClientEffects.waterColor(pos, originalColor);
+        if (likeWater != null) {
+            cir.setReturnValue(likeWater);
+            return;
+        }
+
+        cir.setReturnValue(WaterColorEffectsManager.getWaterColor(pos, originalColor));
     }
 
     @Inject(
@@ -47,7 +47,11 @@ public abstract class BiomeColorsMixin {
     )
     private static void onGetAverageGrassColor(BlockAndTintGetter level, BlockPos pos,
                                                CallbackInfoReturnable<Integer> cir) {
-        Integer like = LikeBiomeClientEffects.grassColor(pos);
+        Integer vanilla = cir.getReturnValue();
+        if (vanilla == null) {
+            return;
+        }
+        Integer like = LikeBiomeClientEffects.grassColor(pos, vanilla);
         if (like != null) {
             cir.setReturnValue(like);
         }
@@ -60,7 +64,11 @@ public abstract class BiomeColorsMixin {
     )
     private static void onGetAverageFoliageColor(BlockAndTintGetter level, BlockPos pos,
                                                  CallbackInfoReturnable<Integer> cir) {
-        Integer like = LikeBiomeClientEffects.foliageColor(pos);
+        Integer vanilla = cir.getReturnValue();
+        if (vanilla == null) {
+            return;
+        }
+        Integer like = LikeBiomeClientEffects.foliageColor(pos, vanilla);
         if (like != null) {
             cir.setReturnValue(like);
         }

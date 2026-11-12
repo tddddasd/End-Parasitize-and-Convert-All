@@ -13,7 +13,6 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBloc
 import org.tdddd.epca.impl.overworld.data.EntityBiomassCountManager;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.special.BioTortIncarnation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptation;
 import org.tdddd.yawning_neko_api.data.DamageAdaptationConfig;
 import org.tdddd.yawning_neko_api.data.IAdaptationData;
@@ -57,7 +56,6 @@ public class EPCAJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(HiveNodeBiomassCountProvider.INSTANCE,
                 org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode.class);
 
-        registration.registerEntityComponent(UnknownHealthEntityProvider.INSTANCE, BioTortIncarnation.class);
 
         try {
             registration.addConfig(BIOMASS_COUNT_INFO, true);
@@ -168,28 +166,6 @@ public class EPCAJadePlugin implements IWailaPlugin {
         @Override
         public ResourceLocation getUid() {
             return BIOMASS_COUNT_INFO;
-        }
-    }
-
-    public static class UnknownHealthEntityProvider implements IEntityComponentProvider {
-        public static final UnknownHealthEntityProvider INSTANCE = new UnknownHealthEntityProvider();
-
-        @Override
-        public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
-            if (!config.get(UNKNOWN_HEALTH_INFO)) return;
-            Entity entity = accessor.getEntity();
-            if (!(entity instanceof BioTortIncarnation incarnation)) return;
-
-            tooltip.add(Component.translatable("jade.epca.unknown_health"));
-
-            if (incarnation.isPhaseTwo()) {
-                tooltip.add(Component.translatable("entity.epca.bio_tort_incarnation.phase_two"));
-            }
-        }
-
-        @Override
-        public ResourceLocation getUid() {
-            return UNKNOWN_HEALTH_INFO;
         }
     }
 

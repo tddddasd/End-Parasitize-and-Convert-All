@@ -22,7 +22,7 @@ public class EffectSpriteData extends SpriteSourceProvider {
 
         String[] effectTextures = {
                 "bleeding", "viral", "fear", "para_curse",
-                "contempt_inorganic", "corrosive", "rage", "needler",
+                "contempt_inorganic", "corrosive", "rage", "soul_breaking_curse",
                 "deep_sneak", "solidify", "ender_erosion",
                 "camouflage", "spirit", "soul_protection"
         };

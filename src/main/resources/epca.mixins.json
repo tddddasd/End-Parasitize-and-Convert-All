@@ -20,7 +20,7 @@
     "common.PointedDripstoneBlockMixin",
     "common.SugarCaneBlockMixin",
     "common.LevelRainMixin",
-    "common.NaturalSpawnerLikeBiomeMixin"
+    "common.LevelChunkLikeBiomeMixin"
   ],
   "client": [
     "client.BiomeColorsMixin",
@@ -36,7 +36,8 @@
     "client.ParasiteOcclusionMixin",
     "client.ClientLevelSkyMixin",
     "client.VideoSettingsScreenAccessor",
-    "client.VideoSettingsScreenMixin"
+    "client.VideoSettingsScreenMixin",
+    "client.ProjectileHitPartMixin"
   ],
   "injectors": {
     "defaultRequire": 1

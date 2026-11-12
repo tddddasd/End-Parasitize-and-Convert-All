@@ -61,11 +61,6 @@ public class LangDataCN extends LanguageProvider {
         add("epca.tab.parent.main_tab", "寄生体图鉴");
         add("epca.tab.child.onesent", "初探种");
 
-        add("entity.epca.yawning_nya.join", "\u00a7eYawning_Nya加入了世界");
-        add("entity.epca.yawning_nya", "Yawning_Nya");
-        add("entity.epca.bio_tort_incarnation.join", "\u00a7e拜欧多特化身加入了世界");
-        add("entity.epca.bio_tort_incarnation.phase_two", "\u00a7c拜欧多特化身进入了阶段 2");
-        add("entity.epca.bio_tort_incarnation", "拜欧多特化身");
         add("entity.epca.curbug", "诅虫");
         add("entity.epca.ripper", "裂兽");
         add("entity.epca.small_incomplete_form", "小块未成形寄生体");
@@ -151,7 +146,7 @@ public class LangDataCN extends LanguageProvider {
         add("effect.epca.para_curse", "\u00a7c虫咒缚身");
         add("effect.epca.corrosive", "腐蚀");
         add("effect.epca.rage", "狂怒");
-        add("effect.epca.needler", "穿刺");
+        add("effect.epca.soul_breaking_curse", "破魂咒印");
         add("effect.epca.deep_sneak", "深潜");
         add("effect.epca.solidify", "固化");
         add("effect.epca.ender_erosion", "末影侵蚀");
@@ -180,7 +175,6 @@ public class LangDataCN extends LanguageProvider {
 
         add("item.epca.ripper_spawn_egg", "裂兽刷怪蛋");
         add("item.epca.curbug_spawn_egg", "诅虫刷怪蛋");
-        add("item.epca.bio_tort_incarnation_spawn_egg", "拜欧多特化身刷怪蛋");
         add("item.epca.small_incomplete_form_spawn_egg", "小块未成形寄生体刷怪蛋");
         add("item.epca.medium_incomplete_form_spawn_egg", "中块未成形寄生体刷怪蛋");
         add("item.epca.large_incomplete_form_spawn_egg", "大块未成形寄生体刷怪蛋");
@@ -292,7 +286,7 @@ public class LangDataCN extends LanguageProvider {
         add("item.epca.infested_diamond", "虫染钻石");
         add("item.epca.infested_nethersea_brand_mor", "虫染深溟腐质");
         add("item.epca.infested_nethersea_icecream", "虫染溟痕冰淇淋");
-        add("item.epca.epca_note", "寄巢笔记");
+        add("item.epca.epca_note", "虫咒笔记");
         add("item.epca.infested_ender_pearl", "虫染末影珍珠");
         add("item.epca.ender_blade_scrap", "影刃残片");
 
@@ -510,7 +504,7 @@ public class LangDataCN extends LanguageProvider {
         add("epca.organ_gui.readout.adaptation_reduction", "适应满减免");
         add("epca.organ_gui.readout.percent", "%");
 
-        add("epca.note.title", "寄巢笔记");
+        add("epca.note.title", "虫咒笔记");
         add("epca.message.stage_too_low", "这里的侵蚀阶段小于3级...");
 
         add("epca.content.onesent",

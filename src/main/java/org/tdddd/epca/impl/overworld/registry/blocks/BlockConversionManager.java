@@ -655,6 +655,7 @@ public class BlockConversionManager {
 
         int minSectionY = chunk.getMinSection();
         int converted = 0;
+        java.util.Set<Long> convertedUnits = new java.util.HashSet<>();
 
         for (int index = 0; index < sections.length; index++) {
             LevelChunkSection section = sections[index];
@@ -668,9 +669,22 @@ public class BlockConversionManager {
                         BlockState state = section.getBlockState(localX, localY, localZ);
                         if (state.isAir() || isInfestedBlock(state)) continue;
                         BlockPos pos = new BlockPos(baseX + localX, sectionBaseY + localY, baseZ + localZ);
-                        if (convertSingleBlockSilently(level, pos, state)) converted++;
+                        if (convertSingleBlockSilently(level, pos, state)) {
+                            converted++;
+                            convertedUnits.add(
+                                    org.tdddd.epca.impl.overworld.data.LikeBiomeManager.unitKey(pos));
+                        }
                     }
                 }
+            }
+        }
+
+        if (!convertedUnits.isEmpty()) {
+            try {
+                org.tdddd.epca.impl.overworld.data.LikeBiomeManager.markUnitsInfested(level, convertedUnits);
+            } catch (Exception e) {
+                epca.LOGGER.debug("Like biome unit update failed for chunk {} in {}",
+                        chunk.getPos(), level.dimension().location(), e);
             }
         }
         return converted;

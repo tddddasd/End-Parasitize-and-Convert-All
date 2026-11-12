@@ -20,9 +20,9 @@ public final class BioTortSkillConstants {
 
     public static final int SELECTED_SLOT_DAMAGE_INTERVAL_TICKS = 40;
 
-    public static final int NEEDLER_DURATION_TICKS = 20;
+    public static final int SOUL_BREAKING_CURSE_DURATION_TICKS = 20;
 
-    public static final int NEEDLER_AMPLIFIER = 4;
+    public static final int SOUL_BREAKING_CURSE_AMPLIFIER = 4;
 
     public static final int PHASE2_ATTACK_THRESHOLD = 14;
 

@@ -138,16 +138,8 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
         this.navigation = new LongarmsGroundNavigation(this, level);
         this.moveControl = new ParasiteMoveControl(this, ParasitePathing.MAX_GAP_JUMP_RESHAPE_LONGARMS);
 
-        if (!level.isClientSide()) {
-
-            this.frontPart = new CustomPart(ModEntities.RESHAPE_PART.get(), level);
-            this.frontPart.init(this, 2.0F, 2.0F, false);
-            level.addFreshEntity(frontPart);
-
-            this.backPart = new CustomPart(ModEntities.RESHAPE_PART.get(), level);
-            this.backPart.init(this, 1.0F, 1.0F, true);
-            level.addFreshEntity(backPart);
-        }
+        this.frontPart = new CustomPart(this, 2.0F, 2.0F, false);
+        this.backPart = new CustomPart(this, 1.0F, 1.0F, true);
     }
 
     @Override
@@ -347,25 +339,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
             }
         }
 
-        if (!this.level().isClientSide) {
-
-            float yaw = this.getYRot();
-            double forwardX = -Math.sin(Math.toRadians(yaw));
-            double forwardZ = Math.cos(Math.toRadians(yaw));
-            Vec3 forward = new Vec3(forwardX, 0, forwardZ).normalize();
-
-            Vec3 center = this.position().add(0, this.getBbHeight() / 2, 0);
-
-            if (frontPart != null && !frontPart.isRemoved()) {
-                Vec3 frontPos = center.add(forward.scale(0.2)).add(0, 0.6, 0);
-                frontPart.setPos(frontPos);
-            }
-
-            if (backPart != null && !backPart.isRemoved()) {
-                Vec3 backPos = center.add(forward.scale(-0.2));
-                backPart.setPos(backPos);
-            }
-        }
 
         if (!this.level().isClientSide && backPartRemoved) {
             gasEmitTimer++;
@@ -1195,13 +1168,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
             this.nextSoundTick = reshapeLongarms.getRandom().nextInt(120) + 80;
         }
 
-        @Override
-        public void tick() {
-            if (this.nextSoundTick-- <= 0) {
-                playRandomLivingSound();
-                this.nextSoundTick = reshapeLongarms.getRandom().nextInt(120) + 80;
-            }
-        }
 
         private void playRandomLivingSound() {
             reshapeLongarms.playSound(ModSoundEvents.RESHAPE_LONGARMS_IDLE.get(), 1.0F, 1.0F);
@@ -1212,6 +1178,14 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
     public boolean hurt(DamageSource source, float amount) {
         if (source.getEntity() instanceof LivingEntity attacker && ParasiteEvents.shouldIgnoreDamageFrom(this, attacker)) return false;
         if (isFakingDeath()) return false;
+        if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity meleeAttacker) {
+            net.minecraft.world.phys.Vec3 toAttacker = meleeAttacker.position().subtract(this.position()).normalize();
+            net.minecraft.world.phys.Vec3 look = new net.minecraft.world.phys.Vec3(
+                    -Math.sin(Math.toRadians(this.getYRot())), 0, Math.cos(Math.toRadians(this.getYRot()))).normalize();
+            if (toAttacker.dot(look) < -0.35 && !backPartRemoved && amount > 7.0F) {
+                removeBackPart();
+            }
+        }
         if (!this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) ParasiteEvents.onAttacked(this, attacker);
         return super.hurt(source, amount);
     }
@@ -1442,6 +1416,50 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
         return null;
     }
 
+    @Override
+    public void recreateFromPacket(net.minecraft.network.protocol.game.ClientboundAddEntityPacket packet) {
+        super.recreateFromPacket(packet);
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        float partYaw = this.getYRot();
+        double fwdX = -Math.sin(Math.toRadians(partYaw));
+        double fwdZ = Math.cos(Math.toRadians(partYaw));
+        net.minecraft.world.phys.Vec3 fwd = new net.minecraft.world.phys.Vec3(fwdX, 0, fwdZ).normalize();
+        net.minecraft.world.phys.Vec3 center = this.position().add(0, this.getBbHeight() / 2, 0);
+        if (this.frontPart != null) {
+            net.minecraft.world.phys.Vec3 fp = center.add(fwd.scale(this.getBbWidth() * 0.45)).add(0, 0.8, 0);
+            this.frontPart.setPos(fp.x, fp.y - this.frontPart.getBbHeight() / 2.0, fp.z);
+            this.frontPart.setOldPosAndRot();
+        }
+        if (this.backPart != null && !this.backPartRemoved) {
+            net.minecraft.world.phys.Vec3 bp = center.add(fwd.scale(-this.getBbWidth() * 0.45)).add(0, 1.0, 0);
+            this.backPart.setPos(bp.x, bp.y - this.backPart.getBbHeight() / 2.0, bp.z);
+            this.backPart.setOldPosAndRot();
+        }
+    }
+
+
+    @Override
+    public boolean isMultipartEntity() {
+        return true;
+    }
+
+    @Override
+    public net.minecraftforge.entity.PartEntity<?>[] getParts() {
+        if (this.frontPart == null) {
+            this.frontPart = new CustomPart(this, 2.0F, 2.0F, false);
+        }
+        if (this.backPart == null && !backPartRemoved) {
+            this.backPart = new CustomPart(this, 1.0F, 1.0F, true);
+        }
+        return backPartRemoved || this.backPart == null
+                ? new net.minecraftforge.entity.PartEntity<?>[]{this.frontPart}
+                : new net.minecraftforge.entity.PartEntity<?>[]{this.frontPart, this.backPart};
+    }
+
     private CustomPart frontPart;
     private CustomPart backPart;
     private boolean backPartRemoved = false;
@@ -1462,7 +1480,7 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
         super.remove(reason);
     }
 
-    public static class CustomPart extends Entity {
+    public static class CustomPart extends net.minecraftforge.entity.PartEntity<ReshapeLongarms> {
 
         private static final EntityDataAccessor<Integer> DATA_PARENT_ID =
                 SynchedEntityData.defineId(CustomPart.class, EntityDataSerializers.INT);
@@ -1478,9 +1496,14 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
         private boolean partIsBack = false;
         private ReshapeLongarms parent;
 
-        public CustomPart(EntityType<?> type, Level level) {
-            super(type, level);
+        public CustomPart(ReshapeLongarms parent, float width, float height, boolean isBack) {
+            super(parent);
+            this.parent = parent;
+            this.partWidth = width;
+            this.partHeight = height;
+            this.partIsBack = isBack;
             this.setNoGravity(true);
+            this.refreshDimensions();
         }
 
         public void init(ReshapeLongarms parent, float width, float height, boolean isBack) {
@@ -1499,10 +1522,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
 
         @Override
         protected void defineSynchedData() {
-            this.entityData.define(DATA_PARENT_ID, 0);
-            this.entityData.define(DATA_IS_BACK, false);
-            this.entityData.define(DATA_WIDTH, 1.0F);
-            this.entityData.define(DATA_HEIGHT, 1.0F);
         }
 
         @Override
@@ -1520,57 +1539,6 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
 
         }
 
-        @Override
-        public void tick() {
-
-            if (this.level().isClientSide) {
-
-                this.partIsBack = this.entityData.get(DATA_IS_BACK);
-                float w = this.entityData.get(DATA_WIDTH);
-                float h = this.entityData.get(DATA_HEIGHT);
-                if (w != this.partWidth || h != this.partHeight) {
-                    this.partWidth = w;
-                    this.partHeight = h;
-                    this.refreshDimensions();
-                }
-
-                if (parent == null) {
-                    int parentId = this.entityData.get(DATA_PARENT_ID);
-                    if (parentId != 0 && this.level() instanceof ClientLevel clientLevel) {
-                        Entity e = clientLevel.getEntity(parentId);
-                        if (e instanceof ReshapeLongarms rl) {
-                            parent = rl;
-                        }
-                    }
-                }
-
-                if (parent != null) {
-                    float yaw = parent.getYRot();
-                    double forwardX = -Math.sin(Math.toRadians(yaw));
-                    double forwardZ = Math.cos(Math.toRadians(yaw));
-                    Vec3 forward = new Vec3(forwardX, 0, forwardZ).normalize();
-                    Vec3 center = parent.position().add(0, parent.getBbHeight() / 2, 0);
-
-                    Vec3 targetPos;
-                    if (this.partIsBack) {
-                        targetPos = center.add(forward.scale(-0.2));
-                    } else {
-                        targetPos = center.add(forward.scale(0.2)).add(0, 0.6, 0);
-                    }
-                    this.setPos(targetPos);
-                }
-                return;
-            }
-
-            if (parent == null) {
-                this.discard();
-                return;
-            }
-            if (!parent.isAlive() && parent.tickCount > 5) {
-                this.discard();
-            }
-
-        }
 
         @Override
         public boolean hurt(DamageSource source, float amount) {
@@ -1588,7 +1556,16 @@ public class ReshapeLongarms extends PathfinderMob implements GeoEntity, Enemy, 
         }
 
         @Override
-        public boolean isPickable() { return true; }
+        public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
+            return new net.minecraft.network.protocol.game.ClientboundAddEntityPacket(this, this.parent == null ? 0 : this.parent.getId());
+        }
+
+        @Override
+        public boolean shouldBeSaved() {
+            return false;
+        }
+
+        public boolean isPickable() { return false; }
         @Override
         public boolean isPushable() { return false; }
 

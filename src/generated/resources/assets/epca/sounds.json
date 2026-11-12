@@ -56,6 +56,15 @@
     ],
     "subtitle": "subtitles.epca.full_adaptation"
   },
+  "illusory_butterfly": {
+    "sounds": [
+      {
+        "name": "epca:illusory_butterfly",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.epca.illusory_butterfly"
+  },
   "incomplete_form_death": {
     "sounds": [
       "epca:mob/poverty/incomplete_form/incomplete_form_death"
@@ -453,30 +462,6 @@
       "epca:mob/onesent/mozzie/mozzie_idle"
     ],
     "subtitle": "subtitles.epca.mozzie_idle"
-  },
-  "nullthing_attack0": {
-    "sounds": [
-      "epca:nullthing_attack0"
-    ],
-    "subtitle": "subtitles.epca.nullthing_attack0"
-  },
-  "nullthing_run": {
-    "sounds": [
-      "epca:nullthing_run"
-    ],
-    "subtitle": "subtitles.epca.nullthing_run"
-  },
-  "nullthing_stand1": {
-    "sounds": [
-      "epca:nullthing_stand1"
-    ],
-    "subtitle": "subtitles.epca.nullthing_stand1"
-  },
-  "nullthing_stand2": {
-    "sounds": [
-      "epca:nullthing_stand2"
-    ],
-    "subtitle": "subtitles.epca.nullthing_stand2"
   },
   "parcial_adaptation": {
     "sounds": [

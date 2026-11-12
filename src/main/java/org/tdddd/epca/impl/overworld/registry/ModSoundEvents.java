@@ -13,10 +13,6 @@ public class ModSoundEvents {
     public static final RegistryObject<SoundEvent> SMALL_EXPLOSION = register("small_explosion");
     public static final RegistryObject<SoundEvent> BIG_EXPLOSION = register("big_explosion");
     public static final RegistryObject<SoundEvent> SLAM = register("slam");
-    public static final RegistryObject<SoundEvent> NULLTHING_ATTACK0 = register("nullthing_attack0");
-    public static final RegistryObject<SoundEvent> NULLTHING_RUN = register("nullthing_run");
-    public static final RegistryObject<SoundEvent> NULLTHING_STAND1 = register("nullthing_stand1");
-    public static final RegistryObject<SoundEvent> NULLTHING_STAND2 = register("nullthing_stand2");
     public static final RegistryObject<SoundEvent> INCOMPLETE_FORM_IDLE = register("incomplete_form_idle");
     public static final RegistryObject<SoundEvent> INCOMPLETE_FORM_HUNT = register("incomplete_form_hurt");
     public static final RegistryObject<SoundEvent> INCOMPLETE_FORM_DEATH = register("incomplete_form_death");
@@ -103,6 +99,8 @@ public class ModSoundEvents {
     public static final RegistryObject<SoundEvent> ARAYA = register("araya");
 
     public static final RegistryObject<SoundEvent> ARAYA_BOSS = register("araya_boss");
+
+    public static final RegistryObject<SoundEvent> ILLUSORY_BUTTERFLY = register("illusory_butterfly");
 
     private static RegistryObject<SoundEvent> register(String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(
