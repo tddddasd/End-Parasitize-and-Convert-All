@@ -189,8 +189,7 @@ dependencies {
     jarJar(group: 'com.tterrag.registrate', name: 'Registrate', version: "[MC1.20,)")
 
     // Jar-in-Jar: bundle all shipped libraries
-    jarJar(group: 'software.bernie.geckolib', name: 'geckolib-forge-1.20.1', version: '[4.8.4,4.9)')
-    jarJar(group: 'com.eliotlash.mclib', name: 'mclib', version: '[20,)')
+        jarJar(group: 'com.eliotlash.mclib', name: 'mclib', version: '[20,)')
     jarJar(group: 'org.tdddd.yawning_neko_api', name: 'yawningapi', version: '[1.0.4,)')
 
     // EPCA-only dismemberment companion (jar-in-jar).

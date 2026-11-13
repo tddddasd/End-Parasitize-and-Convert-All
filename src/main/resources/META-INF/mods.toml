@@ -46,3 +46,10 @@ side = "BOTH"
     versionRange = "[2.3.0,)"
     ordering = "NONE"
     side = "BOTH"
+
+[[dependencies.epca]]
+    modId = "geckolib"
+    mandatory = true
+    versionRange = "[4.8.4,)"
+    ordering = "AFTER"
+    side = "BOTH"

@@ -1,8 +1,6 @@
 {
   "id": "yawning_neko_api:entity_mapping",
-    "config": "yawning_neko_api:author",
-    "mode": "add"
-  },
+  "_comment": "YNA entity -> adaptation config mapping. Format: \"<entity id>\": { \"config\": \"<damage_adaptation_configs id>\", \"mode\": \"add\" | \"override\" }. Keys starting with '_' are ignored by EntityAdaptationMapping and AdaptationPriorityRuleLoader. An entry pointing at \"yawning_neko_api:author\" was removed here because its entity key was lost AND no such adaptation config exists, which made the whole file invalid JSON (YNA silently drops the entire file on a parse error).",
   "epca:curbug": {
     "config": "yawning_neko_api:onesent",
     "mode": "add"

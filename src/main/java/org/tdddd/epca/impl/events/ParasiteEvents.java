@@ -111,13 +111,11 @@ public final class ParasiteEvents {
     }
 
     public static boolean hasDamageAdaptationConfig(LivingEntity entity) {
-        var entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
-        return DamageAdaptationManager.hasConfig(entityId);
+        return getDamageAdaptationConfig(entity) != null;
     }
 
     public static DamageAdaptationConfig getDamageAdaptationConfig(LivingEntity entity) {
-        var entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
-        return DamageAdaptationManager.getConfig(entityId);
+        return org.tdddd.yawning_neko_api.data.AdaptationConfigResolver.getConfig(entity);
     }
 
     public static boolean isDamageAdaptationInvulnerable(LivingEntity entity) {

@@ -171,8 +171,7 @@ public class ParasiteNbtEffectHandler {
     }
 
     private static boolean isDamageAdaptationInvulnerable(LivingEntity entity) {
-        var entityId = net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
-        var config = DamageAdaptationManager.getConfig(entityId);
+        var config = org.tdddd.yawning_neko_api.data.AdaptationConfigResolver.getConfig(entity);
         if (config == null) return false;
         return DamageAdaptation.isInvulnerable(entity);
     }

@@ -54,12 +54,12 @@ public final class HiveLeaderPlayerHooks {
 
     public static boolean hasDamageAdaptationConfig(Player player) {
         if (!isHiveLeader(player)) return false;
-        return DamageAdaptationManager.hasConfig(ForgeRegistries.ENTITY_TYPES.getKey(player.getType()));
+        return getDamageAdaptationConfig(player) != null;
     }
 
     public static DamageAdaptationConfig getDamageAdaptationConfig(Player player) {
         if (!isHiveLeader(player)) return null;
-        return DamageAdaptationManager.getConfig(ForgeRegistries.ENTITY_TYPES.getKey(player.getType()));
+        return org.tdddd.yawning_neko_api.data.AdaptationConfigResolver.getConfig(player);
     }
 
     public static boolean isDamageAdaptationInvulnerable(Player player) {
