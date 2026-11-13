@@ -79,7 +79,7 @@ dependencies {
     // 用 Maven 坐标声明（而非 libs/ 平铺 jar）：MDG 的 jarJar 才能拿到真正的 group/artifact/version
     // 写入 META-INF/jarjar/metadata.json，且无需给嵌套 jar 补 Automatic-Module-Name。
     // 精确版本（不用动态区间）：--offline 下区间需要版本列表才能解析，会直接失败。
-    jarJar(implementation("com.geckolib:geckolib-neoforge-26.1.2:5.5.2"))
+    implementation("com.geckolib:geckolib-neoforge-26.1.2:5.5.2")
 
     // Jade - optional integration; its plugin classes are only touched when Jade is present.
     compileOnly files('libs/Jade-mc26.1-NeoForge-26.1.11.jar')
