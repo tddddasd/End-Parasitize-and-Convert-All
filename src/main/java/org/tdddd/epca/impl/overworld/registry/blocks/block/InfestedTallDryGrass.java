@@ -38,7 +38,9 @@ public class InfestedTallDryGrass extends BushBlock implements InfestedBlockInte
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter world, BlockPos pos) {
         Block block = state.getBlock();
-        return block == ModBlocks.INFESTED_SAND.get()
+        // 追加虫染泥土（epca:infested_dirt）支持
+        return block == ModBlocks.INFESTED_DIRT.get()
+                || block == ModBlocks.INFESTED_SAND.get()
                 || state.is(BlockTags.SUPPORTS_VEGETATION);
     }
 

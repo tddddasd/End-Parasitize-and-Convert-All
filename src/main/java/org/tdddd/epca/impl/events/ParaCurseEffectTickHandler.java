@@ -18,8 +18,6 @@ public class ParaCurseEffectTickHandler {
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
 
-        PendingConversionManager.tick(event.getServer());
-
         if (!removalRequests.isEmpty()) {
             List<EffectRemovalRequest> toRemove = new ArrayList<>(removalRequests);
             removalRequests.clear();

@@ -31,7 +31,7 @@ import java.util.List;
 public class InfestedSweetBerryBushGlowRenderer
         implements BlockEntityRenderer<InfestedSweetBerryBushBlockEntity, InfestedSweetBerryBushGlowRenderer.State> {
 
-    private static final int RIPE_AGE = 3;
+    private static final int RIPE_AGE = 1;
 
     private static final long MODEL_SEED = 42L;
 

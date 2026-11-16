@@ -327,7 +327,7 @@ public class ModBlocks {
     public static final DeferredBlock<Block> INFESTED_SWEET_BERRY_BUSH = BLOCKS.registerBlock(
             "infested_sweet_berry_bush",
             InfestedSweetBerryBush::new,
-            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SWEET_BERRY_BUSH).ignitedByLava()
+            () -> BlockBehaviour.Properties.ofFullCopy(Blocks.SWEET_BERRY_BUSH).pushReaction(PushReaction.DESTROY).ignitedByLava()
     );
 
     public static final DeferredBlock<Block> INFESTED_REMAINS_SMALL = BLOCKS.registerBlock(
@@ -503,7 +503,7 @@ public static final DeferredBlock<Block> HIVE_NODE = BLOCKS.registerBlock(
             "hive_node",
             HiveNode::new,
             () -> BlockBehaviour.Properties.of().strength(15.0F, 25.0F).sound(SoundType.MUDDY_MANGROVE_ROOTS)
-                    .mapColor(DyeColor.GREEN).requiresCorrectToolForDrops()
+                    .mapColor(DyeColor.GREEN).randomTicks().requiresCorrectToolForDrops()
     );
 
     public static final DeferredBlock<Block> INFESTED_HEAVY_STONE = BLOCKS.registerBlock(

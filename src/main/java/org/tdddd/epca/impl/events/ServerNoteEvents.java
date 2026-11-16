@@ -25,6 +25,9 @@ public class ServerNoteEvents {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
             var tabs = EPCANoteTabData.getCurrentTabs();
             ModNetwork.sendToPlayer(serverPlayer, new SyncNoteTabsPacket(tabs));
+            // 登录时把该玩家的「已发现 / 详情已解锁」两份集合一并推下去（与 1.20.1 一致）：
+            // 否则客户端在打开笔记之前手里是空的，会先把所有条目显示成黑色乱码再闪一下
+            NoteUnlockEvents.syncTo(serverPlayer);
         }
     }
 }

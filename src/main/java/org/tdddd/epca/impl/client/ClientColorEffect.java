@@ -9,19 +9,24 @@ import org.tdddd.epca.impl.epca;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Client-side tint色层 for the YNA adaptation flash only.
+ * <p>
+ * The old "conversion purple" types ({@code TYPE_CONVERSION} / {@code TYPE_CONVERSION_FADE}) were removed
+ * together with the conversion delay: entity conversion is now instant and no longer paints the entity purple.
+ * Only the YNA damage-adaptation colours (plus the {@code AdaptationColorConfig} override) remain here.
+ */
 @EventBusSubscriber(modid = epca.MODID, value = Dist.CLIENT)
 public class ClientColorEffect {
     private static final ConcurrentHashMap<Integer, EffectData> ACTIVE = new ConcurrentHashMap<>();
 
-    public static final int TYPE_ADAPTATION = 0;
+    public static final int TYPE_PARTIAL_ADAPTATION = 0;
 
-    public static final int TYPE_OTHER = 1;
+    public static final int TYPE_FULL_ADAPTATION = 1;
 
-    public static final int TYPE_CONVERSION = 2;
-
-    public static final int TYPE_CONVERSION_FADE = 3;
-
-    private static final float RAMP_MAX_ALPHA = 0.8F;
+    private static final float PURPLE_R = 0.9F;
+    private static final float PURPLE_G = 0.2F;
+    private static final float PURPLE_B = 0.9F;
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
@@ -33,6 +38,7 @@ public class ClientColorEffect {
     }
 
     public static EffectData getEffect(LivingEntity entity) {
+        if (entity == null) return null;
         EffectData data = ACTIVE.get(entity.getId());
         if (data == null) return null;
         if (data.remainingTicks <= 0) {
@@ -78,41 +84,24 @@ public class ClientColorEffect {
                 return this.colorOverride;
             }
             float[] rgb = getColorRGB();
-            int a = getAlphaChannel();
-
-            float scale = (isRampType() && totalTicks > 0) ? (a / 255.0F) : 1.0F;
-            int r = (int)(rgb[0] * scale * 255);
-            int g = (int)(rgb[1] * scale * 255);
-            int b = (int)(rgb[2] * scale * 255);
-            return (a << 24) | (r << 16) | (g << 8) | b;
-        }
-
-        public int getAlphaChannel() {
-            if (!isRampType() || totalTicks <= 0) {
-                return 255;
-            }
-            float elapsed = (float)(totalTicks - remainingTicks);
-            if (elapsed < 0) elapsed = 0;
-            if (elapsed > totalTicks) elapsed = totalTicks;
-            float progress = elapsed / (float) totalTicks;
-            float alpha = type == TYPE_CONVERSION
-                    ? RAMP_MAX_ALPHA * progress
-                    : RAMP_MAX_ALPHA * (1.0F - progress);
-            if (alpha < 0.0F) alpha = 0.0F;
-            if (alpha > RAMP_MAX_ALPHA) alpha = RAMP_MAX_ALPHA;
-            return (int)(alpha * 255);
-        }
-
-        public boolean isRampType() {
-            return type == TYPE_CONVERSION || type == TYPE_CONVERSION_FADE;
+            int r = clampChannel(rgb[0]);
+            int g = clampChannel(rgb[1]);
+            int b = clampChannel(rgb[2]);
+            return (0xFF << 24) | (r << 16) | (g << 8) | b;
         }
 
         public float[] getColorRGB() {
-            if (type == TYPE_ADAPTATION) {
+            if (type == TYPE_PARTIAL_ADAPTATION) {
                 return new float[]{0.2F, 0.9F, 1.0F};
-            } else {
-                return new float[]{0.9F, 0.2F, 0.9F};
             }
+            return new float[]{PURPLE_R, PURPLE_G, PURPLE_B};
+        }
+
+        private static int clampChannel(float value) {
+            int channel = (int) (value * 255.0F);
+            if (channel < 0) return 0;
+            if (channel > 255) return 255;
+            return channel;
         }
     }
 }

@@ -19,6 +19,10 @@ public class WebAwareRangedAttackGoal extends RangedAttackGoal {
         if (target == null) {
             return false;
         }
+        // 远程连续未命中后进入近战攀爬状态：远程 AI 整体让位给近战
+        if (this.spider.isClimbAggro()) {
+            return true;
+        }
         return InfestedSpider.isStandingInInfestedWeb(target)
                 || InfestedSpider.isWithinMeleeHorizontalRange(this.spider, target);
     }

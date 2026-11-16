@@ -5,7 +5,7 @@
     "scale": 1.0,
     "entries": [
       {
-        "threshold": 3.0,
+        "threshold": 1.0,
         "model": {
           "type": "minecraft:model",
           "model": "epca:item/infested_sweet_berry_bush_age2"

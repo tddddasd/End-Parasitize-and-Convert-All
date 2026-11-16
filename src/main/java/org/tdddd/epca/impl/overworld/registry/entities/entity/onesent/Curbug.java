@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -50,6 +49,7 @@ import org.tdddd.epca.impl.events.ParasiteEvents;
 import org.tdddd.epca.impl.overworld.data.EvolutionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
+import org.tdddd.epca.impl.overworld.registry.ModParticles;
 import org.tdddd.epca.impl.overworld.registry.ModSoundEvents;
 import org.tdddd.epca.impl.overworld.registry.entities.EpcaEntityManager;
 import org.tdddd.epca.impl.overworld.registry.entities.ai.FollowTargetGoal;
@@ -232,27 +232,27 @@ private void applyParaCurseEffect(LivingEntity target) {
 private void growIntoFins() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         Fins fins = ModEntities.FINS.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
-        if (fins != null) {
-            fins.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-            serverLevel.addFreshEntity(fins);
-            serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
-                    ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
-            serverLevel.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.5, this.getZ(), 5, 0.5, 0.5, 0.5, 0.1);
-            this.discard();
-        }
+        growInto(fins, serverLevel);
     }
 private void growIntoRupter() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         Ripper rupter = ModEntities.RIPPER.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
-        if (rupter != null) {
-            rupter.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-            serverLevel.addFreshEntity(rupter);
-            serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
-                    ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
-            org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel,
-                    this.getX(), this.getY() + 0.5, this.getZ(), 2, 0xFFFFFF);
-            this.discard();
-        }
+        growInto(rupter, serverLevel);
+    }
+    /**
+     * 诅虫进化的共用收尾逻辑：放置新生物 + 播放进化音效 + 初探种转化粒子（variant 2 = onesent）+ 移除自身。
+     * <p>
+     * 鳍兽与撕裂者走同一条路径，保证两者的转化表现完全一致（不再使用 {@code ParticleTypes.EXPLOSION}）。
+     */
+    private void growInto(Mob newEntity, ServerLevel serverLevel) {
+        if (newEntity == null) return;
+        newEntity.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+        serverLevel.addFreshEntity(newEntity);
+        serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
+                ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
+        ModParticles.spawnConversion(serverLevel,
+                this.getX(), this.getY() + 0.5, this.getZ(), 2, 0xFFFFFF);
+        this.discard();
     }
     protected SoundEvent getDeathSound() { return ModSoundEvents.RIPPER_DEATH.get(); }
     protected SoundEvent getHurtSound(DamageSource source) { return ModSoundEvents.RIPPER_HUNT.get(); }

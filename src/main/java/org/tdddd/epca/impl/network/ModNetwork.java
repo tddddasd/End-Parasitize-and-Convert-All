@@ -113,6 +113,14 @@ public class ModNetwork {
 
         registrar.playToClient(RaidBarrierS2CPacket.TYPE, RaidBarrierS2CPacket.STREAM_CODEC,
                 RaidBarrierS2CPacket::handle);
+
+        // 虫咒笔记：解锁状态同步（S2C）+ 打开界面时主动要一份 / 点击解锁详情（C2S）
+        registrar.playToClient(SyncNoteUnlocksPacket.TYPE, SyncNoteUnlocksPacket.STREAM_CODEC,
+                SyncNoteUnlocksPacket::handle);
+        registrar.playToServer(NoteSyncRequestPacket.TYPE, NoteSyncRequestPacket.STREAM_CODEC,
+                NoteSyncRequestPacket::handle);
+        registrar.playToServer(NoteDetailUnlockRequestPacket.TYPE, NoteDetailUnlockRequestPacket.STREAM_CODEC,
+                NoteDetailUnlockRequestPacket::handle);
     }
 
     public static Identifier id(String path) {
@@ -121,6 +129,16 @@ public class ModNetwork {
 
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
         PacketDistributor.sendToPlayer(player, payload);
+    }
+
+    /**
+     * 客户端 -&gt; 服务端（26 的等价写法：1.20.1 的 {@code SimpleChannel#sendToServer}）。
+     * 26 把这条通道挪到了 {@code net.neoforged.neoforge.client.network.ClientPacketDistributor}
+     * （client 包）；这里直接转发，只在客户端代码里调用，所以专用服务器不会加载那个类
+     * （JVM 对方法体里的引用是惰性解析的）。
+     */
+    public static void sendToServer(CustomPacketPayload payload) {
+        net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(payload);
     }
 
     public static void sendToAll(CustomPacketPayload payload) {

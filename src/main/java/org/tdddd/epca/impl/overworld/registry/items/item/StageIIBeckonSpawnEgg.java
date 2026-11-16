@@ -23,7 +23,10 @@ public class StageIIBeckonSpawnEgg extends SpawnEggItem {
     private static final long RESET_INTERVAL_MS = 5000;
 
     public StageIIBeckonSpawnEgg(Properties properties) {
-        super(properties.spawnEgg(ModEntities.STAGE_I_BECKON.get()));
+        // 26 侧原本误写成 ModEntities.STAGE_I_BECKON（复制一阶刷怪蛋时漏改），
+        // 导致二阶召唤柱刷怪蛋的 ENTITY_DATA 指向一阶：既影响原版刷怪蛋逻辑，
+        // 也会让虫咒笔记把 stage_ii_beckon 误当重复条目跳过。1.20.1 权威实现用的是 STAGE_II_BECKON。
+        super(properties.spawnEgg(ModEntities.STAGE_II_BECKON.get()));
     }
 
     @Override

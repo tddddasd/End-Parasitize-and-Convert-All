@@ -77,6 +77,7 @@ import com.geckolib.animation.object.PlayState;
 import com.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
+import java.util.UUID;
 
 public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, RangedAttackMob {
 
@@ -93,6 +94,55 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
     private static final int CLIMB_COOLDOWN_TICKS = 200;
 
     private int climbCooldown = 0;
+
+    /** 连续远程弹射物未命中阈值：达到后切换为「近战攀爬追击」状态。 */
+    public static final int RANGED_MISS_THRESHOLD = 3;
+
+    /** 弹射物最长飞行时间（tick）：超过仍未命中目标就按一次「未命中」处理。 */
+    private static final int WEB_MISS_TIMEOUT_TICKS = 80;
+
+    /** 近战攀爬状态的最长持续时间（tick，20s）：期间一直没打出近战命中就退回远程。 */
+    private static final int CLIMB_AGGRO_MAX_TICKS = 400;
+
+    /** 退出近战攀爬状态后的冷却（tick，10s）：冷却内不会再因为未命中重新进入。 */
+    private static final int CLIMB_AGGRO_COOLDOWN_TICKS = 200;
+
+    /** 攀爬追击时向上起跳的冷却（tick）。 */
+    private static final int CLIMB_JUMP_COOLDOWN_TICKS = 20;
+
+    /** 「当前没有待判定的弹射物」的哨兵值。 */
+    private static final int NO_PENDING_WEB_SHOT = Integer.MIN_VALUE;
+
+    /**
+     * 攀爬动画的「正在上升」阈值（格/tick）。
+     * 0.02 高于重力/贴墙摩擦造成的微小 y 抖动（约 0.001~0.01），小于攀爬推进速度（0.2），
+     * 因此只有真正被向上推进时才算上升。
+     */
+    private static final double CLIMB_ANIM_MIN_RISE = 0.02D;
+
+    /**
+     * 攀爬动画的「朝墙内推力」阈值（{@code Entity#zza}，范围 0..1，AI 前进时约为 1）。
+     * 低于 0.1 视为「只是贴着墙站着」，不判为攀爬。
+     */
+    private static final float CLIMB_ANIM_MIN_FORWARD = 0.1F;
+
+    /** 近战攀爬追击状态：由服务端设置并同步，仅影响 AI（不影响攀爬动画判定）。 */
+    private int climbAggroTicks;
+
+    private int climbAggroCooldown;
+
+    private int climbJumpCooldown;
+
+    /** 连续远程未命中次数。 */
+    private int webMissStreak;
+
+    /** 最近一次发射的弹射物（用于超时 / 消失判定）。 */
+    private Entity pendingWebShot;
+
+    /** 最近一次发射时的目标 UUID。 */
+    private UUID pendingWebTargetId;
+
+    private int pendingWebShotTick = NO_PENDING_WEB_SHOT;
 
     private Direction nearWallDir;
 
@@ -154,8 +204,16 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
             SynchedEntityData.defineId(InfestedSpider.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_IDLE2 =
             SynchedEntityData.defineId(InfestedSpider.class, EntityDataSerializers.BOOLEAN);
+    /** 近战攀爬追击状态（服务端驱动，同步给客户端便于观察/调试；动画判定不依赖它）。 */
+    private static final EntityDataAccessor<Boolean> DATA_CLIMB_AGGRO =
+            SynchedEntityData.defineId(InfestedSpider.class, EntityDataSerializers.BOOLEAN);
+    /** 攀爬动画状态（服务端按「水平碰撞 + 上升/朝墙推力」判定后同步，客户端动画控制器读取）。 */
+    private static final EntityDataAccessor<Boolean> DATA_CLIMBING_ANIM =
+            SynchedEntityData.defineId(InfestedSpider.class, EntityDataSerializers.BOOLEAN);
 
     private static final String VARIANT_TAG = "Variant";
+    private static final String CLIMB_AGGRO_TAG = "ClimbAggro";
+    private static final String WEB_MISS_STREAK_TAG = "WebMissStreak";
 
     private final AnimatableInstanceCache factory = GeckoLibUtil.createInstanceCache(this);
 
@@ -197,6 +255,8 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
         builder.define(DATA_IS_SHOOTING, false);
         builder.define(DATA_RUNNING, false);
         builder.define(DATA_IDLE2, false);
+        builder.define(DATA_CLIMB_AGGRO, false);
+        builder.define(DATA_CLIMBING_ANIM, false);
     }
 
     public Variant getVariant() {
@@ -217,6 +277,8 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
     public void addAdditionalSaveData(ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putString(VARIANT_TAG, getVariant().name());
+        tag.putBoolean(CLIMB_AGGRO_TAG, isClimbAggro());
+        tag.putInt(WEB_MISS_STREAK_TAG, this.webMissStreak);
     }
 
     @Override
@@ -230,6 +292,8 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
                 setVariant(Variant.DEFAULT);
             }
         }
+        setClimbAggro(tag.getBooleanOr(CLIMB_AGGRO_TAG, false));
+        this.webMissStreak = tag.getIntOr(WEB_MISS_STREAK_TAG, 0);
     }
 
     public Identifier getTextureResource() {
@@ -299,8 +363,10 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
 
+        // 移动控制器统一使用 6 tick 交叉淡入淡出（EpcaAnimations.CLIMB_TRANSITION_TICKS），
+        // 让「攀爬 ↔ 走路/待机」不是硬切，而是 6 tick 平滑过渡。
         controllers.add(new AnimationController<>("controller",
-                EpcaAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
+                EpcaAnimations.CLIMB_TRANSITION_TICKS, this::animationPredicate));
 
         AnimationController<InfestedSpider> shootController = new AnimationController<>(
                 "shoot_controller", EpcaAnimations.GEO_TRANSITION_TICKS, state -> PlayState.STOP);
@@ -328,7 +394,9 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
     private PlayState animationPredicate(AnimationTest<InfestedSpider> event) {
         String suffix = animationSuffix();
 
-        if (isClimbingWall()) {
+        // 攀爬优先级最高：只要判定为攀爬状态就强制播放攀爬动画，
+        // 不受 running/pouncing/移动与否影响（过渡由控制器的 6 tick 交叉淡化负责）。
+        if (isClimbingAnimationState()) {
             event.setAnimation(RawAnimation.begin().thenLoop(CLIP_CLIMB + suffix));
         } else if (isPouncing()) {
             event.setAnimation(RawAnimation.begin().thenLoop(CLIP_FLYING + suffix));
@@ -408,6 +476,152 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
         return isNearWall() && this.getTarget() != null;
     }
 
+    // ------------------------------------------------------------------
+    // 近战攀爬追击状态（远程多次未命中后切换）
+    // ------------------------------------------------------------------
+
+    public boolean isClimbAggro() {
+        return this.entityData.get(DATA_CLIMB_AGGRO);
+    }
+
+    private void setClimbAggro(boolean value) {
+        this.entityData.set(DATA_CLIMB_AGGRO, value);
+    }
+
+    /**
+     * 进入「近战攀爬追击」：不再发射弹射物，改为贴墙攀爬靠近并近战。
+     */
+    private void enterClimbAggro() {
+        if (isClimbAggro()) {
+            return;
+        }
+        setClimbAggro(true);
+        this.climbAggroTicks = 0;
+        this.climbCooldown = 0;
+        this.webMissStreak = 0;
+        this.getNavigation().stop();
+        this.playSound(SoundEvents.SPIDER_AMBIENT, 1.0F, 0.6F);
+    }
+
+    /**
+     * 退出「近战攀爬追击」并进入冷却，随后恢复远程。
+     *
+     * @param cooldownTicks 冷却 tick 数（冷却内不会因为未命中重新进入）
+     * @param resetStreak   是否清零未命中计数
+     */
+    private void exitClimbAggro(int cooldownTicks, boolean resetStreak) {
+        if (!isClimbAggro()) {
+            return;
+        }
+        setClimbAggro(false);
+        this.climbAggroCooldown = Math.max(this.climbAggroCooldown, cooldownTicks);
+        if (resetStreak) {
+            this.webMissStreak = 0;
+        }
+    }
+
+    /**
+     * 记录一次「远程未命中」，达到 {@link #RANGED_MISS_THRESHOLD} 后切换到近战攀爬追击。
+     */
+    private void registerWebMiss() {
+        if (isClimbAggro() || this.climbAggroCooldown > 0) {
+            return;
+        }
+        this.webMissStreak++;
+        if (this.webMissStreak >= RANGED_MISS_THRESHOLD) {
+            enterClimbAggro();
+        }
+    }
+
+    private void clearPendingWebShot() {
+        this.pendingWebShot = null;
+        this.pendingWebTargetId = null;
+        this.pendingWebShotTick = NO_PENDING_WEB_SHOT;
+    }
+
+    /**
+     * 弹射物结算回调（命中实体 / 命中方块 / 消失都会走到这里）。
+     * <p>
+     * 命中当前目标 = 命中，清零计数；命中其它东西 = 未命中，计一次。
+     *
+     * @param hit 被击中的实体，命中方块时为 {@code null}
+     */
+    public void onWebProjectileResolved(@Nullable Entity hit) {
+        if (this.level().isClientSide() || this.pendingWebShotTick == NO_PENDING_WEB_SHOT) {
+            return;
+        }
+        boolean hitTarget = hit != null
+                && this.pendingWebTargetId != null
+                && this.pendingWebTargetId.equals(hit.getUUID());
+        clearPendingWebShot();
+        if (hitTarget) {
+            this.webMissStreak = 0;
+        } else {
+            registerWebMiss();
+        }
+    }
+
+    /** 每个 tick 检查待判定弹射物：消失 / 超时都算一次未命中。 */
+    private void tickPendingWebShot() {
+        if (this.pendingWebShotTick == NO_PENDING_WEB_SHOT) {
+            return;
+        }
+        Entity shot = this.pendingWebShot;
+        boolean gone = shot == null || shot.isRemoved() || shot.level() != this.level();
+        boolean timeout = this.tickCount - this.pendingWebShotTick > WEB_MISS_TIMEOUT_TICKS;
+        if (!gone && !timeout) {
+            return;
+        }
+        if (!gone) {
+            shot.discard();
+        }
+        clearPendingWebShot();
+        registerWebMiss();
+    }
+
+    /** 近战攀爬状态自身的生命周期维护（丢失目标 / 超时）。 */
+    private void tickClimbAggro() {
+        if (!isClimbAggro()) {
+            return;
+        }
+        LivingEntity target = this.getTarget();
+        if (target == null || !target.isAlive()) {
+            exitClimbAggro(CLIMB_AGGRO_COOLDOWN_TICKS / 4, true);
+            return;
+        }
+        if (++this.climbAggroTicks > CLIMB_AGGRO_MAX_TICKS) {
+            exitClimbAggro(CLIMB_AGGRO_COOLDOWN_TICKS, true);
+        }
+    }
+
+    /**
+     * 攀爬动画判定（第 6 项）：水平碰撞 + 有上升/朝墙推力。
+     * <p>
+     * 这个规则在服务端计算后同步（{@link #DATA_CLIMBING_ANIM}），因为非玩家生物的
+     * {@code horizontalCollision}/{@code zza} 由 {@code Entity#move} / AI 在服务端更新，
+     * 客户端本地值基本恒为 false。客户端另外用本地碰撞 + 本地 y 速度做兜底 OR。
+     * <p>
+     * 与 {@link #isClimbAggro()} 相互独立：近战状态不直接触发攀爬动画。
+     */
+    public boolean isClimbingAnimationState() {
+        if (this.entityData.get(DATA_CLIMBING_ANIM)) {
+            return true;
+        }
+        // 客户端兜底：若本地能拿到碰撞/速度信息也算攀爬
+        return this.horizontalCollision
+                && this.getDeltaMovement().y > CLIMB_ANIM_MIN_RISE;
+    }
+
+    /** 服务端每 tick 计算攀爬动画状态并同步。 */
+    private void updateClimbingAnimationState() {
+        boolean climbing = this.horizontalCollision
+                && (this.getDeltaMovement().y > CLIMB_ANIM_MIN_RISE
+                || (this.zza > CLIMB_ANIM_MIN_FORWARD && !this.onGround()));
+        if (this.entityData.get(DATA_CLIMBING_ANIM) != climbing) {
+            this.entityData.set(DATA_CLIMBING_ANIM, climbing);
+        }
+    }
+
     @Override
     public boolean onClimbable() {
         return isClimbingWall();
@@ -485,6 +699,12 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
             setShooting(false);
         }
 
+        // 远程未命中 → 近战攀爬：待判定弹射物结算 + 状态生命周期
+        if (this.climbAggroCooldown > 0) this.climbAggroCooldown--;
+        if (this.climbJumpCooldown > 0) this.climbJumpCooldown--;
+        tickPendingWebShot();
+        tickClimbAggro();
+
         boolean chasing = this.getTarget() != null;
         setRunning(chasing && this.getDeltaMovement().horizontalDistanceSqr() > 0.0025D);
 
@@ -502,6 +722,27 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
             setPouncing(false);
         }
 
+        // 攀爬起步：目标在上方且贴着墙时起跳，之后交给 travel() 的攀爬推进接手。
+        // （近战攀爬状态与普通追击都使用；20 tick 冷却避免在墙下连跳）
+        if (this.climbJumpCooldown <= 0 && this.onGround() && this.isNearWall()
+                && this.getTarget() != null
+                && this.getTarget().getY() - this.getY() > 0.5D) {
+            Vec3 dm = this.getDeltaMovement();
+            this.setDeltaMovement(dm.x, 0.42D, dm.z);
+            this.hurtMarked = true;
+            this.climbJumpCooldown = CLIMB_JUMP_COOLDOWN_TICKS;
+        }
+
+        // 近战攀爬追击：目标在上方且地面寻路走不到（例如目标站在柱子上）时，
+        // 直接朝目标水平位置推进，贴墙后由上面的起跳 + travel() 攀爬推进完成追击。
+        if (isClimbAggro() && this.getTarget() != null
+                && this.getTarget().getY() - this.getY() > 0.5D
+                && this.getNavigation().isDone()
+                && this.distanceToSqr(this.getTarget()) > 1.0D) {
+            this.getMoveControl().setWantedPosition(
+                    this.getTarget().getX(), this.getY(), this.getTarget().getZ(), 1.0D);
+        }
+
         if (this.isClimbingWall()) {
             faceClimbedWall();
         }
@@ -515,12 +756,20 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
                 && this.getTarget() != null
                 && !this.onGround()
                 && this.isBlockedAbove()) {
-            this.climbCooldown = CLIMB_COOLDOWN_TICKS;
-            Vec3 dm = this.getDeltaMovement();
-            if (dm.y > 0) {
-                this.setDeltaMovement(dm.x, 0, dm.z);
+            // 目标是上方且处于近战攀爬状态时，这是「有意义的攀爬」，不触发防卡住逻辑
+            boolean purposefulClimb = isClimbAggro()
+                    && this.getTarget().getY() - this.getY() > 0.5D;
+            if (!purposefulClimb) {
+                this.climbCooldown = CLIMB_COOLDOWN_TICKS;
+                Vec3 dm = this.getDeltaMovement();
+                if (dm.y > 0) {
+                    this.setDeltaMovement(dm.x, 0, dm.z);
+                }
             }
         }
+
+        // 攀爬动画状态（服务端判定 + 同步；与近战攀爬状态相互独立）
+        updateClimbingAnimationState();
 
         if (!chasing && this.getDeltaMovement().horizontalDistanceSqr() < 0.001D && !isPouncing()) {
             if (--this.idleAnimTimer <= 0) {
@@ -618,6 +867,11 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
             return;
         }
 
+        // 近战攀爬状态：不再发射弹射物，改由近战 AI 追击
+        if (isClimbAggro()) {
+            return;
+        }
+
         if (isStandingInInfestedWeb(target)) {
             return;
         }
@@ -660,6 +914,11 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
         web.shoot(dx, aimRise, dz, WEB_VELOCITY, WEB_INACCURACY);
         this.playSound(SoundEvents.SPIDER_HURT, 0.4F, 0.6F);
         this.level().addFreshEntity(web);
+
+        // 记录这一发，用于命中/未命中判定
+        this.pendingWebShot = web;
+        this.pendingWebTargetId = target.getUUID();
+        this.pendingWebShotTick = this.tickCount;
     }
 
     @Override
@@ -667,6 +926,11 @@ public class InfestedSpider extends PathfinderMob implements GeoEntity, Enemy, R
         boolean hit = super.doHurtTarget(level, target);
         if (hit && target instanceof LivingEntity living) {
             applyVariantOnHitEffect(living);
+
+            // 近战命中一次 → 退出近战攀爬状态，恢复远程（并进入 10s 冷却，避免来回抖动）
+            if (isClimbAggro()) {
+                exitClimbAggro(CLIMB_AGGRO_COOLDOWN_TICKS, true);
+            }
         }
         return hit;
     }

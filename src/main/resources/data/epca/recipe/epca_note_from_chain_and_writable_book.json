@@ -1,0 +1,12 @@
+﻿{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:iron_chain",
+    "minecraft:writable_book"
+  ],
+  "result": {
+    "id": "epca:epca_note",
+    "count": 1
+  }
+}

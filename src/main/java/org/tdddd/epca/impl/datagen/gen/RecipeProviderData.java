@@ -68,6 +68,20 @@ public class RecipeProviderData extends RecipeProvider {
         rawRecycling(modItem("infested_raw_gold"),   Items.GOLD_NUGGET,  0.1F);
 
         netheriteSmithing(modItem("diamond_spear"), modItem("netherite_spear"));
+
+        // 虫咒笔记：锁链 + 书 / 书与笔（无序合成），与 1.20.1 的 RecipeProviderData 完全一致。
+        // 26 侧差异：1.20.1 的 Items.CHAIN 在 26 改名为 Items.IRON_CHAIN（注册 id minecraft:iron_chain）。
+        // 同一份 JSON 也静态放在 src/main/resources/data/epca/recipe/ 下，
+        // 这样不跑 runData 直接 build 的产物里也带着这两条配方（processResources 对重复文件保留第一份）。
+        ShapelessRecipeBuilder.shapeless(this.items, RecipeCategory.MISC, modItem("epca_note"))
+                .requires(Items.IRON_CHAIN).requires(Items.BOOK)
+                .unlockedBy("has_book", has(Items.BOOK))
+                .save(this.output, recipeId("epca_note_from_chain_and_book"));
+
+        ShapelessRecipeBuilder.shapeless(this.items, RecipeCategory.MISC, modItem("epca_note"))
+                .requires(Items.IRON_CHAIN).requires(Items.WRITABLE_BOOK)
+                .unlockedBy("has_writable_book", has(Items.WRITABLE_BOOK))
+                .save(this.output, recipeId("epca_note_from_chain_and_writable_book"));
     }
 
     private void spearCrafting(Item material, Item result) {

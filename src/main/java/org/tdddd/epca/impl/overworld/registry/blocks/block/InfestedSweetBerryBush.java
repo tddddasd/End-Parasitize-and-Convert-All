@@ -5,6 +5,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -15,14 +17,19 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.SweetBerryBushBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -35,11 +42,45 @@ import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.InfestedSweetB
 
 import javax.annotation.Nullable;
 
-public class InfestedSweetBerryBush extends SweetBerryBushBlock implements InfestedBlockInterface, EntityBlock {
+/**
+ * 虫染甜浆果丛：独立的方块实现（不再继承原版 {@code SweetBerryBushBlock}）。
+ * <p>
+ * 只有两个生长阶段：
+ * <ul>
+ *     <li>{@code age=0}：未结果（贴图 {@code infested_sweet_berry_bush_age1}）</li>
+ *     <li>{@code age=1}：结果（贴图 {@code infested_sweet_berry_bush_age2}）</li>
+ * </ul>
+ * 随机刻让 0 → 1 生长；右键结果状态可采摘 {@code epca:infested_sweet_berries} 并回到 0。
+ */
+public class InfestedSweetBerryBush extends BushBlock implements InfestedBlockInterface, EntityBlock {
+
+    /** 0 = 未结果，1 = 结果。 */
+    public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 1);
+
     protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
+
+    /** 随机刻生长概率：与原版甜浆果一致（1/5）。 */
+    private static final int GROW_CHANCE = 5;
+
+    /** 生长所需最低亮度，与原版一致。 */
+    private static final int MIN_LIGHT_LEVEL = 9;
+
+    /** 被丛划伤所需的最小水平位移。 */
+    private static final float HURT_SPEED_THRESHOLD = 0.003F;
 
     public InfestedSweetBerryBush(Properties properties) {
         super(properties);
+        this.registerDefaultState(this.stateDefinition.any().setValue(AGE, 0));
+    }
+
+    @Override
+    public com.mojang.serialization.MapCodec<BushBlock> codec() {
+        return simpleCodec(InfestedSweetBerryBush::new);
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(AGE);
     }
 
     @Override
@@ -53,10 +94,38 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
     }
 
     @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return state.getValue(AGE) < 1;
+    }
+
+    /**
+     * 未结果 → 结果的随机刻生长。只有两个阶段，所以一次随机刻成功即结果。
+     */
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        int age = state.getValue(AGE);
+        if (age >= 1) {
+            return;
+        }
+        if (level.getRawBrightness(pos.above(), 0) < MIN_LIGHT_LEVEL) {
+            return;
+        }
+        if (!net.neoforged.neoforge.common.CommonHooks.canCropGrow(level, pos, state, random.nextInt(GROW_CHANCE) == 0)) {
+            return;
+        }
+        BlockState newState = state.setValue(AGE, 1);
+        level.setBlock(pos, newState, 2);
+        net.neoforged.neoforge.common.CommonHooks.fireCropGrowPost(level, pos, state);
+        level.gameEvent(net.minecraft.world.level.gameevent.GameEvent.BLOCK_CHANGE, pos,
+                net.minecraft.world.level.gameevent.GameEvent.Context.of(newState));
+    }
+
+    @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter world, BlockPos pos) {
-        Block block = state.getBlock();
-        return block == ModBlocks.INFESTED_DIRT.get() ||
-                super.mayPlaceOn(state, world, pos);
+        return state.is(ModBlocks.INFESTED_DIRT.get())
+                || state.is(BlockTags.DIRT)
+                || state.is(BlockTags.SUPPORTS_VEGETATION)
+                || state.is(Blocks.FARMLAND);
     }
 
     @Override
@@ -89,8 +158,8 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
     }
 
     @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
-                             net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
+                                net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean isPrecise) {
         if (!(entity instanceof LivingEntity living)) {
             return;
         }
@@ -99,10 +168,18 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
 
             living.makeStuckInBlock(state, new Vec3(0.8, 0.75, 0.8));
 
-            if (!level.isClientSide() && state.getValue(AGE) >= 3) {
-                if (living.xOld != living.getX() || living.zOld != living.getZ()) {
-                    living.hurt(level.damageSources().sweetBerryBush(), 1.0F);
-                    living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 0));
+            // 只有结果阶段才会划伤并施加虫咒缚身
+            if (level instanceof ServerLevel serverLevel && state.getValue(AGE) >= 1) {
+                Vec3 movement = entity.isClientAuthoritative()
+                        ? entity.getKnownMovement()
+                        : entity.oldPosition().subtract(entity.position());
+                if (movement.horizontalDistanceSqr() > 0.0D) {
+                    double xs = Math.abs(movement.x());
+                    double zs = Math.abs(movement.z());
+                    if (xs >= HURT_SPEED_THRESHOLD || zs >= HURT_SPEED_THRESHOLD) {
+                        entity.hurtServer(serverLevel, level.damageSources().sweetBerryBush(), 1.0F);
+                        living.addEffect(new MobEffectInstance(ModEffects.PARA_CURSE, 600, 0));
+                    }
                 }
             }
         }
@@ -111,7 +188,7 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
     @Override
     protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hit) {
-        if (state.getValue(AGE) >= 3) {
+        if (state.getValue(AGE) >= 1) {
             if (!level.isClientSide()) {
                 int count = 1 + level.getRandom().nextInt(3);
                 popResource(level, pos, new ItemStack(ModItems.INFESTED_SWEET_BERRIES.get(), count));
@@ -127,5 +204,23 @@ public class InfestedSweetBerryBush extends SweetBerryBushBlock implements Infes
     @Override
     public Item asItem() {
         return ModItems.INFESTED_SWEET_BERRIES.get();
+    }
+
+    /**
+     * 鼠标中键（pick block）：返回 {@code epca:infested_sweet_berries} 物品。
+     */
+    @Override
+    @SuppressWarnings("deprecation")
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        return new ItemStack(ModItems.INFESTED_SWEET_BERRIES.get());
+    }
+
+    /**
+     * Neo 更精确的 pick block 入口（{@code IBlockExtension#getCloneItemStack}，对应 1.20.1 的 Forge 版本）。
+     */
+    @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData,
+                                       Player player) {
+        return new ItemStack(ModItems.INFESTED_SWEET_BERRIES.get());
     }
 }

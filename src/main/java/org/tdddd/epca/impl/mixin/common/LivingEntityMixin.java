@@ -26,13 +26,6 @@ import org.tdddd.epca.impl.utils.ShieldProtectionHelper;
 public abstract class LivingEntityMixin {
     private static final ThreadLocal<Boolean> applyingCustomParaCurse = ThreadLocal.withInitial(() -> false);
 
-    @Inject(method = "canBeSeenAsEnemy", at = @At("HEAD"), cancellable = true)
-    private void epca$untargetableWhileConverting(CallbackInfoReturnable<Boolean> cir) {
-        if (org.tdddd.epca.impl.events.PendingConversionManager.isPending((LivingEntity) (Object) this)) {
-            cir.setReturnValue(false);
-        }
-    }
-
     @Inject(method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
             at = @At("HEAD"),
             cancellable = true)
@@ -50,6 +43,14 @@ public abstract class LivingEntityMixin {
         Level level = self.level();
 
         if (level.isClientSide()) return;
+
+        // 创造 / 旁观模式玩家完全豁免「虫咒缚身」
+        if (self instanceof Player player && isCreativeOrSpectator(player)) {
+            cir.setReturnValue(false);
+            cir.cancel();
+            return;
+        }
+
         if (self instanceof Player) return;
         if (ParasiteEvents.isParasiteEntity(self)) return;
         if (!DifficultyEffects.isParaCurseEffectEnabled(level)) return;
@@ -77,6 +78,14 @@ public abstract class LivingEntityMixin {
         } finally {
             applyingCustomParaCurse.set(false);
         }
+    }
+
+    /**
+     * 创造模式与旁观模式玩家不受「虫咒缚身」影响。
+     */
+    @org.spongepowered.asm.mixin.Unique
+    private static boolean isCreativeOrSpectator(Player player) {
+        return player.isCreative() || player.isSpectator();
     }
 
     private static final ThreadLocal<Boolean> processingSetHealth = ThreadLocal.withInitial(() -> false);

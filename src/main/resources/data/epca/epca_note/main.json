@@ -3,49 +3,29 @@
     {
       "child_tabs": [
         {
-          "content": "lang:epca.content.onesent",
+          "content": "",
           "id": "onesent",
           "name": "lang:epca.tab.child.onesent"
         },
         {
-          "content": "B",
-          "id": "b",
-          "name": "虫染种"
+          "content": "",
+          "id": "infested",
+          "name": "lang:epca.tab.child.infested"
         },
         {
-          "content": "C",
-          "id": "c",
-          "name": "粗制种"
+          "content": "",
+          "id": "poverty",
+          "name": "lang:epca.tab.child.poverty"
         },
         {
-          "content": "D",
-          "id": "d",
-          "name": "重塑种"
+          "content": "",
+          "id": "reshape",
+          "name": "lang:epca.tab.child.reshape"
         },
         {
-          "content": "E",
-          "id": "e",
-          "name": "狂躁种"
-        },
-        {
-          "content": "F",
-          "id": "f",
-          "name": "劫持种"
-        },
-        {
-          "content": "G",
-          "id": "g",
-          "name": "成型种"
-        },
-        {
-          "content": "H",
-          "id": "h",
-          "name": "载驭种"
-        },
-        {
-          "content": "T",
-          "id": "t",
-          "name": "揉缀种"
+          "content": "",
+          "id": "link",
+          "name": "lang:epca.tab.child.link"
         }
       ],
       "id": "main_tab",

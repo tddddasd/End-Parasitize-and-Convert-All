@@ -115,6 +115,11 @@ public class ClientHandler {
         }
     }
 
+    /**
+     * 虫染甜浆果丛只有两个生长阶段（age 0/1），物品模型 range_dispatch 也按 0..1 匹配（见
+     * assets/epca/items/infested_sweet_berry_bush.json 的 epca:age 阈值 1）。
+     * 物品栈没有 age 标签时返回 0（基础模型），不会误命中成熟模型。
+     */
     public record AgeProperty() implements RangeSelectItemModelProperty {
         public static final MapCodec<AgeProperty> CODEC = MapCodec.unit(new AgeProperty());
 
@@ -122,9 +127,9 @@ public class ClientHandler {
         public float get(ItemStack stack, ClientLevel level, ItemOwner owner, int seed) {
             CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             if (!tag.isEmpty() && tag.contains("age")) {
-                return tag.getIntOr("age", 0);
+                return tag.getIntOr("age", 0) >= 1 ? 1.0F : 0.0F;
             }
-            return 1.0F;
+            return 0.0F;
         }
 
         @Override

@@ -1,6 +1,8 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -18,6 +20,21 @@ public class HiveNode extends Block
         implements EntityBlock, org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface {
 
     public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 5);
+
+    /**
+     * Chance that a single random tick of this block adds biomass.
+     */
+    public static final double RANDOM_TICK_BIOMASS_CHANCE = 0.5D;
+
+    /**
+     * Biomass added when a random tick succeeds.
+     * <p>
+     * Vanilla default {@code randomTickSpeed=3} gives 3 / 4096 random-tick chance per block per tick,
+     * i.e. one random tick every ~1365 game ticks. With chance 0.5 and amount 3 this averages
+     * 1.5 biomass per random tick -> 1 biomass per ~910 game ticks, matching the previous
+     * fixed timer (1 biomass per 45s = 900 ticks).
+     */
+    public static final int RANDOM_TICK_BIOMASS_AMOUNT = 3;
 
     public HiveNode(Properties properties) {
         super(properties);
@@ -46,6 +63,25 @@ public class HiveNode extends Block
             return 4;
         }
         return 5;
+    }
+
+    /**
+     * Biomass production is driven by random ticks (gamerule {@code randomTickSpeed} applies) instead of
+     * the block-entity timer. The {@code STAGE} blockstate is updated by the block entity through
+     * {@code level.setBlock(..., 3)} which also syncs it to tracking clients.
+     */
+    @Override
+    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (random.nextDouble() >= RANDOM_TICK_BIOMASS_CHANCE) {
+            return;
+        }
+        if (!(level.getBlockEntity(pos) instanceof HiveNodeBlockEntity node)) {
+            return;
+        }
+        if (!node.hasRoom()) {
+            return;
+        }
+        node.addBiomassCount(RANDOM_TICK_BIOMASS_AMOUNT);
     }
 
     @Override
