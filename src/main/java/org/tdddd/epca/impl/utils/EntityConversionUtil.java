@@ -7,10 +7,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import org.tdddd.epca.impl.network.ModNetwork;
-import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
-import org.tdddd.epca.impl.overworld.registry.effects.debuff.ParaCurseEffect;
 
 public class EntityConversionUtil {
     public static void convertTo(LivingEntity entity, EntityType<? extends LivingEntity> targetType) {
@@ -45,8 +42,7 @@ public class EntityConversionUtil {
 
             entity.level().addFreshEntity(newEntity);
 
-            ModNetwork.sendToAllTracking(
-                    new ColorEffectPacket(newEntity, ParaCurseEffect.TYPE_CONVERSION_FADE, 6), newEntity);
+            // 紫色转化淡出（ColorEffectPacket / TYPE_CONVERSION_FADE）已移除：转化瞬间完成
         }
 
         if (!(entity instanceof Player)) {

@@ -1,0 +1,345 @@
+{
+  "_comment": "虫咒笔记「详细数据」解锁消耗表。键 = 实体 id；值 = [{item, count}, ...]。服务端按本表校验并扣除背包物品，客户端只按本表显示「消耗 N 物品 解锁」与 tooltip。占位键以 _ 开头，加载时会被忽略。",
+  "_default": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 3
+    }
+  ],
+  "epca:curbug": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 3
+    }
+  ],
+  "epca:ripper": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 3
+    }
+  ],
+  "epca:mozzie": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 3
+    }
+  ],
+  "epca:fins": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 3
+    },
+    {
+      "item": "epca:fins_fin",
+      "count": 1
+    }
+  ],
+  "epca:flying_carrier": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 3
+    }
+  ],
+  "epca:light_carrier": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 3
+    }
+  ],
+  "epca:infested_bat": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_chicken": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_cow": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_drowned": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_enderman": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    },
+    {
+      "item": "epca:infested_ender_pearl",
+      "count": 1
+    }
+  ],
+  "epca:infested_endermite": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    },
+    {
+      "item": "epca:infested_ender_pearl",
+      "count": 1
+    }
+  ],
+  "epca:infested_fox": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_husk": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_pig": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_pillager": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_sheep": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_silverfish": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_skeleton": [
+    {
+      "item": "epca:infested_bone",
+      "count": 4
+    }
+  ],
+  "epca:infested_slime_size0": [
+    {
+      "item": "epca:infested_slime_ball",
+      "count": 4
+    }
+  ],
+  "epca:infested_spider": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 4
+    }
+  ],
+  "epca:infested_villager": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_vindicator": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_wolf": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_zombie": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:infested_zombie_villager": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_chicken_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_cow_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_drowned_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_enderman_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    },
+    {
+      "item": "epca:infested_ender_pearl",
+      "count": 1
+    }
+  ],
+  "epca:walking_fox_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_husk_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_pig_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_pillager_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_sheep_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_skeleton_head": [
+    {
+      "item": "epca:infested_bone",
+      "count": 4
+    }
+  ],
+  "epca:walking_spider_head": [
+    {
+      "item": "epca:parasite_viscera",
+      "count": 4
+    }
+  ],
+  "epca:walking_villager_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_vindicator_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_wolf_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_zombie_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:walking_zombie_villager_head": [
+    {
+      "item": "epca:infested_flesh",
+      "count": 3
+    }
+  ],
+  "epca:small_incomplete_form": [
+    {
+      "item": "epca:weird_minced_flesh",
+      "count": 6
+    }
+  ],
+  "epca:medium_incomplete_form": [
+    {
+      "item": "epca:weird_minced_flesh",
+      "count": 6
+    }
+  ],
+  "epca:large_incomplete_form": [
+    {
+      "item": "epca:weird_minced_flesh",
+      "count": 6
+    }
+  ],
+  "epca:living_flesh_size0": [
+    {
+      "item": "epca:weird_minced_flesh",
+      "count": 6
+    }
+  ],
+  "epca:biomass_small": [
+    {
+      "item": "epca:weird_minced_flesh",
+      "count": 6
+    }
+  ],
+  "epca:biomass_medium": [
+    {
+      "item": "epca:weird_minced_flesh",
+      "count": 6
+    }
+  ],
+  "epca:reshape_longarms": [
+    {
+      "item": "epca:reshape_shell",
+      "count": 1
+    },
+    {
+      "item": "epca:reshape_flesh",
+      "count": 2
+    }
+  ],
+  "epca:reshape_yelloweye": [
+    {
+      "item": "epca:gasbag_debris",
+      "count": 1
+    },
+    {
+      "item": "epca:tight_tendons",
+      "count": 1
+    }
+  ],
+  "epca:stage_i_beckon": [
+    {
+      "item": "epca:beckon_membrane",
+      "count": 3
+    }
+  ],
+  "epca:stage_ii_beckon": [
+    {
+      "item": "epca:beckon_membrane",
+      "count": 6
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -52,6 +53,10 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
         builder.add(NATURAL_SPAWN, AGE, TOP);
     }
 
+    /**
+     * 玩家放置的虫染甘蔗（{@code natural_spawn=false}）不需要水，只检查下方是否是可支撑方块；
+     * 自然生成 / 自然生长的甘蔗（{@code natural_spawn=true}）仍沿用原版甘蔗的水判定。
+     */
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockPos below = pos.below();
@@ -62,7 +67,20 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
             return true;
         }
 
-        boolean isValidSoil = belowState.is(Blocks.SAND) ||
+        if (!isValidSoil(belowState)) {
+            return false;
+        }
+
+        // 玩家放置：不需要水
+        if (state.hasProperty(NATURAL_SPAWN) && !state.getValue(NATURAL_SPAWN)) {
+            return true;
+        }
+
+        return hasWaterAround(level, below);
+    }
+
+    private static boolean isValidSoil(BlockState belowState) {
+        return belowState.is(Blocks.SAND) ||
                 belowState.is(Blocks.RED_SAND) ||
                 belowState.is(Blocks.DIRT) ||
                 belowState.is(Blocks.GRASS_BLOCK) ||
@@ -70,19 +88,42 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
                 belowState.is(Blocks.COARSE_DIRT) ||
                 belowState.is(ModBlocks.INFESTED_DIRT.get()) ||
                 belowState.is(ModBlocks.INFESTED_SAND.get());
+    }
 
-        if (!isValidSoil) {
-            return false;
-        }
-
+    private static boolean hasWaterAround(LevelReader level, BlockPos pos) {
         for (Direction dir : Direction.Plane.HORIZONTAL) {
-            BlockState sideState = level.getBlockState(below.relative(dir));
-            if (sideState.is(Blocks.WATER)) {
+            if (level.getBlockState(pos.relative(dir)).is(Blocks.WATER)) {
                 return true;
             }
         }
-
         return false;
+    }
+
+    /**
+     * 自然生长（随机刻向上长高）仍然需要水：检查整柱最底部甘蔗下面那格土壤周围是否有水。
+     */
+    private boolean hasWaterAtColumnBase(LevelReader level, BlockPos pos) {
+        BlockPos bottom = pos;
+        for (int guard = 0; guard < 32; guard++) {
+            Block belowBlock = level.getBlockState(bottom.below()).getBlock();
+            if (belowBlock != this && belowBlock != Blocks.SUGAR_CANE) {
+                break;
+            }
+            bottom = bottom.below();
+        }
+        return hasWaterAround(level, bottom.below());
+    }
+
+    /**
+     * 玩家放置时直接写死 {@code natural_spawn=false}，这样放置前的 {@code canSurvive} 就不会再要求水。
+     */
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        BlockState state = this.defaultBlockState();
+        if (context.getPlayer() != null) {
+            state = state.setValue(NATURAL_SPAWN, false);
+        }
+        return state;
     }
 
     @Override
@@ -132,6 +173,11 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
 
         BlockPos above = pos.above();
         if (!level.getBlockState(above).isAir()) {
+            return;
+        }
+
+        // 自然生长依旧需要水（与原版甘蔗一致）
+        if (!hasWaterAtColumnBase(level, pos)) {
             return;
         }
 

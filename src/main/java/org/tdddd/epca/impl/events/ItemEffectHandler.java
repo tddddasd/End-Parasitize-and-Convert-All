@@ -30,6 +30,11 @@ public class ItemEffectHandler {
 
         if (entity instanceof Player player) {
 
+            // 创造 / 旁观模式玩家完全豁免「虫咒缚身」：不再因为背包里有寄生虫物品而被施加
+            if (player.isCreative() || player.isSpectator()) {
+                return;
+            }
+
             for (ItemStack stack : player.getInventory().items) {
                 if (!stack.isEmpty() && isInfestedItem(stack)) {
                     hasInfested = true;
@@ -214,6 +219,10 @@ public class ItemEffectHandler {
     }
 
     private static void applyPARA_CURSEEffect(LivingEntity entity) {
+        // 创造 / 旁观模式玩家完全豁免「虫咒缚身」
+        if (entity instanceof Player player && (player.isCreative() || player.isSpectator())) {
+            return;
+        }
         MobEffectInstance current = entity.getEffect(ModEffects.PARA_CURSE.get());
         if (current == null) {
             entity.addEffect(new MobEffectInstance(

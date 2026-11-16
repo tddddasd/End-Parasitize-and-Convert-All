@@ -60,6 +60,12 @@ public class LangDataCN extends LanguageProvider {
 
         add("epca.tab.parent.main_tab", "寄生体图鉴");
         add("epca.tab.child.onesent", "初探种");
+        // 五个种阶书签：笔记界面优先读 assets/epca/lang/para_curse_note/zh_cn.json（拆分语言），
+        // 这里保留同名键作为兼容兜底，避免任何地方显示成 raw key。
+        add("epca.tab.child.infested", "虫染种");
+        add("epca.tab.child.poverty", "粗制种");
+        add("epca.tab.child.reshape", "重塑种");
+        add("epca.tab.child.link", "连结种");
 
         add("entity.epca.curbug", "诅虫");
         add("entity.epca.ripper", "裂兽");
@@ -505,11 +511,12 @@ public class LangDataCN extends LanguageProvider {
         add("epca.organ_gui.readout.percent", "%");
 
         add("epca.note.title", "虫咒笔记");
+        add("epca.note.detail.missing", "材料不足，无法解锁详细数据：需要 %s");
+        add("epca.note.detail.locked_entry", "你还没有在笔记里发现这个寄生体");
+        add("epca.note.detail.success", "已解锁详细数据：%s");
         add("epca.message.stage_too_low", "这里的侵蚀阶段小于3级...");
 
         add("epca.content.onesent",
                 "§l§0初探种§r\n$[page]$\n§0诅虫\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0上图中是一只诅虫。");
-        add("epca.content.test3",
-                "§0\n${img:epca:textures/gui/note_pic/yawning_neko.png,512}$\n§0作者\n${img:epca:textures/gui/note_pic/xiao_ku_kmc.png,512}$\n§0美术\n${img:epca:textures/gui/note_pic/thomas_lovlin.png,512}$\n§0音效师");
     }
 }

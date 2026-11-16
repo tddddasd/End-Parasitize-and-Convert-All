@@ -1,7 +1,6 @@
 package org.tdddd.epca.impl.overworld.registry.blocks.block.entity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -21,8 +20,6 @@ public class HiveNodeBlockEntity extends BlockEntity
     private int biomassCount = 0;
 
     private boolean natural = false;
-
-    private static final int BIOMASS_INTERVAL_TICKS = 45 * 20;
 
     private static final int CURBUG_INTERVAL_TICKS = 60 * 20;
 
@@ -63,7 +60,6 @@ public class HiveNodeBlockEntity extends BlockEntity
     private static final int INFEST_MIN_TICKS = 20 * 20;
     private static final int INFEST_MAX_TICKS = 30 * 20;
 
-    private int biomassTimer = 0;
     private int spawnTimer = 0;
     private int growthTimer = 0;
     private int infestTimer = 0;
@@ -140,7 +136,6 @@ public class HiveNodeBlockEntity extends BlockEntity
     public void load(CompoundTag tag) {
         super.load(tag);
         this.biomassCount = Mth.clamp(tag.getInt(BIOMASS_COUNT_KEY), 0, MAX_BIOMASS_COUNT);
-        this.biomassTimer = tag.getInt("biomassTimer");
         this.infestTimer = tag.getInt("infestTimer");
         this.infestTarget = tag.getInt("infestTarget");
         this.ripperTimer = tag.getInt("ripperTimer");
@@ -157,7 +152,6 @@ public class HiveNodeBlockEntity extends BlockEntity
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.putInt(BIOMASS_COUNT_KEY, this.biomassCount);
-        tag.putInt("biomassTimer", this.biomassTimer);
         tag.putInt("infestTimer", this.infestTimer);
         tag.putInt("infestTarget", this.infestTarget);
         tag.putInt("ripperTimer", this.ripperTimer);
@@ -173,13 +167,6 @@ public class HiveNodeBlockEntity extends BlockEntity
     public static void tick(Level level, BlockPos pos, BlockState state, HiveNodeBlockEntity be) {
         if (level.isClientSide) {
             return;
-        }
-
-        if (++be.biomassTimer >= BIOMASS_INTERVAL_TICKS) {
-            be.biomassTimer = 0;
-            if (be.hasRoom()) {
-                be.addBiomassCount(1);
-            }
         }
 
         if (++be.spawnTimer >= CURBUG_INTERVAL_TICKS) {
@@ -256,8 +243,21 @@ public class HiveNodeBlockEntity extends BlockEntity
                 GROWTH_MIN_TICKS + level.random.nextInt(GROWTH_MAX_TICKS - GROWTH_MIN_TICKS + 1));
         level.addFreshEntity(mob);
         spawnBiomassParticles(level);
+        // 初探种（onesent）转化粒子：虫巢节点诞出诅虫
+        spawnOnesentConversionParticles(level, x, y + 0.5D, z);
         return true;
     }
+
+    /**
+     * Plays the existing "onesent conversion" particle (variant 2 of {@code epca:onesent_conversion},
+     * see {@code ModParticles.spawnConversion}) at the given position.
+     */
+    private static void spawnOnesentConversionParticles(net.minecraft.server.level.ServerLevel level,
+                                                        double x, double y, double z) {
+        org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(level, x, y, z, ONESENT_VARIANT, 0xFFFFFF);
+    }
+
+    private static final int ONESENT_VARIANT = 2;
 
     public boolean isInStructure() {
         return this.inStructure;
@@ -502,7 +502,8 @@ public class HiveNodeBlockEntity extends BlockEntity
             level.playSound(null, x, y, z,
                     org.tdddd.epca.impl.overworld.registry.ModSoundEvents.CURBUG_EVOLVE.get(),
                     source, 1.0F, 1.0F);
-            level.sendParticles(ParticleTypes.EXPLOSION, x, y + 1.0D, z, 3, 1.0D, 1.0D, 1.0D, 0.1D);
+            // 初探种（onesent）转化粒子，取代原来的爆炸粒子
+            spawnOnesentConversionParticles(level, x, y + 0.5D, z);
         }
     }
 }

@@ -195,6 +195,22 @@ public class ModNetwork {
                 HiveLeaderDecomposeParasitePacket::encode,
                 HiveLeaderDecomposeParasitePacket::decode,
                 HiveLeaderDecomposeParasitePacket::handle);
+
+        // ---- 虫咒笔记：解锁状态同步 + 打开笔记时拉取 + 请求解锁详细数据 ----
+        INSTANCE.registerMessage(id++, SyncNoteUnlocksPacket.class,
+                SyncNoteUnlocksPacket::encode,
+                SyncNoteUnlocksPacket::decode,
+                SyncNoteUnlocksPacket::handle);
+
+        INSTANCE.registerMessage(id++, NoteSyncRequestPacket.class,
+                NoteSyncRequestPacket::encode,
+                NoteSyncRequestPacket::decode,
+                NoteSyncRequestPacket::handle);
+
+        INSTANCE.registerMessage(id++, NoteDetailUnlockRequestPacket.class,
+                NoteDetailUnlockRequestPacket::encode,
+                NoteDetailUnlockRequestPacket::decode,
+                NoteDetailUnlockRequestPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {

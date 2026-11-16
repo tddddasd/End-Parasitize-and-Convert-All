@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "minecraft:chain" },
+    { "item": "minecraft:writable_book" }
+  ],
+  "result": { "item": "epca:epca_note" }
+}

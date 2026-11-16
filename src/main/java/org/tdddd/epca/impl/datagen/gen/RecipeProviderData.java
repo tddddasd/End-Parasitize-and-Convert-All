@@ -52,6 +52,17 @@ public class RecipeProviderData extends RecipeProvider {
         rawRecycling(c, modItem("infested_raw_gold"),   Items.GOLD_NUGGET,  0.1F);
 
         netheriteSmithing(c, modItem("diamond_spear"), modItem("netherite_spear"));
+
+        // 虫咒笔记：锁链 + 书 / 书与笔（无序合成）
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.EPCA_NOTE.get())
+                .requires(Items.CHAIN).requires(Items.BOOK)
+                .unlockedBy("has_book", has(Items.BOOK))
+                .save(c, modId("epca_note_from_chain_and_book"));
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.EPCA_NOTE.get())
+                .requires(Items.CHAIN).requires(Items.WRITABLE_BOOK)
+                .unlockedBy("has_writable_book", has(Items.WRITABLE_BOOK))
+                .save(c, modId("epca_note_from_chain_and_writable_book"));
     }
 
     private void spearCrafting(Consumer<FinishedRecipe> c, Item material, Item result) {

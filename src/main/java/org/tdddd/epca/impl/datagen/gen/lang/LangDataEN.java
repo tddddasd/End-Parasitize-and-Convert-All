@@ -60,6 +60,12 @@ public class LangDataEN extends LanguageProvider {
 
         add("epca.tab.parent.main_tab", "Parasite Bestiary");
         add("epca.tab.child.onesent", "Onesent");
+        // 五个种阶书签：笔记界面优先读 assets/epca/lang/para_curse_note/en_us.json（拆分语言），
+        // 这里保留同名键作为兼容兜底，避免任何地方显示成 raw key。
+        add("epca.tab.child.infested", "Infested");
+        add("epca.tab.child.poverty", "Poverty");
+        add("epca.tab.child.reshape", "Reshape");
+        add("epca.tab.child.link", "Link");
 
         add("entity.epca.curbug", "Curbug");
         add("entity.epca.ripper", "Ripper");
@@ -505,9 +511,11 @@ public class LangDataEN extends LanguageProvider {
         add("epca.organ_gui.readout.percent", "%");
 
         add("epca.note.title", "Para Curse Note");
+        add("epca.note.detail.missing", "Not enough materials to unlock the details: need %s");
+        add("epca.note.detail.locked_entry", "You have not discovered this parasite in the note yet");
+        add("epca.note.detail.success", "Unlocked details: %s");
         add("epca.message.stage_too_low", "The erosion stage here is below level 3...");
 
         add("epca.content.onesent", "§l§0Onesent§r\n$[page]$\n§0Curbug\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0The image above shows a Curbug.");
-        add("epca.content.test3", "§0\n${img:epca:textures/gui/note_pic/yawning_neko.png,512}$\n§0Author\n${img:epca:textures/gui/note_pic/xiao_ku_kmc.png,512}$\n§0Artist\n${img:epca:textures/gui/note_pic/thomas_lovlin.png,512}$\n§0Sound Designer");
     }
 }

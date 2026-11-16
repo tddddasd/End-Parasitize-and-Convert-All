@@ -6,7 +6,7 @@
   "overrides": [
     {
       "predicate": {
-        "epca:age": 3
+        "epca:age": 1
       },
       "model": "epca:item/infested_sweet_berry_bush_age2"
     }

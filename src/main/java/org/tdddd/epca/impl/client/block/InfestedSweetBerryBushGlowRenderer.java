@@ -22,7 +22,7 @@ import java.util.List;
 
 public class InfestedSweetBerryBushGlowRenderer implements BlockEntityRenderer<InfestedSweetBerryBushBlockEntity> {
 
-    private static final int RIPE_AGE = 3;
+    private static final int RIPE_AGE = 1;
 
     private static final Direction[] DIRECTIONS = Direction.values();
 

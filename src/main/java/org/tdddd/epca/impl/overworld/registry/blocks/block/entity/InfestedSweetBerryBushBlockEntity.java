@@ -34,7 +34,8 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
         if (level.isClientSide) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
 
-        if (state.getValue(InfestedSweetBerryBush.AGE) < 3) {
+        // 只有两个阶段：age=0 未结果，age=1 结果
+        if (state.getValue(InfestedSweetBerryBush.AGE) < 1) {
             entity.targetUUID = null;
             return;
         }

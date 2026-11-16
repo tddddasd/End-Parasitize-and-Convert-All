@@ -4,7 +4,6 @@ package org.tdddd.epca.impl.overworld.registry.entities.entity.onesent;
 import net.minecraft.core.BlockPos;
 import org.tdddd.epca.impl.events.ParasiteEvents;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -559,28 +558,29 @@ public class Curbug extends PathfinderMob implements IAutoRenderableEntity, IHea
     private void growIntoFins() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         Fins fins = ModEntities.FINS.get().create(serverLevel);
-        if (fins != null) {
-            fins.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-            serverLevel.addFreshEntity(fins);
-            serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
-                    ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
-            serverLevel.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.5, this.getZ(), 5, 0.5, 0.5, 0.5, 0.1);
-            this.discard();
-        }
+        growInto(fins, serverLevel);
     }
 
     private void growIntoRupter() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         Ripper rupter = ModEntities.RIPPER.get().create(serverLevel);
-        if (rupter != null) {
-            rupter.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-            serverLevel.addFreshEntity(rupter);
-            serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
-                    ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
-            ModParticles.spawnConversion(serverLevel,
-                    this.getX(), this.getY() + 0.5, this.getZ(), 2, 0xFFFFFF);
-            this.discard();
-        }
+        growInto(rupter, serverLevel);
+    }
+
+    /**
+     * 诅虫进化的共用收尾逻辑：放置新生物 + 播放进化音效 + 初探种转化粒子（variant 2 = onesent）+ 移除自身。
+     * <p>
+     * 鳍兽与撕裂者走同一条路径，保证两者的转化表现完全一致（不再使用 {@code ParticleTypes.EXPLOSION}）。
+     */
+    private void growInto(Mob newEntity, ServerLevel serverLevel) {
+        if (newEntity == null) return;
+        newEntity.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+        serverLevel.addFreshEntity(newEntity);
+        serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
+                ModSoundEvents.CURBUG_EVOLVE.get(), this.getSoundSource(), 1.0F, 1.0F);
+        ModParticles.spawnConversion(serverLevel,
+                this.getX(), this.getY() + 0.5, this.getZ(), 2, 0xFFFFFF);
+        this.discard();
     }
 
     @Override

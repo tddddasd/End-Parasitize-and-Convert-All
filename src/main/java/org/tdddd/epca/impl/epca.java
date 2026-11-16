@@ -1,7 +1,6 @@
 package org.tdddd.epca.impl;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.GameRules;
 import net.minecraftforge.api.distmarker.Dist;
@@ -38,7 +37,6 @@ import org.tdddd.epca.impl.commands.*;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
 import org.tdddd.epca.impl.events.EvolutionStageEvents;
-import org.tdddd.epca.impl.events.PendingConversionManager;
 import org.tdddd.epca.impl.events.ShieldAttachHandler;
 import org.tdddd.epca.impl.fluid.ModFluids;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
@@ -96,7 +94,6 @@ public class epca {
         forgeBus.addListener(this::onRegisterCommands);
         forgeBus.addListener(this::onServerStarted);
         forgeBus.addListener(this::onAddReloadListeners);
-        forgeBus.addListener(this::onServerTick);
         forgeBus.addListener(this::onPlayerTick);
     }
 
@@ -129,15 +126,6 @@ public class epca {
     public void onServerStarted(ServerStartedEvent event) {
         ServerLevel overworld = event.getServer().overworld();
         EvolutionDataStorage.get(overworld);
-    }
-
-    @SubscribeEvent
-    public void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            MinecraftServer server = event.getServer();
-
-            PendingConversionManager.tick(server);
-        }
     }
 
     @SubscribeEvent

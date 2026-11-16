@@ -22,9 +22,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.ModConfig;
-import org.tdddd.epca.impl.events.PendingConversionManager;
-import org.tdddd.epca.impl.network.ModNetwork;
-import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedFox;
@@ -46,6 +43,7 @@ import org.tdddd.epca.impl.utils.EffectApplicationInterceptor;
 import org.tdddd.epca.impl.utils.EntityConversionUtil;
 import org.tdddd.epca.impl.utils.ParasiteHelper;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ParaCurseEffect extends MobEffect implements RemovableEffect {
@@ -68,10 +66,6 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
     private static final double LEVEL3_SPREAD_RADIUS = 2.5;
     private static final int LEVEL3_DURATION = 600;
     private static final int LEVEL3_AMPLIFIER = 2;
-
-    public static final int TYPE_CONVERSION = 2;
-
-    public static final int TYPE_CONVERSION_FADE = 3;
 
     public ParaCurseEffect() {
         super(MobEffectCategory.BENEFICIAL, 0x990000);
@@ -200,6 +194,10 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
     }
 
     private void spawnParaCurseParticles(LivingEntity entity) {
+        // 领巢者自身带虫咒缚身时不生成这些粒子（不影响 effect 本身效果）
+        if (entity instanceof Player player && isHiveLeaderPlayer(player)) {
+            return;
+        }
         Level level = entity.level();
         double centerX = entity.getX();
         double centerY = entity.getY() + entity.getBbHeight() / 2;
@@ -214,6 +212,16 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             double z = centerZ + (random.nextDouble() - 0.5) * PARTICLE_AREA_SIZE;
             level.addParticle(ModParticles.PARA_CURSE.get(), x, y, z, 0, 0, 0);
         }
+    }
+
+    private static boolean isHiveLeaderPlayer(Player player) {
+        UUID id = player.getUUID();
+        if (org.tdddd.epca.impl.overworld.data.HiveLeaderManager.isHiveLeader(id)) {
+            return true;
+        }
+        // 客户端（专用服务器上的远程玩家）只有同步过来的缓存可用
+        return player.level().isClientSide
+                && org.tdddd.epca.impl.overworld.data.HiveLeaderClientCache.isHiveLeader(id);
     }
 
     public static void tryConvertEntity(LivingEntity entity, int amplifier, boolean forceConversion) {
@@ -235,8 +243,8 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
             EntityConversionManager.EntityConversionRule earlyRule =
                     EntityConversionManager.getConversionRule(entity.getType(), earlyNbt);
                 ConversionPlan earlyPlan = planConversion(entity, earlyRule, earlyNbt, earlySmall, earlyLarge);
-                scheduleOrExecute(entity, earlyPlan,
-                        isConfiguredConversion(earlyRule, earlyPlan) ? conversionDelayTicks(amplifier) : 0);
+                // 转化现在瞬间完成，不再有紫色过渡/延迟
+                executePlan(entity, earlyPlan);
             entity.getPersistentData().remove("KilledByParasite");
             return;
         }
@@ -287,23 +295,9 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
         if (canConvert) {
             ConversionPlan plan = planConversion(entity, rule, nbt, isSmallEntity, isLargeEntity);
 
-            scheduleOrExecute(entity, plan,
-                    isConfiguredConversion(rule, plan) ? conversionDelayTicks(amplifier) : 0);
-            persistentData.remove("KilledByParasite");
-        }
-    }
-
-    private static int conversionDelayTicks(int amplifier) {
-        if (amplifier == 1) return 10;
-        if (amplifier >= 2) return 4;
-        return 0;
-    }
-
-    private static void scheduleOrExecute(LivingEntity entity, ConversionPlan plan, int delayTicks) {
-        if (delayTicks <= 0) {
+            // 转化现在瞬间完成，不再有紫色过渡/延迟
             executePlan(entity, plan);
-        } else {
-            PendingConversionManager.schedule(entity, plan, delayTicks);
+            persistentData.remove("KilledByParasite");
         }
     }
 
@@ -723,8 +717,7 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
 
                 org.tdddd.epca.impl.overworld.registry.ModParticles.spawnConversion(serverLevel, livingNew, variant, 0x3F5A2A);
             }
-            ModNetwork.sendToAllTracking(
-                    new ColorEffectPacket(livingNew, TYPE_CONVERSION_FADE, 6), livingNew);
+            // 紫色转化淡出（ColorEffectPacket / TYPE_CONVERSION_FADE）已移除
         }
     }
 

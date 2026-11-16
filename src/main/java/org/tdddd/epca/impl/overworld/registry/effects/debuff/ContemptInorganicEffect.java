@@ -15,8 +15,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.tdddd.epca.impl.ModConfig;
-import org.tdddd.epca.impl.network.ModNetwork;
-import org.tdddd.epca.impl.network.packet.s2c.ColorEffectPacket;
 import org.tdddd.epca.impl.overworld.data.EntityConversionManager;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.ModParticles;
@@ -137,11 +135,7 @@ public class ContemptInorganicEffect extends MobEffect {
                             evolution.addPoints(CONTEMPT_CONVERSION_POINTS);
                         }
 
-                        if (newEntity instanceof LivingEntity livingNew) {
-                            ModNetwork.sendToAllTracking(
-                                    new ColorEffectPacket(livingNew, ParaCurseEffect.TYPE_CONVERSION_FADE, 6),
-                                    livingNew);
-                        }
+                        // 紫色转化淡出（ColorEffectPacket / TYPE_CONVERSION_FADE）已移除：转化瞬间完成
 
                         entity.getPersistentData().putBoolean(TAG_CONVERTED_BY_CONTEMPT, true);
                     }

@@ -32,7 +32,10 @@ public class InfestedShortDryGrass extends BushBlock implements InfestedBlockInt
 
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter world, BlockPos pos) {
-        return state.is(ModBlocks.INFESTED_SAND.get()) || state.is(BlockTags.DIRT);
+        // 追加虫染泥土（epca:infested_dirt）支持
+        return state.is(ModBlocks.INFESTED_DIRT.get())
+                || state.is(ModBlocks.INFESTED_SAND.get())
+                || state.is(BlockTags.DIRT);
     }
 
     @Override

@@ -3,10 +3,14 @@ package org.tdddd.epca.impl.client;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,6 +19,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.client.organ.HiveLeaderOrganKeys;
 import org.tdddd.epca.impl.client.render.EpcaRenderClient;
+import org.tdddd.epca.impl.overworld.data.EPCANoteLang;
 import org.tdddd.epca.impl.overworld.registry.ModMenus;
 import org.tdddd.epca.impl.overworld.registry.gui.menus.SwallowCystScreen;
 import org.tdddd.epca.impl.overworld.registry.ModItems;
@@ -43,6 +48,29 @@ public class ClientSetup {
 
                         return (float)(stage + 2);
                     });
+        });
+    }
+
+    /**
+     * 笔记专用语言文件（assets/epca/lang/para_curse_note/*.json）的加载钩子。
+     *
+     * Minecraft 只会自动加载 assets/&lt;ns&gt;/lang/&lt;code&gt;.json，子目录 lang 不会被加载，
+     * 所以这里挂一个客户端资源重载监听：启动、F3+T、切换资源包时都会把拆分语言重新读进
+     * EPCANoteLang 的表里。真正的读取放在 prepare（异步线程）里，apply 不需要额外动作。
+     */
+    @SubscribeEvent
+    public static void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener(new SimplePreparableReloadListener<Void>() {
+            @Override
+            protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
+                EPCANoteLang.reload(resourceManager);
+                return null;
+            }
+
+            @Override
+            protected void apply(Void value, ResourceManager resourceManager, ProfilerFiller profiler) {
+                // 语言表已在 prepare 阶段读完，这里无事可做
+            }
         });
     }
 

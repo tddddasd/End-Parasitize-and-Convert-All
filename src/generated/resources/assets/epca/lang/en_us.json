@@ -230,7 +230,6 @@
   "entity.epca.walking_zombie_head": "Walking Zombie Head",
   "entity.epca.walking_zombie_villager_head": "Walking Zombie Villager Head",
   "epca.content.onesent": "§l§0Onesent§r\n$[page]$\n§0Curbug\n${img:epca:textures/gui/note_pic/curbug0.png,64}$\n§0The image above shows a Curbug.",
-  "epca.content.test3": "§0\n${img:epca:textures/gui/note_pic/yawning_neko.png,512}$\n§0Author\n${img:epca:textures/gui/note_pic/xiao_ku_kmc.png,512}$\n§0Artist\n${img:epca:textures/gui/note_pic/thomas_lovlin.png,512}$\n§0Sound Designer",
   "epca.difficulty.button": "Extra Difficulty - %s",
   "epca.difficulty.custom": "Custom",
   "epca.difficulty.easy": "Easy",
@@ -292,6 +291,10 @@
   "epca.stage.8": "World Barrier Integrity 20%",
   "epca.stage.9": "World Barrier Integrity 10%",
   "epca.tab.child.onesent": "Onesent",
+  "epca.tab.child.infested": "Infested",
+  "epca.tab.child.poverty": "Poverty",
+  "epca.tab.child.reshape": "Reshape",
+  "epca.tab.child.link": "Link",
   "epca.tab.parent.main_tab": "Parasite Bestiary",
   "fluid_type.epca.acid_solution": "Acid",
   "gamerule.epca_hardnessConversionBlock": "Convert blocks based on hardness",
@@ -458,5 +461,8 @@
   "epca.option.gib_multiplier": "Gib multiplier (debug)",
   "effect.epca.infested_omen": "Infested Omen",
   "epca.raid.bar": "Infested Raid - Wave %s/%s",
-  "epca.raid.started": "An infested raid has begun!"
+  "epca.raid.started": "An infested raid has begun!",
+  "epca.note.detail.missing": "Not enough materials to unlock the details: need %s",
+  "epca.note.detail.locked_entry": "You have not discovered this parasite in the note yet",
+  "epca.note.detail.success": "Unlocked details: %s"
 }

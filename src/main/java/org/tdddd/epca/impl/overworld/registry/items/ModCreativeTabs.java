@@ -206,7 +206,10 @@ public class ModCreativeTabs {
                 builder.add(i(ModItems.INFESTED_SHORT_GRASS));
                 builder.add(i(ModItems.INFESTED_TALL_GRASS));
                 builder.add(i(ModItems.INFESTED_TALL_FERN));
-                builder.add(i(ModItems.INFESTED_SWEET_BERRY_BUSH));
+                // 虫染甜浆果丛方块物品（ModItems.INFESTED_SWEET_BERRY_BUSH）有意不加入创造栏：
+                // 该方块用「虫染甜浆果」右键即可种植，方块本体物品不应出现在创造模式物品栏里。
+                // 注意：中键选取（Block#getCloneItemStack）返回的是 epca:infested_sweet_berries，
+                // 掉落表也不再掉方块本体，所以这里跳过不会影响正常获取途径。
                 builder.add(i(ModItems.INFESTED_DEAD_BUSH));
                 builder.add(i(ModItems.INFESTED_MOSS_BLOCK));
                 builder.add(i(ModItems.INFESTED_MOSS_CARPET));

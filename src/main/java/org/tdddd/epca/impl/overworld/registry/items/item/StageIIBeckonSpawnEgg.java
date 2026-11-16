@@ -23,7 +23,9 @@ public class StageIIBeckonSpawnEgg extends ForgeSpawnEggItem {
     private static final long RESET_INTERVAL_MS = 5000;
 
     public StageIIBeckonSpawnEgg(Properties properties) {
-        super(() -> ModEntities.STAGE_I_BECKON.get(), -1, -1, properties);
+        // 注意：这里必须是二阶实体。曾经误写成 STAGE_I_BECKON，导致 getType(null) 返回 epca:stage_i_beckon，
+        // 笔记的「连结种」快捷跳转页按刷怪蛋 -> 实体扫描时把二阶蛋当成一阶的重复项丢掉，二阶召唤柱因此不在列表里。
+        super(() -> ModEntities.STAGE_II_BECKON.get(), -1, -1, properties);
     }
 
     @Override

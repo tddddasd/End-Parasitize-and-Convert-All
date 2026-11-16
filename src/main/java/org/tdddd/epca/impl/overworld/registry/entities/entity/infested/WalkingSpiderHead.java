@@ -92,6 +92,24 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, Enemy
     private static final int CLIMB_COOLDOWN_TICKS = 200;
 
     private int climbCooldown = 0;
+
+    /** 攀爬起步起跳冷却（tick）。 */
+    private static final int CLIMB_JUMP_COOLDOWN_TICKS = 20;
+
+    /**
+     * 攀爬动画的「正在上升」阈值（格/tick）。
+     * 0.02 高于贴墙摩擦/重力造成的微小 y 抖动，又远小于攀爬推进速度（约 0.24），
+     * 因此只有真正被向上推进时才算上升。
+     */
+    private static final double CLIMB_ANIM_MIN_RISE = 0.02D;
+
+    /**
+     * 攀爬动画的「朝墙内推力」阈值（{@code Entity#zza}，0..1，AI 前进时约为 1）。
+     * 低于 0.1 视为「只是贴着墙站着」，不判为攀爬。
+     */
+    private static final float CLIMB_ANIM_MIN_FORWARD = 0.1F;
+
+    private int climbJumpCooldown;
     private static final double SELF_DESTRUCT_RANGE = 1.6D;
 
     private static final float SELF_DESTRUCT_RADIUS = 3.0F;
@@ -137,6 +155,10 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, Enemy
     private static final EntityDataAccessor<Boolean> DATA_IS_FAKING_DEATH =
             SynchedEntityData.defineId(WalkingSpiderHead.class, EntityDataSerializers.BOOLEAN);
 
+    /** 攀爬动画状态（服务端按「水平碰撞 + 上升/朝墙推力」判定后同步）。 */
+    private static final EntityDataAccessor<Boolean> DATA_CLIMBING_ANIM =
+            SynchedEntityData.defineId(WalkingSpiderHead.class, EntityDataSerializers.BOOLEAN);
+
     private int fakeDeathTimer = 30;
 
     private boolean fakeDeathResolved;
@@ -169,6 +191,7 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, Enemy
         this.entityData.define(DATA_IS_POUNCING, false);
         this.entityData.define(DATA_IS_DETONATING, false);
         this.entityData.define(DATA_IS_FAKING_DEATH, false);
+        this.entityData.define(DATA_CLIMBING_ANIM, false);
     }
 
     public boolean isFakingDeath() {
@@ -244,8 +267,9 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, Enemy
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // 移动控制器统一使用 6 tick 交叉淡入淡出，让「攀爬 ↔ 走路/待机」平滑过渡而不是硬切
         controllers.add(new AnimationController<>(this, "controller",
-                EpcaGeoAnimations.GEO_TRANSITION_TICKS, this::animationPredicate));
+                EpcaGeoAnimations.CLIMB_TRANSITION_TICKS, this::animationPredicate));
 
         AnimationController<WalkingSpiderHead> deadController = new AnimationController<>(this,
                 "dead_controller", EpcaGeoAnimations.GEO_TRANSITION_TICKS, state -> PlayState.STOP);
@@ -258,7 +282,8 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, Enemy
 
         if (this.isDetonating()) {
             event.getController().setAnimation(RawAnimation.begin().thenPlay(CLIP_DEAD + suffix));
-        } else if (isClimbingWall()) {
+        } else if (isClimbingAnimationState()) {
+            // 攀爬优先级最高（仅次于死亡）：判定为攀爬就强制播放攀爬动画
             event.getController().setAnimation(RawAnimation.begin().thenLoop(CLIP_CLIMB + suffix));
         } else if (isPouncing()) {
             event.getController().setAnimation(RawAnimation.begin().thenLoop(CLIP_FLYING + suffix));
@@ -295,6 +320,33 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, Enemy
             return false;
         }
         return this.isNearWall() && this.getTarget() != null;
+    }
+
+    /**
+     * 攀爬动画判定（第 6 项）：水平碰撞（撞到侧面方块）+ 有上升/朝墙推力。
+     * <p>
+     * 判定在服务端计算并同步（{@link #DATA_CLIMBING_ANIM}）：非玩家生物的
+     * {@code horizontalCollision}/{@code zza} 由 {@code Entity#move} 与 AI 在服务端更新，
+     * 客户端本地值基本恒为 false。客户端另用本地碰撞 + 本地 y 速度兜底。
+     * <p>
+     * 「贴着墙站着不走」时 {@code zza≈0} 且未离地，不会被判成攀爬。
+     */
+    public boolean isClimbingAnimationState() {
+        if (this.entityData.get(DATA_CLIMBING_ANIM)) {
+            return true;
+        }
+        return this.horizontalCollision
+                && this.getDeltaMovement().y > CLIMB_ANIM_MIN_RISE;
+    }
+
+    /** 服务端每 tick 计算攀爬动画状态并同步。 */
+    private void updateClimbingAnimationState() {
+        boolean climbing = this.horizontalCollision
+                && (this.getDeltaMovement().y > CLIMB_ANIM_MIN_RISE
+                || (this.zza > CLIMB_ANIM_MIN_FORWARD && !this.onGround()));
+        if (this.entityData.get(DATA_CLIMBING_ANIM) != climbing) {
+            this.entityData.set(DATA_CLIMBING_ANIM, climbing);
+        }
     }
 
     @Override
@@ -384,12 +436,20 @@ public class WalkingSpiderHead extends PathfinderMob implements GeoEntity, Enemy
             setPouncing(false);
         }
 
-        if (this.tickCount % 10 == 0) {
-            org.tdddd.epca.impl.epca.LOGGER.info(
-                    "[climb-diag][head] nearWall={} target={} cd={} climbing={} onClimbable={} y={}",
-                    this.isNearWall(), this.getTarget() != null, this.climbCooldown,
-                    this.isClimbingWall(), this.onClimbable(), this.getY());
+        // 攀爬起步：目标在上方且贴着墙时起跳，之后交给 travel() 的攀爬推进接手
+        if (this.climbJumpCooldown > 0) this.climbJumpCooldown--;
+        if (this.climbJumpCooldown <= 0 && this.onGround() && this.isNearWall()
+                && this.getTarget() != null
+                && this.getTarget().getY() - this.getY() > 0.5D) {
+            Vec3 dm = this.getDeltaMovement();
+            this.setDeltaMovement(dm.x, 0.42D, dm.z);
+            this.hasImpulse = true;
+            this.climbJumpCooldown = CLIMB_JUMP_COOLDOWN_TICKS;
         }
+
+        // 攀爬动画状态（水平碰撞 + 上升意图，服务端判定后同步）
+        updateClimbingAnimationState();
+
 
         if (this.climbCooldown > 0) {
             this.climbCooldown--;

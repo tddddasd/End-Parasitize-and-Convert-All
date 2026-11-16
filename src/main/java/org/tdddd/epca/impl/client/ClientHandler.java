@@ -101,13 +101,16 @@ public class ClientHandler {
                         }
                         return 1.0f;
                     });
+            // 虫染甜浆果丛只有两个生长阶段（age 0/1），物品模型 override 也按 0..1 匹配（见
+            // assets/epca/models/item/infested_sweet_berry_bush.json 的 epca:age == 1）。
+            // 物品栈没有 age 标签时返回 0（基础模型），不会误命中成熟模型。
             ItemProperties.register(ModItems.INFESTED_SWEET_BERRY_BUSH.get(), new ResourceLocation("epca", "age"),
                     (stack, level, entity, seed) -> {
                 CompoundTag tag = stack.getTag();
                 if (tag != null && tag.contains("age")) {
-                    return tag.getInt("age");
+                    return tag.getInt("age") >= 1 ? 1.0F : 0.0F;
                 }
-                return 1;
+                return 0.0F;
             });
 
             registerThrowingProperty(ModItems.WOODEN_SPEAR.get());
