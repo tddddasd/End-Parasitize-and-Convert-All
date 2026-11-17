@@ -18,6 +18,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.fox.Fox;
 import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -32,6 +33,7 @@ import org.tdddd.epca.impl.overworld.difficulty.DifficultyEffects;
 import org.tdddd.epca.impl.overworld.difficulty.DifficultyLevel;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedFox;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSkeleton;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlime;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSpider;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedWolf;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.WalkingFoxHead;
@@ -475,6 +477,11 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
                         newEntity.setCustomNameVisible(entity.isCustomNameVisible());
                     }
 
+                    // 体型透传：原版史莱姆的 Size（1/2/4）映射到单实体虫染史莱姆的体型（0/1/3）
+                    if (entity instanceof Slime vanillaSlime && newEntity instanceof InfestedSlime infestedSlime) {
+                        infestedSlime.setSize(InfestedSlime.fromVanillaSlimeSize(vanillaSlime.getSize()), true);
+                    }
+
                     playConversionEffects(entity);
                     entity.remove(Entity.RemovalReason.KILLED);
                     entity.teleportTo(1000000, -4000, 1000000);
@@ -489,6 +496,9 @@ public class ParaCurseEffect extends MobEffect implements RemovableEffect {
                     notifyConvertedEntity(newEntity);
                 }
             } catch (Exception e) {
+                // 不再静默吞掉：转化失败要能在日志里看到（以前这里是空 catch，导致“某某生物不转化”无从排查）
+                org.tdddd.epca.impl.epca.LOGGER.error(
+                        "[epca] 转化 " + entity.getType() + " -> " + target + " 失败", e);
             }
         }
     }

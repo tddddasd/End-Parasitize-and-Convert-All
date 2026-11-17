@@ -1,0 +1,13 @@
+{
+  "biomes": [
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp"
+  ],
+  "spawners": {
+    "maxCount": 3,
+    "minCount": 1,
+    "type": "epca:infested_slime",
+    "weight": 5
+  },
+  "type": "neoforge:add_spawns"
+}

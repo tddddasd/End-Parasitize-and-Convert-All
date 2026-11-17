@@ -1,0 +1,47 @@
+{
+  "epca:infested_slime": {
+    "base_effects": [
+      {
+        "ambient": false,
+        "amplifier": 0,
+        "duration": 2400,
+        "effect": "epca:para_curse",
+        "probability": 0.7,
+        "showIcon": true,
+        "visibleParticles": true
+      },
+      {
+        "ambient": false,
+        "amplifier": 0,
+        "duration": 400,
+        "effect": "epca:fear",
+        "probability": 1.0,
+        "showIcon": true,
+        "visibleParticles": true
+      },
+      {
+        "ambient": false,
+        "amplifier": 0,
+        "duration": 40,
+        "effect": "epca:solidify",
+        "probability": 1.0,
+        "showIcon": true,
+        "visibleParticles": true
+      }
+    ],
+    "upgrades": [
+      {
+        "effect_filter": "epca:para_curse",
+        "level": 1,
+        "level_adjust": 1,
+        "max_level": 2
+      },
+      {
+        "effect_filter": "epca:para_curse",
+        "level": 2,
+        "level_adjust": 1,
+        "max_level": 2
+      }
+    ]
+  }
+}

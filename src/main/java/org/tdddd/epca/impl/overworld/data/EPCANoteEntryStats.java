@@ -146,12 +146,24 @@ public final class EPCANoteEntryStats {
         List<Double> health = new ArrayList<>();
         List<Double> armor = new ArrayList<>();
         List<Double> attack = new ArrayList<>();
-        for (Identifier variantId : sizeChain(entityId)) {
-            EntityType<?> type = safeType(variantId);
-            AttributeSupplier supplier = supplier(type);
-            health.add(baseValue(supplier, Attributes.MAX_HEALTH, 0.0D));
-            armor.add(baseValue(supplier, Attributes.ARMOR, 0.0D));
-            attack.add(baseValue(supplier, Attributes.ATTACK_DAMAGE, 0.0D));
+
+        // 单实体 + Size 驱动的多体型（虫染史莱姆）：注册表里只有 epca:infested_slime 一个 id，
+        // 但笔记仍按 0/1/3 三种体型展示，所以直接问实体类本身（InfestedSlime#perSizeBaseStats）。
+        List<double[]> runtimeSizeStats = runtimeSizedStats(entityId);
+        if (runtimeSizeStats != null) {
+            for (double[] stats : runtimeSizeStats) {
+                health.add(stats[0]);
+                armor.add(stats[1]);
+                attack.add(stats[2]);
+            }
+        } else {
+            for (Identifier variantId : sizeChain(entityId)) {
+                EntityType<?> type = safeType(variantId);
+                AttributeSupplier supplier = supplier(type);
+                health.add(baseValue(supplier, Attributes.MAX_HEALTH, 0.0D));
+                armor.add(baseValue(supplier, Attributes.ARMOR, 0.0D));
+                attack.add(baseValue(supplier, Attributes.ATTACK_DAMAGE, 0.0D));
+            }
         }
         return new Detail(
                 join(health),
@@ -163,6 +175,26 @@ public final class EPCANoteEntryStats {
     }
 
     // ======================= 属性 =======================
+
+    /**
+     * 单实体 + Size 驱动的实体（目前只有虫染史莱姆）的“虚拟多体型”数值。
+     *
+     * <p>这类实体在注册表里只有一个 id，无法靠 {@code <base>_sizeN} 命名展开，
+     * 所以直接问实体类本身（{@link InfestedSlime#perSizeBaseStats()}）。
+     * 返回 {@code null} 表示该实体不是这种类型，调用方走常规命名展开。</p>
+     */
+    private static List<double[]> runtimeSizedStats(Identifier entityId) {
+        try {
+            EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getValue(entityId);
+            if (type != null && org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlime.class
+                    .isAssignableFrom(type.getBaseClass())) {
+                return org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlime.perSizeBaseStats();
+            }
+        } catch (Throwable ignored) {
+            // 实体类未注册/类加载失败时退回常规逻辑
+        }
+        return null;
+    }
 
     private static EntityType<?> safeType(Identifier id) {
         try {

@@ -198,28 +198,11 @@
           "visible": true
         }
       ],
-      "entity": "epca:infested_slime_size1",
+      "entity": "epca:infested_slime",
       "life_time": 1200,
       "max_count": 1,
       "min_count": 1,
-      "weight": 4
-    },
-    {
-      "effects": [
-        {
-          "ambient": false,
-          "amplifier": 1,
-          "duration": 1200,
-          "effect": "epca:rage",
-          "icon": true,
-          "visible": true
-        }
-      ],
-      "entity": "epca:infested_slime_size3",
-      "life_time": 1200,
-      "max_count": 1,
-      "min_count": 1,
-      "weight": 4
+      "weight": 8
     },
     {
       "effects": [

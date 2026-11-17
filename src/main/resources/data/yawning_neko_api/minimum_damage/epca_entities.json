@@ -31,8 +31,6 @@
   "epca:infested_enderman": {"min_damage": 0.5},
   "epca:walking_enderman_head": {"min_damage": 0.5},
   "epca:infested_endermite": {"min_damage": 0.5},
-  "epca:infested_slime_size1": {"min_damage": 0.5},
-  "epca:infested_slime_size3": {"min_damage": 0.5},
   "epca:infested_silverfish": {"min_damage": 0.5},
   "epca:infested_skeleton": {"min_damage": 0.5},
   "epca:walking_skeleton_head": {"min_damage": 0.5},

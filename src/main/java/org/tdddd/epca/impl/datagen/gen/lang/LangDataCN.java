@@ -93,9 +93,7 @@ public class LangDataCN extends LanguageProvider {
         add("entity.epca.infested_chicken", "虫染鸡");
         add("entity.epca.walking_chicken_head", "虫染鸡头颅");
         add("entity.epca.mozzie", "躁蚊");
-        add("entity.epca.infested_slime_size0", "虫染史莱姆");
-        add("entity.epca.infested_slime_size1", "虫染史莱姆");
-        add("entity.epca.infested_slime_size3", "虫染史莱姆");
+        add("entity.epca.infested_slime", "虫染史莱姆");
         add("entity.epca.living_flesh_size0", "活体肉块");
         add("entity.epca.living_flesh_size1", "活体肉块");
         add("entity.epca.living_flesh_size2", "活体肉块");

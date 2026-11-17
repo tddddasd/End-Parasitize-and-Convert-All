@@ -226,12 +226,10 @@ public class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<WalkingFoxHead>> WALKING_FOX_HEAD =
             registerMobWithRender("walking_fox_head", 0.6F, 0.6F, WalkingFoxHead::new, MobCategory.MONSTER, 12, WalkingFoxHead::setAttributes);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<InfestedSlimeSize0>> INFESTED_SLIME_SIZE0 =
-            registerMobWithRender("infested_slime_size0", 0.5F, 0.5F, InfestedSlimeSize0::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize0.createAttributes().build());
-    public static final DeferredHolder<EntityType<?>, EntityType<InfestedSlimeSize1>> INFESTED_SLIME_SIZE1 =
-            registerMobWithRender("infested_slime_size1", 1.0F, 1.0F, InfestedSlimeSize1::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize1.createAttributes().build());
-    public static final DeferredHolder<EntityType<?>, EntityType<InfestedSlimeSize3>> INFESTED_SLIME_SIZE3 =
-            registerMobWithRender("infested_slime_size3", 2.5F, 2.5F, InfestedSlimeSize3::new, MobCategory.MONSTER, 12, () -> InfestedSlimeSize3.createAttributes().build());
+    // 虫染史莱姆：单实体 + Size 驱动体型（原 infested_slime_size0/1/3 三个实体已合并成一个 id）。
+    // 碰撞箱由 InfestedSlime#getDimensions 按 Size 返回，这里注册的 1.0F/1.0F 与原来的中型一致。
+    public static final DeferredHolder<EntityType<?>, EntityType<InfestedSlime>> INFESTED_SLIME =
+            registerMobWithRender("infested_slime", 1.0F, 1.0F, InfestedSlime::new, MobCategory.MONSTER, 12, () -> InfestedSlime.createAttributes().build());
 
     public static final DeferredHolder<EntityType<?>, EntityType<InfestedSpider>> INFESTED_SPIDER =
             registerMobWithRender("infested_spider", 1.4F, 0.9F, InfestedSpider::new, MobCategory.MONSTER, 12, InfestedSpider::setAttributes);

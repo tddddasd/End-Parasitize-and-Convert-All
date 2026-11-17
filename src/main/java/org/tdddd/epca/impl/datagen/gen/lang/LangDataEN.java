@@ -93,9 +93,7 @@ public class LangDataEN extends LanguageProvider {
         add("entity.epca.infested_chicken", "Infested Chicken");
         add("entity.epca.walking_chicken_head", "Walking Chicken Head");
         add("entity.epca.mozzie", "Mozzie");
-        add("entity.epca.infested_slime_size0", "Infested Slime");
-        add("entity.epca.infested_slime_size1", "Infested Slime");
-        add("entity.epca.infested_slime_size3", "Infested Slime");
+        add("entity.epca.infested_slime", "Infested Slime");
         add("entity.epca.living_flesh_size0", "Living Flesh");
         add("entity.epca.living_flesh_size1", "Living Flesh");
         add("entity.epca.living_flesh_size2", "Living Flesh");

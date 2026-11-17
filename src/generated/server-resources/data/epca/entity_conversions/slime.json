@@ -1,0 +1,9 @@
+{
+  "fins_to": "epca:infested_slime",
+  "from": "minecraft:slime",
+  "meat_particles": false,
+  "mozzie_to": "epca:infested_slime",
+  "priority": 1,
+  "small_entity_priority": false,
+  "to": "epca:infested_slime"
+}
