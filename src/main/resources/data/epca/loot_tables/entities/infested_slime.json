@@ -1,6 +1,6 @@
 {
   "type": "minecraft:entity",
-  "random_sequence": "epca:entities/infested_slime_size0",
+  "random_sequence": "epca:entities/infested_slime",
   "pools": [
     {
       "rolls": 1,
@@ -15,15 +15,6 @@
                 "min": 0,
                 "max": 2,
                 "type": "minecraft:uniform"
-              }
-            }
-          ],
-          "conditions": [
-            {
-              "condition": "minecraft:entity_properties",
-              "entity": "this",
-              "predicate": {
-                "type": "epca:infested_slime_size0"
               }
             }
           ]

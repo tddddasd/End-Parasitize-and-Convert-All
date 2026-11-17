@@ -10,15 +10,18 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlime;
 
 import java.util.Random;
 
+/**
+ * 虫染史莱姆刷怪蛋：单实体 + {@code Size} 驱动体型，出生时三种自然体型（0/1/3）里随机。
+ */
 public class InfestedSlimeSpawnEgg extends ForgeSpawnEggItem {
     private static final Random RANDOM = new Random();
 
     public InfestedSlimeSpawnEgg(Properties properties) {
-
-        super(() -> ModEntities.INFESTED_SLIME_SIZE0.get(), -1, -1, properties);
+        super(() -> ModEntities.INFESTED_SLIME.get(), -1, -1, properties);
     }
 
     @Override
@@ -30,23 +33,18 @@ public class InfestedSlimeSpawnEgg extends ForgeSpawnEggItem {
         ItemStack itemStack = context.getItemInHand();
         BlockPos pos = context.getClickedPos().relative(context.getClickedFace());
 
-        EntityType<?> selectedType = selectRandomSlimeType();
+        EntityType<?> selectedType = ModEntities.INFESTED_SLIME.get();
 
-        if (selectedType.spawn(serverLevel, itemStack, context.getPlayer(), pos, MobSpawnType.SPAWN_EGG, true, true) != null) {
+        var spawned = selectedType.spawn(serverLevel, itemStack, context.getPlayer(), pos,
+                MobSpawnType.SPAWN_EGG, true, true);
+
+        if (spawned instanceof InfestedSlime slime) {
+            slime.setSize(InfestedSlime.NATURAL_SIZES[RANDOM.nextInt(InfestedSlime.NATURAL_SIZES.length)], true);
             if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
                 itemStack.shrink(1);
             }
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
-    }
-
-    private EntityType<?> selectRandomSlimeType() {
-        int choice = RANDOM.nextInt(3);
-        return switch (choice) {
-            case 0 -> ModEntities.INFESTED_SLIME_SIZE0.get();
-            case 1 -> ModEntities.INFESTED_SLIME_SIZE1.get();
-            default -> ModEntities.INFESTED_SLIME_SIZE3.get();
-        };
     }
 }

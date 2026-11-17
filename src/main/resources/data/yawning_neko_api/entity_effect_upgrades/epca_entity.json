@@ -59,25 +59,7 @@
       "epca:bleeding": 0.05
     }
   },
-  "epca:infested_slime_size0": {
-    "min_level": 0,
-    "max_level": 5,
-    "default_level": 0,
-    "random_chance": 0.0,
-    "level_up_chances": {
-      "epca:para_curse": 0.7
-    }
-  },
-  "epca:infested_slime_size1": {
-    "min_level": 0,
-    "max_level": 5,
-    "default_level": 0,
-    "random_chance": 0.0,
-    "level_up_chances": {
-      "epca:para_curse": 0.7
-    }
-  },
-  "epca:infested_slime_size3": {
+  "epca:infested_slime": {
     "min_level": 0,
     "max_level": 5,
     "default_level": 0,

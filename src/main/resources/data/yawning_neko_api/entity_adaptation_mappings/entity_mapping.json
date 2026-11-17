@@ -165,15 +165,7 @@
     "config": "yawning_neko_api:infested",
     "mode": "add"
   },
-  "epca:infested_slime_size0": {
-    "config": "yawning_neko_api:infested",
-    "mode": "add"
-  },
-  "epca:infested_slime_size1": {
-    "config": "yawning_neko_api:infested",
-    "mode": "add"
-  },
-  "epca:infested_slime_size3": {
+  "epca:infested_slime": {
     "config": "yawning_neko_api:infested",
     "mode": "add"
   },

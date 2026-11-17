@@ -139,12 +139,23 @@ public final class EPCANoteEntryStats {
         List<Double> health = new ArrayList<>();
         List<Double> armor = new ArrayList<>();
         List<Double> attack = new ArrayList<>();
-        for (ResourceLocation variantId : sizeChain(entityId)) {
-            EntityType<?> type = safeType(variantId);
-            AttributeSupplier supplier = supplier(type);
-            health.add(baseValue(supplier, Attributes.MAX_HEALTH, 0.0D));
-            armor.add(baseValue(supplier, Attributes.ARMOR, 0.0D));
-            attack.add(baseValue(supplier, Attributes.ATTACK_DAMAGE, 0.0D));
+
+        // 单实体 + Size 驱动的多体型（虫染史莱姆）：注册表里只有一个 id，但笔记仍按 0/1/3 三种体型展示
+        List<double[]> runtimeSizeStats = runtimeSizedStats(entityId);
+        if (runtimeSizeStats != null) {
+            for (double[] stats : runtimeSizeStats) {
+                health.add(stats[0]);
+                armor.add(stats[1]);
+                attack.add(stats[2]);
+            }
+        } else {
+            for (ResourceLocation variantId : sizeChain(entityId)) {
+                EntityType<?> type = safeType(variantId);
+                AttributeSupplier supplier = supplier(type);
+                health.add(baseValue(supplier, Attributes.MAX_HEALTH, 0.0D));
+                armor.add(baseValue(supplier, Attributes.ARMOR, 0.0D));
+                attack.add(baseValue(supplier, Attributes.ATTACK_DAMAGE, 0.0D));
+            }
         }
         return new Detail(
                 join(health),
@@ -156,6 +167,26 @@ public final class EPCANoteEntryStats {
     }
 
     // ======================= 属性 =======================
+
+    /**
+     * 单实体 + Size 驱动的实体的“虚拟多体型”数值（目前只有虫染史莱姆）。
+     *
+     * <p>这类实体在注册表里只有一个 id，无法靠 {@code <base>_sizeN} 命名展开，
+     * 所以直接问实体类本身（{@link InfestedSlime#perSizeBaseStats()}）。
+     * 返回 {@code null} 表示该实体不是这种类型，调用方走常规命名展开。</p>
+     */
+    private static List<double[]> runtimeSizedStats(ResourceLocation entityId) {
+        try {
+            EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(entityId);
+            if (type != null && org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlime.class
+                    .isAssignableFrom(type.getBaseClass())) {
+                return org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlime.perSizeBaseStats();
+            }
+        } catch (Throwable ignored) {
+            // 实体类未注册/类加载失败时退回常规逻辑
+        }
+        return null;
+    }
 
     private static EntityType<?> safeType(ResourceLocation id) {
         try {
@@ -225,7 +256,7 @@ public final class EPCANoteEntryStats {
     // ======================= 多体型 =======================
 
     /**
-     * 实体 id -&gt; 体型链。{@code epca:infested_slime_size0} 会展开成
+     * 实体 id -&gt; 体型链。{@code epca:living_flesh_size0} 会展开成
      * {@code size0 / size1 / size3}（按数字升序，没有 size2 就跳过）；非体型实体只有自己一个。
      */
     public static List<ResourceLocation> sizeChain(ResourceLocation entityId) {

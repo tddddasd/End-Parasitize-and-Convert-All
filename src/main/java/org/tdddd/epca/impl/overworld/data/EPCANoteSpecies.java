@@ -36,7 +36,7 @@ import java.util.Set;
  * <p><b>可列出集合的来源</b>（对应需求 D）：直接遍历 {@link ModItems#ITEMS}，凡是 {@link SpawnEggItem}
  * 就取它的实体类型，得到「刷怪蛋 -> 实体类型」映射。<b>同一实体类型被多个刷怪蛋引用时只保留先注册的主条目</b>
  * （例如 {@code infested_spider_spawn_egg} 与 {@code infested_cave_spider_spawn_egg} 都是虫染蜘蛛，
- * 只列一次）；体型变体（{@code infested_slime_size0/1/3}、{@code living_flesh_size0..4}）因为刷怪蛋本身只绑定
+ * 只列一次）；体型变体（{@code living_flesh_size0..4}）因为刷怪蛋本身只绑定
  * 主条目（size0），所以变体自然被排除。</p>
  *
  * <p><b>种阶的推导</b>（对应需求 D 的“分类字段/标签”）：优先用实体标签

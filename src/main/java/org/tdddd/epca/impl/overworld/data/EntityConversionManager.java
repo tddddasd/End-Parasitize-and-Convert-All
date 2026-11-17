@@ -44,18 +44,41 @@ public class EntityConversionManager implements ResourceManagerReloadListener {
         resourceManager.listResources("entity_conversions", file -> file.getPath().endsWith(".json"))
                 .forEach((resourceLocation, resource) -> {
                     try (InputStream stream = resource.open()) {
-                        EntityConversionRule rule = GSON.fromJson(new InputStreamReader(stream), EntityConversionRule.class);
+                        EntityConversionRule rule = readRule(stream);
+                        if (rule == null || rule.from == null || rule.from.isEmpty()) {
+                            org.tdddd.epca.impl.epca.LOGGER.warn(
+                                    "[epca] 实体转化规则 {} 缺少 from 字段，已跳过", resourceLocation);
+                            return;
+                        }
                         ResourceLocation fromLocation = new ResourceLocation(rule.from);
 
                         CONVERSION_RULES.computeIfAbsent(fromLocation, k -> new ArrayList<>()).add(rule);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        // 规则文件解析失败必须留痕：以前这里只 printStackTrace，BOM 之类的文件会被静默丢掉，
+                        // 表现为“某个生物永远不转化”（例如史莱姆）
+                        org.tdddd.epca.impl.epca.LOGGER.error(
+                                "[epca] 实体转化规则 " + resourceLocation + " 解析失败，该生物将不会转化", e);
                     }
                 });
 
         for (List<EntityConversionRule> rules : CONVERSION_RULES.values()) {
             rules.sort(Comparator.comparingInt(rule -> rule.priority));
         }
+    }
+
+    /**
+     * 读取单条转化规则。
+     *
+     * <p>用 UTF-8 读文本并去掉可能存在的 BOM：Gson 不接受以 {@code U+FEFF} 开头的 JSON，
+     * 而部分编辑器（PowerShell 5.1 的 {@code Set-Content -Encoding UTF8}、记事本“UTF-8 带 BOM”等）
+     * 会写入 BOM，导致整条规则被丢弃。</p>
+     */
+    private static EntityConversionRule readRule(InputStream stream) throws java.io.IOException {
+        String json = new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        if (!json.isEmpty() && json.charAt(0) == '\uFEFF') {
+            json = json.substring(1);
+        }
+        return GSON.fromJson(json, EntityConversionRule.class);
     }
 
     public static EntityConversionRule getConversionRule(ResourceLocation entityType, CompoundTag nbt) {

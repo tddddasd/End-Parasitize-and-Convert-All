@@ -4,9 +4,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.Slime;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.ModEntities;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlime;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,9 +36,7 @@ public final class InfestedPurification {
                 map.put(ModEntities.INFESTED_SILVERFISH.get(), EntityType.SILVERFISH);
                 map.put(ModEntities.INFESTED_SKELETON.get(), EntityType.SKELETON);
                 map.put(ModEntities.INFESTED_FOX.get(), EntityType.FOX);
-                map.put(ModEntities.INFESTED_SLIME_SIZE0.get(), EntityType.SLIME);
-                map.put(ModEntities.INFESTED_SLIME_SIZE1.get(), EntityType.SLIME);
-                map.put(ModEntities.INFESTED_SLIME_SIZE3.get(), EntityType.SLIME);
+                map.put(ModEntities.INFESTED_SLIME.get(), EntityType.SLIME);
                 map.put(ModEntities.INFESTED_SPIDER.get(), EntityType.SPIDER);
                 map.put(ModEntities.INFESTED_BAT.get(), EntityType.BAT);
                 map.put(ModEntities.INFESTED_VILLAGER.get(), EntityType.VILLAGER);
@@ -66,6 +66,16 @@ public final class InfestedPurification {
         if (!(original.create(level) instanceof LivingEntity fresh)) return false;
 
         fresh.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
+
+        // 单实体 + Size 驱动的虫染史莱姆：把体型还原到原版史莱姆（0/1/3 -> 1/2/4）
+        if (entity instanceof InfestedSlime infestedSlime && fresh instanceof Slime vanillaSlime) {
+            int vanillaSize = switch (infestedSlime.getSize()) {
+                case InfestedSlime.SIZE_TINY -> 1;
+                case InfestedSlime.SIZE_MEDIUM -> 2;
+                default -> 4;
+            };
+            vanillaSlime.setSize(vanillaSize, true);
+        }
 
         float ratio = entity.getMaxHealth() <= 0.0F ? 1.0F : entity.getHealth() / entity.getMaxHealth();
         fresh.setHealth(Math.max(1.0F, fresh.getMaxHealth() * ratio));

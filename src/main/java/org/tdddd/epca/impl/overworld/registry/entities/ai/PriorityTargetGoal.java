@@ -18,17 +18,28 @@ import java.util.List;
 public class PriorityTargetGoal extends Goal {
     private final Mob mob;
 
-    private final double targetSearchRange;
+    private final java.util.function.DoubleSupplier targetSearchRange;
     private final TargetingConditions targetConditions;
     @Nullable
     private LivingEntity target;
 
     public PriorityTargetGoal(Mob mob, double range) {
+        this(mob, () -> range);
+    }
+
+    /**
+     * 范围可随实体状态变化（例如单实体 + Size 驱动的虫染史莱姆，索敌范围随体型变化）。
+     */
+    public PriorityTargetGoal(Mob mob, java.util.function.DoubleSupplier range) {
         this.mob = mob;
 
         this.targetSearchRange = range;
-        this.targetConditions = TargetingConditions.forCombat().range(range);
+        this.targetConditions = TargetingConditions.forCombat().range(range.getAsDouble());
         this.setFlags(EnumSet.of(Flag.TARGET));
+    }
+
+    private double range() {
+        return this.targetSearchRange.getAsDouble();
     }
 
     @Override
@@ -54,9 +65,9 @@ public class PriorityTargetGoal extends Goal {
             return false;
         }
         if (getForcedTarget() != null && getForcedTarget() == this.target) {
-            return mob.distanceToSqr(this.target) <= (targetSearchRange * targetSearchRange) + 4;
+            return mob.distanceToSqr(this.target) <= (range() * range()) + 4;
         }
-        return mob.distanceToSqr(this.target) <= (targetSearchRange * targetSearchRange);
+        return mob.distanceToSqr(this.target) <= (range() * range());
     }
 
     @Override
@@ -88,7 +99,7 @@ public class PriorityTargetGoal extends Goal {
 
     @Nullable
     private LivingEntity getNearestValidTarget() {
-        AABB searchBox = mob.getBoundingBox().inflate(targetSearchRange);
+        AABB searchBox = mob.getBoundingBox().inflate(range());
         List<LivingEntity> candidates = mob.level().getEntitiesOfClass(
                 LivingEntity.class, searchBox,
                 e -> e != mob && !ParasiteEvents.isParasiteByTagOrInterface(e) && e.isAlive()

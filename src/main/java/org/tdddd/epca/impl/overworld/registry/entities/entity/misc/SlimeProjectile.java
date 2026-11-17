@@ -17,7 +17,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.tdddd.epca.impl.client.entity.EpcaGeoAnimations;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
-import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlimeSize3;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.infested.InfestedSlime;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -126,7 +126,8 @@ public class SlimeProjectile extends ThrowableProjectile implements GeoEntity {
                 if (e instanceof LivingEntity owner) realOwner = owner;
             }
 
-            if (realOwner instanceof InfestedSlimeSize3) {
+            if (realOwner instanceof InfestedSlime infestedSlime
+                    && infestedSlime.getSize() == InfestedSlime.SIZE_LARGE) {
 
                 MobEffectInstance solidifyEffect = new MobEffectInstance(
                         ModEffects.SOLIDIFY.get(),

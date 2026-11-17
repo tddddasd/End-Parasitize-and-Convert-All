@@ -44,7 +44,7 @@ public class CustomDataProviders {
 
         private static final Set<String> NO_MEAT_FILES = Set.of(
                 "skeleton", "bat", "villager", "pillager", "vindcator", "enderman", "endermite",
-                "silverfish", "slime_size0", "slime_size1", "slime_size3", "creeper", "iron_golem",
+                "silverfish", "slime", "creeper", "iron_golem",
                 "guardian", "elder_guardian", "warden", "magma_cube", "vex", "allay", "blaze",
                 "ender_dragon", "fox", "fox_baby", "wolf", "wolf_baby",
                 "spider", "cave_spider"
@@ -80,9 +80,9 @@ public class CustomDataProviders {
             conv(cache, tasks, "spider",      EntityType.SPIDER,      ModEntities.INFESTED_SPIDER, true, 1);
             conv(cache, tasks, "cave_spider", EntityType.CAVE_SPIDER, ModEntities.INFESTED_SPIDER, true, 1);
 
-            convNbt(cache, tasks, "slime_size0", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE0, false, 1, Map.of("Size", 0));
-            convNbt(cache, tasks, "slime_size1", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE1, true,  1, Map.of("Size", 1));
-            convNbt(cache, tasks, "slime_size3", EntityType.SLIME, ModEntities.INFESTED_SLIME_SIZE3, true,  1, Map.of("Size", 3));
+            // 虫染史莱姆：单实体 + Size 驱动体型，规则不再带 nbt_conditions，
+            // 原版史莱姆的体型在转化时作为 Size 透传给新实体
+            conv(cache, tasks, "slime", EntityType.SLIME, ModEntities.INFESTED_SLIME, false, 1);
 
             conv(cache, tasks, "cow_baby",      EntityType.COW,      ModEntities.INFESTED_COW,      true,  0);
             conv(cache, tasks, "chicken_baby",  EntityType.CHICKEN,  ModEntities.INFESTED_CHICKEN,  false, 0);
@@ -722,7 +722,7 @@ public class CustomDataProviders {
                     e(ModEntities.INFESTED_PIG, 5,1,1), e(ModEntities.INFESTED_COW, 6,1,1),
                     e(ModEntities.INFESTED_SHEEP, 6,1,1), e(ModEntities.INFESTED_WOLF, 6,1,2),
                     e(ModEntities.INFESTED_SILVERFISH, 5,3,4),
-                    e(ModEntities.INFESTED_SLIME_SIZE1, 4,1,1), e(ModEntities.INFESTED_SLIME_SIZE3, 4,1,1),
+                    e(ModEntities.INFESTED_SLIME, 8,1,1),
                     e(ModEntities.INFESTED_CHICKEN, 5,2,2), e(ModEntities.INFESTED_BAT, 5,4,5),
                     e(ModEntities.RIPPER, 5,2,3), e(ModEntities.INFESTED_SKELETON, 5,1,1),
                     e(ModEntities.FLYING_CARRIER, 5,1,1), e(ModEntities.LIGHT_CARRIER, 2,1,1),

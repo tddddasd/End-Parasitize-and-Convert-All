@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  *
  * <p>值都是字符串列表（实体 id），顺序 = 解锁顺序，读写时保持稳定。</p>
  *
- * <p><b>体型归一化</b>：笔记里只列主条目（{@code infested_slime_size0}、{@code living_flesh_size0}），
+ * <p><b>体型归一化</b>：笔记里只列主条目（{@code living_flesh_size0} 这种 {@code <base>_sizeN} 命名的实体），
  * 但玩家实际遇到的可能是 size1 / size3。{@link #normalize(ResourceLocation)} 会把
  * {@code <base>_sizeN} 折成 {@code <base>_size0}（仅在该主条目确实注册过时），
  * 保证“遇见大史莱姆”也能点亮“虫染史莱姆”那一条。</p>

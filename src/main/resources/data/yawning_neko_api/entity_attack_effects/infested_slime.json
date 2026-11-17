@@ -1,5 +1,5 @@
 {
-  "epca:infested_slime_size1": {
+  "epca:infested_slime": {
     "base_effects": [
       {
         "effect": "epca:para_curse",
