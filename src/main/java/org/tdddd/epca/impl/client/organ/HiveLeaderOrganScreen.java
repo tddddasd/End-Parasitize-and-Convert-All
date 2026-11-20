@@ -5,10 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -21,11 +18,14 @@ import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganData;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganGate;
 import org.tdddd.epca.impl.overworld.data.organ.OrganSlotGroup;
 import org.tdddd.epca.impl.overworld.data.organ.OrganSlotKind;
+import org.tdddd.epca.impl.overworld.data.organ.species.HiveLeaderReshapeAdaptation;
+import org.tdddd.epca.impl.overworld.data.organ.species.HiveLeaderSpecies;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatReadout;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatReadout.ReadoutLabels;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,7 +59,6 @@ public class HiveLeaderOrganScreen extends Screen {
     private static final int COLOR_TITLE = 0xFFE9C7FF;
     private static final int COLOR_HINT = 0xFF9A8AA8;
     private static final int COLOR_WARN = 0xFFFFAA55;
-    private static final int COLOR_DIVIDER = 0x66FF5555;
 
     private static final int READOUT_FADE = 0xCC100618;
 
@@ -125,17 +124,22 @@ public class HiveLeaderOrganScreen extends Screen {
 
     private static final String KEY_GROUP_HEAD_INNER = "epca.organ_gui.group.head_inner";
 
-    private static final String KEY_READOUT_ADAPT_CHANCE = "epca.organ_gui.readout.adaptation_chance";
+    private static final String KEY_READOUT_SPECIES_ADAPTATION = "epca.organ_gui.readout.species_adaptation";
 
-    private static final String KEY_READOUT_ADAPT_REDUCTION = "epca.organ_gui.readout.adaptation_reduction";
+    private static final String KEY_READOUT_SPECIES_ADAPTATION_NONE = "epca.organ_gui.readout.species_adaptation_none";
 
-    private static final String KEY_READOUT_PERCENT = "epca.organ_gui.readout.percent";
+    private static final String KEY_READOUT_SPECIES_ADAPTATION_TOTAL = "epca.organ_gui.readout.species_adaptation_total";
+
+    /** 种阶适应性读数区最多显示几行（1 行汇总 + 若干条已适应类型）。 */
+    private static final int SPECIES_ADAPTATION_MAX_LINES = 5;
 
     private static final String KEY_SOURCE_PURPLE = "epca.organ_gui.source.purple";
 
     private static final String KEY_SOURCE_TORSO_INNER = "epca.organ_gui.source.torso_inner";
 
     private static final String KEY_SOURCE_HEAD_INNER = "epca.organ_gui.source.head_inner";
+
+    private static final String KEY_SOURCE_LIMB_INNER = "epca.organ_gui.source.limb_inner";
 
     private static final String KEY_ATTRIBUTE_PREFIX = "epca.organ_gui.attribute.";
 
@@ -157,29 +161,65 @@ public class HiveLeaderOrganScreen extends Screen {
 
     private static final int MODEL_CENTER_Y = 214;
 
-    private static final int TORSO_INNER_LEFT = MODEL_CENTER_X - (8 * TORSO_INNER_STRIDE + SLOT_SIZE) / 2;
+    /**
+     * 头部内部 2×2 菱形阵：四个 45° 斜放的正方形彼此<strong>紧贴无缝隙</strong>，
+     * 共享边 / 顶点，整体外轮廓是一个更大的菱形。
+     *
+     * <p>几何：每个菱形是 L1 半径 R 的菱形（|dx| + |dy| <= R），四个中心分别位于
+     * 大菱形中心的上 / 右 / 下 / 左各一个 R 处；相邻菱形正好共享一条边，
+     * 4 个菱形拼成外接半对角线 2R 的大菱形（面积 4 × 2R² = 大菱形面积）。</p>
+     */
+    private static final int HEAD_DIAMOND_RADIUS = 10;
 
-    private static final int TORSO_INNER_TOP = 96;
+    /** 每个菱形槽的外接正方形边长（= 2R），slotGeometry 里存的是这个外接框的左上角。 */
+    private static final int HEAD_DIAMOND_BOUND = HEAD_DIAMOND_RADIUS * 2;
 
-    private static final int HEAD_INNER_LEFT = MODEL_CENTER_X - (2 * TORSO_INNER_STRIDE + SLOT_SIZE) / 2;
+    private static final int HEAD_DIAMOND_HALF = HEAD_DIAMOND_RADIUS;
 
-    private static final int HEAD_INNER_TOP = 48;
+    /**
+     * 用「正方形 + 45° 旋转」画菱形时，先画 12×12 正方形再按这个比例缩放，
+     * 使旋转后的半对角线正好等于 {@link #HEAD_DIAMOND_RADIUS}，四个菱形不会互相压边。
+     */
+    private static final float HEAD_DIAMOND_DRAW_SCALE =
+            (float) (HEAD_DIAMOND_RADIUS / (6.0D * Math.sqrt(2.0D)));
 
-    private static final int PURPLE_ARM_LEFT_X = 132;
+    /** 菱形内物品缩放：16×16 的物品缩到 12 设计像素，正好放进半对角线 10 的菱形。 */
+    private static final float HEAD_DIAMOND_ITEM_SCALE = 12.0F / 16.0F;
 
-    private static final int PURPLE_ARM_RIGHT_X = 444;
+    /** 四个菱形的槽中心相对大菱形中心的偏移（上、右、下、左，顺时针编号 0..3）。 */
+    private static final int[] HEAD_DIAMOND_OFFSET_X = {0, HEAD_DIAMOND_RADIUS, 0, -HEAD_DIAMOND_RADIUS};
+
+    private static final int[] HEAD_DIAMOND_OFFSET_Y = {-HEAD_DIAMOND_RADIUS, 0, HEAD_DIAMOND_RADIUS, 0};
+
+    private static final int TORSO_INNER_LEFT =
+            MODEL_CENTER_X - (OrganSlotGroup.TORSO_INNER_COLUMNS * TORSO_INNER_STRIDE) / 2;
+
+    private static final int TORSO_INNER_TOP = 92;
+
+    /** 头部菱形阵外接大菱形的左边界（大菱形中心 X - 2R）。 */
+    private static final int HEAD_INNER_LEFT = MODEL_CENTER_X - HEAD_DIAMOND_RADIUS * 2;
+
+    /** 头部菱形阵外接大菱形的上边界（大菱形中心 Y - 2R）。 */
+    private static final int HEAD_INNER_TOP = 42;
+
+    /** 四肢内部槽：横向向界面中心收拢（远离左右边缘，靠近身体槽区）。 */
+    private static final int PURPLE_ARM_LEFT_X = 158;
+
+    private static final int PURPLE_ARM_RIGHT_X = 418;
 
     private static final int PURPLE_CENTER_LEFT_X = 276;
 
     private static final int PURPLE_CENTER_RIGHT_X = 300;
 
-    private static final int PURPLE_HEAD_TOP = 148;
+    private static final int PURPLE_HEAD_TOP = 160;
 
-    private static final int PURPLE_ARM_TOP = 192;
+    /** 手臂的 1×3 内器官槽：与玩家模型的手臂高度对齐。 */
+    private static final int ARM_INNER_TOP = 186;
 
     private static final int PURPLE_TORSO_TOP = 262;
 
-    private static final int PURPLE_LEG_TOP = 286;
+    /** 腿的 1×3 内器官槽：向上收拢，靠近躯干槽区、远离底部读数区。 */
+    private static final int LEG_INNER_TOP = 230;
 
     private static final int INVENTORY_LEFT = 480;
 
@@ -222,6 +262,9 @@ public class HiveLeaderOrganScreen extends Screen {
     private double dragAnchorY;
 
     private final int[][] slotGeometry = new int[OrganSlotGroup.totalSlots()][2];
+
+    /** true = 该槽是 45° 斜放的正方形（菱形），画法与命中判定都不同。 */
+    private final boolean[] diamondSlot = new boolean[OrganSlotGroup.totalSlots()];
 
     private final int[][] inventoryGeometry =
             new int[HiveLeaderOrganActionPacket.INVENTORY_SLOT_COUNT][2];
@@ -335,16 +378,19 @@ public class HiveLeaderOrganScreen extends Screen {
 
     private void computeSlotGeometry() {
 
+        // ---- 紫色外器官槽（头部 / 躯干各 2 格，横排）----
         placeRow(OrganSlotGroup.HEAD, PURPLE_HEAD_TOP, PURPLE_CENTER_LEFT_X, PURPLE_CENTER_RIGHT_X);
 
         placeRow(OrganSlotGroup.TORSO, PURPLE_TORSO_TOP, PURPLE_CENTER_LEFT_X, PURPLE_CENTER_RIGHT_X);
 
-        placeColumn(OrganSlotGroup.LEFT_ARM, PURPLE_ARM_LEFT_X, PURPLE_ARM_TOP);
-        placeColumn(OrganSlotGroup.RIGHT_ARM, PURPLE_ARM_RIGHT_X, PURPLE_ARM_TOP);
+        // ---- 四肢内部器官槽：宽 1 × 高 3（每个肢体 3 格，共 12 格）----
+        placeInnerColumn(OrganSlotGroup.LEFT_ARM, PURPLE_ARM_LEFT_X, ARM_INNER_TOP);
+        placeInnerColumn(OrganSlotGroup.RIGHT_ARM, PURPLE_ARM_RIGHT_X, ARM_INNER_TOP);
 
-        placeColumn(OrganSlotGroup.LEFT_LEG, PURPLE_ARM_LEFT_X, PURPLE_LEG_TOP);
-        placeColumn(OrganSlotGroup.RIGHT_LEG, PURPLE_ARM_RIGHT_X, PURPLE_LEG_TOP);
+        placeInnerColumn(OrganSlotGroup.LEFT_LEG, PURPLE_ARM_LEFT_X, LEG_INNER_TOP);
+        placeInnerColumn(OrganSlotGroup.RIGHT_LEG, PURPLE_ARM_RIGHT_X, LEG_INNER_TOP);
 
+        // ---- 躯干内部：宽 5 × 高 3 = 15 格（横向长方形，从左到右、从上到下编号）----
         for (int local = 0; local < OrganSlotGroup.TORSO_INNER.size(); local++) {
             int global = OrganSlotGroup.TORSO_INNER.globalIndex(local);
             int row = local / OrganSlotGroup.TORSO_INNER_COLUMNS;
@@ -353,13 +399,17 @@ public class HiveLeaderOrganScreen extends Screen {
             slotGeometry[global][1] = TORSO_INNER_TOP + row * TORSO_INNER_STRIDE;
         }
 
+        // ---- 头部内部：2×2 菱形阵，四个菱形紧贴（共享边），整体外轮廓是一个大菱形 ----
         int headInnerTop = headInnerTop();
+        int clusterCenterX = HEAD_INNER_LEFT + HEAD_DIAMOND_RADIUS * 2;
+        int clusterCenterY = headInnerTop + HEAD_DIAMOND_RADIUS * 2;
         for (int local = 0; local < OrganSlotGroup.HEAD_INNER.size(); local++) {
             int global = OrganSlotGroup.HEAD_INNER.globalIndex(local);
-            int row = local / OrganSlotGroup.HEAD_INNER_COLUMNS;
-            int column = local % OrganSlotGroup.HEAD_INNER_COLUMNS;
-            slotGeometry[global][0] = HEAD_INNER_LEFT + column * TORSO_INNER_STRIDE;
-            slotGeometry[global][1] = headInnerTop + row * TORSO_INNER_STRIDE;
+            int centerX = clusterCenterX + HEAD_DIAMOND_OFFSET_X[local];
+            int centerY = clusterCenterY + HEAD_DIAMOND_OFFSET_Y[local];
+            slotGeometry[global][0] = centerX - HEAD_DIAMOND_HALF;
+            slotGeometry[global][1] = centerY - HEAD_DIAMOND_HALF;
+            diamondSlot[global] = true;
         }
     }
 
@@ -374,9 +424,9 @@ public class HiveLeaderOrganScreen extends Screen {
         }
     }
 
-    private void placeColumn(OrganSlotGroup group, int leftX, int top) {
+    private void placeInnerColumn(OrganSlotGroup group, int x, int top) {
         for (int local = 0; local < group.size(); local++) {
-            slotGeometry[group.globalIndex(local)][0] = leftX;
+            slotGeometry[group.globalIndex(local)][0] = x;
             slotGeometry[group.globalIndex(local)][1] = top + local * SLOT_STRIDE;
         }
     }
@@ -537,7 +587,7 @@ public class HiveLeaderOrganScreen extends Screen {
         if (damageBlock.right() <= damageBlock.left()) return 0;
         int available = damageBlock.bottom() - damageBlock.top();
         if (available <= 0) return 0;
-        return Math.max(0, Math.min(OrganStatReadout.DAMAGE_LINE_COUNT,
+        return Math.max(0, Math.min(SPECIES_ADAPTATION_MAX_LINES,
                 available / READOUT_LINE_HEIGHT));
     }
 
@@ -615,13 +665,17 @@ public class HiveLeaderOrganScreen extends Screen {
                 int y = slotGeometry[index][1];
                 boolean locked = group.kind().needsUnlock() && !data.isUnlocked(index);
                 boolean gated = group.kind().isInnerGrid() && !gates.openFor(group);
-                boolean hovered = isInside(mouseX, mouseY, x, y, SLOT_SIZE, SLOT_SIZE);
+                boolean hovered = isSlotHovered(index, mouseX, mouseY);
 
-                renderSlotBackground(graphics, x, y, group.kind(), locked, gated, hovered);
+                renderSlotBackground(graphics, index, x, y, group.kind(), locked, gated, hovered);
 
                 ItemStack stack = data.getItem(index);
                 if (!stack.isEmpty()) {
-                    renderItemInCell(graphics, stack, x, y);
+                    if (diamondSlot[index]) {
+                        renderItemInDiamond(graphics, stack, x, y);
+                    } else {
+                        renderItemInCell(graphics, stack, x, y);
+                    }
                 }
                 if (locked) {
                     renderLockIcon(graphics, x, y);
@@ -629,10 +683,7 @@ public class HiveLeaderOrganScreen extends Screen {
             }
         }
 
-        int dividerY = headInnerTop() - 4;
-        graphics.fill(HEAD_INNER_LEFT, dividerY,
-                HEAD_INNER_LEFT + OrganSlotGroup.HEAD_INNER.columns() * TORSO_INNER_STRIDE,
-                dividerY + 1, COLOR_DIVIDER);
+        // 头部内部槽区与躯干内部槽区之间不再绘制红色分隔线（视觉上留白即可）。
 
         renderGroupLabel(graphics, OrganSlotGroup.HEAD, KEY_GROUP_HEAD);
         renderGroupLabel(graphics, OrganSlotGroup.TORSO, KEY_GROUP_TORSO);
@@ -654,11 +705,13 @@ public class HiveLeaderOrganScreen extends Screen {
         int minY = Integer.MAX_VALUE;
         int maxY = Integer.MIN_VALUE;
         for (int local = 0; local < group.size(); local++) {
-            int[] geometry = slotGeometry[group.globalIndex(local)];
+            int global = group.globalIndex(local);
+            int[] geometry = slotGeometry[global];
+            int size = diamondSlot[global] ? HEAD_DIAMOND_BOUND : SLOT_SIZE;
             minX = Math.min(minX, geometry[0]);
-            maxX = Math.max(maxX, geometry[0] + SLOT_SIZE);
+            maxX = Math.max(maxX, geometry[0] + size);
             minY = Math.min(minY, geometry[1]);
-            maxY = Math.max(maxY, geometry[1] + SLOT_SIZE);
+            maxY = Math.max(maxY, geometry[1] + size);
         }
         if (minX == Integer.MAX_VALUE) return null;
         return new Rect(minX, minY, maxX, maxY);
@@ -693,7 +746,7 @@ public class HiveLeaderOrganScreen extends Screen {
         graphics.drawCenteredString(this.font, label, centeredX, y, COLOR_GROUP_LABEL);
     }
 
-    private void renderSlotBackground(GuiGraphics graphics, int x, int y, OrganSlotKind kind,
+    private void renderSlotBackground(GuiGraphics graphics, int index, int x, int y, OrganSlotKind kind,
                                       boolean locked, boolean gated, boolean hovered) {
         int fill;
         int border;
@@ -704,6 +757,29 @@ public class HiveLeaderOrganScreen extends Screen {
             fill = SLOT_RED_FILL;
             border = SLOT_RED_BORDER;
         }
+
+        if (diamondSlot[index]) {
+            // 45° 斜放正方形：旋转后按普通正方形绘制；缩放让半对角线正好 = R，
+            // 四个菱形彼此贴合但不互相压边。
+            int centerX = x + HEAD_DIAMOND_HALF;
+            int centerY = y + HEAD_DIAMOND_HALF;
+            int half = 6;
+            graphics.pose().pushPose();
+            graphics.pose().translate(centerX, centerY, 0.0F);
+            graphics.pose().scale(HEAD_DIAMOND_DRAW_SCALE, HEAD_DIAMOND_DRAW_SCALE, 1.0F);
+            graphics.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(45.0F));
+            graphics.fill(-half, -half, half, half, fill);
+            graphics.renderOutline(-half, -half, half * 2, half * 2, border);
+            if (gated) {
+                graphics.fill(-half, -half, half, half, SLOT_GATED_OVERLAY);
+            }
+            if (hovered) {
+                graphics.fill(-half, -half, half, half, SLOT_HOVER_OVERLAY);
+            }
+            graphics.pose().popPose();
+            return;
+        }
+
         graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, fill);
         graphics.renderOutline(x, y, SLOT_SIZE, SLOT_SIZE, border);
         if (gated) {
@@ -722,6 +798,20 @@ public class HiveLeaderOrganScreen extends Screen {
 
         graphics.renderItem(stack, 0, 0);
         graphics.renderItemDecorations(this.font, stack, 0, 0);
+        graphics.pose().popPose();
+    }
+
+    /** 菱形槽里的物品也跟着旋转 45°，并缩到能放进半对角线 R 的菱形。 */
+    protected void renderItemInDiamond(GuiGraphics graphics, ItemStack stack, int x, int y) {
+        if (stack.isEmpty()) return;
+        int centerX = x + HEAD_DIAMOND_HALF;
+        int centerY = y + HEAD_DIAMOND_HALF;
+        graphics.pose().pushPose();
+        graphics.pose().translate(centerX, centerY, 0.0F);
+        graphics.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(45.0F));
+        graphics.pose().scale(HEAD_DIAMOND_ITEM_SCALE, HEAD_DIAMOND_ITEM_SCALE, 1.0F);
+        graphics.renderItem(stack, -8, -8);
+        graphics.renderItemDecorations(this.font, stack, -6, 5);
         graphics.pose().popPose();
     }
 
@@ -828,8 +918,7 @@ public class HiveLeaderOrganScreen extends Screen {
 
         List<String> statsLines = OrganStatReadout.statsLines(this.hostEntity, summary,
                 readoutLineLimit(), READOUT_LABELS);
-        List<String> damageLines = OrganStatReadout.damageLines(summary, damageTypeRegistry(),
-                damageLineLimit(), READOUT_LABELS);
+        List<String> adaptationLines = speciesAdaptationLines(damageLineLimit());
 
         Rect stats = this.statsBlock;
         int fadeLeft = Math.max(0, stats.left() - READOUT_LEFT_INSET);
@@ -849,10 +938,58 @@ public class HiveLeaderOrganScreen extends Screen {
 
         int damageX = this.damageBlock.left();
         int damageY = readoutDamageTop();
-        for (int i = 0; i < damageLines.size(); i++) {
-            graphics.drawString(this.font, damageLines.get(i), damageX,
+        for (int i = 0; i < adaptationLines.size(); i++) {
+            graphics.drawString(this.font, adaptationLines.get(i), damageX,
                     damageY + i * READOUT_LINE_HEIGHT, COLOR_DAMAGE_INFO, true);
         }
+    }
+
+    /**
+     * 种阶适应性读数（器官不再提供任何「适应性」）。
+     *
+     * <p>只有重塑种才有内容：第一行是「已适应 X/8 类」，随后是各类型当前减伤。
+     * 条目来自服务端 {@code SyncHiveLeaderSpeciesPacket} 的只读快照。</p>
+     */
+    protected List<String> speciesAdaptationLines(int maxLines) {
+        List<String> lines = new ArrayList<>();
+        if (maxLines <= 0) return lines;
+
+        boolean reshape = HiveLeaderSpeciesClientData.species() == HiveLeaderSpecies.RESHAPE;
+        Map<String, Integer> entries = reshape
+                ? HiveLeaderSpeciesClientData.adaptations() : Map.of();
+
+        String title = Component.translatable(KEY_READOUT_SPECIES_ADAPTATION).getString();
+        String total = Component.translatable(KEY_READOUT_SPECIES_ADAPTATION_TOTAL,
+                entries.size(), HiveLeaderReshapeAdaptation.MAX_ADAPTED_TYPES).getString();
+        lines.add(title + " " + total);
+
+        if (!reshape) {
+            if (maxLines > 1) {
+                lines.add(Component.translatable(KEY_READOUT_SPECIES_ADAPTATION_NONE).getString());
+            }
+            return lines;
+        }
+
+        boolean truncated = false;
+        for (Map.Entry<String, Integer> entry : entries.entrySet()) {
+            if (lines.size() >= maxLines) {
+                truncated = true;
+                break;
+            }
+            lines.add("  " + shortDamageTypeName(entry.getKey()) + " -"
+                    + Math.round(HiveLeaderReshapeAdaptation.reductionFor(entry.getValue()) * 100.0D) + "%");
+        }
+        if (truncated && !lines.isEmpty()) {
+            lines.set(lines.size() - 1, OrganStatReadout.ELLIPSIS);
+        }
+        return lines;
+    }
+
+    /** 读数里把 {@code minecraft:arrow} 缩成 {@code arrow}，节省横向空间。 */
+    private static String shortDamageTypeName(@Nullable String damageTypeId) {
+        if (damageTypeId == null) return "?";
+        return damageTypeId.startsWith("minecraft:") ? damageTypeId.substring("minecraft:".length())
+                : damageTypeId;
     }
 
     private static final ReadoutLabels READOUT_LABELS = new ReadoutLabels() {
@@ -878,27 +1015,10 @@ public class HiveLeaderOrganScreen extends Screen {
         }
 
         @Override
-        public Component adaptationChance() {
-            return Component.translatable(KEY_READOUT_ADAPT_CHANCE);
-        }
-
-        @Override
-        public Component adaptationReduction() {
-            return Component.translatable(KEY_READOUT_ADAPT_REDUCTION);
-        }
-
-        @Override
-        public Component percentUnit() {
-            return Component.translatable(KEY_READOUT_PERCENT);
+        public Component sourceLimbInner() {
+            return Component.translatable(KEY_SOURCE_LIMB_INNER);
         }
     };
-
-    @Nullable
-    protected Registry<DamageType> damageTypeRegistry() {
-        Minecraft minecraft = this.minecraft;
-        if (minecraft == null || minecraft.level == null) return null;
-        return minecraft.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-    }
 
     protected void renderPlayerModel(GuiGraphics graphics) {
         AbstractClientPlayer player = this.minecraft == null ? null : this.minecraft.player;
@@ -1016,13 +1136,30 @@ public class HiveLeaderOrganScreen extends Screen {
 
     protected int slotAt(double mouseX, double mouseY) {
         for (int index = 0; index < slotGeometry.length; index++) {
-            int x = slotGeometry[index][0];
-            int y = slotGeometry[index][1];
-            if (isInside(mouseX, mouseY, x, y, SLOT_SIZE, SLOT_SIZE)) {
+            if (isSlotHovered(index, mouseX, mouseY)) {
                 return index;
             }
         }
         return -1;
+    }
+
+    /**
+     * 槽位命中判定：菱形槽用「菱形内点判定」（|dx| + |dy| <= R，四个菱形互不重叠），
+     * 其余槽位按普通 12×12 矩形判定。
+     */
+    protected boolean isSlotHovered(int index, double mouseX, double mouseY) {
+        int x = slotGeometry[index][0];
+        int y = slotGeometry[index][1];
+        if (diamondSlot[index]) {
+            return diamondContains(index, mouseX, mouseY);
+        }
+        return isInside(mouseX, mouseY, x, y, SLOT_SIZE, SLOT_SIZE);
+    }
+
+    private boolean diamondContains(int index, double mouseX, double mouseY) {
+        double centerX = slotGeometry[index][0] + HEAD_DIAMOND_HALF;
+        double centerY = slotGeometry[index][1] + HEAD_DIAMOND_HALF;
+        return Math.abs(mouseX - centerX) + Math.abs(mouseY - centerY) <= HEAD_DIAMOND_RADIUS;
     }
 
     protected int inventorySlotAt(double mouseX, double mouseY) {

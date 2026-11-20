@@ -15,7 +15,12 @@ import org.tdddd.epca.impl.network.packet.s2c.*;
 
 public class ModNetwork {
 
-    private static final String PROTOCOL_VERSION = "1";
+    /**
+     * Bumped to 2 when the like biome batch packet and the infested source snapshot packet grew a
+     * leading flag byte (paged login snapshots). The bump makes a client with an older EPCA fail the
+     * handshake instead of decoding a shifted buffer.
+     */
+    private static final String PROTOCOL_VERSION = "2";
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(epca.MODID, "main"),
             () -> PROTOCOL_VERSION,
@@ -191,6 +196,16 @@ public class ModNetwork {
                 HiveLeaderOrganTeleportPacket::decode,
                 HiveLeaderOrganTeleportPacket::handle);
 
+        INSTANCE.registerMessage(id++, SyncOrganModelDisplayPacket.class,
+                SyncOrganModelDisplayPacket::encode,
+                SyncOrganModelDisplayPacket::decode,
+                SyncOrganModelDisplayPacket::handle);
+
+        INSTANCE.registerMessage(id++, ToggleOrganModelPacket.class,
+                ToggleOrganModelPacket::encode,
+                ToggleOrganModelPacket::decode,
+                ToggleOrganModelPacket::handle);
+
         INSTANCE.registerMessage(id++, HiveLeaderDecomposeParasitePacket.class,
                 HiveLeaderDecomposeParasitePacket::encode,
                 HiveLeaderDecomposeParasitePacket::decode,
@@ -211,6 +226,28 @@ public class ModNetwork {
                 NoteDetailUnlockRequestPacket::encode,
                 NoteDetailUnlockRequestPacket::decode,
                 NoteDetailUnlockRequestPacket::handle);
+
+        // ---- 种阶特化：C2S 主动技能 + S2C 状态同步 ----
+        INSTANCE.registerMessage(id++, HiveLeaderSpeciesAbilityPacket.class,
+                HiveLeaderSpeciesAbilityPacket::encode,
+                HiveLeaderSpeciesAbilityPacket::decode,
+                HiveLeaderSpeciesAbilityPacket::handle);
+
+        INSTANCE.registerMessage(id++, SyncHiveLeaderSpeciesPacket.class,
+                SyncHiveLeaderSpeciesPacket::encode,
+                SyncHiveLeaderSpeciesPacket::decode,
+                SyncHiveLeaderSpeciesPacket::handle);
+
+        // ---- 寄生体指挥菜单：C2S 操作请求 + S2C 全领巢者高亮同步 ----
+        INSTANCE.registerMessage(id++, HiveCommandActionPacket.class,
+                HiveCommandActionPacket::encode,
+                HiveCommandActionPacket::decode,
+                HiveCommandActionPacket::handle);
+
+        INSTANCE.registerMessage(id++, SyncHiveCommandsPacket.class,
+                SyncHiveCommandsPacket::encode,
+                SyncHiveCommandsPacket::decode,
+                SyncHiveCommandsPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, Object packet) {

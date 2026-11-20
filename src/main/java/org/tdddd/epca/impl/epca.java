@@ -26,6 +26,7 @@ import org.spongepowered.asm.mixin.Mixins;
 import org.tdddd.eej.api.AltarInteractionRegistry;
 import org.tdddd.epca.impl.overworld.data.*;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganEffects;
+import org.tdddd.epca.impl.overworld.data.organ.species.HiveLeaderSpeciesManager;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatManager;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary;
 import org.tdddd.epca.impl.overworld.registry.blocks.EpcaAltarInteractionHandler;
@@ -135,9 +136,12 @@ public class epca {
 
             if (!event.player.level().isClientSide()) {
                 if (HiveLeaderManager.isHiveLeader(event.player.getUUID())) {
-                    HiveLeaderOrganEffects.tick(event.player);
+                    OrganStatSummary organSummary = HiveLeaderOrganEffects.tick(event.player);
+                    // 种阶特化复用同一份器官读数（每 4 秒夜视、种阶被动、属性修饰符等）。
+                    HiveLeaderSpeciesManager.tick(event.player, organSummary);
                 } else {
                     HiveLeaderOrganEffects.notLeader(event.player);
+                    HiveLeaderSpeciesManager.notLeader(event.player);
                 }
             }
         }

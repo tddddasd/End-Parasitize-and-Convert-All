@@ -95,6 +95,8 @@ public class HiveLeaderOrganSavedData extends SavedData {
         }
         organs.put(uuid, fresh);
         setDirty();
+        // 器官内容变化 → 广播该玩家的内器官模型显示数据（自己与其他玩家一致）。
+        OrganModelDisplay.onOrgansChanged(uuid);
     }
 
     @Nullable

@@ -24,20 +24,30 @@ public final class HiveNodeSpawner {
 
     private static final int MAX_CONVERSIONS_PER_PASS = 1;
 
-    private static int timer = 0;
+    /**
+     * Tick counter per level. A single static counter shared by all levels made the pass run once
+     * per {@code CHECK_INTERVAL_TICKS * levelCount} ticks instead of once per
+     * {@code CHECK_INTERVAL_TICKS} for each level.
+     */
+    private static final java.util.Map<ServerLevel, int[]> TIMER = new java.util.IdentityHashMap<>();
 
     private HiveNodeSpawner() {
     }
 
     public static void onServerTick(ServerLevel level) {
-        if (++timer < CHECK_INTERVAL_TICKS) {
+        int[] timer = TIMER.computeIfAbsent(level, key -> new int[]{0});
+        if (++timer[0] < CHECK_INTERVAL_TICKS) {
             return;
         }
-        timer = 0;
+        timer[0] = 0;
 
         if (EvolutionManager.getStageForDimension(level) < 0) {
             return;
         }
+        runPass(level);
+    }
+
+    private static void runPass(ServerLevel level) {
         List<Ripper> rippers = new ArrayList<>();
         for (Entity entity : level.getAllEntities()) {
             if (entity instanceof Ripper ripper && ripper.isAlive()) {

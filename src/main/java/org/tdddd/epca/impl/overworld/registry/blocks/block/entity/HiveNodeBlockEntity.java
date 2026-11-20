@@ -78,6 +78,10 @@ public class HiveNodeBlockEntity extends BlockEntity
 
     public HiveNodeBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.HIVE_NODE.get(), pos, state);
+        // stagger the periodic structure scan: without this every node of a settlement runs its
+        // 49x49x49 block scan in the same tick
+        this.structureTimer = Math.floorMod(pos.hashCode(), STRUCTURE_CHECK_TICKS);
+        this.structureScanTimer = Math.floorMod(pos.hashCode() >> 8, STRUCTURE_SCAN_EVERY);
     }
 
     @Override
@@ -168,6 +172,10 @@ public class HiveNodeBlockEntity extends BlockEntity
         if (level.isClientSide) {
             return;
         }
+        tickInner(level, pos, state, be);
+    }
+
+    private static void tickInner(Level level, BlockPos pos, BlockState state, HiveNodeBlockEntity be) {
 
         if (++be.spawnTimer >= CURBUG_INTERVAL_TICKS) {
             be.spawnTimer = 0;
@@ -264,6 +272,10 @@ public class HiveNodeBlockEntity extends BlockEntity
     }
 
     private void updateStructure(net.minecraft.server.level.ServerLevel level) {
+        updateStructureInner(level);
+    }
+
+    private void updateStructureInner(net.minecraft.server.level.ServerLevel level) {
         java.util.List<BlockPos> nodes = new java.util.ArrayList<>();
         int search = STRUCTURE_LINK_DISTANCE;
         for (BlockPos pos : BlockPos.betweenClosed(

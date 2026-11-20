@@ -22,26 +22,64 @@ public final class HiveLeaderOrganData {
 
     private static final String TAG_TORSO_INNER_DEFAULTS = "TorsoInnerDefaultsApplied";
 
+    /**
+     * 2026-11 布局改造前的总槽位数：16 个紫色外器官槽 + 27 躯干内部 + 9 头部内部 = 52。
+     * 旧存档按 {@link #LEGACY_INDEX_MAP} 重映射到新布局（35 格）。
+     */
+    public static final int LEGACY_TOTAL_SLOTS = 52;
+
+    /**
+     * 旧下标 → 新下标。旧布局与新布局的前 16 格顺序完全一致（头/躯干紫槽 + 四肢紫槽，
+     * 四肢紫槽在新布局里原地变成 1×3 内器官槽），躯干内部 27→15、头部内部 9→4 取前若干格。
+     */
+    private static final int[] LEGACY_INDEX_MAP = buildLegacyIndexMap();
+
+    private static int[] buildLegacyIndexMap() {
+        int[] map = new int[LEGACY_TOTAL_SLOTS];
+        java.util.Arrays.fill(map, -1);
+        for (int i = 0; i < 16; i++) {
+            map[i] = i;
+        }
+        for (int i = 0; i < 15; i++) {
+            map[16 + i] = 16 + i;
+        }
+        for (int i = 0; i < 4; i++) {
+            map[43 + i] = 31 + i;
+        }
+        return map;
+    }
+
+    /**
+     * 躯干内部默认填充（15 格，局部下标 0..14，从 0 开始计数）：
+     * <b>第 3 个槽（局部下标 2）放 1 个病变心脏</b>，其余 14 格全部放虫染肉。
+     *
+     * <p>旧的「11 血肉 + 3 骨 + 1 心脏（心脏在 local 4）」配置已全部移除。</p>
+     */
+    public static final int[] DEFAULT_TORSO_INNER_HEART_LOCALS = {2};
+
     public static final int[] DEFAULT_TORSO_INNER_FLESH_LOCALS = {
-            0, 1, 3, 5, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
-
-    public static final int[] DEFAULT_TORSO_INNER_BONE_LOCALS = {2, 6, 11, 15};
-
-    public static final int[] DEFAULT_TORSO_INNER_HEART_LOCALS = {4};
+            0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
 
     public static final int DEFAULT_TORSO_INNER_FLESH = DEFAULT_TORSO_INNER_FLESH_LOCALS.length;
 
     public static final int DEFAULT_TORSO_INNER_HEARTS = DEFAULT_TORSO_INNER_HEART_LOCALS.length;
 
-    public static final int DEFAULT_TORSO_INNER_BONES = DEFAULT_TORSO_INNER_BONE_LOCALS.length;
+    /** 现在默认填充不再放骨头 / 其它器官。 */
+    public static final int DEFAULT_TORSO_INNER_BONES = 0;
 
-    private static final int LEGACY_TORSO_INNER_FLESH_LOCAL_COUNT = 22;
+    /**
+     * 上一版默认填充（11 虫染肉 + 3 虫染骨 + 1 病变心脏，心脏在 local 4）。
+     * 只有「旧存档里恰好还是这套默认值」时，首次读取才会迁移成新默认；
+     * 玩家自行改过的器官数据一律不动。
+     */
+    private static final int PREVIOUS_TORSO_INNER_SLOT_COUNT = 15;
 
-    private static final int LEGACY_TORSO_INNER_HEART_LOCAL = LEGACY_TORSO_INNER_FLESH_LOCAL_COUNT;
+    private static final int PREVIOUS_TORSO_INNER_HEART_LOCAL = 4;
 
-    private static final int LEGACY_TORSO_INNER_BONE_FIRST_LOCAL = LEGACY_TORSO_INNER_HEART_LOCAL + 1;
+    private static final int[] PREVIOUS_TORSO_INNER_BONE_LOCALS = {2, 6, 11};
 
-    private static final int LEGACY_TORSO_INNER_BONE_COUNT = 4;
+    private static final int[] PREVIOUS_TORSO_INNER_FLESH_LOCALS = {
+            0, 1, 3, 5, 7, 8, 9, 10, 12, 13, 14};
 
     public static final int[] DEFAULT_HEAD_INNER_FLESH_LOCALS = {0, 1, 2, 3, 4, 5, 7};
 
@@ -80,12 +118,7 @@ public final class HiveLeaderOrganData {
             }
         }
 
-        data.fillLocals(OrganSlotGroup.TORSO_INNER, DEFAULT_TORSO_INNER_FLESH_LOCALS,
-                ModItems.INFESTED_FLESH.get());
-        data.fillLocals(OrganSlotGroup.TORSO_INNER, DEFAULT_TORSO_INNER_BONE_LOCALS,
-                ModItems.INFESTED_BONE.get());
-        data.fillLocals(OrganSlotGroup.TORSO_INNER, DEFAULT_TORSO_INNER_HEART_LOCALS,
-                ModItems.DISEASED_HEART.get());
+        data.fillTorsoInnerDefaults();
 
         for (int local : DEFAULT_HEAD_INNER_FLESH_LOCALS) {
             if (local < 0 || local >= OrganSlotGroup.HEAD_INNER.size()) continue;
@@ -124,37 +157,51 @@ public final class HiveLeaderOrganData {
     public boolean applyTorsoInnerDefaultsOnce() {
         if (this.torsoInnerDefaultsApplied) return false;
         this.torsoInnerDefaultsApplied = true;
-        if (!isLegacyTorsoInnerDefault()) {
+        if (!isPreviousTorsoInnerDefault()) {
             return true;
         }
 
-        fillLocals(OrganSlotGroup.TORSO_INNER, DEFAULT_TORSO_INNER_FLESH_LOCALS,
-                ModItems.INFESTED_FLESH.get());
-        fillLocals(OrganSlotGroup.TORSO_INNER, DEFAULT_TORSO_INNER_BONE_LOCALS,
-                ModItems.INFESTED_BONE.get());
-        fillLocals(OrganSlotGroup.TORSO_INNER, DEFAULT_TORSO_INNER_HEART_LOCALS,
-                ModItems.DISEASED_HEART.get());
+        fillTorsoInnerDefaults();
         return true;
     }
 
-    private boolean isLegacyTorsoInnerDefault() {
-        OrganSlotGroup group = OrganSlotGroup.TORSO_INNER;
-        if (group.size() != LEGACY_TORSO_INNER_BONE_FIRST_LOCAL + LEGACY_TORSO_INNER_BONE_COUNT) {
+    /** 把躯干内部 15 格灌成当前默认：local 2 = 1 个病变心脏，其余 14 格 = 虫染肉。 */
+    private void fillTorsoInnerDefaults() {
+        fillLocals(OrganSlotGroup.TORSO_INNER, DEFAULT_TORSO_INNER_FLESH_LOCALS,
+                ModItems.INFESTED_FLESH.get());
+        fillLocals(OrganSlotGroup.TORSO_INNER, DEFAULT_TORSO_INNER_HEART_LOCALS,
+                ModItems.DISEASED_HEART.get());
+    }
 
+    /**
+     * 旧存档是否还停留在上一版默认填充（11 虫染肉 + 3 虫染骨 + 1 病变心脏，心脏在 local 4）。
+     * 只有完全吻合才视为「未改动过的默认值」，可以安全迁移到新默认。
+     */
+    private boolean isPreviousTorsoInnerDefault() {
+        OrganSlotGroup group = OrganSlotGroup.TORSO_INNER;
+        if (group.size() != PREVIOUS_TORSO_INNER_SLOT_COUNT) {
             return false;
         }
-        for (int local = 0; local < LEGACY_TORSO_INNER_FLESH_LOCAL_COUNT; local++) {
-            if (!isSingleItem(group.globalIndex(local), ModItems.INFESTED_FLESH.get())) return false;
-        }
-        if (!isSingleItem(group.globalIndex(LEGACY_TORSO_INNER_HEART_LOCAL),
-                ModItems.DISEASED_HEART.get())) {
-            return false;
-        }
-        for (int local = LEGACY_TORSO_INNER_BONE_FIRST_LOCAL;
-             local < LEGACY_TORSO_INNER_BONE_FIRST_LOCAL + LEGACY_TORSO_INNER_BONE_COUNT; local++) {
-            if (!isSingleItem(group.globalIndex(local), ModItems.INFESTED_BONE.get())) return false;
+        for (int local = 0; local < group.size(); local++) {
+            int index = group.globalIndex(local);
+            if (local == PREVIOUS_TORSO_INNER_HEART_LOCAL) {
+                if (!isSingleItem(index, ModItems.DISEASED_HEART.get())) return false;
+            } else if (containsLocal(PREVIOUS_TORSO_INNER_BONE_LOCALS, local)) {
+                if (!isSingleItem(index, ModItems.INFESTED_BONE.get())) return false;
+            } else if (containsLocal(PREVIOUS_TORSO_INNER_FLESH_LOCALS, local)) {
+                if (!isSingleItem(index, ModItems.INFESTED_FLESH.get())) return false;
+            } else {
+                return false;
+            }
         }
         return true;
+    }
+
+    private static boolean containsLocal(int[] locals, int local) {
+        for (int value : locals) {
+            if (value == local) return true;
+        }
+        return false;
     }
 
     private boolean isSingleItem(int globalIndex, net.minecraft.world.item.Item item) {
@@ -264,18 +311,32 @@ public final class HiveLeaderOrganData {
 
     public void load(CompoundTag tag) {
         ListTag itemList = tag.getList(TAG_ITEMS, Tag.TAG_COMPOUND);
-        for (int i = 0; i < size; i++) {
-            if (i < itemList.size()) {
-                items[i] = ItemStack.of(itemList.getCompound(i));
-            } else {
-                items[i] = ItemStack.EMPTY;
-            }
-        }
-
         byte[] unlockedBytes = tag.getByteArray(TAG_UNLOCKED);
-        for (int i = 0; i < size; i++) {
-            if (i < unlockedBytes.length) {
-                unlocked[i] = unlockedBytes[i] != 0;
+
+        if (itemList.size() == LEGACY_TOTAL_SLOTS && size != LEGACY_TOTAL_SLOTS) {
+            // 旧存档（52 格布局）→ 新布局（35 格）重映射，避免物品错位。
+            for (int old = 0; old < LEGACY_TOTAL_SLOTS; old++) {
+                int mapped = LEGACY_INDEX_MAP[old];
+                if (mapped < 0 || mapped >= size) continue;
+                items[mapped] = ItemStack.of(itemList.getCompound(old));
+                if (old < unlockedBytes.length) {
+                    unlocked[mapped] = unlockedBytes[old] != 0;
+                }
+            }
+            applyDefaultUnlocked();
+        } else {
+            for (int i = 0; i < size; i++) {
+                if (i < itemList.size()) {
+                    items[i] = ItemStack.of(itemList.getCompound(i));
+                } else {
+                    items[i] = ItemStack.EMPTY;
+                }
+            }
+
+            for (int i = 0; i < size; i++) {
+                if (i < unlockedBytes.length) {
+                    unlocked[i] = unlockedBytes[i] != 0;
+                }
             }
         }
 
@@ -284,6 +345,15 @@ public final class HiveLeaderOrganData {
         }
         if (tag.contains(TAG_TORSO_INNER_DEFAULTS)) {
             torsoInnerDefaultsApplied = tag.getBoolean(TAG_TORSO_INNER_DEFAULTS);
+        }
+    }
+
+    private void applyDefaultUnlocked() {
+        for (OrganSlotGroup group : OrganSlotGroup.ALL) {
+            if (!group.kind().defaultUnlocked()) continue;
+            for (int i = 0; i < group.size(); i++) {
+                unlocked[group.globalIndex(i)] = true;
+            }
         }
     }
 

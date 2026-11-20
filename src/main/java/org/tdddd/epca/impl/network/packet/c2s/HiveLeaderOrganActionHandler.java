@@ -289,7 +289,9 @@ public final class HiveLeaderOrganActionHandler {
             }
             player.displayClientMessage(Component.literal(group == OrganSlotGroup.TORSO_INNER
                     ? "7×7×7 格内需要任意召唤柱才能修改躯干内部槽"
-                    : "7×7×7 格内需要二阶召唤柱才能修改头部内部槽"), true);
+                    : group == OrganSlotGroup.HEAD_INNER
+                    ? "7×7×7 格内需要二阶召唤柱才能修改头部内部槽"
+                    : "需要召唤柱才能修改该内部槽"), true);
             return false;
         }
 

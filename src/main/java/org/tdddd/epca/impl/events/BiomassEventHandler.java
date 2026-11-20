@@ -106,6 +106,10 @@ public class BiomassEventHandler {
         int total = BiomassManager.getBiomassPoints(player);
         ModNetwork.sendToPlayer(serverPlayer,
                 new BiomassSyncPacket(true, total));
+
+        // 粗制种特化：每次获得生物质立刻回复 1 生命。
+        org.tdddd.epca.impl.overworld.data.organ.species.HiveLeaderSpeciesManager
+                .onBiomassGained(player, amount);
     }
 
     public static void syncBiomass(Player player) {

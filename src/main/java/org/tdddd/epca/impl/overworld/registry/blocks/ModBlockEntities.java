@@ -8,6 +8,7 @@ import org.tdddd.epca.impl.overworld.registry.ModBlocks;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.BeckonCoreBlockEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.HiveNodeBlockEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.InfestedSweetBerryBushBlockEntity;
+import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.InfestedWebBlockEntity;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.SwallowCystBlockEntity;
 import org.tdddd.epca.impl.epca;
 
@@ -33,4 +34,21 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("infested_sweet_berry_bush",
                     () -> BlockEntityType.Builder.of(InfestedSweetBerryBushBlockEntity::new,
                             ModBlocks.INFESTED_SWEET_BERRY_BUSH.get()).build(null));
+
+    // The three infested web blocks keep their decay deadline on a block entity instead of a 2048-value
+    // "placed_at" block state property; see InfestedWebBlockEntity for why.
+    public static final RegistryObject<BlockEntityType<InfestedWebBlockEntity>> INFESTED_SPIDER_WEB =
+            BLOCK_ENTITIES.register("infested_spider_web",
+                    () -> BlockEntityType.Builder.of(InfestedWebBlockEntity::spider,
+                            ModBlocks.INFESTED_SPIDER_WEB.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<InfestedWebBlockEntity>> INFESTED_SPIDER_WEB_BLOOD =
+            BLOCK_ENTITIES.register("infested_spider_web_blood",
+                    () -> BlockEntityType.Builder.of(InfestedWebBlockEntity::blood,
+                            ModBlocks.INFESTED_SPIDER_WEB_BLOOD.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<InfestedWebBlockEntity>> INFESTED_CAVE_SPIDER_WEB =
+            BLOCK_ENTITIES.register("infested_cave_spider_web",
+                    () -> BlockEntityType.Builder.of(InfestedWebBlockEntity::caveSpider,
+                            ModBlocks.INFESTED_CAVE_SPIDER_WEB.get()).build(null));
 }

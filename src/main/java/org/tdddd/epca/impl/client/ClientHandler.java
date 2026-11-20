@@ -131,6 +131,29 @@ public class ClientHandler {
                         entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1.0F : 0.0F);
     }
 
+    /**
+     * 给原版玩家渲染器挂「内器官模型」渲染层。
+     *
+     * <p>选择 RenderLayer（而不是 mixin 到 PlayerRenderer / HumanoidModel）：</p>
+     * <ul>
+     *   <li>AddLayers 事件是 Forge 官方扩展点，不修改原版类，侵入性最小；</li>
+     *   <li>layer 对每个玩家实例都执行，自己（第三人称）和其他玩家走同一份逻辑，
+     *       显示数据来自服务端同步，因此"自己和其他玩家都能看到"是同一条渲染路径；</li>
+     *   <li>人身模型（第一层皮肤）不删除，只用深红四边形覆盖正面窗口，
+     *       第二层皮肤（帽子 / 外套，半径更大）依旧盖在深红层外面。</li>
+     * </ul>
+     */
+    @SubscribeEvent
+    public static void onAddLayers(EntityRenderersEvent.AddLayers event) {
+        for (String skin : event.getSkins()) {
+            net.minecraft.client.renderer.entity.player.PlayerRenderer renderer = event.getSkin(skin);
+            if (renderer == null) {
+                continue;
+            }
+            renderer.addLayer(new org.tdddd.epca.impl.client.organ.model.OrganModelRenderLayer(renderer));
+        }
+    }
+
     @SubscribeEvent
     public static void onRegisterShaders(RegisterShadersEvent event) throws IOException {
         ShaderInstance shader = new ShaderInstance(

@@ -98,9 +98,17 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
         return PushReaction.DESTROY;
     }
 
+    /**
+     * Re-entrancy guard for the layer transfer inside {@link #canSurvive}. A survive check should be
+     * a pure query, but the pile-up behaviour needs one write; that write fires neighbour updates
+     * which ask {@code canSurvive} again, so without this guard a bulk block operation (world edit
+     * paste, exploding residue stack) can recurse into a stack overflow.
+     */
+    private static boolean transferringLayers;
+
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        if (level instanceof Level world && !world.isClientSide) {
+        if (level instanceof Level world && !world.isClientSide && !transferringLayers) {
             BlockPos belowPos = pos.below();
             BlockState belowState = world.getBlockState(belowPos);
             if (belowState.getBlock() instanceof InfestedResidue) {
@@ -109,12 +117,17 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
                     int current = state.getValue(LAYERS);
                     int transfer = Math.min(8 - belowLayers, current);
                     if (transfer > 0) {
-                        world.setBlock(belowPos, belowState.setValue(LAYERS, belowLayers + transfer), 3);
-                        int newLayers = current - transfer;
-                        if (newLayers == 0) {
-                            return false;
-                        } else {
-                            world.setBlock(pos, state.setValue(LAYERS, newLayers), 3);
+                        transferringLayers = true;
+                        try {
+                            world.setBlock(belowPos, belowState.setValue(LAYERS, belowLayers + transfer), 3);
+                            int newLayers = current - transfer;
+                            if (newLayers == 0) {
+                                return false;
+                            } else {
+                                world.setBlock(pos, state.setValue(LAYERS, newLayers), 3);
+                            }
+                        } finally {
+                            transferringLayers = false;
                         }
                     }
                 }
@@ -158,13 +171,25 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
             int remaining = total - 8;
             BlockPos targetPos = pos.above();
 
-            while (true) {
+            // Bounded climb: every branch below either breaks or moves up by one block, and the
+            // residue branch keeps "remaining" unchanged when the block above is already full, so
+            // only the world height and this counter end the loop. Both are checked at the top.
+            int maxSteps = level.getMaxBuildHeight() - level.getMinBuildHeight() + 2;
+            for (int step = 0; step < maxSteps; step++) {
+                if (targetPos.getY() > level.getMaxBuildHeight()
+                        || targetPos.getY() < level.getMinBuildHeight()) {
+                    BlockState newState = existingState.getBlock().defaultBlockState()
+                            .setValue(LAYERS, Math.min(8, Math.max(1, remaining)));
+                    level.setBlock(targetPos, newState, Block.UPDATE_ALL);
+                    level.updateNeighborsAt(targetPos, newState.getBlock());
+                    return;
+                }
                 BlockState targetState = level.getBlockState(targetPos);
                 if (targetState.isAir() || targetState.canBeReplaced()) {
                     BlockState newState = existingState.getBlock().defaultBlockState().setValue(LAYERS, remaining);
                     level.setBlock(targetPos, newState, Block.UPDATE_ALL);
                     level.updateNeighborsAt(targetPos, newState.getBlock());
-                    break;
+                    return;
                 } else if (targetState.getBlock() instanceof InfestedResidue) {
                     int targetLayers = targetState.getValue(LAYERS);
                     int totalTarget = targetLayers + remaining;
@@ -172,7 +197,7 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
                         BlockState newState = targetState.setValue(LAYERS, totalTarget);
                         level.setBlock(targetPos, newState, Block.UPDATE_ALL);
                         level.updateNeighborsAt(targetPos, newState.getBlock());
-                        break;
+                        return;
                     } else {
                         BlockState newFull = targetState.setValue(LAYERS, 8);
                         level.setBlock(targetPos, newFull, Block.UPDATE_ALL);
@@ -182,12 +207,6 @@ public class InfestedResidue extends FallingBlock implements InfestedBlockInterf
                     }
                 } else {
                     targetPos = targetPos.above();
-                    if (targetPos.getY() > level.getMaxBuildHeight() || targetPos.getY() < level.getMinBuildHeight()) {
-                        BlockState newState = existingState.getBlock().defaultBlockState().setValue(LAYERS, remaining);
-                        level.setBlock(targetPos, newState, Block.UPDATE_ALL);
-                        level.updateNeighborsAt(targetPos, newState.getBlock());
-                        break;
-                    }
                 }
             }
         }

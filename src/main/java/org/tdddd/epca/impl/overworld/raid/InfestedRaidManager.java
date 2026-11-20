@@ -151,6 +151,28 @@ public final class InfestedRaidManager {
         org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket.sendTo(player, data);
     }
 
+    /**
+     * 换维度补发屏障快照。
+     *
+     * <p>{@code RaidBarrierS2CPacket} 走 {@code PacketDistributor.DIMENSION}，只在屏障创建 / 移除时
+     * 广播，玩家换维度时客户端手上还是上一个维度的列表（登出有 {@code LoggingOut} 清理，换维度没有）。
+     * 这里跟登录补发一样，按<b>目标维度</b>取 {@code InfestedRaidBarrierData} 单发给该玩家：
+     * {@code sendTo} 走 {@code PacketDistributor.PLAYER}，只发给这一个人，不依赖 DIMENSION 目标。</p>
+     */
+    @SubscribeEvent
+    public static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        ServerLevel level = player.serverLevel();
+        // Forge 在传送完成后才触发本事件，serverLevel() 通常已经是目标维度；万一不是，用 getTo() 兜底。
+        if (player.server != null && !level.dimension().equals(event.getTo())) {
+            ServerLevel destination = player.server.getLevel(event.getTo());
+            if (destination != null) level = destination;
+        }
+        InfestedRaidBarrierData data = InfestedRaidBarrierData.get(level);
+        data.prune();
+        org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket.sendTo(player, data);
+    }
+
     private static LivingEntity findTarget(Mob seeker, double range) {
         AABB box = seeker.getBoundingBox().inflate(range);
         LivingEntity best = null;

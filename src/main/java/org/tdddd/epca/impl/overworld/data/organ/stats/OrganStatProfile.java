@@ -3,6 +3,12 @@ package org.tdddd.epca.impl.overworld.data.organ.stats;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * 单个器官（或一组槽位）提供的属性平铺值。
+ *
+ * <p>2026-11 起<strong>不再包含任何适应属性</strong>：{@code adaptation_reduction} 已随
+ * 「器官适应性」一起彻底移除，器官只能通过 {@code damage_taken_add} 影响「受伤倍率」。</p>
+ */
 public record OrganStatProfile(
         double health,
         double armor,
@@ -14,11 +20,10 @@ public record OrganStatProfile(
         double attackRange,
         double blockReach,
         double entityGravity,
-        double minimumDamage,
-        double adaptationReduction) {
+        double minimumDamage) {
 
     public static final OrganStatProfile ZERO = new OrganStatProfile(
-            0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
+            0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
 
     public static final class Accumulator {
         private double health;
@@ -32,7 +37,6 @@ public record OrganStatProfile(
         private double blockReach;
         private double entityGravity;
         private double minimumDamage;
-        private double adaptationReduction;
 
         public void add(OrganStatProfile profile) {
             if (profile == null) return;
@@ -47,7 +51,6 @@ public record OrganStatProfile(
             this.blockReach += profile.blockReach();
             this.entityGravity += profile.entityGravity();
             this.minimumDamage += profile.minimumDamage();
-            this.adaptationReduction += profile.adaptationReduction();
         }
 
         public void addRepeated(OrganStatProfile profile, int count) {
@@ -64,7 +67,7 @@ public record OrganStatProfile(
         public OrganStatProfile toImmutable() {
             return new OrganStatProfile(health, armor, armorToughness, attackDamage,
                     knockbackResistance, movementSpeed, swimSpeed, attackRange, blockReach,
-                    entityGravity, minimumDamage, adaptationReduction);
+                    entityGravity, minimumDamage);
         }
     }
 
@@ -87,7 +90,7 @@ public record OrganStatProfile(
                 && movementSpeed == 0.0D && swimSpeed == 0.0D
                 && attackRange == 0.0D && blockReach == 0.0D
                 && entityGravity == 0.0D
-                && minimumDamage == 0.0D && adaptationReduction == 0.0D;
+                && minimumDamage == 0.0D;
     }
 
     public static OrganStatProfile fromJsonMap(Map<String, Double> values) {
@@ -103,8 +106,7 @@ public record OrganStatProfile(
                 get(values, "attack_range"),
                 get(values, "block_reach"),
                 get(values, "entity_gravity"),
-                get(values, "minimum_damage"),
-                get(values, "adaptation_reduction"));
+                get(values, "minimum_damage"));
     }
 
     private static double get(Map<String, Double> values, String key) {
@@ -125,7 +127,6 @@ public record OrganStatProfile(
         putIfNonZero(parts, "block_reach", blockReach);
         putIfNonZero(parts, "entity_gravity", entityGravity);
         putIfNonZero(parts, "minimum_damage", minimumDamage);
-        putIfNonZero(parts, "adaptation_reduction", adaptationReduction);
         return parts.toString();
     }
 

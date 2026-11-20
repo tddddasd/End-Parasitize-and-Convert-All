@@ -80,6 +80,17 @@ public class ClientSetup {
         event.register(HiveLeaderOrganKeys.TELEPORT);
 
         event.register(HiveLeaderOrganKeys.DECOMPOSE_PARASITE);
+        event.register(HiveLeaderOrganKeys.TOGGLE_ORGAN_MODEL);
+
+        // 种阶主动技能（默认未绑定，由玩家在按键设置里自行绑定）。
+        event.register(HiveLeaderOrganKeys.SPECIES_CONVERT_RIPPER);
+        event.register(HiveLeaderOrganKeys.SPECIES_RESHAPE_BUFF);
+
+        // 寄生体指挥菜单（默认未绑定，由领巢者在按键设置里自行绑定）。
+        event.register(org.tdddd.epca.impl.client.command.HiveCommandKeys.OPEN_MENU);
+        // 路线库快捷键：不打开菜单加点 / 结束编辑并下达（默认都未绑定）。
+        event.register(org.tdddd.epca.impl.client.command.HiveCommandKeys.ADD_ROUTE_POINT);
+        event.register(org.tdddd.epca.impl.client.command.HiveCommandKeys.FINISH_ROUTE);
     }
 
     @SubscribeEvent

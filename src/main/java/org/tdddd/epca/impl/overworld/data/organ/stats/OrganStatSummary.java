@@ -1,13 +1,6 @@
 package org.tdddd.epca.impl.overworld.data.organ.stats;
 
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -20,25 +13,25 @@ import org.tdddd.epca.impl.overworld.data.organ.OrganSlotGroup;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
 
+/**
+ * 领巢者当前器官构成算出来的读数快照。
+ *
+ * <p>2026-11 起<strong>完全不含适应数据</strong>（适应概率 / 适应满减免 / 每种伤害的适应轮数 /
+ * 不可适应类型全部删除）：器官不再提供任何伤害适应性。唯一保留的伤害相关读数是
+ * {@link #damageTakenMultipliers()}「受伤倍率」，由
+ * {@code HiveLeaderOrganDamageTaken} 结算。</p>
+ */
 public record OrganStatSummary(
         OrganStatProfile purpleBonus,
         OrganStatProfile torsoInnerBonus,
         OrganStatProfile headInnerBonus,
+        OrganStatProfile limbInnerBonus,
         double minimumDamage,
         int minimumDamageIntervalTicks,
-        double adaptationReduction,
-        double adaptationChance,
-        Map<String, Integer> adaptationRequiredHits,
-        Map<String, Integer> adaptationRequiredHitsTags,
-        List<String> nonAdaptableDamageTypes,
         List<DamageTakenDisplay> damageTakenMultipliers,
         List<ItemStack> purpleItems,
         Map<ResourceLocation, Integer> slotItemCounts,
@@ -49,16 +42,7 @@ public record OrganStatSummary(
     public record DamageTakenDisplay(String key, double multiplier, boolean fallback) {
     }
 
-    public record DamageTypeDisplay(String key, int requiredHits) {
-    }
-
     public OrganStatSummary {
-        adaptationRequiredHits = adaptationRequiredHits == null
-                ? Map.of() : Map.copyOf(adaptationRequiredHits);
-        adaptationRequiredHitsTags = adaptationRequiredHitsTags == null
-                ? Map.of() : Map.copyOf(adaptationRequiredHitsTags);
-        nonAdaptableDamageTypes = nonAdaptableDamageTypes == null
-                ? List.of() : List.copyOf(nonAdaptableDamageTypes);
         damageTakenMultipliers = damageTakenMultipliers == null
                 ? List.of() : List.copyOf(damageTakenMultipliers);
         purpleItems = purpleItems == null ? List.of() : List.copyOf(purpleItems);
@@ -79,28 +63,18 @@ public record OrganStatSummary(
     public static OrganStatSummary empty() {
         OrganStatDefaults defaults = OrganStatManager.defaults();
         List<DamageTakenDisplay> taken = effectiveDamageTaken(defaults, Map.of());
-        List<String> nonAdaptable = new ArrayList<>();
-        for (OrganStatDefaults.DamageTypeDefaults type : defaults.damageTypes()) {
-            if (!type.adaptable()) nonAdaptable.add(type.displayKey());
-        }
         return new OrganStatSummary(
+                OrganStatProfile.ZERO,
                 OrganStatProfile.ZERO,
                 OrganStatProfile.ZERO,
                 OrganStatProfile.ZERO,
                 0.0D,
                 defaults.minimumDamageIntervalTicks(),
-                0.0D,
-                defaults.adaptationChance(),
-                Map.of(),
-                Map.of(),
-                nonAdaptable,
                 taken,
                 List.of(),
                 Map.of(),
                 Map.of());
     }
-
-    private static final OrganSlotGroup OUTER_PROBE_GROUP = OrganSlotGroup.HEAD;
 
     public static OrganStatSummary compute(@Nullable HiveLeaderOrganData data) {
         if (data == null) return empty();
@@ -109,16 +83,14 @@ public record OrganStatSummary(
         OrganStatProfile.Accumulator purple = new OrganStatProfile.Accumulator();
         OrganStatProfile.Accumulator torsoInner = new OrganStatProfile.Accumulator();
         OrganStatProfile.Accumulator headInner = new OrganStatProfile.Accumulator();
+        OrganStatProfile.Accumulator limbInner = new OrganStatProfile.Accumulator();
 
         List<ItemStack> purpleItems = new ArrayList<>();
         Map<ResourceLocation, Integer> counts = new LinkedHashMap<>();
 
         Map<OrganSlotGroup, Map<ResourceLocation, Integer>> groupCounts = new LinkedHashMap<>();
 
-        Map<ResourceLocation, Integer> purpleCounts = new LinkedHashMap<>();
-
         Map<String, Double> damageTakenAdd = new LinkedHashMap<>();
-        int purpleTotal = 0;
         int minimumIntervalTicks = defaults.minimumDamageIntervalTicks();
         boolean intervalExplicit = false;
 
@@ -142,6 +114,9 @@ public record OrganStatSummary(
 
                     if (group == OrganSlotGroup.TORSO_INNER) {
                         torsoInner.add(entry.profileAt(group));
+                    } else if (group.isLimbInner()) {
+                        // 四肢内部槽（左/右臂、左/右腿）单独统计，便于读数区分。
+                        limbInner.add(entry.profileAt(group));
                     } else {
                         headInner.add(entry.profileAt(group));
                     }
@@ -153,10 +128,8 @@ public record OrganStatSummary(
 
                 purple.add(entry.profileAt(group));
                 purpleItems.add(stack);
-                purpleTotal++;
                 accumulateDamageTakenAdd(damageTakenAdd, entry);
                 if (itemId != null) {
-                    purpleCounts.merge(itemId, 1, Integer::sum);
                     Integer override = OrganStatManager.intervalOverrideTicks(stack);
                     if (override != null && override > 0) {
                         intervalExplicit = true;
@@ -174,49 +147,15 @@ public record OrganStatSummary(
 
         OrganStatProfile purpleBonus = purple.toImmutable();
 
-        double reduction = 0.0D;
-        for (Map.Entry<ResourceLocation, Integer> entry : purpleCounts.entrySet()) {
-            double perOrganReduction = OrganStatManager.entryOf(entry.getKey())
-                    .profileAt(OUTER_PROBE_GROUP).adaptationReduction();
-            reduction += perOrganReduction * outerShareWeight(entry.getValue(), purpleTotal);
-        }
-
-        Map<String, Integer> requiredHits = new LinkedHashMap<>();
-        Map<String, Integer> requiredHitsTags = new LinkedHashMap<>();
-        for (Map.Entry<ResourceLocation, Integer> entry : purpleCounts.entrySet()) {
-            double strength = OrganStatMath.roundsForShares(entry.getValue(), purpleTotal);
-
-            OrganStatManager.RoundsTable table =
-                    OrganStatManager.adaptationRoundsForItem(entry.getKey(), OUTER_PROBE_GROUP);
-            for (Map.Entry<String, Map<String, Integer>> typeEntry : table.byType().entrySet()) {
-                int rounds = roundsForTiers(typeEntry.getValue(), strength);
-                if (rounds > 0) requiredHits.merge(typeEntry.getKey(), rounds, Integer::sum);
-            }
-
-            for (Map.Entry<String, Map<String, Integer>> tagEntry : table.byTag().entrySet()) {
-                int rounds = roundsForTiers(tagEntry.getValue(), strength);
-                if (rounds > 0) requiredHitsTags.merge(tagEntry.getKey(), rounds, Integer::sum);
-            }
-        }
-
-        List<String> nonAdaptable = new ArrayList<>();
-        for (OrganStatDefaults.DamageTypeDefaults type : defaults.damageTypes()) {
-            if (!type.adaptable()) nonAdaptable.add(type.displayKey());
-        }
-
         List<DamageTakenDisplay> taken = effectiveDamageTaken(defaults, damageTakenAdd);
 
         return new OrganStatSummary(
                 purpleBonus,
                 torsoInner.toImmutable(),
                 headInner.toImmutable(),
+                limbInner.toImmutable(),
                 purpleBonus.minimumDamage(),
                 minimumIntervalTicks,
-                reduction,
-                defaults.adaptationChance(),
-                requiredHits,
-                requiredHitsTags,
-                nonAdaptable,
                 taken,
                 purpleItems,
                 counts,
@@ -230,17 +169,6 @@ public record OrganStatSummary(
             if (key == null || value == null) return;
             accumulator.merge(key, value, Double::sum);
         });
-    }
-
-    private static final boolean SHARE_DENOMINATOR_USES_OCCUPIED_SLOTS = true;
-
-    static double outerShareWeight(int itemOccupiedOuterSlots, int totalOccupiedOuterSlots) {
-        if (itemOccupiedOuterSlots <= 0) return 0.0D;
-        int denominator = SHARE_DENOMINATOR_USES_OCCUPIED_SLOTS
-                ? totalOccupiedOuterSlots
-                : OrganSlotGroup.OUTER_SLOT_COUNT;
-        if (denominator <= 0) return 0.0D;
-        return (double) itemOccupiedOuterSlots / (double) denominator;
     }
 
     private static final class MutableMultiplier {
@@ -376,6 +304,7 @@ public record OrganStatSummary(
         accumulator.add(purpleBonus);
         accumulator.add(torsoInnerBonus);
         accumulator.add(headInnerBonus);
+        accumulator.add(limbInnerBonus);
         return accumulator.toImmutable();
     }
 
@@ -398,94 +327,8 @@ public record OrganStatSummary(
         };
     }
 
-    public List<DamageTypeDisplay> adaptationRoundsDisplay(@Nullable Registry<DamageType> registry) {
-        Map<String, Integer> merged = new LinkedHashMap<>();
-        for (Map.Entry<String, Integer> entry : adaptationRequiredHits.entrySet()) {
-            merged.merge(entry.getKey(), entry.getValue(), Integer::sum);
-        }
-        for (Map.Entry<String, Integer> entry : adaptationRequiredHitsTags.entrySet()) {
-
-            List<String> members = tagMemberIds(registry, entry.getKey());
-            if (members.isEmpty()) {
-                merged.merge("#" + stripHash(entry.getKey()), entry.getValue(), Integer::sum);
-            } else {
-                for (String member : members) {
-                    merged.merge(member, entry.getValue(), Integer::sum);
-                }
-            }
-        }
-
-        if (merged.isEmpty()) {
-            for (OrganStatDefaults.DamageTypeDefaults type : OrganStatManager.defaults().damageTypes()) {
-                if (!type.adaptable()) continue;
-                if (type.isTag()) {
-                    TagKey<DamageType> tag = type.tagKey();
-                    List<String> members = (tag == null || registry == null)
-                            ? List.of() : tagMemberIds(registry, tag);
-                    if (members.isEmpty()) {
-                        merged.putIfAbsent(type.displayKey(), 0);
-                    } else {
-                        for (String member : members) {
-                            merged.putIfAbsent(member, 0);
-                        }
-                    }
-                } else if (type.typeId() != null) {
-                    merged.putIfAbsent(type.typeId().toString(), 0);
-                }
-            }
-        }
-
-        List<DamageTypeDisplay> result = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : merged.entrySet()) {
-            result.add(new DamageTypeDisplay(entry.getKey(), entry.getValue()));
-        }
-        result.sort(Comparator.comparingInt(DamageTypeDisplay::requiredHits).reversed()
-                .thenComparing(DamageTypeDisplay::key));
-        return result;
-    }
-
     private static String stripHash(String value) {
         return value.startsWith("#") ? value.substring(1) : value;
-    }
-
-    public List<String> nonAdaptableDisplay(@Nullable Registry<DamageType> registry) {
-        Set<String> result = new TreeSet<>();
-        for (OrganStatDefaults.DamageTypeDefaults type : OrganStatManager.defaults().damageTypes()) {
-            if (type.adaptable()) continue;
-            TagKey<DamageType> tag = type.tagKey();
-            if (tag != null && registry != null) {
-                List<String> members = tagMemberIds(registry, tag);
-                if (!members.isEmpty()) {
-                    result.addAll(members);
-                    continue;
-                }
-            }
-            ResourceLocation id = type.typeId();
-            result.add(id != null ? id.toString() : type.displayKey());
-        }
-        result.addAll(nonAdaptableDamageTypes);
-        return new ArrayList<>(result);
-    }
-
-    private static List<String> tagMemberIds(Registry<DamageType> registry, TagKey<DamageType> tag) {
-        List<String> ids = new ArrayList<>();
-        Optional<HolderSet.Named<DamageType>> named = registry.getTag(tag);
-        if (named.isEmpty()) return ids;
-        for (Holder<DamageType> holder : named.get()) {
-            Optional<ResourceKey<DamageType>> key = holder.unwrapKey();
-            if (key.isEmpty()) continue;
-            ResourceLocation location = key.get().location();
-            if (location != null) ids.add(location.toString());
-        }
-        ids.sort(Comparator.naturalOrder());
-        return ids;
-    }
-
-    private static List<String> tagMemberIds(@Nullable Registry<DamageType> registry, String tag) {
-        if (registry == null || tag == null || tag.isBlank()) return List.of();
-        ResourceLocation location = ResourceLocation.tryParse(stripHash(tag));
-        if (location == null) return List.of();
-        return tagMemberIds(registry, TagKey.create(Registries.DAMAGE_TYPE, location));
     }
 
     private static Map<String, Attribute> buildAttributeKeys() {
@@ -513,35 +356,12 @@ public record OrganStatSummary(
         return item == null ? null : ForgeRegistries.ITEMS.getKey(item);
     }
 
-    private static double parseDouble(String value) {
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException ignored) {
-            return 0.0D;
-        }
-    }
-
-    private static int roundsAt(Map.Entry<String, Integer> round, double strength) {
-        if (parseDouble(round.getKey()) > strength + 1.0E-9D) return 0;
-        return Math.max(0, round.getValue());
-    }
-
-    private static int roundsForTiers(@Nullable Map<String, Integer> table, double strength) {
-        if (table == null || table.isEmpty()) return 0;
-        int total = 0;
-        for (Map.Entry<String, Integer> round : table.entrySet()) {
-            total += roundsAt(round, strength);
-        }
-        return total;
-    }
-
     @Override
     public String toString() {
         return "OrganStatSummary[purple=" + purpleBonus.describeNonZero()
                 + ", total=" + totalBonus().describeNonZero()
                 + ", minDamage=" + minimumDamage
                 + ", intervalTicks=" + minimumDamageIntervalTicks
-                + ", reduction=" + adaptationReduction
                 + ", purpleItems=" + purpleItems.size() + "]";
     }
 

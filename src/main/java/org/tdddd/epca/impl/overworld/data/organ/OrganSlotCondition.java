@@ -11,7 +11,13 @@ public enum OrganSlotCondition {
 
     HEAD_INNER("head_inner"),
 
-    ARM("arm");
+    ARM("arm"),
+
+    /** 四肢内部槽（2026-11 布局改造新增）：同时覆盖手臂与腿部的内部器官槽。 */
+    LIMB_INNER("limb_inner"),
+
+    /** 腿内部槽。 */
+    LEG("leg");
 
     private final String id;
 
@@ -29,6 +35,8 @@ public enum OrganSlotCondition {
             case OUTER -> group != null && group.isOuter();
             case HEAD_INNER -> group != null && group.isHeadInner();
             case ARM -> group != null && group.isArm();
+            case LIMB_INNER -> group != null && group.isLimbInner();
+            case LEG -> group != null && group.isLeg();
         };
     }
 
@@ -41,6 +49,8 @@ public enum OrganSlotCondition {
             case "outer", "outer_organ" -> OUTER;
             case "head_inner" -> HEAD_INNER;
             case "arm", "arms", "left_or_right_arm" -> ARM;
+            case "limb_inner", "limbs", "arm_leg_inner" -> LIMB_INNER;
+            case "leg", "legs", "left_or_right_leg" -> LEG;
             default -> null;
         };
     }

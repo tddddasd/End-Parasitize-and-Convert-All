@@ -11,41 +11,35 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.WebBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 import org.tdddd.epca.impl.overworld.registry.ModEffects;
 import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
+import org.tdddd.epca.impl.overworld.registry.blocks.block.entity.InfestedWebBlockEntity;
 
 import java.util.*;
 
-public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterface {
+public class InfestedSpiderWeb extends WebBlock implements EntityBlock, InfestedBlockInterface {
     public static final BooleanProperty SPIDER = BooleanProperty.create("spider");
-
-    public static final int PLACED_CYCLE = 2048;
-
-    public static final IntegerProperty PLACED_AT =
-            IntegerProperty.create("placed_at", 0, PLACED_CYCLE - 1);
-
-    public static final int PLACED_NEVER = 0;
 
     public static final int DECAY_TICKS = 20 * 60;
 
     public InfestedSpiderWeb(Properties properties) {
         super(properties);
-        registerDefaultState(this.stateDefinition.any()
-                .setValue(SPIDER, false)
-                .setValue(PLACED_AT, PLACED_NEVER));
+        registerDefaultState(this.stateDefinition.any().setValue(SPIDER, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(SPIDER, PLACED_AT);
+        builder.add(SPIDER);
     }
 
     public static boolean isSpiderWeb(BlockState state) {
@@ -71,16 +65,10 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
         if (!level.isClientSide) {
-
             if (isSpiderWeb(state)) {
-
-                if (state.hasProperty(PLACED_AT) && state.getValue(PLACED_AT) != PLACED_NEVER) {
-                    return;
-                }
-                BlockState stamped = state.setValue(PLACED_AT, expiryStamp(level.getGameTime()));
-                if (stamped != state) {
-                    level.setBlock(pos, stamped, 3);
-                }
+                // the decay deadline lives on the block entity now (a 2048-value placed_at property on
+                // the block state used to blow up WorldEdit's state map at server start)
+                InfestedWebBlockEntity.stampExpiry(level, pos, DECAY_TICKS, () -> newBlockEntity(pos, state));
                 level.scheduleTick(pos, this, DECAY_TICKS);
             } else {
                 level.scheduleTick(pos, this, 1);
@@ -88,40 +76,24 @@ public class InfestedSpiderWeb extends WebBlock implements InfestedBlockInterfac
         }
     }
 
-    public static int expiryStamp(long gameTime) {
-        int stamp = (int) ((gameTime + DECAY_TICKS) % (long) PLACED_CYCLE);
-        return stamp == PLACED_NEVER ? 1 : stamp;
-    }
-
-    public static int nowStamp(long gameTime) {
-        int stamp = (int) (gameTime % (long) PLACED_CYCLE);
-        return stamp == PLACED_NEVER ? 1 : stamp;
-    }
-
-    public static boolean stampDue(long gameTime, int stamp) {
-        int now = nowStamp(gameTime);
-        long elapsed = (now - (stamp - DECAY_TICKS)) % (long) PLACED_CYCLE;
-        if (elapsed < 0) {
-            elapsed += PLACED_CYCLE;
-        }
-        return elapsed >= DECAY_TICKS;
-    }
-
     @Override
     public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         processEntitiesInBlock(state, level, pos);
 
-        if (isSpiderWeb(state) && state.hasProperty(PLACED_AT)) {
-            int stamp = state.getValue(PLACED_AT);
-            if (stamp != PLACED_NEVER && stampDue(level.getGameTime(), stamp)) {
-                level.destroyBlock(pos, false);
-                return;
-            }
+        if (isSpiderWeb(state) && InfestedWebBlockEntity.isExpired(level, pos)) {
+            level.destroyBlock(pos, false);
+            return;
         }
 
         if (level.getBlockState(pos).getBlock() == this) {
             level.scheduleTick(pos, this, 1);
         }
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return InfestedWebBlockEntity.spider(pos, state);
     }
 
     private void processEntitiesInBlock(BlockState state, ServerLevel level, BlockPos pos) {

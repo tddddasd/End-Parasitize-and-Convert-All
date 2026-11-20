@@ -29,6 +29,22 @@ public final class LikeBiomeSync {
 
     private static final int MAX_REMOVALS_PER_PACKET = 2048;
 
+    /**
+     * Upper bound of packets per level and tick. A bulk world edit can touch tens of thousands of
+     * units in a single tick; sending all of them at once is a bandwidth spike for the client (and
+     * each unit also dirties up to 9 chunk sections there), so the remainder is carried over to the
+     * next tick instead. With ~7 bytes per unit this caps a tick at roughly 30 KB of traffic.
+     */
+    private static final int MAX_PACKETS_PER_TICK = 4;
+
+    /**
+     * Hard iteration cap of the two drain loops below. Both already stop at a packet budget and at
+     * the end of an iterator, but the login audit asks for an explicit cap plus a "the cursor really
+     * moved" check so that a future edit (re-adding leftovers inside the loop, a zero page size)
+     * fails with one log line instead of a frozen server thread.
+     */
+    private static final int MAX_DRAIN_ITERATIONS = 65_536;
+
     private static final Map<ServerLevel, Pending> PENDING = new IdentityHashMap<>();
 
     private LikeBiomeSync() {
@@ -106,45 +122,76 @@ public final class LikeBiomeSync {
     private static void flush(Pending pending) {
         ServerLevel level = pending.level;
         LikeBiomeSavedData data = LikeBiomeSavedData.get(level);
+        int packets = 0;
 
-        List<Long> upsertKeys = new ArrayList<>(pending.upserts.size());
-        for (Long key : pending.upserts) {
-            if (data.atKey(key) != null) {
-                upsertKeys.add(key);
-            }
-        }
-        List<Long> removalKeys = new ArrayList<>(pending.removals.size());
-        for (Long key : pending.removals) {
-            // only tell the client about units it could actually know about
-            if (!data.contains(key)) {
-                removalKeys.add(key);
-            }
-        }
-        pending.upserts.clear();
-        pending.removals.clear();
-
-        int index = 0;
-        while (index < upsertKeys.size()) {
-            int end = Math.min(index + MAX_UPSERTS_PER_PACKET, upsertKeys.size());
-            Map<Long, LikeBiome> upserts = new LinkedHashMap<>();
-            for (int i = index; i < end; i++) {
-                long key = upsertKeys.get(i);
+        if (!pending.upserts.isEmpty()) {
+            Map<Long, LikeBiome> page = new LinkedHashMap<>();
+            Iterator<Long> iterator = pending.upserts.iterator();
+            int iterations = 0;
+            while (iterator.hasNext()) {
+                if (++iterations > MAX_DRAIN_ITERATIONS) {
+                    org.tdddd.epca.impl.epca.LOGGER.error(
+                            "[epca] LikeBiomeSync.flush hit the iteration cap ({}) while "
+                                    + "draining upserts, {} key(s) left - releasing the tick",
+                            MAX_DRAIN_ITERATIONS, pending.upserts.size());
+                    break;
+                }
+                long key = iterator.next();
+                iterator.remove();
                 LikeBiome value = data.atKey(key);
                 if (value != null) {
-                    upserts.put(key, value);
+                    page.put(key, value);
+                }
+                if (page.size() >= MAX_UPSERTS_PER_PACKET) {
+                    send(level, page, List.of());
+                    page = new LinkedHashMap<>();
+                    if (++packets >= MAX_PACKETS_PER_TICK) {
+                        break;
+                    }
                 }
             }
-            if (!upserts.isEmpty()) {
-                send(level, upserts, List.of());
+            // whatever is still buffered goes out on the next tick, together with the rest
+            if (!page.isEmpty() && packets < MAX_PACKETS_PER_TICK) {
+                send(level, page, List.of());
+                packets++;
+            } else if (!page.isEmpty()) {
+                for (Map.Entry<Long, LikeBiome> entry : page.entrySet()) {
+                    pending.upserts.add(entry.getKey());
+                }
             }
-            index = end;
         }
 
-        index = 0;
-        while (index < removalKeys.size()) {
-            int end = Math.min(index + MAX_REMOVALS_PER_PACKET, removalKeys.size());
-            send(level, Map.of(), new ArrayList<>(removalKeys.subList(index, end)));
-            index = end;
+        if (packets < MAX_PACKETS_PER_TICK && !pending.removals.isEmpty()) {
+            List<Long> page = new ArrayList<>(Math.min(MAX_REMOVALS_PER_PACKET, pending.removals.size()));
+            Iterator<Long> iterator = pending.removals.iterator();
+            int iterations = 0;
+            while (iterator.hasNext()) {
+                if (++iterations > MAX_DRAIN_ITERATIONS) {
+                    org.tdddd.epca.impl.epca.LOGGER.error(
+                            "[epca] LikeBiomeSync.flush hit the iteration cap ({}) while "
+                                    + "draining removals, {} key(s) left - releasing the tick",
+                            MAX_DRAIN_ITERATIONS, pending.removals.size());
+                    break;
+                }
+                long key = iterator.next();
+                iterator.remove();
+                // only tell the client about units it could actually know about
+                if (!data.contains(key)) {
+                    page.add(key);
+                }
+                if (page.size() >= MAX_REMOVALS_PER_PACKET) {
+                    send(level, Map.of(), page);
+                    page = new ArrayList<>();
+                    if (++packets >= MAX_PACKETS_PER_TICK) {
+                        break;
+                    }
+                }
+            }
+            if (!page.isEmpty() && packets < MAX_PACKETS_PER_TICK) {
+                send(level, Map.of(), page);
+            } else if (!page.isEmpty()) {
+                pending.removals.addAll(page);
+            }
         }
     }
 

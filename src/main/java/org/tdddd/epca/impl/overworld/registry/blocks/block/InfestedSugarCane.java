@@ -156,7 +156,12 @@ public class InfestedSugarCane extends BushBlock implements InfestedBlockInterfa
             if (aboveState.getBlock() == this || aboveState.getBlock() == Blocks.SUGAR_CANE) {
                 isTop = false;
             }
-            level.setBlock(pos, state.setValue(TOP, isTop), 2);
+            if (state.hasProperty(TOP) && state.getValue(TOP) != isTop) {
+                // only write when the flag really changes: a bulk placement (world edit //set,
+                // schematic paste) fires a neighbour update per block and a redundant setBlock here
+                // would both cost a client chunk update and fight the caller's own write
+                level.setBlock(pos, state.setValue(TOP, isTop), 2);
+            }
         }
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, isMoving);
     }

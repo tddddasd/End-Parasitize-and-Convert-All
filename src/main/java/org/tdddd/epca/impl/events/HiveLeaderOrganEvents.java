@@ -6,6 +6,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganCarry;
+import org.tdddd.epca.impl.overworld.data.organ.OrganModelDisplay;
 
 @Mod.EventBusSubscriber(modid = epca.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class HiveLeaderOrganEvents {
@@ -37,5 +38,17 @@ public final class HiveLeaderOrganEvents {
             return;
         }
         HiveLeaderOrganDamageHandler.clear(player);
+        OrganModelDisplay.onPlayerJoin(player);
+    }
+
+    @SubscribeEvent
+    public static void onStartTracking(PlayerEvent.StartTracking event) {
+        if (!(event.getEntity() instanceof ServerPlayer viewer)) {
+            return;
+        }
+        if (!(event.getTarget() instanceof ServerPlayer target)) {
+            return;
+        }
+        OrganModelDisplay.sendTo(viewer, target);
     }
 }

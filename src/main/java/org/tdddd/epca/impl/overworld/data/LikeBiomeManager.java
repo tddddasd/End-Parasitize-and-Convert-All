@@ -62,6 +62,33 @@ public final class LikeBiomeManager {
     /** Units whose infestation state must be re-checked after the world changed this tick. */
     private static final Map<ServerLevel, java.util.Set<Long>> PENDING_REFRESH = new IdentityHashMap<>();
 
+    /**
+     * Wall clock budget of the reconciler per server tick. The sweep used to spend a fixed budget of
+     * units, which is fine for a handful of units but turns into thousands of block reads on a big
+     * world; a time budget keeps the tick cost flat (= invisible) no matter how many units exist.
+     */
+    private static final long SWEEP_BUDGET_NANOS = 1_500_000L;
+
+    /**
+     * Per level cache of {@code ResourceLocation -> ResourceKey<Biome>} resolutions. The parasite
+     * biome is looked up on <b>every</b> infested block placement (through the
+     * {@code LevelChunk#setBlockState} hook), so the registry lookup and the {@code ResourceKey}
+     * allocation have to happen once, not once per block.
+     */
+    private static final Map<ServerLevel, Map<ResourceLocation, java.util.Optional<ResourceKey<Biome>>>>
+            RESOLVE_CACHE = new IdentityHashMap<>();
+
+    /** Levels whose parasite like biome was already verified to exist. */
+    private static final Map<ServerLevel, Boolean> PARASITE_VERIFIED = new IdentityHashMap<>();
+
+    /** The auto generated like biome value, immutable and therefore shared by every unit. */
+    private static final LikeBiome PARASITE_LIKE_BIOME =
+            new LikeBiome(ParasiteBiome.PARASITE_BIOME.location(), true, true, LikeBiome.SPAWN_NONE,
+                    LikeBiome.STAGE_INHERIT);
+
+    private static final ResourceKey<Biome> PARASITE_KEY =
+            ResourceKey.create(Registries.BIOME, ParasiteBiome.PARASITE_BIOME.location());
+
     private LikeBiomeManager() {
     }
 
@@ -130,8 +157,33 @@ public final class LikeBiomeManager {
         if (id == null) {
             return null;
         }
-        ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, id);
-        return level.registryAccess().registryOrThrow(Registries.BIOME).containsKey(key) ? key : null;
+        Map<ResourceLocation, java.util.Optional<ResourceKey<Biome>>> cache = RESOLVE_CACHE.get(level);
+        if (cache == null) {
+            cache = new java.util.HashMap<>();
+            RESOLVE_CACHE.put(level, cache);
+        }
+        java.util.Optional<ResourceKey<Biome>> cached = cache.get(id);
+        if (cached == null) {
+            ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, id);
+            cached = level.registryAccess().registryOrThrow(Registries.BIOME).containsKey(key)
+                    ? java.util.Optional.of(key)
+                    : java.util.Optional.empty();
+            // a server wide biome registry never changes after load, so a negative answer is final
+            cache.put(id, cached);
+        }
+        return cached.orElse(null);
+    }
+
+    /** Cached "does the parasite like biome exist in this level" answer. */
+    private static boolean parasiteBiomeAvailable(ServerLevel level) {
+        Boolean verified = PARASITE_VERIFIED.get(level);
+        if (verified != null) {
+            return verified;
+        }
+        boolean present = level.registryAccess().registryOrThrow(Registries.BIOME)
+                .containsKey(PARASITE_KEY);
+        PARASITE_VERIFIED.put(level, present);
+        return present;
     }
 
     /** Current erosion (evolution) stage of a dimension. */
@@ -141,8 +193,7 @@ public final class LikeBiomeManager {
 
     /** The like biome that is generated for units containing infested blocks. */
     public static LikeBiome parasiteLikeBiome() {
-        return new LikeBiome(ParasiteBiome.PARASITE_BIOME.location(), true, true, LikeBiome.SPAWN_NONE,
-                LikeBiome.STAGE_INHERIT);
+        return PARASITE_LIKE_BIOME;
     }
 
     @Nullable
@@ -179,10 +230,10 @@ public final class LikeBiomeManager {
         if (existing != null) {
             return;
         }
-        if (resolve(level, ParasiteBiome.PARASITE_BIOME.location()) == null) {
+        if (!parasiteBiomeAvailable(level)) {
             return;
         }
-        data.set(unitKey, parasiteLikeBiome());
+        data.set(unitKey, PARASITE_LIKE_BIOME);
         data.setManaged(unitKey, true);
         LikeBiomeSync.markUpsert(level, unitKey);
     }
@@ -298,14 +349,154 @@ public final class LikeBiomeManager {
     // client synchronisation
     // ------------------------------------------------------------------
 
-    /** Full snapshot for one player, used on login and on dimension change. */
+    /**
+     * Full snapshot for one player, used on login and on dimension change.
+     *
+     * <p>Deliberately does <b>no</b> work here: this runs inside {@code PlayerLoggedInEvent} on the
+     * server thread, and copying the key list of a 400k unit world there would block the very login
+     * it is supposed to accelerate. The cursor is materialised on the first pump tick instead (see
+     * {@link #pumpSnapshots}), which is spread over the following ticks anyway.</p>
+     */
     public static void syncAllToPlayer(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
-        SyncLikeBiomesPacket.sendTo(player, level, LikeBiomeSavedData.get(level));
+        // The snapshot is paged over several ticks: a big world holds tens of thousands of units and
+        // one packet containing all of them is both a login hitch and - from roughly 60k units on -
+        // larger than the protocol maximum packet size.
+        LOGIN_SYNC.put(player, SnapshotCursor.of(level));
     }
 
     public static void sendFullSnapshot(ServerLevel level) {
         SyncLikeBiomesPacket.sendAll(level, LikeBiomeSavedData.get(level));
+    }
+
+    // ------------------------------------------------------------------
+    // paged login snapshot
+    // ------------------------------------------------------------------
+
+    /** Units carried by one page packet. 1024 units stay around 6-8 KB on the wire. */
+    private static final int SNAPSHOT_PAGE_UNITS = 1024;
+
+    /** Pages sent per player per tick; keeps the login burst bounded while staying fast. */
+    private static final int SNAPSHOT_PAGES_PER_TICK = 4;
+
+    /**
+     * Absolute iteration cap of the paging loop. The loop is bounded by
+     * {@link #SNAPSHOT_PAGES_PER_TICK} already; this is the belt-and-braces guard the login audit
+     * asks for, so a future edit (a page size of zero, a cursor that does not advance) turns into one
+     * error line instead of a frozen server thread.
+     */
+    private static final int SNAPSHOT_MAX_ITERATIONS = 64;
+
+    private static final Map<ServerPlayer, SnapshotCursor> LOGIN_SYNC = new IdentityHashMap<>();
+
+    private static final class SnapshotCursor {
+
+        private final ServerLevel level;
+
+        /** {@code null} until the first pump tick materialises it. */
+        private long[] keys;
+
+        private int index;
+
+        private int pagesSent;
+
+        private SnapshotCursor(ServerLevel level) {
+            this.level = level;
+        }
+
+        static SnapshotCursor of(ServerLevel level) {
+            return new SnapshotCursor(level);
+        }
+
+        boolean done() {
+            return this.keys != null && this.index >= this.keys.length;
+        }
+    }
+
+    /**
+     * Sends at most {@link #SNAPSHOT_PAGES_PER_TICK} pages of the pending login snapshot for every
+     * player. The first page carries the "reset" flag so a re-login drops stale client side units.
+     */
+    private static void pumpSnapshots(net.minecraft.server.MinecraftServer server) {
+        if (LOGIN_SYNC.isEmpty()) {
+            return;
+        }
+        java.util.Iterator<Map.Entry<ServerPlayer, SnapshotCursor>> iterator =
+                LOGIN_SYNC.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<ServerPlayer, SnapshotCursor> entry = iterator.next();
+            ServerPlayer player = entry.getKey();
+            SnapshotCursor cursor = entry.getValue();
+            if (player.hasDisconnected() || player.serverLevel() != cursor.level) {
+                // left the level / changed dimension: the next login or dimension change queues a
+                // fresh snapshot for the new dimension
+                iterator.remove();
+                continue;
+            }
+            LikeBiomeSavedData data = LikeBiomeSavedData.get(cursor.level);
+            if (cursor.keys == null) {
+                // first tick after login: this is the only place the key list is copied, so a huge
+                // world costs one allocation on a tick instead of inside the login event
+                cursor.keys = data.keysSnapshot();
+            }
+            boolean first = cursor.index == 0;
+            if (cursor.keys.length == 0) {
+                // Zero units must still produce the reset page, otherwise a re-login keeps the units
+                // of the previous session in the client cache forever (they are never overwritten).
+                org.tdddd.epca.impl.network.ModNetwork.sendToPlayer(player,
+                        new org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket(
+                                cursor.level.dimension().location(), java.util.Map.of(),
+                                java.util.List.of(), true));
+                cursor.pagesSent = 1;
+                iterator.remove();
+                continue;
+            }
+            int pages = 0;
+            int iterations = 0;
+            while (cursor.index < cursor.keys.length && pages < SNAPSHOT_PAGES_PER_TICK) {
+                if (++iterations > SNAPSHOT_MAX_ITERATIONS) {
+                    org.tdddd.epca.impl.epca.LOGGER.error(
+                            "[epca] likeBiome.pumpSnapshots hit the iteration cap ({}) at index "
+                                    + "{}/{} - the paging loop did not terminate, dropping the snapshot",
+                            SNAPSHOT_MAX_ITERATIONS, cursor.index, cursor.keys.length);
+                    break;
+                }
+                int step = Math.max(1, SNAPSHOT_PAGE_UNITS);
+                int end = Math.min(cursor.index + step, cursor.keys.length);
+                if (end <= cursor.index) {
+                    org.tdddd.epca.impl.epca.LOGGER.error(
+                            "[epca] likeBiome.pumpSnapshots cursor did not advance "
+                                    + "({} -> {}) - aborting this snapshot to avoid an endless loop",
+                            cursor.index, end);
+                    cursor.index = cursor.keys.length;
+                    break;
+                }
+                Map<Long, LikeBiome> upserts = new java.util.LinkedHashMap<>();
+                for (int i = cursor.index; i < end; i++) {
+                    long key = cursor.keys[i];
+                    LikeBiome value = data.atKey(key);
+                    if (value != null) {
+                        upserts.put(key, value);
+                    }
+                }
+                cursor.index = end;
+                if (!upserts.isEmpty()) {
+                    org.tdddd.epca.impl.network.ModNetwork.sendToPlayer(player,
+                            new org.tdddd.epca.impl.network.packet.s2c.SyncLikeBiomeBatchPacket(
+                                    cursor.level.dimension().location(), upserts, java.util.List.of(),
+                                    first));
+                    // only a packet that was really sent may consume the reset flag; otherwise a
+                    // page whose units all disappeared before the flush would silently drop it and
+                    // the client would keep the previous session's units
+                    first = false;
+                    cursor.pagesSent++;
+                }
+                pages++;
+            }
+            if (cursor.done()) {
+                iterator.remove();
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -323,6 +514,7 @@ public final class LikeBiomeManager {
                 sweep(level);
             }
         }
+        pumpSnapshots(event.getServer());
         LikeBiomeSync.flushAll();
     }
 
@@ -352,26 +544,35 @@ public final class LikeBiomeManager {
             SWEEP_CURSOR.remove(level);
             return;
         }
+        long deadline = System.nanoTime() + SWEEP_BUDGET_NANOS;
         int[] cursor = SWEEP_CURSOR.computeIfAbsent(level, key -> new int[]{0});
         int start = Math.floorMod(cursor[0], size);
         int budget = Math.min(SWEEP_BATCH, size);
+        int inspected = 0;
         for (int i = 0; i < budget; i++) {
+            if (System.nanoTime() >= deadline) {
+                break;
+            }
             long key = data.keyAt((start + i) % size);
             if (key == Long.MIN_VALUE) {
                 break;
             }
+            inspected = i + 1;
             if (!data.isManaged(key)) {
                 continue;
             }
             refreshUnitByKey(level, key);
         }
-        cursor[0] = Math.floorMod(start + budget, size);
+        cursor[0] = Math.floorMod(start + Math.max(1, inspected), size);
     }
 
     /** Drops per level bookkeeping, used when a world is unloaded. */
     public static void clearRuntimeState() {
         SWEEP_CURSOR.clear();
         PENDING_REFRESH.clear();
+        RESOLVE_CACHE.clear();
+        PARASITE_VERIFIED.clear();
+        LOGIN_SYNC.clear();
         LikeBiomeSync.clearAll();
     }
 }

@@ -33,6 +33,7 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
     public static void tick(Level level, BlockPos pos, BlockState state, InfestedSweetBerryBushBlockEntity entity) {
         if (level.isClientSide) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
+        if (!state.hasProperty(InfestedSweetBerryBush.AGE)) return;
 
         // 只有两个阶段：age=0 未结果，age=1 结果
         if (state.getValue(InfestedSweetBerryBush.AGE) < 1) {
@@ -95,10 +96,10 @@ public class InfestedSweetBerryBushBlockEntity extends BlockEntity {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        if (tag.hasUUID("Target")) {
-            targetUUID = tag.getUUID("Target");
-        }
-        attractCooldown = tag.getInt("Cooldown");
+        // defensive: NBT from a schematic / another mod may be missing the key or store a malformed
+        // int array, getUUID would throw on it
+        targetUUID = org.tdddd.epca.impl.utils.NbtSafe.getUuid(tag, "Target");
+        attractCooldown = org.tdddd.epca.impl.utils.NbtSafe.getInt(tag, "Cooldown", 0);
     }
 
     @Override

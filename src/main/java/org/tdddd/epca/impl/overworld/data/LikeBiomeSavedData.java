@@ -51,6 +51,10 @@ public class LikeBiomeSavedData extends SavedData {
     private int version = CURRENT_VERSION;
 
     public static LikeBiomeSavedData get(ServerLevel level) {
+        return obtain(level);
+    }
+
+    private static LikeBiomeSavedData obtain(ServerLevel level) {
         DimensionDataStorage storage = level.getDataStorage();
         return storage.computeIfAbsent(LikeBiomeSavedData::load, LikeBiomeSavedData::new, DATA_NAME);
     }
@@ -128,6 +132,20 @@ public class LikeBiomeSavedData extends SavedData {
             return Long.MIN_VALUE;
         }
         return this.order.get(index);
+    }
+
+    /**
+     * Snapshot of every unit key, used to page a login snapshot over several ticks. A primitive
+     * array is a single allocation and stays cheap even for a large world (a full unit is 4x4x4
+     * blocks, so a heavily infested map easily reaches tens of thousands of entries).
+     */
+    public long[] keysSnapshot() {
+        int size = this.order.size();
+        long[] keys = new long[size];
+        for (int i = 0; i < size; i++) {
+            keys[i] = this.order.get(i);
+        }
+        return keys;
     }
 
     public Map<Long, LikeBiome> entries() {

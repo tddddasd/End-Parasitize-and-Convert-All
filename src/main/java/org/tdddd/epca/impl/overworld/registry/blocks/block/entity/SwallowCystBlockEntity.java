@@ -69,6 +69,9 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
 
     public void tick(Level level, BlockPos pos, BlockState state) {
         if (level.isClientSide) return;
+        // the block entity can survive as an orphan for a tick when another mod (world edit,
+        // schematic paste) replaces the block underneath it; never assume the state still matches
+        if (!state.hasProperty(SwallowCyst.LIVING)) return;
         ServerLevel serverLevel = (ServerLevel) level;
 
         boolean isLiving = state.getValue(SwallowCyst.LIVING);
@@ -182,7 +185,12 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
     }
 
     private void becomeDead(ServerLevel level, BlockPos pos) {
-        BlockState newState = level.getBlockState(pos).setValue(SwallowCyst.LIVING, false);
+        BlockState current = level.getBlockState(pos);
+        if (!current.hasProperty(SwallowCyst.LIVING)) {
+            // the block was replaced while this entity was still ticking
+            return;
+        }
+        BlockState newState = current.setValue(SwallowCyst.LIVING, false);
         level.setBlock(pos, newState, 3);
 
     }
@@ -196,6 +204,7 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
 
     public void onPlayerTake(Player player, ItemStack takenStack) {
         BlockState state = level.getBlockState(worldPosition);
+        if (!state.hasProperty(SwallowCyst.LIVING)) return;
         boolean isLiving = state.getValue(SwallowCyst.LIVING);
         if (!isLiving) return;
 
@@ -244,11 +253,13 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        inventory.deserializeNBT(tag.getCompound("Inventory"));
-        emptyTicks = tag.getInt("EmptyTicks");
-        absorbCooldown = tag.getInt("AbsorbCooldown");
-        damageCooldown = tag.getInt("DamageCooldown");
-        consumeCooldown = tag.getInt("ConsumeCooldown");
+        // defensive: the tag may come from a schematic / another mod and can be missing fields,
+        // carry a wrong type or a bogus inventory size
+        org.tdddd.epca.impl.utils.NbtSafe.loadItemHandler(tag.getCompound("Inventory"), inventory);
+        emptyTicks = org.tdddd.epca.impl.utils.NbtSafe.getInt(tag, "EmptyTicks", 0);
+        absorbCooldown = org.tdddd.epca.impl.utils.NbtSafe.getInt(tag, "AbsorbCooldown", 0);
+        damageCooldown = org.tdddd.epca.impl.utils.NbtSafe.getInt(tag, "DamageCooldown", 0);
+        consumeCooldown = org.tdddd.epca.impl.utils.NbtSafe.getInt(tag, "ConsumeCooldown", 0);
     }
 
     @Override
@@ -257,7 +268,8 @@ public class SwallowCystBlockEntity extends BlockEntity implements MenuProvider,
     }
 
     private PlayState predicate(AnimationState<SwallowCystBlockEntity> state) {
-        boolean living = getBlockState().getValue(SwallowCyst.LIVING);
+        BlockState blockState = getBlockState();
+        boolean living = !blockState.hasProperty(SwallowCyst.LIVING) || blockState.getValue(SwallowCyst.LIVING);
         if (living) {
             state.setAnimation(RawAnimation.begin().thenLoop("idle"));
         } else {

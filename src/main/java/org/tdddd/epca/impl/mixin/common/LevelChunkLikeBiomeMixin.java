@@ -34,21 +34,32 @@ public abstract class LevelChunkLikeBiomeMixin {
     )
     private void epca$likeBiomeUnitTracking(BlockPos pos, BlockState newState, boolean isMoving,
                                             CallbackInfoReturnable<BlockState> cir) {
-        BlockState replaced = cir.getReturnValue();
-        LevelChunk chunk = (LevelChunk) (Object) this;
-        Level level = chunk.getLevel();
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        boolean placedInfested = newState.getBlock() instanceof InfestedBlockInterface;
-        boolean removedInfested = replaced != null && replaced.getBlock() instanceof InfestedBlockInterface;
-        if (!placedInfested && !removedInfested) {
-            return;
-        }
-        if (placedInfested) {
-            LikeBiomeManager.markUnitInfested(serverLevel, pos);
-        } else {
-            LikeBiomeManager.scheduleRefresh(serverLevel, pos);
+        // This is the hottest hook of the mod: every block change of every loaded chunk passes
+        // through it, including bulk operations such as a world edit //set over a whole region.
+        // A failure here must never abort (or partially abort) the caller's write, so the whole
+        // bookkeeping is guarded.
+        try {
+            if (pos == null || newState == null) {
+                return;
+            }
+            LevelChunk chunk = (LevelChunk) (Object) this;
+            Level level = chunk.getLevel();
+            if (!(level instanceof ServerLevel serverLevel)) {
+                return;
+            }
+            BlockState replaced = cir.getReturnValue();
+            boolean placedInfested = newState.getBlock() instanceof InfestedBlockInterface;
+            boolean removedInfested = replaced != null && replaced.getBlock() instanceof InfestedBlockInterface;
+            if (!placedInfested && !removedInfested) {
+                return;
+            }
+            if (placedInfested) {
+                LikeBiomeManager.markUnitInfested(serverLevel, pos);
+            } else {
+                LikeBiomeManager.scheduleRefresh(serverLevel, pos);
+            }
+        } catch (RuntimeException exception) {
+            org.tdddd.epca.impl.utils.NbtSafe.warn("LevelChunk#setBlockState like biome hook", exception);
         }
     }
 }

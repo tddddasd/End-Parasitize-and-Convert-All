@@ -128,8 +128,25 @@ public final class LikeBiomeClientEffects {
         return ((long) LikeBiomeClientCache.generation() << 32) | (dimensionStage & 0xFFFFFFFFL);
     }
 
+    /**
+     * The erosion stage of the current dimension, memoised for the duration of one client tick.
+     * {@code blend} runs for every tinted block of every rebuilt chunk section, so resolving the
+     * stage per block (level lookup + dimension ResourceLocation + map lookup) is pure overhead.
+     */
+    private static int stageCacheTick = -1;
+
+    private static int stageCacheValue;
+
+    private static int clientTickCounter;
+
     private static int dimensionStage() {
-        return ClientEvolutionData.getStageForDimension(Minecraft.getInstance().level);
+        int tick = clientTickCounter;
+        if (tick == stageCacheTick) {
+            return stageCacheValue;
+        }
+        stageCacheTick = tick;
+        stageCacheValue = ClientEvolutionData.getStageForDimension(Minecraft.getInstance().level);
+        return stageCacheValue;
     }
 
     /** Colour of one unit for one kind, {@code -1} when that unit does not override this kind. */
@@ -407,17 +424,19 @@ public final class LikeBiomeClientEffects {
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
-        Level level = Minecraft.getInstance().level;
-        if (level == lastLevel) {
-            return;
-        }
-        lastLevel = level;
-        if (level == null) {
-            LikeBiomeClientCache.clear();
-        } else {
-            // only drop the cache when the dimension really changed, so a snapshot that arrived
-            // before the first tick of the new level is not thrown away again
-            LikeBiomeClientCache.clearIfDimension(level.dimension().location());
+        clientTickCounter++;
+        Minecraft minecraft = Minecraft.getInstance();
+        Level level = minecraft.level;
+        if (level != lastLevel) {
+            lastLevel = level;
+            if (level == null) {
+                LikeBiomeClientCache.clear();
+                org.tdddd.epca.impl.client.LikeBiomeClientRerender.clear();
+            } else {
+                // only drop the cache when the dimension really changed, so a snapshot that arrived
+                // before the first tick of the new level is not thrown away again
+                LikeBiomeClientCache.clearIfDimension(level.dimension().location());
+            }
         }
     }
 }

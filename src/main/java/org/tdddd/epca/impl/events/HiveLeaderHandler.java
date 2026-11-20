@@ -53,6 +53,19 @@ public class HiveLeaderHandler {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getEntity();
         BiomassEventHandler.syncBiomass(player);
+        // 领巢者名单：客户端缓存是空集合起步的，服务端只在名单变动时广播，登录必须补发一份，
+        // 否则“上一次游戏就已经是领巢者”的玩家本会话里所有领巢者渲染全部被身份守卫挡掉。
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            HiveLeaderManager.syncTo(serverPlayer);
+        }
+    }
+
+    /** 换维度也补发一次：客户端在换世界/换维度时会清掉部分缓存，补发让它立刻重新收敛。 */
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            HiveLeaderManager.syncTo(serverPlayer);
+        }
     }
 
     @SubscribeEvent
@@ -70,6 +83,12 @@ public class HiveLeaderHandler {
 
         applyEnderBladeProc(player, target, summary);
         applyBeckonMembraneProc(player, target, summary);
+
+        // 种阶特化的攻击附加效果（要求开启器官模型显示，内部自行判定）。
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            org.tdddd.epca.impl.overworld.data.organ.species.HiveLeaderSpeciesManager
+                    .onAttack(serverPlayer, target, summary);
+        }
     }
 
     private static void applyEnderBladeProc(Player player, LivingEntity target, OrganStatSummary summary) {

@@ -41,19 +41,36 @@ public class SyncLikeBiomeBatchPacket {
 
     private static final int FLAG_STAGE = 4;
 
+    /** Upper bound for any length field read from the wire, so a corrupt size cannot pre-allocate. */
+    private static final int MAX_DECODED_ENTRIES = 4_194_304;
+
     private final ResourceLocation dimension;
     private final Map<Long, LikeBiome> upserts;
     private final List<Long> removals;
 
+    /**
+     * {@code true} for the first page of a paged login snapshot: the client drops every cached unit
+     * before applying the page. This lets a huge snapshot be spread over many small packets instead
+     * of one packet that would exceed the protocol limit.
+     */
+    private final boolean reset;
+
     public SyncLikeBiomeBatchPacket(ResourceLocation dimension, Map<Long, LikeBiome> upserts,
                                     List<Long> removals) {
+        this(dimension, upserts, removals, false);
+    }
+
+    public SyncLikeBiomeBatchPacket(ResourceLocation dimension, Map<Long, LikeBiome> upserts,
+                                    List<Long> removals, boolean reset) {
         this.dimension = dimension;
         this.upserts = upserts;
         this.removals = removals;
+        this.reset = reset;
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeResourceLocation(this.dimension);
+        buf.writeBoolean(this.reset);
 
         List<ResourceLocation> palette = new ArrayList<>();
         Map<ResourceLocation, Integer> paletteIndex = new HashMap<>();
@@ -92,15 +109,18 @@ public class SyncLikeBiomeBatchPacket {
 
     public static SyncLikeBiomeBatchPacket decode(FriendlyByteBuf buf) {
         ResourceLocation dimension = buf.readResourceLocation();
+        boolean reset = buf.readBoolean();
 
-        int paletteSize = buf.readVarInt();
-        List<ResourceLocation> palette = new ArrayList<>(paletteSize);
+        // A corrupt/hostile length must not pre-size a collection out of the packet budget: the
+        // packet reader would happily allocate gigabytes for a size that the buffer cannot hold.
+        int paletteSize = Math.min(Math.max(0, buf.readVarInt()), MAX_DECODED_ENTRIES);
+        List<ResourceLocation> palette = new ArrayList<>(Math.min(paletteSize, 256));
         for (int i = 0; i < paletteSize; i++) {
             palette.add(buf.readResourceLocation());
         }
 
-        int upsertCount = buf.readVarInt();
-        Map<Long, LikeBiome> upserts = new LinkedHashMap<>(Math.max(4, upsertCount));
+        int upsertCount = Math.min(Math.max(0, buf.readVarInt()), MAX_DECODED_ENTRIES);
+        Map<Long, LikeBiome> upserts = new LinkedHashMap<>(Math.min(Math.max(4, upsertCount), 1024));
         for (int i = 0; i < upsertCount; i++) {
             long key = readUnitKey(buf);
             int paletteIdx = buf.readVarInt();
@@ -117,16 +137,20 @@ public class SyncLikeBiomeBatchPacket {
                     spawnMode, stage));
         }
 
-        int removalCount = buf.readVarInt();
-        List<Long> removals = new ArrayList<>(Math.max(4, removalCount));
+        int removalCount = Math.min(Math.max(0, buf.readVarInt()), MAX_DECODED_ENTRIES);
+        List<Long> removals = new ArrayList<>(Math.min(Math.max(4, removalCount), 1024));
         for (int i = 0; i < removalCount; i++) {
             removals.add(readUnitKey(buf));
         }
-        return new SyncLikeBiomeBatchPacket(dimension, upserts, removals);
+        return new SyncLikeBiomeBatchPacket(dimension, upserts, removals, reset);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
+            if (this.reset) {
+                // first page of a paged snapshot: forget everything the previous session cached
+                LikeBiomeClientCache.clear();
+            }
             Set<Long> dirtySections = LikeBiomeClientCache.applyBatch(this.dimension, this.upserts,
                     this.removals);
             if (!dirtySections.isEmpty()) {

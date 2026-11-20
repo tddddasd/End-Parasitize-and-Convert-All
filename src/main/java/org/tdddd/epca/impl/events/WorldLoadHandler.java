@@ -43,4 +43,31 @@ public class WorldLoadHandler {
             }
         }
     }
+
+    /**
+     * Drops every per level runtime cache when a dimension unloads.
+     *
+     * <p>Several subsystems keep {@code IdentityHashMap<ServerLevel, ...>} bookkeeping (sweep cursors,
+     * pending like biome refreshes, biome id resolve caches, snapshot queues). Those maps hold the
+     * {@link ServerLevel} strongly, so without this hook quitting to the title screen keeps the whole
+     * previous world - including its multi hundred thousand entry saved data - reachable, which
+     * leaves the integrated server with a permanently smaller heap and makes the next world entry
+     * stutter through GC instead of loading.</p>
+     */
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        // a login snapshot that survives its dimension being unloaded would point at a dead level
+        // every one of these maps is rebuildable lazily, so dropping them all is always safe
+        org.tdddd.epca.impl.overworld.data.LikeBiomeManager.clearRuntimeState();
+        org.tdddd.epca.impl.overworld.data.InfestedBlockManager.clearRuntimeState();
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        org.tdddd.epca.impl.overworld.data.LikeBiomeManager.clearRuntimeState();
+        org.tdddd.epca.impl.overworld.data.InfestedBlockManager.clearRuntimeState();
+    }
 }

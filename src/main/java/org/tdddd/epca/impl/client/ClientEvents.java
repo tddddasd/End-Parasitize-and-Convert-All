@@ -38,6 +38,13 @@ public class ClientEvents {
         ClientLevel level = Minecraft.getInstance().level;
         if (level != ritualLevel) {
             ritualLevel = level;
+
+            // 换维度 / 换世界：1.20.1 每次切维度都会新建一个 ClientLevel，所以这里是可靠的变化点。
+            // 屏障是 DIMENSION 目标、只在创建/移除时广播，换维度后手上还是旧维度的数据，先丢掉；
+            // 服务端 InfestedRaidManager#onChangedDimension 会马上把目标维度的列表单发过来。
+            org.tdddd.epca.impl.client.render.ClientRaidBarriers.onDimensionChanged(
+                    level == null ? null : level.dimension().location());
+
             SacrificeRitualClientCache.clear();
 
             ArayaClientCache.clear();
