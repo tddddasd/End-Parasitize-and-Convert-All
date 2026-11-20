@@ -41,6 +41,20 @@ public class ItemGenData extends ModelProvider {
             "endless_wand"
     );
 
+    /**
+     * 刻意<b>不生成</b>物品模型 / 物品模型定义（26 的 {@code assets/<ns>/items/<path>.json}）的物品。
+     *
+     * <p>这三个物品既没有贴图，也不打算补贴图：{@code generateFlatItem} 只会生成一个引用
+     * 不存在的 {@code epca:item/<name>.png} 的 FLAT_ITEM 模型，启动时就报
+     * {@code Missing textures in model epca:item/...}。放进这里后，{@code runData}
+     * 不会再把它们生成回来（游戏内显示为“无模型”，这是接受的预期结果）。</p>
+     */
+    private static final Set<String> NO_MODEL = Set.of(
+            "biomass_small_spawn_egg",
+            "biomass_medium_spawn_egg",
+            "afterimage_module"
+    );
+
     @Override
     protected Stream<? extends Holder<Block>> getKnownBlocks() {
 
@@ -53,7 +67,8 @@ public class ItemGenData extends ModelProvider {
         return BuiltInRegistries.ITEM.listElements()
                 .filter(holder -> holder.getKey().identifier().getNamespace().equals(epca.MODID))
                 .filter(holder -> !(holder.value() instanceof BlockItem))
-                .filter(holder -> !MANUAL_WHITELIST.contains(holder.getKey().identifier().getPath()));
+                .filter(holder -> !MANUAL_WHITELIST.contains(holder.getKey().identifier().getPath()))
+                .filter(holder -> !NO_MODEL.contains(holder.getKey().identifier().getPath()));
     }
 
     @Override
@@ -62,6 +77,7 @@ public class ItemGenData extends ModelProvider {
                 .filter(holder -> holder.getKey().identifier().getNamespace().equals(epca.MODID))
                 .filter(holder -> !(holder.value() instanceof BlockItem))
                 .filter(holder -> !MANUAL_WHITELIST.contains(holder.getKey().identifier().getPath()))
+                .filter(holder -> !NO_MODEL.contains(holder.getKey().identifier().getPath()))
                 .forEach(holder -> {
                     Item item = holder.value();
                     String path = holder.getKey().identifier().getPath();

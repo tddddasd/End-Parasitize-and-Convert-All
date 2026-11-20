@@ -1,8 +1,6 @@
 package org.tdddd.epca.impl.overworld.data.organ.stats;
 
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganData;
 
@@ -10,13 +8,16 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 器官界面的文本读数（属性增益 + 各槽位来源）。
+ *
+ * <p>2026-11 起<strong>不再输出任何「器官适应性」行</strong>（原「适应概率 / 适应满减免」两行已删除）。
+ * 伤害相关的读数改由种阶特化提供：重塑种的伤害适应性显示在
+ * {@code HiveLeaderOrganScreen} 的同一读数区（数据来自 {@code SyncHiveLeaderSpeciesPacket}）。</p>
+ */
 public final class OrganStatReadout {
 
     public static final int DEFAULT_STATS_MAX_LINES = 12;
-
-    public static final int DEFAULT_DAMAGE_MAX_LINES = 10;
-
-    public static final int DAMAGE_LINE_COUNT = 2;
 
     public static final String ELLIPSIS = "…";
 
@@ -33,11 +34,10 @@ public final class OrganStatReadout {
 
         Component sourceHeadInner();
 
-        Component adaptationChance();
-
-        Component adaptationReduction();
-
-        Component percentUnit();
+        /** 四肢内部（左/右臂、左/右腿）增幅；默认与头部内部同标签，保证旧实现不需要改。 */
+        default Component sourceLimbInner() {
+            return sourceHeadInner();
+        }
     }
 
     private static final ReadoutLabels FALLBACK_LABELS = new ReadoutLabels() {
@@ -60,21 +60,6 @@ public final class OrganStatReadout {
         public Component sourceHeadInner() {
             return Component.literal("head_inner");
         }
-
-        @Override
-        public Component adaptationChance() {
-            return Component.literal("adaptation_chance");
-        }
-
-        @Override
-        public Component adaptationReduction() {
-            return Component.literal("adaptation_reduction");
-        }
-
-        @Override
-        public Component percentUnit() {
-            return Component.literal("%");
-        }
     };
 
     public static List<String> statsLines(@Nullable LivingEntity entity, OrganStatSummary summary) {
@@ -95,7 +80,6 @@ public final class OrganStatReadout {
         for (String key : OrganStatSummary.STAT_ATTRIBUTE_KEYS) {
             double current = OrganStatSummary.currentAttributeValue(entity, key);
             double bonus = safe.bonusFor(key);
-
             all.add(text.attributeName(key).getString()
                     + " " + OrganStatDefaults.format(current)
                     + "（" + OrganStatDefaults.formatSigned(bonus) + "）");
@@ -104,6 +88,7 @@ public final class OrganStatReadout {
         appendSourceLine(all, text.sourcePurple(), safe.purpleBonus(), text);
         appendSourceLine(all, text.sourceTorsoInner(), safe.torsoInnerBonus(), text);
         appendSourceLine(all, text.sourceHeadInner(), safe.headInnerBonus(), text);
+        appendSourceLine(all, text.sourceLimbInner(), safe.limbInnerBonus(), text);
         return trim(all, maxLines);
     }
 
@@ -139,33 +124,6 @@ public final class OrganStatReadout {
         };
     }
 
-    public static List<String> damageLines(OrganStatSummary summary,
-                                           @Nullable Registry<DamageType> registry) {
-        return damageLines(summary, registry, DEFAULT_DAMAGE_MAX_LINES);
-    }
-
-    public static List<String> damageLines(OrganStatSummary summary,
-                                           @Nullable Registry<DamageType> registry,
-                                           int maxLines) {
-        return damageLines(summary, registry, maxLines, FALLBACK_LABELS);
-    }
-
-    public static List<String> damageLines(OrganStatSummary summary,
-                                           @Nullable Registry<DamageType> registry,
-                                           int maxLines, ReadoutLabels labels) {
-        OrganStatSummary safe = summary == null ? OrganStatSummary.empty() : summary;
-        ReadoutLabels text = labels == null ? FALLBACK_LABELS : labels;
-        String percent = text.percentUnit().getString();
-        List<String> all = new ArrayList<>(DAMAGE_LINE_COUNT);
-
-        all.add(text.adaptationChance().getString() + " "
-                + OrganStatDefaults.formatPercentNumber(safe.adaptationChance()) + percent);
-        all.add(text.adaptationReduction().getString() + " "
-                + OrganStatDefaults.formatPercentNumber(safe.adaptationReduction()) + percent);
-
-        return trim(all, Math.min(maxLines, DAMAGE_LINE_COUNT));
-    }
-
     private static List<String> trim(List<String> lines, int maxLines) {
         if (maxLines <= 0) return List.of();
         List<String> flattened = new ArrayList<>();
@@ -182,10 +140,5 @@ public final class OrganStatReadout {
 
     public static List<String> statsLines(@Nullable LivingEntity entity, @Nullable HiveLeaderOrganData data) {
         return statsLines(entity, OrganStatSummary.compute(data));
-    }
-
-    public static List<String> damageLines(@Nullable HiveLeaderOrganData data,
-                                           @Nullable Registry<DamageType> registry) {
-        return damageLines(OrganStatSummary.compute(data), registry);
     }
 }

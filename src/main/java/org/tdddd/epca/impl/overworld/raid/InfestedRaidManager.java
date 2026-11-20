@@ -145,10 +145,24 @@ public final class InfestedRaidManager {
     public static void onLogin(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
-        InfestedRaidBarrierData data = InfestedRaidBarrierData.get(level);
-        data.prune();
-        org.tdddd.epca.impl.network.ModNetwork.sendToPlayer(player,
-                new org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket(data.all()));
+        org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket.sendAllTo(player, level);
+    }
+
+    /**
+     * 换维度时补发<b>目标维度</b>的屏障（0.148n）。
+     *
+     * <p>{@code RaidBarrierS2CPacket} 是 DIMENSION 目标、只在创建 / 移除时广播，没有登录之外的补发，
+     * 所以传送到另一个维度后客户端只留着旧维度那份快照，新维度已有的屏障完全看不到。
+     * 这里在 {@code PlayerChangedDimensionEvent} 里按 {@code player.level()}（事件触发时已是目标维度）
+     * 该维度的数据补发一次；客户端 {@code ClientRaidBarrierEvents} 在换维度时只清空旧维度条目，
+     * 因此无论补发包与客户端的维度切换谁先到，目标维度的数据都不会被误删。</p>
+     */
+    @SubscribeEvent
+    public static void onChangedDimension(
+            net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (!(player.level() instanceof ServerLevel level)) return;
+        org.tdddd.epca.impl.network.packet.s2c.RaidBarrierS2CPacket.sendAllTo(player, level);
     }
 
     private static LivingEntity findTarget(Mob seeker, double range) {

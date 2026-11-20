@@ -154,6 +154,9 @@ public class ClientHandler {
         org.tdddd.epca.impl.client.render.araya.ArayaFireRenderType.registerPipeline(event);
 
         EmissiveBlockRenderType.registerPipeline(event);
+
+        // 指挥系统不再注册自定义 pipeline：紫线/节点改用原版
+        // RenderTypes.lines() / RenderTypes.debugQuads()，见 HiveCommandRenderTypes。
     }
 
     @SubscribeEvent

@@ -662,8 +662,20 @@ public final class EPCANoteEntryStats {
         }
     }
 
+    /**
+     * 26.1.2 的数据包目录是单数 {@code loot_table}，1.20.1 是复数 {@code loot_tables}。
+     * 两个都试，先单数（26 原生布局），再复数（从 1.20.1 直接搬过来的资源）。
+     */
+    private static String lootTablePath(String entityPath) {
+        String singular = "loot_table/entities/" + entityPath + ".json";
+        if (EPCANoteBundledData.readJson(singular) != null) {
+            return singular;
+        }
+        return "loot_tables/entities/" + entityPath + ".json";
+    }
     private static JsonObject lootTable(String entityPath) {
-        String path = "loot_tables/entities/" + entityPath + ".json";
+        // 26.1.2 的数据包目录是单数 loot_table，1.20.1 是复数 loot_tables：两个都试，兼容两种布局
+        String path = lootTablePath(entityPath);
         Optional<JsonObject> cached = LOOT_CACHE.get(path);
         if (cached != null) {
             return cached.orElse(null);

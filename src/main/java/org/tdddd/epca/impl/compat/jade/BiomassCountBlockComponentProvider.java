@@ -27,8 +27,12 @@ public class BiomassCountBlockComponentProvider implements IBlockComponentProvid
         tooltip.append(Component.literal(" " + count + "/" + max));
     }
 
+    /**
+     * 方块组件的 id 与巢节点的同名组件区分开（否则同一注册表里两个实例同 id，Jade 会警告）；
+     * 配置开关仍然读 {@link EPCAJadeIds#BIOMASS_COUNT_INFO}，玩家侧只有一个开关。
+     */
     @Override
     public Identifier getUid() {
-        return EPCAJadeIds.BIOMASS_COUNT_INFO;
+        return EPCAJadeIds.BIOMASS_COUNT_BLOCK;
     }
 }

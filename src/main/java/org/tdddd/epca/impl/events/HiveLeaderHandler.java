@@ -53,6 +53,11 @@ public class HiveLeaderHandler {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getEntity();
         BiomassEventHandler.syncBiomass(player);
+        // 0.148n 修复：领巢者集合只在“被加入/移除”时广播，登录后不补发，
+        // 客户端的 HiveLeaderClientCache 会一直是空的 —— 指挥系统紫线因此每帧被拦掉。
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            HiveLeaderManager.syncTo(serverPlayer);
+        }
     }
 
     @SubscribeEvent
@@ -70,6 +75,12 @@ public class HiveLeaderHandler {
 
         applyEnderBladeProc(player, target, summary);
         applyBeckonMembraneProc(player, target, summary);
+
+        // 种阶特化的攻击附加效果（要求开启器官模型显示，内部自行判定）。
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            org.tdddd.epca.impl.overworld.data.organ.species.HiveLeaderSpeciesManager
+                    .onAttack(serverPlayer, target, summary);
+        }
     }
 
     private static void applyEnderBladeProc(Player player, LivingEntity target, OrganStatSummary summary) {

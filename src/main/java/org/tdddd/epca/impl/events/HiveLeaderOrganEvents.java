@@ -1,11 +1,12 @@
 package org.tdddd.epca.impl.events;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import org.tdddd.epca.impl.epca;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganCarry;
+import org.tdddd.epca.impl.overworld.data.organ.OrganModelDisplay;
 
 @EventBusSubscriber(modid = epca.MODID)
 public final class HiveLeaderOrganEvents {
@@ -37,5 +38,17 @@ public final class HiveLeaderOrganEvents {
             return;
         }
         HiveLeaderOrganDamageHandler.clear(player);
+        OrganModelDisplay.onPlayerJoin(player);
+    }
+
+    @SubscribeEvent
+    public static void onStartTracking(PlayerEvent.StartTracking event) {
+        if (!(event.getEntity() instanceof ServerPlayer viewer)) {
+            return;
+        }
+        if (!(event.getTarget() instanceof ServerPlayer target)) {
+            return;
+        }
+        OrganModelDisplay.sendTo(viewer, target);
     }
 }

@@ -108,6 +108,27 @@ public class ModNetwork {
         registrar.playToClient(SyncHiveLeaderOrgansPacket.TYPE, SyncHiveLeaderOrgansPacket.STREAM_CODEC,
                 SyncHiveLeaderOrgansPacket::handle);
 
+        // 领巢者种阶特化 + 内器官模型显示（2026-11 新增）
+        registrar.playToClient(SyncHiveLeaderSpeciesPacket.TYPE, SyncHiveLeaderSpeciesPacket.STREAM_CODEC,
+                SyncHiveLeaderSpeciesPacket::handle);
+        registrar.playToClient(SyncOrganModelDisplayPacket.TYPE, SyncOrganModelDisplayPacket.STREAM_CODEC,
+                SyncOrganModelDisplayPacket::handle);
+        registrar.playToServer(ToggleOrganModelPacket.TYPE, ToggleOrganModelPacket.STREAM_CODEC,
+                ToggleOrganModelPacket::handle);
+        registrar.playToServer(HiveLeaderSpeciesAbilityPacket.TYPE,
+                HiveLeaderSpeciesAbilityPacket.STREAM_CODEC,
+                HiveLeaderSpeciesAbilityPacket::handle);
+
+        // 寄生体指挥系统：菜单/按键 -> 服务端（C2S），服务端状态广播 -> 领巢者（S2C）
+        registrar.playToServer(
+                org.tdddd.epca.impl.network.packet.c2s.HiveCommandActionPacket.TYPE,
+                org.tdddd.epca.impl.network.packet.c2s.HiveCommandActionPacket.STREAM_CODEC,
+                org.tdddd.epca.impl.network.packet.c2s.HiveCommandActionPacket::handle);
+        registrar.playToClient(
+                org.tdddd.epca.impl.network.packet.s2c.SyncHiveCommandsPacket.TYPE,
+                org.tdddd.epca.impl.network.packet.s2c.SyncHiveCommandsPacket.STREAM_CODEC,
+                org.tdddd.epca.impl.network.packet.s2c.SyncHiveCommandsPacket::handle);
+
         registrar.playToClient(DismemberS2CPacket.TYPE, DismemberS2CPacket.STREAM_CODEC,
                 DismemberS2CPacket::handle);
 

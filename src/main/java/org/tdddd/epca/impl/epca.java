@@ -24,7 +24,9 @@ import org.apache.logging.log4j.Logger;
 import org.tdddd.eej.api.AltarInteractionRegistry;
 import org.tdddd.epca.impl.overworld.data.*;
 import org.tdddd.epca.impl.overworld.data.organ.HiveLeaderOrganEffects;
+import org.tdddd.epca.impl.overworld.data.organ.species.HiveLeaderSpeciesManager;
 import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatManager;
+import org.tdddd.epca.impl.overworld.data.organ.stats.OrganStatSummary;
 import org.tdddd.epca.impl.overworld.registry.blocks.EpcaAltarInteractionHandler;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.ModBlocks;
@@ -137,9 +139,11 @@ public class epca {
 
         if (!event.getEntity().level().isClientSide()) {
             if (HiveLeaderManager.isHiveLeader(event.getEntity().getUUID())) {
-                HiveLeaderOrganEffects.tick(event.getEntity());
+                OrganStatSummary organSummary = HiveLeaderOrganEffects.tick(event.getEntity());
+                HiveLeaderSpeciesManager.tick(event.getEntity(), organSummary);
             } else {
                 HiveLeaderOrganEffects.notLeader(event.getEntity());
+                HiveLeaderSpeciesManager.notLeader(event.getEntity());
             }
         }
     }

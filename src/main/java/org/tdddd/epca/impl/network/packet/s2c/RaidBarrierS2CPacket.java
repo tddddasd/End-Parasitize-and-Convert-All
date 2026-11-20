@@ -6,6 +6,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.tdddd.epca.impl.client.render.ClientRaidBarriers;
@@ -64,5 +65,18 @@ public class RaidBarrierS2CPacket implements CustomPacketPayload {
 
     public static void sync(ServerLevel level, InfestedRaidBarrierData data) {
         PacketDistributor.sendToPlayersInDimension(level, new RaidBarrierS2CPacket(data.all()));
+    }
+
+    /**
+     * 给<b>单个玩家</b>补发 {@code level} 这个维度当前所有活动屏障（0.148n）。
+     *
+     * <p>登录 / 换维度时用。原实现只有登录补发（{@code InfestedRaidManager#onLogin}），
+     * 而本包是 DIMENSION 目标、只在屏障创建 / 移除时广播，所以换维度之后目标维度已有的屏障
+     * 在客户端完全看不到。登录补发也复用这里，只发<b>目标维度</b>的活动条目。</p>
+     */
+    public static void sendAllTo(ServerPlayer player, ServerLevel level) {
+        InfestedRaidBarrierData data = InfestedRaidBarrierData.get(level);
+        data.prune();
+        PacketDistributor.sendToPlayer(player, new RaidBarrierS2CPacket(data.activeIn(level)));
     }
 }

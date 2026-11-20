@@ -458,6 +458,9 @@ public class LangDataEN extends LanguageProvider {
         add("key.epca.organ_teleport", "Organ Teleport (Pearls)");
 
         add("key.epca.decompose_parasite", "Decompose Parasite (aim at a parasite)");
+        add("key.epca.toggle_organ_model", "Toggle Inner Organ Model");
+        add("key.epca.species_convert_ripper", "Onesent: Ripper -> Hive Node (15 biomass)");
+        add("key.epca.species_reshape_buff", "Reshape: Strength / Speed / Saturation (3 biomass)");
         add("tag.epca.organ_part", "Organ Part");
 
         add("epca.organ_gui.title", "Nest Leader Organs");
@@ -497,9 +500,10 @@ public class LangDataEN extends LanguageProvider {
         add("epca.organ_gui.source.purple", "Purple slots bonus");
         add("epca.organ_gui.source.torso_inner", "Torso inner bonus");
         add("epca.organ_gui.source.head_inner", "Head inner bonus");
-        add("epca.organ_gui.readout.adaptation_chance", "Adaptation chance");
-        add("epca.organ_gui.readout.adaptation_reduction", "Adaptation damage reduction");
-        add("epca.organ_gui.readout.percent", "%");
+        add("epca.organ_gui.source.limb_inner", "Limb inner bonus");
+        add("epca.organ_gui.readout.species_adaptation", "Reshape adaptation");
+        add("epca.organ_gui.readout.species_adaptation_none", "Inactive (reshape only)");
+        add("epca.organ_gui.readout.species_adaptation_total", "%d/%d damage types");
 
         add("epca.note.title", "Para Curse Note");
         add("epca.message.stage_too_low", "The erosion stage here is below level 3...");

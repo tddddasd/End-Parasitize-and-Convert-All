@@ -19,8 +19,13 @@ public class HiveNodeBiomassCountDataProvider implements IServerDataProvider<Blo
         }
     }
 
+    /**
+     * 独立 id（不再与 {@link BiomassCountBlockDataProvider} 共用 {@code epca:kill_count_info}）：
+     * 两者是不同实例、写入的 NBT 语义也不同，同 id 会触发 Jade 的
+     * {@code Found different provider instances with same id} 警告。
+     */
     @Override
     public Identifier getUid() {
-        return EPCAJadeIds.BIOMASS_COUNT_INFO;
+        return EPCAJadeIds.HIVE_NODE_BIOMASS_COUNT_DATA;
     }
 }

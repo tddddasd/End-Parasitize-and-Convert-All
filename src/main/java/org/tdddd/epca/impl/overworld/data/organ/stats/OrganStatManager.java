@@ -20,6 +20,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * 器官属性 JSON（{@code data/epca/organ_stats/*.json}）的加载器。
+ *
+ * <p>2026-11 起器官<strong>不再提供适应属性</strong>：{@code adaptation_reduction}、
+ * {@code adaptation_rounds}、{@code adaptation_rounds_tags}、{@code adaptation_chance}、
+ * {@code damage_types}、{@code adaptable} 等键全部不再解析（旧数据文件里残留的同名字段会被
+ * {@link JsonObject} 忽略，不会产生任何效果）。保留的字段：{@code attributes} /
+ * {@code slot_bonuses} / {@code minimum_damage} / {@code minimum_damage_interval_ticks} /
+ * {@code damage_taken_add}，以及 {@code _defaults.json} 的 {@code damage_taken}。</p>
+ */
 public final class OrganStatManager implements ResourceManagerReloadListener {
 
     private static final Gson GSON = new GsonBuilder().create();
@@ -34,55 +44,15 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
 
     private static volatile OrganStatDefaults defaults = OrganStatDefaults.FALLBACK;
 
-    private static volatile Map<String, Map<String, Integer>> defaultRoundsByType = Map.of();
-
-    private static volatile Map<String, Map<String, Integer>> defaultRoundsByTag = Map.of();
-
     public OrganStatManager() {
-    }
-
-    public record RoundsTable(Map<String, Map<String, Integer>> byType,
-                              Map<String, Map<String, Integer>> byTag) {
-
-        public static final RoundsTable EMPTY = new RoundsTable(Map.of(), Map.of());
-
-        public RoundsTable {
-            byType = byType == null ? Map.of() : Map.copyOf(byType);
-            byTag = byTag == null ? Map.of() : Map.copyOf(byTag);
-        }
-
-        public boolean isEmpty() {
-            return byType.isEmpty() && byTag.isEmpty();
-        }
-
-        public RoundsTable mergedWith(@Nullable RoundsTable other) {
-            if (other == null || other.isEmpty()) return this;
-            if (this.isEmpty()) return other;
-            return new RoundsTable(mergeTables(this.byType, other.byType),
-                    mergeTables(this.byTag, other.byTag));
-        }
-
-        private static Map<String, Map<String, Integer>> mergeTables(
-                Map<String, Map<String, Integer>> left, Map<String, Map<String, Integer>> right) {
-            Map<String, Map<String, Integer>> merged = new LinkedHashMap<>();
-            left.forEach((key, table) -> merged.put(key, new LinkedHashMap<>(table)));
-            right.forEach((key, table) -> {
-                Map<String, Integer> target = merged.computeIfAbsent(key, ignored -> new LinkedHashMap<>());
-                table.forEach((tier, count) -> target.merge(tier, count, Integer::sum));
-            });
-            Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
-            merged.forEach((key, table) -> result.put(key, Map.copyOf(table)));
-            return Map.copyOf(result);
-        }
     }
 
     public record OrganStatEntry(
             Map<OrganSlotCondition, OrganStatProfile> profiles,
-            Map<OrganSlotCondition, RoundsTable> rounds,
             Map<String, Double> damageTakenAdd) {
 
         public static final OrganStatEntry EMPTY = new OrganStatEntry(
-                Map.of(OrganSlotCondition.BASE, OrganStatProfile.ZERO), Map.of(), Map.of());
+                Map.of(OrganSlotCondition.BASE, OrganStatProfile.ZERO), Map.of());
 
         public OrganStatEntry {
             Map<OrganSlotCondition, OrganStatProfile> safeProfiles = profiles == null
@@ -93,7 +63,6 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
                 safeProfiles = withBase;
             }
             profiles = Map.copyOf(safeProfiles);
-            rounds = rounds == null ? Map.of() : Map.copyOf(rounds);
             damageTakenAdd = damageTakenAdd == null ? Map.of() : Map.copyOf(damageTakenAdd);
         }
 
@@ -110,16 +79,6 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
                 }
             }
             return accumulator.toImmutable();
-        }
-
-        public RoundsTable roundsAt(@Nullable OrganSlotGroup group) {
-            RoundsTable merged = RoundsTable.EMPTY;
-            for (Map.Entry<OrganSlotCondition, RoundsTable> entry : rounds.entrySet()) {
-                if (entry.getKey().matches(group)) {
-                    merged = merged.mergedWith(entry.getValue());
-                }
-            }
-            return merged;
         }
     }
 
@@ -152,19 +111,6 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
         return id == null ? null : intervalOverrides.get(id);
     }
 
-    public static RoundsTable adaptationRoundsForItem(@Nullable Identifier itemId) {
-        return adaptationRoundsForItem(itemId, null);
-    }
-
-    public static RoundsTable adaptationRoundsForItem(@Nullable Identifier itemId,
-                                                      @Nullable OrganSlotGroup group) {
-        RoundsTable own = entryOf(itemId).roundsAt(group);
-        if (!own.isEmpty()) {
-            return own;
-        }
-        return new RoundsTable(defaultRoundsByType, defaultRoundsByTag);
-    }
-
     public static String describe() {
         int conditional = 0;
         for (OrganStatEntry entry : entries.values()) {
@@ -177,9 +123,7 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
         return "OrganStatManager[items=" + entries.size()
                 + ", conditionalBlocks=" + conditional
                 + ", intervalOverrides=" + intervalOverrides.size()
-                + ", defaultRoundsByType=" + defaultRoundsByType.size()
-                + ", defaultRoundsByTag=" + defaultRoundsByTag.size()
-                + ", damageTypes=" + defaults().damageTypes().size() + "]";
+                + ", damageTakenRows=" + defaults().damageTaken().size() + "]";
     }
 
     @Override
@@ -248,9 +192,6 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
 
     private static boolean looksLikeBareItem(JsonObject root) {
         return root.has("attributes") || root.has("minimum_damage")
-                || root.has("adaptation_reduction") || root.has("adaptation_rounds")
-                || root.has("adaptation_rounds_tags")
-
                 || root.has("slot_bonuses") || root.has("damage_taken_add");
     }
 
@@ -259,9 +200,8 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
                                   Map<Identifier, OrganStatEntry> entriesOut,
                                   Map<Identifier, Integer> intervalOut) {
         Map<OrganSlotCondition, OrganStatProfile> profiles = new LinkedHashMap<>();
-        Map<OrganSlotCondition, RoundsTable> rounds = new LinkedHashMap<>();
 
-        readBonusBlock(object, OrganSlotCondition.BASE, itemId, profiles, rounds, intervalOut);
+        readBonusBlock(object, OrganSlotCondition.BASE, itemId, profiles, intervalOut);
 
         JsonElement bonuses = object.get("slot_bonuses");
         if (bonuses != null && bonuses.isJsonArray()) {
@@ -275,21 +215,20 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
                     continue;
                 }
 
-                readBonusBlock(block, condition, itemId, profiles, rounds, null);
+                readBonusBlock(block, condition, itemId, profiles, null);
             }
         }
         profiles.putIfAbsent(OrganSlotCondition.BASE, OrganStatProfile.ZERO);
 
         Map<String, Double> damageTakenAdd = readDamageTakenAdd(asObject(object.get("damage_taken_add")));
 
-        entriesOut.put(itemId, new OrganStatEntry(profiles, rounds, damageTakenAdd));
+        entriesOut.put(itemId, new OrganStatEntry(profiles, damageTakenAdd));
     }
 
     private static void readBonusBlock(JsonObject block,
                                        OrganSlotCondition condition,
                                        Identifier itemId,
                                        Map<OrganSlotCondition, OrganStatProfile> profilesOut,
-                                       Map<OrganSlotCondition, RoundsTable> roundsOut,
                                        @Nullable Map<Identifier, Integer> intervalOut) {
         Map<String, Double> attributes = new LinkedHashMap<>();
         JsonObject attributeObject = asObject(block.get("attributes"));
@@ -301,21 +240,11 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
         }
         Double minimumDamage = asDouble(block.get("minimum_damage"));
         if (minimumDamage != null) attributes.put("minimum_damage", minimumDamage);
-        Double adaptationReduction = asDouble(block.get("adaptation_reduction"));
-        if (adaptationReduction != null) attributes.put("adaptation_reduction", adaptationReduction);
 
         OrganStatProfile profile = OrganStatProfile.fromJsonMap(attributes);
         if (!profile.isZero()) {
             OrganStatProfile existing = profilesOut.get(condition);
             profilesOut.put(condition, existing == null ? profile : existing.plus(profile));
-        }
-
-        Map<String, Map<String, Integer>> byType = readRoundsMap(asObject(block.get("adaptation_rounds")));
-        Map<String, Map<String, Integer>> byTag = readRoundsMap(asObject(block.get("adaptation_rounds_tags")));
-        if (!byType.isEmpty() || !byTag.isEmpty()) {
-            RoundsTable table = new RoundsTable(byType, byTag);
-            RoundsTable existing = roundsOut.get(condition);
-            roundsOut.put(condition, existing == null ? table : existing.mergedWith(table));
         }
 
         if (intervalOut != null) {
@@ -345,39 +274,6 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
         return (element != null && element.isJsonObject()) ? element.getAsJsonObject() : null;
     }
 
-    private static Map<String, Map<String, Integer>> readRoundsMap(@Nullable JsonObject object) {
-        Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
-        if (object == null) return result;
-        for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-            if (!entry.getValue().isJsonObject()) continue;
-            Map<String, Integer> table = readFlatRounds(entry.getValue().getAsJsonObject());
-            if (!table.isEmpty()) result.put(entry.getKey(), table);
-        }
-        return result;
-    }
-
-    private static Map<String, Integer> readFlatRounds(JsonObject object) {
-        Map<String, Integer> table = new LinkedHashMap<>();
-        if (object == null) return table;
-        for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-            if (!entry.getValue().isJsonPrimitive()) continue;
-            if (!isNumericKey(entry.getKey())) continue;
-            Integer value = asInt(entry.getValue());
-            if (value != null) table.put(entry.getKey(), value);
-        }
-        return table;
-    }
-
-    private static boolean isNumericKey(String key) {
-        if (key == null || key.isBlank()) return false;
-        try {
-            Double.parseDouble(key);
-            return true;
-        } catch (NumberFormatException ignored) {
-            return false;
-        }
-    }
-
     private static OrganStatDefaults readDefaults(ResourceManager resourceManager) {
         Identifier location = Identifier.fromNamespaceAndPath("epca", DIRECTORY + "/" + DEFAULTS_FILE + ".json");
         var resource = resourceManager.getResource(location);
@@ -390,39 +286,6 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
             if (root == null) return OrganStatDefaults.FALLBACK;
 
             Integer interval = asInt(root.get("minimum_damage_interval_ticks"));
-            Double chance = asDouble(root.get("adaptation_chance"));
-
-            List<OrganStatDefaults.DamageTypeDefaults> damageTypes = new ArrayList<>();
-            Map<String, Map<String, Integer>> roundsByType = new LinkedHashMap<>();
-            Map<String, Map<String, Integer>> roundsByTag = new LinkedHashMap<>();
-
-            if (root.get("damage_types") != null && root.get("damage_types").isJsonArray()) {
-                for (JsonElement element : root.getAsJsonArray("damage_types")) {
-                    if (!element.isJsonObject()) continue;
-                    JsonObject type = element.getAsJsonObject();
-                    Identifier typeId = type.has("type")
-                            ? Identifier.tryParse(type.get("type").getAsString()) : null;
-                    String tag = type.has("tag") ? type.get("tag").getAsString() : null;
-                    boolean adaptable = !type.has("adaptable") || type.get("adaptable").getAsBoolean();
-                    Map<String, Integer> roundsTable = readFlatRounds(asObject(type.get("adaptation_rounds")));
-                    if (roundsTable.isEmpty()) {
-                        roundsTable = readFlatRounds(type);
-                    }
-                    String label = type.has("label") ? type.get("label").getAsString() : null;
-                    if (label == null || label.isBlank()) {
-                        label = typeId != null ? typeId.toString() : (tag != null ? tag : "?");
-                    }
-                    damageTypes.add(new OrganStatDefaults.DamageTypeDefaults(
-                            typeId, tag, label, adaptable, roundsTable));
-                    if (!roundsTable.isEmpty()) {
-                        if (tag != null && !tag.isBlank()) {
-                            roundsByTag.put(stripHash(tag), roundsTable);
-                        } else if (typeId != null) {
-                            roundsByType.put(typeId.toString(), roundsTable);
-                        }
-                    }
-                }
-            }
 
             List<OrganStatDefaults.DamageTakenEntry> damageTaken = new ArrayList<>();
             if (root.get("damage_taken") != null && root.get("damage_taken").isJsonArray()) {
@@ -438,13 +301,8 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
                 }
             }
 
-            defaultRoundsByType = Map.copyOf(roundsByType);
-            defaultRoundsByTag = Map.copyOf(roundsByTag);
-
             return new OrganStatDefaults(
                     interval == null ? OrganStatDefaults.DEFAULT_INTERVAL_TICKS : interval,
-                    chance == null ? OrganStatDefaults.DEFAULT_ADAPTATION_CHANCE : chance,
-                    damageTypes.isEmpty() ? OrganStatDefaults.FALLBACK.damageTypes() : damageTypes,
                     damageTaken.isEmpty() ? OrganStatDefaults.FALLBACK.damageTaken() : damageTaken);
         } catch (Exception e) {
             System.err.println("[epca] 读取 " + location + " 失败，器官读数使用内置默认值: " + e);
@@ -455,7 +313,6 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
     @Nullable
     private static Identifier itemIdOf(@Nullable ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
-
         return BuiltInRegistries.ITEM.getKey(stack.getItem());
     }
 
@@ -487,10 +344,6 @@ public final class OrganStatManager implements ResourceManagerReloadListener {
         } catch (RuntimeException ignored) {
             return null;
         }
-    }
-
-    private static String stripHash(String tag) {
-        return tag.startsWith("#") ? tag.substring(1) : tag;
     }
 
     static boolean isFallbackKey(String key) {

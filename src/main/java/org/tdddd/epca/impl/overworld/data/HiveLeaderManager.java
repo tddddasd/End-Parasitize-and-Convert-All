@@ -48,4 +48,20 @@ public class HiveLeaderManager {
         Set<UUID> leaders = data.getLeaders();
         ModNetwork.sendToAll(new SyncHiveLeadersPacket(leaders));
     }
+
+    /**
+     * 把当前领巢者集合补发给一名玩家。
+     *
+     * <p>0.148n 修复：{@link #broadcastLeaders()} 只在“加入/移除领巢者”时被调用，
+     * 玩家登录 / 换维度都<b>不会</b>补发。于是只要领巢者身份是上一次游戏就存进存档的，
+     * 本次会话客户端的 {@code HiveLeaderClientCache} 就一直是空的
+     * （指挥系统紫线因此每帧被守卫拦掉、生物量 HUD 与寄生诅咒判定也会看错人）。
+     * 登录时补一发即可，代价一个包。</p>
+     */
+    public static void syncTo(net.minecraft.server.level.ServerPlayer player) {
+        if (player == null) return;
+        HiveLeaderSavedData data = getSavedData();
+        if (data == null) return;
+        ModNetwork.sendToPlayer(player, new SyncHiveLeadersPacket(data.getLeaders()));
+    }
 }

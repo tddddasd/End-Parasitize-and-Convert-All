@@ -25,6 +25,9 @@ import java.util.UUID;
 
 public final class HiveLeaderOrganEffects {
 
+    /** 器官移动/游泳速度加成的保留比例：1 - 0.8 = 0.2（削减 80%）。 */
+    private static final double ORGAN_SPEED_BONUS_SCALE = 0.2D;
+
     private static final class Slots {
         static final List<AttributeSlot> ALL = List.of(
                 new AttributeSlot("health", Attributes.MAX_HEALTH),
@@ -80,8 +83,14 @@ public final class HiveLeaderOrganEffects {
     private HiveLeaderOrganEffects() {
     }
 
-    public static void tick(Player player) {
-        if (player == null || player.level().isClientSide()) return;
+    /**
+     * 每 tick 结算器官属性/独特器官效果，并把算好的器官读数返回给调用方
+     * （种阶特化复用同一份 {@link OrganStatSummary}，避免重复遍历器官槽）。
+     *
+     * @return 服务端返回器官读数；客户端/空玩家返回 {@code null}
+     */
+    public static OrganStatSummary tick(Player player) {
+        if (player == null || player.level().isClientSide()) return null;
 
         ACTIVE.add(player.getUUID());
 
@@ -94,8 +103,9 @@ public final class HiveLeaderOrganEffects {
         applyAttribute(player, "armor_toughness", total.armorToughness());
         applyAttribute(player, "attack_damage", total.attackDamage());
         applyAttribute(player, "knockback_resistance", total.knockbackResistance());
-        applyAttribute(player, "movement_speed", total.movementSpeed());
-        applyAttribute(player, "swim_speed", total.swimSpeed());
+        // 器官提供的移动/游泳速度加成统一削减 80%（只削器官来源，不影响其它来源与种阶修饰符）
+        applyAttribute(player, "movement_speed", total.movementSpeed() * ORGAN_SPEED_BONUS_SCALE);
+        applyAttribute(player, "swim_speed", total.swimSpeed() * ORGAN_SPEED_BONUS_SCALE);
         applyAttribute(player, "attack_range", total.attackRange());
         applyAttribute(player, "block_reach", total.blockReach());
 
@@ -104,6 +114,8 @@ public final class HiveLeaderOrganEffects {
         for (UniqueEffect effect : UNIQUE_EFFECTS) {
             effect.tick(player, summary);
         }
+
+        return summary;
     }
 
     static void applyUniqueAttribute(Player player, String key, double value) {

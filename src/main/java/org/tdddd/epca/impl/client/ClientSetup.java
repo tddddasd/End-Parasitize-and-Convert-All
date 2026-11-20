@@ -75,6 +75,14 @@ public class ClientSetup {
         event.register(HiveLeaderOrganKeys.OPEN_ORGANS);
         event.register(HiveLeaderOrganKeys.TELEPORT);
         event.register(HiveLeaderOrganKeys.DECOMPOSE_PARASITE);
+        event.register(HiveLeaderOrganKeys.TOGGLE_ORGAN_MODEL);
+        event.register(HiveLeaderOrganKeys.SPECIES_CONVERT_RIPPER);
+        event.register(HiveLeaderOrganKeys.SPECIES_RESHAPE_BUFF);
+
+        // 寄生体指挥系统三键（默认未绑定，类别复用 epca:keys）
+        event.register(org.tdddd.epca.impl.client.command.HiveCommandKeys.OPEN_MENU);
+        event.register(org.tdddd.epca.impl.client.command.HiveCommandKeys.ADD_ROUTE_POINT);
+        event.register(org.tdddd.epca.impl.client.command.HiveCommandKeys.FINISH_ROUTE);
     }
 
     @SubscribeEvent

@@ -343,7 +343,7 @@ public class EPCANoteScreen extends Screen {
         }
         syncRequested = true;
         try {
-            ModNetwork.sendToServer(new NoteSyncRequestPacket());
+            ModNetwork.sendToServer(NoteSyncRequestPacket.INSTANCE);
         } catch (Throwable ignored) {
             // 单机 / 连接异常时保持“未解锁”的保守状态即可
         }

@@ -455,6 +455,9 @@ public class LangDataCN extends LanguageProvider {
         add("key.epca.organ_teleport", "器官瞬移（末影珍珠）");
 
         add("key.epca.decompose_parasite", "分解寄生体（准星指向寄生体）");
+        add("key.epca.toggle_organ_model", "切换内器官模型显示");
+        add("key.epca.species_convert_ripper", "初探种：裂兽 → 虫巢节点（15 生物质）");
+        add("key.epca.species_reshape_buff", "重塑种：力量 / 迅捷 / 饱和（3 生物质）");
         add("tag.epca.organ_part", "器官部位");
 
         add("epca.organ_gui.title", "领巢者器官");
@@ -494,9 +497,10 @@ public class LangDataCN extends LanguageProvider {
         add("epca.organ_gui.source.purple", "紫色槽增幅");
         add("epca.organ_gui.source.torso_inner", "躯干内部增幅");
         add("epca.organ_gui.source.head_inner", "头部内部增幅");
-        add("epca.organ_gui.readout.adaptation_chance", "适应概率");
-        add("epca.organ_gui.readout.adaptation_reduction", "适应满减免");
-        add("epca.organ_gui.readout.percent", "%");
+        add("epca.organ_gui.source.limb_inner", "四肢内部增幅");
+        add("epca.organ_gui.readout.species_adaptation", "重塑种适应");
+        add("epca.organ_gui.readout.species_adaptation_none", "未激活（仅重塑种）");
+        add("epca.organ_gui.readout.species_adaptation_total", "%d/%d 伤害类型");
 
         add("epca.note.title", "虫咒笔记");
         add("epca.message.stage_too_low", "这里的侵蚀阶段小于3级...");

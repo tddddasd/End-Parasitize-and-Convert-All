@@ -38,8 +38,11 @@ public final class HiveLeaderOrganGate {
 
     public static boolean canModifyGroup(LivingEntity hiveLeader, OrganSlotGroup group) {
         if (group == null || hiveLeader == null) return false;
-        if (!group.kind().isInnerGrid()) {
 
+        // 只有“受召唤柱限制”的内部槽才需要检查 beckon：
+        // 四肢内部槽（RED_LIMB_INNER）的 summonPillarRequired() 为 false，
+        // 因此这里直接放行，更换四肢内器官不再依赖召唤柱。
+        if (!group.kind().summonPillarRequired()) {
             return true;
         }
         if (group == OrganSlotGroup.TORSO_INNER) {
@@ -98,6 +101,8 @@ public final class HiveLeaderOrganGate {
         public static final Gates CLOSED = new Gates(false, false);
 
         public boolean openFor(OrganSlotGroup group) {
+            // 四肢内部槽不受召唤柱限制：先判 summonPillarRequired，再判具体内部区。
+            if (group == null || !group.kind().summonPillarRequired()) return true;
             if (group == OrganSlotGroup.TORSO_INNER) return torsoInnerOpen;
             if (group == OrganSlotGroup.HEAD_INNER) return headInnerOpen;
             return true;
