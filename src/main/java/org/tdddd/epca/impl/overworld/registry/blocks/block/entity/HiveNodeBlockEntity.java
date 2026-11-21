@@ -24,6 +24,7 @@ import org.tdddd.epca.impl.overworld.registry.blocks.InfestedBlockInterface;
 import org.tdddd.epca.impl.overworld.registry.blocks.ModBlockEntities;
 import org.tdddd.epca.impl.overworld.registry.blocks.block.HiveNode;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.Curbug;
+import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.Fins;
 import org.tdddd.epca.impl.overworld.registry.entities.entity.onesent.Ripper;
 
 public class HiveNodeBlockEntity extends BlockEntity
@@ -32,6 +33,19 @@ public class HiveNodeBlockEntity extends BlockEntity
     public static final int MAX_BIOMASS_COUNT = 64;
 
     private static final int CURBUG_INTERVAL_TICKS = 60 * 20;
+
+    /**
+     * 虫巢节点召唤上限：以节点为中心、半径 {@value #CURBUG_CROWD_RADIUS} 格（AABB {@code inflate}）内，
+     * {@code epca:curbug} / {@code epca:ripper} / {@code epca:fins} 三类寄生体的存活总数超过该值时，
+     * 节点不再生成新的诅虫（其它生成逻辑——生物质吸收、结构扫描、侵染——完全不受影响）。
+     */
+    private static final double CURBUG_CROWD_RADIUS = 48.0D;
+
+    private static final int CURBUG_CROWD_LIMIT = 16;
+
+    /** 统计节流：同一节点最多每 100 tick 全量扫描一次，结果缓存到下次重算。 */
+    private static final int CURBUG_CROWD_CHECK_TICKS = 100;
+
     private static final int GROWTH_CHECK_TICKS = 20;
     private static final int GROWTH_MIN_TICKS = 15 * 20;
     private static final int GROWTH_MAX_TICKS = 30 * 20;
@@ -50,6 +64,11 @@ public class HiveNodeBlockEntity extends BlockEntity
 
     private boolean natural = false;
     private int spawnTimer = 0;
+
+    /** 上一回统计到的「节点附近寄生体总数」与统计时的 gameTime（节流用）。 */
+    private int curbugCrowdCount = 0;
+    private long curbugCrowdCheckedTick = Long.MIN_VALUE;
+
     private int growthTimer = 0;
     private int infestTimer = 0;
     private int infestTarget = 0;
@@ -213,6 +232,12 @@ public class HiveNodeBlockEntity extends BlockEntity
 
     private boolean spawnCurbug(ServerLevel level) {
 
+        // 半径 48 格内寄生体（诅虫 / 裂兽 / 鳍虫）超过 16 只时停止召唤：整个节点区域已经饱和。
+        // 必须在最前置判断：不消耗生物质、不放任何粒子。
+        if (isCurbugCrowdFull(level)) {
+            return false;
+        }
+
         net.minecraft.core.BlockPos above = this.worldPosition.above();
         if (level.getBlockState(above).isCollisionShapeFullBlock(level, above)) {
             return false;
@@ -231,6 +256,45 @@ public class HiveNodeBlockEntity extends BlockEntity
         spawnOnesentConversionParticles(level,
                 this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 1.5D, this.worldPosition.getZ() + 0.5D);
         return true;
+    }
+
+    /**
+     * 节点周边寄生体数量是否已经达到上限（&gt; {@link #CURBUG_CROWD_LIMIT}）。
+     *
+     * <p>统计结果按 {@link #CURBUG_CROWD_CHECK_TICKS} 节流缓存：一次 {@code getEntitiesOfClass} 只会在
+     * 缓存过期时执行，避免每个节点每次生成都做一次半径 48 格的全量实体扫描。</p>
+     */
+    private boolean isCurbugCrowdFull(ServerLevel level) {
+        long now = level.getGameTime();
+        boolean stale = this.curbugCrowdCheckedTick == Long.MIN_VALUE
+                || now < this.curbugCrowdCheckedTick
+                || now - this.curbugCrowdCheckedTick >= CURBUG_CROWD_CHECK_TICKS;
+        if (stale) {
+            this.curbugCrowdCount = countCurbugCrowd(level);
+            this.curbugCrowdCheckedTick = now;
+            if (this.curbugCrowdCount > CURBUG_CROWD_LIMIT) {
+                // 只在重新统计时打一条 DEBUG，避免每个 tick 刷屏
+                org.tdddd.epca.impl.epca.LOGGER.debug(
+                        "[epca] 虫巢节点 {} 半径 {} 格内寄生体总数 {} > {}，暂停生成诅虫",
+                        this.worldPosition, (int) CURBUG_CROWD_RADIUS,
+                        this.curbugCrowdCount, CURBUG_CROWD_LIMIT);
+            }
+        }
+        return this.curbugCrowdCount > CURBUG_CROWD_LIMIT;
+    }
+
+    /** 半径 {@link #CURBUG_CROWD_RADIUS} 格（AABB inflate）内的寄生体总数。 */
+    private int countCurbugCrowd(ServerLevel level) {
+        AABB area = new AABB(this.worldPosition).inflate(CURBUG_CROWD_RADIUS);
+        return level.getEntitiesOfClass(LivingEntity.class, area,
+                HiveNodeBlockEntity::isCurbugCrowdMember).size();
+    }
+
+    /** 计入召唤上限的寄生体：诅虫、裂兽、鳍虫（含各自的变体，按运行时类型判断）。 */
+    private static boolean isCurbugCrowdMember(LivingEntity entity) {
+        return entity instanceof Curbug
+                || entity instanceof Ripper
+                || entity instanceof Fins;
     }
 
     /**

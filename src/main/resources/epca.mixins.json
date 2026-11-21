@@ -12,6 +12,7 @@
     "common.EnchantmentMenuMixin",
     "common.LightningRodBlockMixin",
     "common.LivingEntityMixin",
+    "common.MilkConsumeEffectMixin",
     "common.MobMixin",
     "common.ParasiteAiThrottleMixin",
     "common.PointedDripstoneBlockMixin",

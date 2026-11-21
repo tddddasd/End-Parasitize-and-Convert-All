@@ -147,6 +147,8 @@ public class ClientHandler {
 
         org.tdddd.epca.impl.client.render.ItemShaderPipelines.registerPipeline(event);
 
+        org.tdddd.epca.impl.client.render.AfterimagePipelines.registerPipeline(event);
+
         org.tdddd.epca.impl.client.render.ritual.RitualQuadRenderType.registerPipeline(event);
 
         org.tdddd.epca.impl.client.render.araya.ArayaSlashRenderType.registerPipeline(event);

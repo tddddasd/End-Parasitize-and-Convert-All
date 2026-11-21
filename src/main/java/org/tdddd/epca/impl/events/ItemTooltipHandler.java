@@ -191,7 +191,16 @@ public class ItemTooltipHandler {
         registerTooltip(ModItems.INFESTED_MANGROVE_ROOTS, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_MUDDY_MANGROVE_ROOTS, "item.epca.category_infested");
         registerTooltip(ModItems.INFESTED_DEAD_BUSH, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_BUSH, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_MOSS_BLOCK, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_MOSS_CARPET, "item.epca.category_infested");
 
+        // 两种虫染枯草：虫染种
+        registerTooltip(ModItems.INFESTED_SHORT_DRY_GRASS, "item.epca.category_infested");
+        registerTooltip(ModItems.INFESTED_TALL_DRY_GRASS, "item.epca.category_infested");
+
+        // 虫巢节点：连结种
+        registerTooltip(ModItems.HIVE_NODE, "item.epca.category_link");
         registerTooltip(ModItems.BECKON_CORE, "item.epca.category_link");
     }
 
