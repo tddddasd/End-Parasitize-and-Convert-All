@@ -15,6 +15,7 @@
     "common.LightningRodBlockMixin",
     "common.LivingEntityMixin",
     "common.MerchantOfferMixin",
+    "common.MilkBucketItemMixin",
     "common.MobMixin",
     "common.ParasiteAiThrottleMixin",
     "common.PointedDripstoneBlockMixin",

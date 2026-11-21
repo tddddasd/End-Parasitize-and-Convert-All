@@ -1,10 +1,14 @@
 package org.tdddd.epca.impl.client.entity.layer;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -88,36 +92,93 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
         List<AfterimageData> afterimages = AFTERIMAGES.get(entity.getUUID());
         if (afterimages == null || afterimages.isEmpty()) return;
         afterimages.removeIf(data -> !data.isAlive(currentTick));
+        if (afterimages.isEmpty()) return;
 
         ResourceLocation afterimageTex = getAfterimageTexture(entity);
-        RenderType afterimageRenderType = RenderType.entityTranslucent(afterimageTex);
-        for (AfterimageData data : afterimages) {
-            float fade = data.getAlpha(currentTick);
-            if (fade <= 0.0F) continue;
+        RenderType afterimageRenderType = afterimageRenderType(afterimageTex);
 
-            poseStack.pushPose();
+        // 从远到近绘制：残影之间按距离正确混合，近处的残影后画，不会盖住远处那只。
+        afterimages.sort((a, b) -> Double.compare(
+                b.position.distanceToSqr(entity.getX(), entity.getY(), entity.getZ()),
+                a.position.distanceToSqr(entity.getX(), entity.getY(), entity.getZ())));
 
-            Vec3 afterPos = data.position;
-            poseStack.translate(
-                    afterPos.x - entity.getX(),
-                    afterPos.y - entity.getY() + 0.02,
-                    afterPos.z - entity.getZ()
-            );
+        // 残影必须是"真半透明且不写深度"：写深度会让后面的实体 / 粒子在深度测试里被挡掉。
+        // 这里额外显式关掉深度写入并开启混合，所选 RenderType 本身也是 COLOR_WRITE（无深度写入）。
+        RenderSystem.depthMask(false);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        try {
+            for (AfterimageData data : afterimages) {
+                float fade = data.getAlpha(currentTick);
+                if (fade <= 0.0F) continue;
 
-            float liveYaw = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot());
-            poseStack.mulPose(Axis.YP.rotationDegrees(-liveYaw));
-            poseStack.mulPose(Axis.YP.rotationDegrees(data.yRot));
+                poseStack.pushPose();
 
-            Map<String, BoneSnapshot> savedPose = new HashMap<>();
-            walkApply(bakedModel, data.bonePose, savedPose);
-            float alpha = fade * MAX_ALPHA;
-            VertexConsumer buf = bufferSource.getBuffer(afterimageRenderType);
-            renderer.renderModelWithAlphaFrozenPose(poseStack, entity, bakedModel, afterimageRenderType,
-                    bufferSource, buf, partialTick, packedLight,
-                    OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, alpha, data.bonePose);
-            walkRestore(bakedModel, savedPose);
+                Vec3 afterPos = data.position;
+                poseStack.translate(
+                        afterPos.x - entity.getX(),
+                        afterPos.y - entity.getY() + 0.02,
+                        afterPos.z - entity.getZ()
+                );
 
-            poseStack.popPose();
+                float liveYaw = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot());
+                poseStack.mulPose(Axis.YP.rotationDegrees(-liveYaw));
+                poseStack.mulPose(Axis.YP.rotationDegrees(data.yRot));
+
+                Map<String, BoneSnapshot> savedPose = new HashMap<>();
+                walkApply(bakedModel, data.bonePose, savedPose);
+                float alpha = fade * MAX_ALPHA;
+                VertexConsumer buf = bufferSource.getBuffer(afterimageRenderType);
+                renderer.renderModelWithAlphaFrozenPose(poseStack, entity, bakedModel, afterimageRenderType,
+                        bufferSource, buf, partialTick, packedLight,
+                        OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, alpha, data.bonePose);
+                walkRestore(bakedModel, savedPose);
+
+                poseStack.popPose();
+            }
+        } finally {
+            RenderSystem.depthMask(true);
+            RenderSystem.disableBlend();
+        }
+    }
+
+    /** 残影专用 RenderType 缓存：按贴图复用，避免每帧重建。 */
+    private static final Map<ResourceLocation, RenderType> RENDER_TYPES = new HashMap<>();
+
+    private static RenderType afterimageRenderType(ResourceLocation texture) {
+        return RENDER_TYPES.computeIfAbsent(texture, AfterimageRenderType::create);
+    }
+
+    /**
+     * 与 {@link RenderType#entityTranslucent(ResourceLocation)} 等价，但 {@code writeMask} 是
+     * {@code COLOR_WRITE}（只写颜色、不写深度）——这是"能透过残影看到后面的实体"的关键。
+     */
+    private static final class AfterimageRenderType extends RenderType {
+
+        private static final int BUFFER_SIZE = 256;
+
+        private AfterimageRenderType(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize,
+                                     boolean affectsCrumbling, boolean sortOnUpload,
+                                     RenderType.CompositeState state) {
+            super(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, () -> {
+            }, () -> {
+            });
+        }
+
+        private static RenderType create(ResourceLocation texture) {
+            RenderType.CompositeState state = RenderType.CompositeState.builder()
+                    .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+                    .setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setCullState(NO_CULL)
+                    .setLightmapState(LIGHTMAP)
+                    .setOverlayState(OVERLAY)
+                    .setDepthTestState(LEQUAL_DEPTH_TEST)
+                    // 不写深度：残影不会把后面的实体挡住
+                    .setWriteMaskState(COLOR_WRITE)
+                    .createCompositeState(false);
+            return new AfterimageRenderType("epca_afterimage", DefaultVertexFormat.NEW_ENTITY,
+                    VertexFormat.Mode.QUADS, BUFFER_SIZE, false, true, state);
         }
     }
 
