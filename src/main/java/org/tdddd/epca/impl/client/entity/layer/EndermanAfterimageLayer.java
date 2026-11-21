@@ -35,6 +35,8 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     private static final int AFTERIMAGE_LIFETIME = 20;
     private static final int MAX_AFTERIMAGES = 12;
     private static final float MAX_ALPHA = 0.55F;
+    /** 与 vanilla entity_translucent 相同的顶点缓冲大小。 */
+    private static final int BUFFER_SIZE = 256;
 
     private static final Map<UUID, List<AfterimageData>> AFTERIMAGES = new HashMap<>();
     private static final Map<UUID, Integer> LAST_SPAWN_TICK = new HashMap<>();
@@ -102,11 +104,15 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
                 b.position.distanceToSqr(entity.getX(), entity.getY(), entity.getZ()),
                 a.position.distanceToSqr(entity.getX(), entity.getY(), entity.getZ())));
 
-        // 残影必须是"真半透明且不写深度"：写深度会让后面的实体 / 粒子在深度测试里被挡掉。
-        // 这里额外显式关掉深度写入并开启混合，所选 RenderType 本身也是 COLOR_WRITE（无深度写入）。
-        RenderSystem.depthMask(false);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
+        // 残影必须"真半透明且不写深度"：写深度会让后面的实体 / 粒子在深度测试里被挡掉。
+        // 这件事完全由 RenderType 自己的 WriteMaskStateShard(COLOR_WRITE) 在 draw 时完成
+        // （setup -> depthMask(false)，clear -> depthMask(true)），和 vanilla 的 entity_translucent
+        // 走的是同一条路径，所以这里不再手动改 GL 状态，避免和合批时机错位。
+        //
+        // alpha 只能走顶点色：MultiBufferSource 的顶点要等本层 return 之后才真正 draw，
+        // 若用 setShaderColor 传 alpha，draw 时 ColorModulator 早已被 finally 复位，要么无效、
+        // 要么误伤之后别人的 draw。这里只保证 ColorModulator 恒为纯白（RGB=1），并复位。
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         try {
             for (AfterimageData data : afterimages) {
                 float fade = data.getAlpha(currentTick);
@@ -137,8 +143,7 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
                 poseStack.popPose();
             }
         } finally {
-            RenderSystem.depthMask(true);
-            RenderSystem.disableBlend();
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 
@@ -150,35 +155,50 @@ public class EndermanAfterimageLayer implements IGeoLayerProvider {
     }
 
     /**
-     * 与 {@link RenderType#entityTranslucent(ResourceLocation)} 等价，但 {@code writeMask} 是
-     * {@code COLOR_WRITE}（只写颜色、不写深度）——这是"能透过残影看到后面的实体"的关键。
+     * 与 vanilla {@code RenderType.entityTranslucent(texture, true)} 的状态分片逐项完全一致，
+     * 唯一区别是 {@code writeMaskState} 由 {@code COLOR_DEPTH_WRITE} 换成 {@code COLOR_WRITE}
+     * （只写颜色、不写深度）—— 这是"能透过残影看到后面的实体"的关键。
+     *
+     * <p>本类<b>只作为 {@code RenderStateShard} 里 protected 状态分片常量的访问壳</b>（不继承就拿不到
+     * {@code TRANSLUCENT_TRANSPARENCY} / {@code NO_CULL} / {@code COLOR_WRITE} 这些字段），永远不会被
+     * 实例化。真正的 RenderType 必须通过 {@link RenderType#create(String, VertexFormat,
+     * VertexFormat.Mode, int, boolean, boolean, RenderType.CompositeState)} 生成：它返回
+     * CompositeRenderType，并把 {@code createCompositeState(...)} 汇总出来的 setup / clear Runnable
+     * 交给基类，draw 时逐个执行每个状态分片。</p>
+     *
+     * <p>之前的写法是自己 {@code new} 一个 RenderType 子类并传 {@code () -> {}} / {@code () -> {}}：
+     * 那条路径下 setup / clear 什么都不做 —— 不绑定 RENDERTYPE_ENTITY_TRANSLUCENT 着色器、
+     * 不绑定 Sampler0 贴图、不开透明混合、不设输出目标，于是画出来就是纯黑。</p>
      */
     private static final class AfterimageRenderType extends RenderType {
 
-        private static final int BUFFER_SIZE = 256;
-
-        private AfterimageRenderType(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize,
-                                     boolean affectsCrumbling, boolean sortOnUpload,
-                                     RenderType.CompositeState state) {
-            super(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, () -> {
-            }, () -> {
-            });
+        /** 永不被调用的构造器：本类只借用继承来的 protected 状态分片常量。 */
+        private AfterimageRenderType() {
+            super("epca_afterimage_unused", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,
+                    BUFFER_SIZE, false, false, () -> {
+                    }, () -> {
+                    });
         }
 
         private static RenderType create(ResourceLocation texture) {
             RenderType.CompositeState state = RenderType.CompositeState.builder()
+                    // 与 entity_translucent 相同的着色器
                     .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+                    // Sampler0 = 残影贴图（blur=false、mipmap=false，与 vanilla 一致）
                     .setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
+                    // SRC_ALPHA / ONE_MINUS_SRC_ALPHA + 开启混合
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    // vanilla 的默认值就是 LEQUAL_DEPTH_TEST，显式写出来便于逐项对照
+                    .setDepthTestState(LEQUAL_DEPTH_TEST)
                     .setCullState(NO_CULL)
                     .setLightmapState(LIGHTMAP)
                     .setOverlayState(OVERLAY)
-                    .setDepthTestState(LEQUAL_DEPTH_TEST)
-                    // 不写深度：残影不会把后面的实体挡住
+                    // ← 唯一与 vanilla entity_translucent 不同的地方：只写颜色，不写深度
                     .setWriteMaskState(COLOR_WRITE)
-                    .createCompositeState(false);
-            return new AfterimageRenderType("epca_afterimage", DefaultVertexFormat.NEW_ENTITY,
-                    VertexFormat.Mode.QUADS, BUFFER_SIZE, false, true, state);
+                    .createCompositeState(true);
+            // 其余参数与 vanilla 完全一致：NEW_ENTITY / QUADS / 256 / affectsCrumbling=true / sortOnUpload=true
+            return RenderType.create("epca_afterimage", DefaultVertexFormat.NEW_ENTITY,
+                    VertexFormat.Mode.QUADS, BUFFER_SIZE, true, true, state);
         }
     }
 
